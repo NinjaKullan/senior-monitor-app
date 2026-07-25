@@ -60,7 +60,11 @@ No thresholds, no percentiles, no inference — that is Phase 2 and a separate s
 |---|---|---|
 | Noon (12:00 IST) | zero alarm-grade pings since 05:00 IST | `⚠️ {who}: no routine pings this morning (last seen X ago)…` |
 | Evening (20:00 IST) | still zero, **and** the noon alert already fired | `⚠️ {who}: still no routine pings today…` |
-| Infra (hourly) | no device at all has pinged in 24h | `🔧 Pipeline silent 24h — server up but nothing arriving.` |
+| Infra (hourly) | no device at all has pinged in 24h, once at least one ping has ever arrived | `🔧 Pipeline silent 24h — server up but nothing arriving.` |
+
+The infra rule stays silent on a database that has never received a ping: that
+means the phones are not instrumented yet, not that a working pipeline broke, and a
+server nagging daily before setup would only train the founder to ignore the alert.
 
 Each `(kind, who)` fires at most once per IST day. Every alert is written to `alerts`
 whether or not delivery succeeds. With `NTFY_TOPIC` empty the monitor is log-only.

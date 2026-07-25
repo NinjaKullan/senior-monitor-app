@@ -129,10 +129,13 @@ def run_checks(
                 _fire(conn, notifier, KIND_EVENING, who, detail, now)
                 fired.append(KIND_EVENING)
 
-    # Infra check (hourly): the whole pipeline is silent.
+    # Infra check (hourly): a pipeline that was working has gone silent.
+    # A database with no pings at all means the phones are not instrumented
+    # yet, not that anything broke — alerting daily before setup would just
+    # train the founder to ignore the 🔧 alert.
     if not already(KIND_INFRA, NO_PERSON):
         last = db.last_ping_any(conn)
-        silent = last is None or (now - parse_utc(last["ts_utc"])) >= INFRA_SILENCE
+        silent = last is not None and (now - parse_utc(last["ts_utc"])) >= INFRA_SILENCE
         if silent:
             detail = "🔧 Pipeline silent 24h — server up but nothing arriving."
             _fire(conn, notifier, KIND_INFRA, NO_PERSON, detail, now)

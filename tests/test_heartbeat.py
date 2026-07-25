@@ -133,6 +133,24 @@ def test_infra_check_fires_when_pipeline_is_silent(settings, conn, ntfy):
     assert len(ntfy.requests) == 1
 
 
+def test_infra_check_stays_quiet_until_the_first_ever_ping(settings, conn, ntfy):
+    """An empty DB means 'not set up yet', not 'broken' — no infra alert at any hour."""
+    for hour in (0, 9, 12, 20, 23):
+        fired = run_checks(
+            conn, settings, ntfy.notifier, datetime(2026, 7, 25, hour, 0, tzinfo=IST)
+        )
+        assert KIND_INFRA not in fired
+
+    assert [r["kind"] for r in _alerts(conn)] == [KIND_NOON, KIND_NOON, KIND_EVENING, KIND_EVENING]
+    assert all("Pipeline silent" not in body for body in ntfy.bodies)
+
+    # Once a ping has arrived, 24h of silence does fire.
+    _ping(conn, "mom", "whatsapp", datetime(2026, 7, 26, 6, 0, tzinfo=IST))
+    later = datetime(2026, 7, 27, 9, 0, tzinfo=IST)
+    assert run_checks(conn, settings, ntfy.notifier, later) == [KIND_INFRA]
+    assert "Pipeline silent 24h" in ntfy.bodies[-1]
+
+
 def test_infra_check_quiet_when_pings_are_recent(settings, conn, ntfy):
     _ping(conn, "dad", "news", datetime(2026, 7, 25, 7, 0, tzinfo=IST))
     assert run_checks(conn, settings, ntfy.notifier, datetime(2026, 7, 25, 9, 0, tzinfo=IST)) == []
