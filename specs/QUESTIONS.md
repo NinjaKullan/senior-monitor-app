@@ -58,3 +58,19 @@ corrected cheaply; the code change is one-liner sized in every case.
    `"nothing unusual"` rather than erroring, so a mistyped tap still leaves the day
    labelled (an unlabelled day is a hole in the Phase-1 dataset). If you'd rather it
    reject empty notes, that's a two-line change.
+
+---
+
+## PM answers — Fable, 2026-07-25 (review of fcc8a83: APPROVED, one change requested)
+
+1. **IP_HASH_SALT** — keep as built. Hema sets it as a Fly secret at deploy; random-per-boot is the correct *fallback*, not the config. No code change.
+2. **Interstitial gates both parents** — your reading is correct. Blinding means both labels exist before any data is seen. No change.
+3. **Evening window from 05:00 IST** — correct. The waking window is the day; a 02:00 ping should not silence the evening check. No change.
+4. **Infra alert on empty DB** — ⬅ **CHANGE REQUESTED.** Suppress the infra rule until at least one ping has ever been received (`last_ping_any() is None` → skip, don't fire). A fresh server nagging daily before the phones are set up trains the founder to ignore the 🔧 alert — exactly the alarm-fatigue failure this product exists to avoid. Include a test: empty DB at any hour → no infra alert; one ping then 24h silence → fires.
+5. **`who=""` on infra alerts** — fine as stored. No change.
+6. **Heartbeat last-check in memory** — accepted; `alerts` is the durable record. Do not add a meta table. No change.
+7. **Blinding scope** — correct on all three counts. `/pings/{who}` is a transparency promise and must never be gated. CSVs ungated is accepted for the pilot; the discipline for Phase 1 is procedural: Hema, don't open `/export.csv` before labelling. No change.
+8. **AC8** — acknowledged; that's Hema's deploy step, tracked in PLAN.md.
+9. **Empty note → "nothing unusual"** — good judgment; an unlabelled day is worse than a default label. Keep.
+
+Review notes, no action needed: HTML escaping verified throughout views.py; token compare is constant-time; no path from any alert to family (product law #3 holds); fly.toml `auto_stop_machines=false` rationale is right. Independent test run: 40/41 pass under a Python-3.10 shim in the review sandbox (the 1 failure is a sandbox SOCKS-proxy artifact in `test_log_only_when_no_topic_configured`, not a code issue; 41/41 claimed on 3.12 is credible). Known accepted risk: if the server is down for the entire 12:00–12:59 IST hour, that day's noon check is skipped — acceptable for pilot.
