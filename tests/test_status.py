@@ -1,0 +1,76 @@
+"""Acceptance criterion 5: the label-blinding interstitial."""
+
+from __future__ import annotations
+
+from urllib.parse import urlencode
+
+from fastapi.testclient import TestClient
+
+from app.timeutil import date_local, now_utc
+from tests.conftest import TOKEN
+
+FORM_HEADERS = {"content-type": "application/x-www-form-urlencoded"}
+
+
+def _post_label(client: TestClient, who: str, note: str = "") -> None:
+    client.post(
+        f"/labels?token={TOKEN}",
+        content=urlencode({"who": who, "note": note, "next": "/status"}).encode(),
+        headers=FORM_HEADERS,
+        follow_redirects=False,
+    )
+
+
+def test_status_gates_on_todays_labels(client: TestClient, conn):
+    """AC5: no labels → interstitial; both labelled → data."""
+    client.get(f"/ping?token={TOKEN}&who=mom&signal=whatsapp")
+
+    first = client.get(f"/status?token={TOKEN}")
+    assert first.status_code == 200
+    assert "Log today&#x27;s labels" in first.text or "Log today" in first.text
+    assert "Recent pings" not in first.text
+
+    _post_label(client, "mom")
+    partial = client.get(f"/status?token={TOKEN}")
+    assert "Recent pings" not in partial.text  # dad still unlabelled
+
+    _post_label(client, "dad", "visitors")
+    full = client.get(f"/status?token={TOKEN}")
+    assert "Recent pings" in full.text
+    assert "Heartbeat" in full.text
+    assert "whatsapp" in full.text
+
+
+def test_quick_button_records_nothing_unusual(client: TestClient, conn):
+    """The one-tap button still writes a real label row."""
+    client.post(
+        f"/labels?token={TOKEN}",
+        content=urlencode({"who": "mom", "note": "", "quick": "1"}).encode(),
+        headers=FORM_HEADERS,
+        follow_redirects=False,
+    )
+    row = conn.execute("SELECT * FROM labels").fetchone()
+    assert row["who"] == "mom"
+    assert row["note"] == "nothing unusual"
+    assert row["date_ist"] == date_local(now_utc(), "Asia/Kolkata")
+
+
+def test_every_status_view_is_logged(client: TestClient, conn):
+    """The blinding audit trail records looks, including blocked ones."""
+    client.get(f"/status?token={TOKEN}")
+    client.get(f"/status?token={TOKEN}")
+    rows = conn.execute("SELECT * FROM status_views").fetchall()
+    assert len(rows) == 2
+    assert rows[0]["date_ist"] == date_local(now_utc(), "Asia/Kolkata")
+
+
+def test_status_never_shows_the_ip_hash(client: TestClient, logged_labels):
+    """ip_hash is ops-only and must never reach a page."""
+    client.get(
+        f"/ping?token={TOKEN}&who=dad&signal=news",
+        headers={"x-forwarded-for": "203.0.113.9"},
+    )
+    logged_labels()
+    page = client.get(f"/status?token={TOKEN}").text
+    assert "ip_hash" not in page
+    assert "203.0.113.9" not in page
