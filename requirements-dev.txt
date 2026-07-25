@@ -1,0 +1,5 @@
+# Test/lint only — never installed in the deployed image.
+-r requirements.txt
+pandas==3.0.5        # acceptance criterion 7: /export.csv must round-trip into pandas
+pytest==9.1.1
+ruff==0.16.0

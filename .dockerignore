@@ -1,0 +1,14 @@
+# Keep secrets and pilot data out of the build context entirely.
+.env
+*.env.local
+*.db
+*.sqlite*
+data/
+.venv/
+.git/
+tests/
+docs/
+specs/
+__pycache__/
+.pytest_cache/
+.ruff_cache/

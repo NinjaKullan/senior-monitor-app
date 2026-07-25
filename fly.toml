@@ -1,0 +1,38 @@
+# Fly.io config for the pilot backend. `app` is set by `fly launch`.
+app = "kettle-pilot"
+primary_region = "sin"  # Singapore: closest low-latency region to Chennai
+
+[build]
+
+[env]
+  DB_PATH = "/data/pilot.db"
+  TZ_DISPLAY = "Asia/Kolkata"
+  HEARTBEAT_LOOP = "1"
+
+# Persistent volume: the pilot's only data. Create it before first deploy:
+#   fly volumes create kettle_data --size 1 --region sin
+[[mounts]]
+  source = "kettle_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_start_machines = true
+  # Must stay false: the heartbeat monitor is an in-process background task,
+  # so a stopped machine is a monitor that never fires.
+  auto_stop_machines = false
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/healthz"
+    protocol = "http"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpus = 1
