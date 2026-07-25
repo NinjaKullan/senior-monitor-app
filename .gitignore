@@ -1,0 +1,18 @@
+# Secrets — never commit real values
+.env
+*.env.local
+
+# Data — pilot pings never go to GitHub
+*.db
+*.sqlite*
+data/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# OS/editor
+.DS_Store
