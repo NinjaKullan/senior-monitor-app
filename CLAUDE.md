@@ -17,6 +17,7 @@ Build against the lowest-numbered spec in `specs/` that isn't marked done. Commi
 3. **No family- or senior-facing alerts in pilot code.** All alerting goes to the founder only (ntfy). The escalation ladder is design, not implementation, until a spec says otherwise.
 4. **No third-party analytics, tracking, or telemetry libraries.** Privacy engineering is a day-one requirement (FTC HBNR posture).
 5. **Never scrape WhatsApp "last seen"** or any platform-ToS-violating signal.
+6. **A household event must never be presented as evidence that a specific person is fine.** Household-grade signals (if ever built) corroborate; only person-attributed signals may anchor reassurance or alarm. (Adopted from the adversarial signal review, `docs/signal-expansion-ideas.md` §2.5.)
 
 ## Stack conventions
 

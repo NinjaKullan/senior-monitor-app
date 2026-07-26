@@ -12,7 +12,7 @@ Fable 5 (Cowork) = PM/reviewer. Claude Code (Opus 5, cloud container) = implemen
 |---|---|---|
 | Fri (today) | Spec 001 handed to Claude Code; first build + tests | Claude Code |
 | Fri night / Sat am | `git pull` → code review of build 1 | Fable |
-| Sat | Deploy to Fly.io; curl smoke test from phone network | Hema |
+| Sat | ~~Deploy to Fly.io~~ ✅ DONE Jul 25 — live at kettle-pilot.fly.dev, /healthz green, 403 verified | Hema |
 | Sat/Sun | Instrument both parents' phones (Shortcuts ×3 each + Health sharing); consent conversations incl. Dad's one-pager redline | Hema (+ sister on FaceTime) |
 | Sat | Draft consent one-pager for Dad | Fable (next up) |
 | Sun am | Verify pings flowing from Chennai; heartbeat armed → "pilot live" is TRUE | Hema |
@@ -26,6 +26,14 @@ Fable 5 (Cowork) = PM/reviewer. Claude Code (Opus 5, cloud container) = implemen
 3. Spec 003 — Phase-2 shadow alerting rules (founder-only), digest generator (~Aug 8).
 4. Emoha/Samarth/Yodda outreach — one conversation booked (parallel, any time).
 5. Android MVP scoping doc — only after G1–G4 gates read out (~Aug 24).
+6. Day-30: re-rank `docs/signal-expansion-ideas.md` §3 against real data (its rankings have no rights until then); run the two question sets it moved outside the pilot window (F2 household facts, F3 framing debrief); bench-test C2 alarm auto-silence any time (zero pilot contact).
+7. Day-30 findings memo discipline (accepted from adversarial review): G1/G4 are near-unfalsifiable in this cohort — scope claims as "anxiety relief plus faster discovery; clinical outcome delta unquantified." G3 threshold math + G5 contact delta are the real yield.
+
+## Signal review outcomes (Jul 26)
+
+- `docs/signal-expansion-ideas.md` reviewed against product law: clean, adopted as post-pilot backlog. Its kill list is binding (nothing gets re-derived).
+- Product law #6 added to CLAUDE.md (household events never prove a person is fine).
+- Steps (A10): killed from all *product* plans; pilot keeps it per protocol under the signed one-pager, delete-at-trial-end. One-pager Steps row amended for accuracy BEFORE signature.
 
 ## Decisions log
 

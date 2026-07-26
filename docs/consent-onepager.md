@@ -14,7 +14,7 @@ A tripwire, not a camera. Your phone tells my server one thing: **"a normal thin
 | You open YouTube | `dad, youtube, <date & time>` |
 | You open the news app | `dad, news, <date & time>` |
 | (Optional) phone put on charge | `dad, charging, <date & time>` |
-| Steps | Daily step count, via Apple's own Health Sharing, phone to phone |
+| Steps | Daily step count, via Apple's own Health Sharing, phone to phone — this one never touches my server; it lives only in the Health app on my phone, and at the end of the trial I turn sharing off and delete it there too |
 
 Three fields per event: who, which routine, when. Nothing else is transmitted, and the server is built to discard anything beyond those fields.
 
