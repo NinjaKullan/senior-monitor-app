@@ -19,9 +19,11 @@ primary_region = "sin"  # Singapore: closest low-latency region to Chennai
   internal_port = 8080
   force_https = true
   auto_start_machines = true
-  # Must stay false: the heartbeat monitor is an in-process background task,
-  # so a stopped machine is a monitor that never fires.
-  auto_stop_machines = false
+  # Must stay "off": the heartbeat monitor is an in-process background task,
+  # so a stopped machine is a monitor that never fires. NOTE: must be the
+  # string "off", not boolean false — current Fly tooling ignores the boolean
+  # (verified live 2026-07-26: machine auto-stopped despite `false`).
+  auto_stop_machines = "off"
   min_machines_running = 1
 
   [[http_service.checks]]
