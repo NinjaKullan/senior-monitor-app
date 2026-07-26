@@ -74,3 +74,21 @@ corrected cheaply; the code change is one-liner sized in every case.
 9. **Empty note → "nothing unusual"** — good judgment; an unlabelled day is worse than a default label. Keep.
 
 Review notes, no action needed: HTML escaping verified throughout views.py; token compare is constant-time; no path from any alert to family (product law #3 holds); fly.toml `auto_stop_machines=false` rationale is right. Independent test run: 40/41 pass under a Python-3.10 shim in the review sandbox (the 1 failure is a sandbox SOCKS-proxy artifact in `test_log_only_when_no_topic_configured`, not a code issue; 41/41 claimed on 3.12 is credible). Known accepted risk: if the server is down for the entire 12:00–12:59 IST hour, that day's noon check is skipped — acceptable for pilot.
+
+---
+
+## Spec 001a — device_alive timer signal (2026-07-26)
+
+Built exactly as specified: `device_alive` added to `SIGNALS`, deliberately not to
+`ALARM_GRADE`, no other functional change. One thing I did **not** change, because
+the spec says the config line is the only functional change, but which touches
+product law #6:
+
+10. **`/status` "Today: N pings" now counts `device_alive`.** The per-person headline
+    count is unfiltered, so from tomorrow it silently includes ~1 timer ping per
+    person per day. The per-signal table underneath breaks it out, so nothing is
+    hidden, but the headline number is the one that reads as "how active was Mom
+    today" — and a plumbing event is now a small part of it. Want that count
+    restricted to alarm-grade signals (or to everything except `device_alive`)? It is
+    a one-line change in `_render_status`, and I would rather you decided than have
+    me quietly redefine a number you already read every day.

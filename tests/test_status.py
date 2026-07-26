@@ -64,6 +64,15 @@ def test_every_status_view_is_logged(client: TestClient, conn):
     assert rows[0]["date_ist"] == date_local(now_utc(), "Asia/Kolkata")
 
 
+def test_status_renders_the_device_alive_row(client: TestClient, logged_labels):
+    """Spec 001a: the signal table is driven by SIGNALS, so the new row appears."""
+    client.get(f"/ping?token={TOKEN}&who=mom&signal=device_alive")
+    logged_labels()
+    page = client.get(f"/status?token={TOKEN}").text
+    # One row per person, whether or not that phone has ever sent the signal.
+    assert page.count("device_alive") >= 2
+
+
 def test_status_never_shows_the_ip_hash(client: TestClient, logged_labels):
     """ip_hash is ops-only and must never reach a page."""
     client.get(

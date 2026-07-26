@@ -89,6 +89,46 @@ def test_charger_pings_are_not_alarm_grade(settings, conn, ntfy):
     assert _alerts(conn)[0]["who"] == "dad"
 
 
+def test_device_alive_is_not_alarm_grade(settings, conn, ntfy):
+    """Spec 001a: a day of timer pings alone still fires the noon check.
+
+    device_alive proves the phone is on and the Shortcuts engine is alive. It
+    involves no human, so it must never stand in for one.
+    """
+    for hour in (7, 8, 11):
+        _ping(conn, "dad", "device_alive", datetime(2026, 7, 25, hour, 0, tzinfo=IST))
+    _ping(conn, "mom", "whatsapp", datetime(2026, 7, 25, 9, 0, tzinfo=IST))
+
+    fired = run_checks(conn, settings, ntfy.notifier, datetime(2026, 7, 25, 12, 0, tzinfo=IST))
+    assert fired == [KIND_NOON]
+    rows = _alerts(conn)
+    assert len(rows) == 1
+    assert (rows[0]["kind"], rows[0]["who"]) == (KIND_NOON, "dad")
+
+
+def test_device_alive_keeps_the_pipeline_alive_for_the_infra_check(settings, conn, ntfy):
+    """Spec 001a: timer pings flowing means the pipeline is fine, whatever the apps do.
+
+    Apps silent + device_alive flowing is the diagnostic this signal exists for:
+    the person is quiet or their app automations are dead, but the server, the
+    network and the Shortcuts engine are all working — so no 🔧 infra alert.
+    """
+    # Last deliberate app open was three days ago; the daily timer never stopped.
+    _ping(conn, "mom", "whatsapp", datetime(2026, 7, 22, 8, 0, tzinfo=IST))
+    for day in (23, 24, 25):
+        for who in ("mom", "dad"):
+            _ping(conn, who, "device_alive", datetime(2026, 7, day, 7, 0, tzinfo=IST))
+
+    assert run_checks(conn, settings, ntfy.notifier, datetime(2026, 7, 25, 9, 0, tzinfo=IST)) == []
+    assert ntfy.requests == []
+
+    # The person-level checks still fire; only the pipeline is judged healthy.
+    fired = run_checks(conn, settings, ntfy.notifier, datetime(2026, 7, 25, 12, 0, tzinfo=IST))
+    assert fired == [KIND_NOON, KIND_NOON]
+    assert KIND_INFRA not in fired
+    assert all("Pipeline silent" not in body for body in ntfy.bodies)
+
+
 def test_evening_check_only_escalates_an_existing_noon_alert(settings, conn, ntfy):
     """20:00 IST fires only if noon already fired and the day is still silent."""
     _ping(conn, "mom", "whatsapp", datetime(2026, 7, 25, 9, 0, tzinfo=IST))

@@ -40,6 +40,16 @@ def test_post_ping_also_works(client: TestClient, conn):
     assert _count(conn) == 1
 
 
+def test_device_alive_is_accepted_and_stored(client: TestClient, conn):
+    """Spec 001a: the time-of-day timer signal is allowlisted like any other."""
+    resp = client.get(f"/ping?token={TOKEN}&who=dad&signal=device_alive")
+    assert resp.status_code == 200
+    assert resp.text == "ok"
+
+    row = conn.execute("SELECT * FROM pings").fetchone()
+    assert (row["who"], row["signal"]) == ("dad", "device_alive")
+
+
 def test_bad_token_is_403_and_writes_nothing(client: TestClient, conn):
     """AC2: wrong or missing token → 403, zero DB writes, nothing leaked."""
     before = _count(conn)

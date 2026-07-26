@@ -41,8 +41,15 @@ Shortcuts cannot set headers easily). A wrong or missing token is a bare `403`.
 | `GET /export.csv?token=` | all pings as `who,signal,ts_utc,ts_ist` — the Phase-1 analysis input |
 | `GET /healthz` | `{"db": true}`, no token, for Fly health checks |
 
-`who` ∈ `mom`, `dad`. `signal` ∈ `whatsapp`, `youtube`, `news`, `charge_on`, `charge_off`.
-Alarm-grade (deliberate app opens) = `whatsapp`, `youtube`, `news`.
+`who` ∈ `mom`, `dad`. `signal` ∈ `whatsapp`, `youtube`, `news`, `charge_on`, `charge_off`,
+`device_alive`. Alarm-grade (deliberate app opens) = `whatsapp`, `youtube`, `news`.
+
+`device_alive` is a plumbing diagnostic, not a person signal: a time-of-day Shortcut
+sends it with zero human involvement, so it proves only that the phone is on, the
+network is up and the Shortcuts engine is alive. It is deliberately **not**
+alarm-grade — it can never satisfy the noon or evening check on someone's behalf.
+What it buys is the contrast: apps silent while the timer keeps arriving means the
+person is quiet or their app automations are dead, and the pipeline is fine.
 
 ### Label blinding
 
@@ -149,6 +156,15 @@ corroborating only — they never satisfy the heartbeat check:
 ```
 https://<app>.fly.dev/ping?token=<T>&who=mom&signal=charge_on
 https://<app>.fly.dev/ping?token=<T>&who=mom&signal=charge_off
+```
+
+Daily liveness timer, one per phone (Automation → **Time of Day** → 7:00 AM → Daily →
+Run Immediately → Get Contents of URL). This one is not about the person — it is how
+you tell "Mom hasn't touched her phone" apart from "Mom's automations are broken":
+
+```
+https://<app>.fly.dev/ping?token=<T>&who=mom&signal=device_alive
+https://<app>.fly.dev/ping?token=<T>&who=dad&signal=device_alive
 ```
 
 Verify by opening each app once and refreshing `/pings/mom` — new rows within seconds.

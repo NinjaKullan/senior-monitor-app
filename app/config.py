@@ -17,9 +17,16 @@ SIGNALS: tuple[str, ...] = (
     "news",
     "charge_on",
     "charge_off",
+    "device_alive",
 )
 
-# Alarm-grade signals: deliberate app opens. Charger events only corroborate.
+# Alarm-grade signals: deliberate app opens — a human did something.
+#
+# device_alive is deliberately absent (spec 001a): it comes from a time-of-day
+# Shortcut with zero human involvement, so it proves phone-on + network-up +
+# Shortcuts-engine-alive and nothing whatsoever about a person. Charger events
+# only corroborate. Adding either here would let plumbing answer a question
+# about a human.
 ALARM_GRADE: tuple[str, ...] = ("whatsapp", "youtube", "news")
 
 
