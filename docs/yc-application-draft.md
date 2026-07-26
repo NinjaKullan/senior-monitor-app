@@ -27,7 +27,7 @@ Options, pick one:
 
 ## How far along are you?
 
-> [Adjust to reality at submission.] Pilot live: my parents' iPhones are instrumented (consented, content-free app-open signals + Apple Health sharing) feeding a baseline model — measuring signal completeness, personal-baseline stability, and simulated false-escalation rate against predeclared pass/fail gates. 30 days of data by [late August]. Previously: built and shipped RosterPro solo (live on the App Store).
+> [Adjust to reality at submission.] Pilot live: my parents' iPhones are instrumented (consented, content-free app-open signals — three stored fields per event: who, which routine, when) feeding a baseline model — measuring signal completeness, personal-baseline stability, and simulated false-escalation rate against predeclared pass/fail gates. 30 days of data by [late August]. Previously: built and shipped RosterPro solo (live on the App Store).
 
 ## Who are your competitors, and what do you understand that they don't?
 

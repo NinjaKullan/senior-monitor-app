@@ -32,7 +32,7 @@ The product never asks "what is she doing?" It only asks "did the normal thing h
 
 ### Senior side (the tripwire they own)
 - One-time consented setup on the senior's existing phone.
-- Passive signals, all binary/coarse: app-open events for 2–3 personally chosen routine apps, step count (via native health APIs), phone charging/activity state. **No content, no location trail, no keystrokes, no audio.**
+- Passive signals, all binary/coarse: app-open events for 2–3 personally chosen routine apps, phone charging/activity state, first-unlock-of-day (Android). **No content, no location trail, no keystrokes, no audio, no health/body data** (steps ruled out Jul 26 — body data, decline-inference-shaped, and platform-unscalable).
 - A personal baseline is learned (distribution of gaps between phone touches). Alerts fire only on statistical outlier gaps *for that person*.
 - **Senior-first confirmation:** when a routine breaks, the phone quietly asks the senior — "All good? Tap yes" — with a generous grace period. Nothing leaves the phone unless they stay silent.
 - Framing to the senior: *"This stops your kids from pestering you. You'll never get a worried 6am call unless something is actually wrong."* It's a dead-man's switch they configure, not a camera pointed at them.
@@ -59,7 +59,7 @@ Three independent AI diligence reports (Claude, ChatGPT, Gemini — see `researc
 
 **Beachhead: NRI (Non-Resident Indian) corridor.** US Indian diaspora ~5M, affluent, USD incomes, acute timezone pain, cultural obligation to parents, thin competition (US products don't serve India; Indian services don't serve the US payer). Founder is customer zero with native cultural insight.
 
-Platform note: the broader Indian 70+ market is overwhelmingly **Android**, where the required passive signals (usage stats, screen-on, charging) are properly supported with explicit consent. iOS is more restricted (the founder's own parents have iPhones — pilot runs on iOS via the Shortcuts workaround; see `pilot-protocol.md`). Product build order: Android-first for market, iOS via reduced signal set + native Health Sharing.
+Platform note: the broader Indian 70+ market is overwhelmingly **Android**, where the required passive signals (usage stats, screen-on, charging) are properly supported with explicit consent. iOS is more restricted (the founder's own parents have iPhones — pilot runs on iOS via the Shortcuts workaround; see `pilot-protocol.md`). Product build order: Android-first for market, iOS via reduced signal set (productized Shortcuts + charging events; no health data).
 
 **Expansion:** every diaspora has the same ache — Filipino, Chinese, Mexican, Vietnamese corridors — then domestic US long-distance families (the sister-in-Texas configuration), then B2B2C (employer caregiver benefits, per Gemini's suggestion) once evidence exists.
 

@@ -180,7 +180,15 @@ Recorded in §4. The three sentences that survive it: the diaspora child's inbox
 
 **Reviewer's structural recommendation, recorded:** the durable artifacts here are the kill list (so nothing gets re-derived), the attribution law, and the questions the pilot must answer — not the ranking, which has no rights until Day-30 data exists. Adopted as the reading order for future selves: §2 and §4 are the document; §3 is a prior.
 
-## 8. Constraint self-check
+## 8. Addendum — founder session, Jul 26 (post-review)
+
+**Re-litigations sustained:** health data stays dead at product scale — not only on law/policy grounds but on a platform fact: Apple exposes no API to data shared *with* you via Health Sharing, so the only scalable route is a senior-side HealthKit/Health Connect uploader, which converts the company into a health-data processor for a weak, attribution-broken signal. Kill stands.
+
+**Founder correction adopted (changes platform priors):** "Indian seniors are overwhelmingly Android" is population-wide; the NRI beachhead *selects for* iPhone parents (hand-me-down/gifted iPhones, FaceTime with grandkids). iOS tier moves from "someday" to a designed tier; device-mix question goes into any waitlist/next-pilot signup. See PLAN.md.
+
+**iOS-tier feasibility sketch (agreed direction, pre-spec):** Shortcuts is the permanent iOS collection layer, wrapped in reliability engineering rather than replaced: child-guided setup (pre-built importable shortcuts + FaceTime wizard; the payer is the installer), heartbeat-detected silent death with a child-facing repair flow (time-to-repair as a product metric), charger channel as mechanism-health discriminator, and the senior-first "All good? Tap yes" delivered as a WhatsApp Business **template message with reply button** — platform-legal outbound ask in the app seniors already live in, phone-OS-agnostic, no senior-side install required. Optional later: minimal senior app — collects nothing, but unlocks three avenues (founder Q, Jul 26): (1) reliability — Shortcuts action targets the app's App Intent, which queues/retries pings offline instead of losing them to a raw URL fetch; (2) device-liveness — silent-push wakes give a "phone on + connected" plumbing signal, distinguishing dead phone from quiet person; (3) dignity UX — native "All good? Tap yes," on-device transparency page + kill switch, and (Apple-approved) critical alerts for top ladder rungs. Explicitly does NOT unlock unlock-events, other-app usage, notifications, or Screen Time (entitlement-walled). The kettle signals remain senior-owned Shortcuts automations; the app only makes them reliable. The live pilot doubles as this tier's prototype; G1 is its reliability gate, and every setup stumble on the Chennai call is usability data for it.
+
+## 9. Constraint self-check
 
 - No decline/diagnostic inference anywhere: no trends, no baselines beyond the pilot's existing gap thresholds, no scores; the one decline-shaped object found (A10 step series) was killed, not kept. ✅
 - Every surviving signal reduces to `(who|household, signal_name, server_ts)`; every signal that could not was rejected at the door and is recorded as such. ✅

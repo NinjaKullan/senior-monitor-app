@@ -29,8 +29,9 @@ Explicitly **not** tested: decline detection (out of scope permanently), ML mode
 | WhatsApp opened | iOS Shortcuts automation | "When WhatsApp is opened → Get contents of URL (webhook)" | Alarm-grade |
 | YouTube opened | iOS Shortcuts automation | Same pattern | Alarm-grade |
 | Safari/news opened | iOS Shortcuts automation | Same pattern (app-level trigger) | Alarm-grade |
-| Steps | Apple Health Sharing → founder's phone | Native; no code | Corroborating only (undercounts when phone is left behind) |
 | Charger connected/disconnected (optional) | Shortcuts automation (charging trigger) | Same webhook pattern | Corroborating |
+
+*Steps/Health Sharing: dropped by founder decision Jul 26 (killed from product by adversarial review; founder ruled it out of the pilot too — "if the product can't use it, don't collect it"). Quiet-day classification in Phase 2 relies on the blinded label log, charger events, and normal family contact.*
 
 Rules: no location, no audio, no message content, no browsing content. The webhook receives only `{who, signal, timestamp}`.
 
@@ -42,9 +43,8 @@ Rules: no location, no audio, no message content, no browsing content. The webho
 
 ### 4.2 Parent phones (30–45 min each, in person or via FaceTime with sister assisting)
 1. Shortcuts app → Automation → New Personal Automation → **App** → choose app → "Is Opened" → add action **Get Contents of URL** (the webhook, with query params for person+signal) → **turn OFF "Ask Before Running"** (Run Immediately). Repeat per app (3 automations per phone).
-2. Health app → Sharing → share Steps (and Walking metrics if desired) with founder's Apple ID.
-3. Verify: open each app, confirm webhook rows appear.
-4. Note: automations are per-device; when Mom travels to Texas, everything keeps working (signal is app-open, not location).
+2. Verify: open each app, confirm webhook rows appear.
+3. Note: automations are per-device; when Mom travels to Texas, everything keeps working (signal is app-open, not location).
 
 ### 4.3 Known fragility (accepted for pilot)
 Shortcuts automations are a pilot hack, not a product mechanism. iOS updates may disable them; the heartbeat monitor is the mitigation. Product build (later) is Android-first where proper APIs exist.
@@ -74,7 +74,7 @@ Shortcuts automations are a pilot hack, not a product mechanism. iOS updates may
 
 ## 7. The digest experiment (Days 15–30)
 
-- Founder writes (manually, or a small script) a **daily one-line digest** to himself and sister: "Mom: active by 8:40am, 2,100 steps. Dad: active by 7:15am." Plus a weekly summary.
+- Founder writes (manually, or a small script) a **daily one-line digest** to himself and sister: "Mom: day started 8:40am, normal active morning. Dad: active by 7:15am." Plus a weekly summary. (Digest lines must be generatable from shippable signals — app-opens and times only.)
 - Track: does the digest change behavior? Count calls/messages to parents per week, Phase 1 vs Phase 2. The thesis says digests *increase* contact (conversation prompts), not replace it.
 - Optionally A/B the framing on sister: alerts-only vs. daily-positive digest — which does she prefer after 2 weeks?
 

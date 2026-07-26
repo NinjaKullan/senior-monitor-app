@@ -33,7 +33,7 @@ Fable 5 (Cowork) = PM/reviewer. Claude Code (Opus 5, cloud container) = implemen
 
 - `docs/signal-expansion-ideas.md` reviewed against product law: clean, adopted as post-pilot backlog. Its kill list is binding (nothing gets re-derived).
 - Product law #6 added to CLAUDE.md (household events never prove a person is fine).
-- Steps (A10): killed from all *product* plans; pilot keeps it per protocol under the signed one-pager, delete-at-trial-end. One-pager Steps row amended for accuracy BEFORE signature.
+- Steps (A10): killed from all product plans by the review; then fully dropped from the pilot too by founder decision later the same night (see "Steps: fully dropped" above). One-pager now contains no Steps row.
 
 ## Decisions log
 
@@ -43,6 +43,14 @@ Fable 5 (Cowork) = PM/reviewer. Claude Code (Opus 5, cloud container) = implemen
 | Jul 24 | Server-side UTC timestamps only; IST display. Token-gated writes. |
 | Jul 24 | Label blinding enforced in software (interstitial before /status). |
 | Jul 24 | Roles: Fable = PM/review, Claude Code = build, cloud container + git pull cadence. |
+
+## Steps: fully dropped (founder decision, Jul 26, supersedes earlier "pilot keeps steps" ruling)
+
+Founder ruled: if the product can't use steps, the pilot doesn't collect them. Removed from pilot protocol §3/§4.2, consent one-pager (now uniformly who/signal/when — its strongest form), and YC draft. Chennai setup simplifies (no Health-app step). Phase-2 quiet-day classification: blinded label log + charger events + normal contact. Digest lines: shippable signals only.
+
+## Founder correction (Jul 26, logged for the platform decision)
+
+The "Indian seniors are overwhelmingly Android" fact is population-wide; the NRI beachhead selects for iPhone parents (hand-me-downs, gifts, FaceTime with grandkids). Implications: (a) iOS tier = productized Shortcuts + charging pings + heartbeat, planned earlier than "someday" — the current pilot is its de-facto prototype; (b) Android-native vs dual-track decision waits for data: add "what phone does your parent use?" to any waitlist/next-pilot signup; (c) platform note in project-brief should not be read as iOS-negligible for the beachhead.
 
 ## Open items needing Hema's answer (for the YC app, not the code)
 
