@@ -44,6 +44,10 @@ Fable 5 (Cowork) = PM/reviewer. Claude Code (Opus 5, cloud container) = implemen
 | Jul 24 | Label blinding enforced in software (interstitial before /status). |
 | Jul 24 | Roles: Fable = PM/review, Claude Code = build, cloud container + git pull cadence. |
 
+## Digest design decision (founder, Jul 26 — feeds spec 003)
+
+Two messages/day to the child(ren): morning "day started normally" (fires once routine seen) + evening "normal, active day" summary. Language is coarse reassurance ONLY — no counts, no app names, no per-app detail: "don't give the child ammunition" (founder) = "counts are a behavior profile" (adversarial review). Same rule, two independent derivations → binding. No child-facing activity trends; trend data's job is internal threshold tuning. The "explainable trend digest, never diagnosis" long-term option stays parked per research-synthesis §4, revisit only post-pilot. Pilot Phase-2 manual digest follows this exact format.
+
 ## Steps: fully dropped (founder decision, Jul 26, supersedes earlier "pilot keeps steps" ruling)
 
 Founder ruled: if the product can't use steps, the pilot doesn't collect them. Removed from pilot protocol §3/§4.2, consent one-pager (now uniformly who/signal/when — its strongest form), and YC draft. Chennai setup simplifies (no Health-app step). Phase-2 quiet-day classification: blinded label log + charger events + normal contact. Digest lines: shippable signals only.
@@ -51,6 +55,12 @@ Founder ruled: if the product can't use steps, the pilot doesn't collect them. R
 ## Founder correction (Jul 26, logged for the platform decision)
 
 The "Indian seniors are overwhelmingly Android" fact is population-wide; the NRI beachhead selects for iPhone parents (hand-me-downs, gifts, FaceTime with grandkids). Implications: (a) iOS tier = productized Shortcuts + charging pings + heartbeat, planned earlier than "someday" — the current pilot is its de-facto prototype; (b) Android-native vs dual-track decision waits for data: add "what phone does your parent use?" to any waitlist/next-pilot signup; (c) platform note in project-brief should not be read as iOS-negligible for the beachhead.
+
+## Parked product ideas (founder session Jul 26 — post-pilot, not scope)
+
+- **Acuity tiers ("Advanced Care"):** higher tier for seriously-ill/very-senior segment = human-powered (voice check-ins per original re-scope, responder visits, household sensors, faster ladder). Content/financial signals (messages, Wallet) stay excluded at every tier. Arrival-sensing (Wi-Fi/BT) = open question for the high-acuity tier ONLY, requires legal review + consent-capacity policy; do not build or promise before then.
+- **Routine-discovery onboarding:** two-stage — child's guess (playful questionnaire: "first thing Amma does after coffee?") → first silent week of data corrects it ("it's YouTube at 6:40, not WhatsApp — switch the tripwire?"). Learn-then-confirm; the pilot's Phase 1 is the manual prototype of this. Design doc post-pilot.
+- **device_alive timer:** spec 001a written Jul 26, deploy before parent setup.
 
 ## Open items needing Hema's answer (for the YC app, not the code)
 
