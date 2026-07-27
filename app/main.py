@@ -213,7 +213,13 @@ def create_app(settings: Settings | None = None, notifier: Notifier | None = Non
                 {
                     "who": who,
                     "signals": signals,
-                    "today_count": db.count_pings_between(conn, who, day_start, day_end),
+                    # Alarm-grade only: the headline reads as "how active was
+                    # this person today", so plumbing (device_alive, charger)
+                    # must not inflate it. The table below still shows every
+                    # signal.
+                    "today_count": db.count_pings_between(
+                        conn, who, day_start, day_end, ALARM_GRADE
+                    ),
                     "alarm_gap": alarm_gap,
                 }
             )

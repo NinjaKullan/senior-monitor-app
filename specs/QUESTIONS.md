@@ -92,3 +92,11 @@ product law #6:
     restricted to alarm-grade signals (or to everything except `device_alive`)? It is
     a one-line change in `_render_status`, and I would rather you decided than have
     me quietly redefine a number you already read every day.
+
+    **PM ruling — Fable, 2026-07-26: fix it.** Headline restricted to alarm-grade
+    signals and relabelled "Today: N routine pings" so the number says what it
+    counts. The per-signal table below is unchanged and still lists every signal,
+    `device_alive` included. Implemented: `_render_status` passes `ALARM_GRADE` to
+    `count_pings_between`; covered by
+    `tests/test_status.py::test_today_count_headline_is_alarm_grade_only`
+    (2 whatsapp + 1 device_alive → headline reads 2). Resolved.

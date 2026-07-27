@@ -130,7 +130,8 @@ def status(
             f"<div class='big'>{escape(person['alarm_gap'])}</div>"
             "<div class='muted'>since last alarm-grade ping "
             "(whatsapp / youtube / news)</div>"
-            f"<div style='margin-top:.4rem'>Today: {person['today_count']} pings</div>"
+            f"<div style='margin-top:.4rem'>Today: {person['today_count']} "
+            "routine pings</div>"
             "</div>"
             + _table(["Signal", "Last seen (IST)", "Gap"], rows)
         )

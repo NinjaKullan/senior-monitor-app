@@ -6,10 +6,12 @@ from urllib.parse import urlencode
 
 from fastapi.testclient import TestClient
 
-from app.timeutil import date_local, now_utc
+from app import db
+from app.timeutil import date_local, local_time_today_utc, now_utc
 from tests.conftest import TOKEN
 
 FORM_HEADERS = {"content-type": "application/x-www-form-urlencoded"}
+TZ = "Asia/Kolkata"
 
 
 def _post_label(client: TestClient, who: str, note: str = "") -> None:
@@ -71,6 +73,26 @@ def test_status_renders_the_device_alive_row(client: TestClient, logged_labels):
     page = client.get(f"/status?token={TOKEN}").text
     # One row per person, whether or not that phone has ever sent the signal.
     assert page.count("device_alive") >= 2
+
+
+def test_today_count_headline_is_alarm_grade_only(client: TestClient, conn, logged_labels):
+    """QUESTIONS item 10: plumbing must not inflate the per-person headline.
+
+    Two whatsapp opens plus one device_alive timer ping reads as 2, not 3 —
+    the number says how active the person was, and the timer says nothing
+    about a person. The per-signal table below still shows every signal.
+    """
+    now = now_utc()
+    for signal, hour in (("whatsapp", 9), ("whatsapp", 10), ("device_alive", 11)):
+        db.insert_ping(conn, "mom", signal, local_time_today_utc(now, TZ, hour), None)
+
+    logged_labels()
+    page = client.get(f"/status?token={TOKEN}").text
+
+    assert "Today: 2 routine pings" in page
+    assert "Today: 3 routine pings" not in page
+    assert page.count("Today: 0 routine pings") == 1  # dad, who sent nothing
+    assert "device_alive" in page  # still listed in the per-signal table
 
 
 def test_status_never_shows_the_ip_hash(client: TestClient, logged_labels):
