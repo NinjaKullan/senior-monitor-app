@@ -17,7 +17,7 @@ Fable 5 (Cowork) = PM/reviewer. Claude Code (Opus 5, cloud container) = implemen
 | Sat | Draft consent one-pager for Dad | Fable (next up) |
 | Sun am | Verify pings flowing from Chennai; heartbeat armed → "pilot live" is TRUE | Hema |
 | Sun | YC app: fill brackets (name, batch history, entity, cofounder answer), pick one-liner, record video (one take, phone, good light) | Hema, Fable assists |
-| Sun by ~5pm PT | Submit (buffer before 8pm) | Hema |
+| Sun by ~5pm PT | ~~Submit~~ ✅ SUBMITTED Jul 27, on time. Decisions by Aug 28. | Hema |
 
 ## Next up after Sunday
 
@@ -60,7 +60,9 @@ The "Indian seniors are overwhelmingly Android" fact is population-wide; the NRI
 
 - **Acuity tiers ("Advanced Care"):** higher tier for seriously-ill/very-senior segment = human-powered (voice check-ins per original re-scope, responder visits, household sensors, faster ladder). Content/financial signals (messages, Wallet) stay excluded at every tier. Arrival-sensing (Wi-Fi/BT) = open question for the high-acuity tier ONLY, requires legal review + consent-capacity policy; do not build or promise before then.
 - **Routine-discovery onboarding:** two-stage — child's guess (playful questionnaire: "first thing Amma does after coffee?") → first silent week of data corrects it ("it's YouTube at 6:40, not WhatsApp — switch the tripwire?"). Learn-then-confirm; the pilot's Phase 1 is the manual prototype of this. Design doc post-pilot.
-- **device_alive timer:** spec 001a written Jul 26, deploy before parent setup.
+- **device_alive timer:** spec 001a written Jul 26, deploy before parent setup. ✅ shipped.
+- **MCP endpoint (founder, Jul 27):** opt-in MCP server so the family's own AI assistant can query the same three fields ("how has Amma's week been?"). Child-side only, opt-in, answers constrained to digest-grade language (no counts/trends — product law applies to AI answers too). Post-MVP.
+- **On-demand glance view (founder, Jul 27):** the anxious-moment check in the family app — current status only ("all normal"), never counts or trends. This is the /status page's consumer descendant.
 
 ## Open items needing Hema's answer (for the YC app, not the code)
 
