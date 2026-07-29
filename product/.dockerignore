@@ -1,0 +1,11 @@
+# Keep secrets and test scaffolding out of the build context entirely.
+.env
+*.env.local
+tests/
+testsupport.py
+conftest.py
+requirements-dev.txt
+migrations/local/
+__pycache__/
+.pytest_cache/
+.ruff_cache/

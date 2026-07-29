@@ -1,0 +1,38 @@
+# Fly config for the product ingestion service. Separate app from the pilot
+# (kettle-pilot), separate deployment, no shared state. `app` is set by
+# `fly launch`.
+app = "kettle-api"
+primary_region = "sin"  # Singapore: closest low-latency region to Chennai
+
+[build]
+
+[env]
+  DEFAULT_TZ = "Asia/Kolkata"
+  HEARTBEAT_LOOP = "1"
+  PUBLIC_BASE_URL = "https://kettle-api.fly.dev"
+
+# No volume: all state lives in Supabase/Postgres.
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_start_machines = true
+  # Must stay "off": the heartbeat monitor is an in-process background task, so
+  # a stopped machine is a monitor that never fires. Must be the string "off",
+  # not boolean false — current Fly tooling ignores the boolean (learned the
+  # hard way on the pilot app, 2026-07-26).
+  auto_stop_machines = "off"
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/healthz"
+    protocol = "http"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpus = 1

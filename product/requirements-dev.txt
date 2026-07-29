@@ -1,0 +1,4 @@
+# Test/lint only — never installed in the deployed image.
+-r requirements.txt
+pytest==9.1.1
+ruff==0.16.0
