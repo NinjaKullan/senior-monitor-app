@@ -100,3 +100,73 @@ product law #6:
     `count_pings_between`; covered by
     `tests/test_status.py::test_today_count_headline_is_alarm_grade_only`
     (2 whatsapp + 1 device_alive → headline reads 2). Resolved.
+
+---
+
+## Spec 002 — multi-tenant core (2026-07-29)
+
+Built as specified. None of these blocked the build; each records the reading I
+implemented so it can be corrected cheaply.
+
+11. **"Connects with the service-role key" → I used a Postgres connection string.**
+    §1 says the service connects with the service-role key. Reading it against
+    "plain SQL migrations, no ORM", I took that to mean the service-role *Postgres*
+    URI (`DATABASE_URL`, Settings → Database → Connection string), driven by
+    psycopg — not the service-role JWT against PostgREST via supabase-py. The
+    isolation story is identical either way (that role bypasses RLS by design), but
+    if you meant the REST client, the data layer changes shape.
+
+12. **Provisioning creates an owner member only when `--owner-email` is given.**
+    §5 lists family + parents + devices + seeded signals, not members. But a family
+    with no member row is one no JWT can ever read, so the CLI takes an optional
+    `--owner-email` and writes an `owner` row with `auth_user_id` left null — that
+    column gets filled at Supabase Auth signup, not at provisioning. Confirm.
+
+13. **`auth_user_id` is deliberately not unique.** A child monitoring their own
+    parents *and* their in-laws is two memberships for one auth user, and the
+    roadmap's "any elder, not just parents" points the same way. The RLS helper
+    returns a set of family ids, so this works; there is a test for it
+    (`test_policies_survive_a_second_membership`). A unique index would forbid it —
+    say so if that is what you want.
+
+14. **One device per parent at provisioning.** The schema is one-to-many; the CLI
+    creates a single device per person because that is the iPhone case. No
+    `--device` flag. Fine for beta?
+
+15. **No revoke command.** §5 does not list one. `db.revoke_device()` exists and
+    AC3 tests it, but the operator path today is a SQL update. The roadmap calls a
+    lost phone "a one-tap revoke" — want `--revoke <token>` added to the CLI (or its
+    own script) in this spec, or does that wait for the PWA?
+
+16. **Infra check cadence.** §4 carries the pilot's infra rule over but does not
+    restate "hourly". I evaluate it on every pass with once-per-family-per-local-day
+    dedupe — same net behaviour as the pilot, no clock-hour condition. The evening
+    window likewise starts at 05:00 local, per your ruling on the pilot.
+
+17. **Local Postgres, not the supabase CLI, for tests.** `supabase start` needs
+    Docker, and this container has the client but no daemon. So the suite runs on a
+    plain Postgres plus `migrations/local/0000_supabase_shim.sql`, which creates
+    only what hosted Supabase already provides (`auth` schema, `auth.uid()`, the
+    three roles) — the policies under test are byte-for-byte the ones that ship.
+    Both paths are documented in `product/README.md`. Writing the shim caught a real
+    bug, incidentally: `''::jsonb` raises, so `auth.uid()` has to nullif the setting
+    *before* casting, which is exactly how Supabase defines it.
+
+18. **Product tests skip when no Postgres is reachable.** On a bare machine
+    `pytest` reports "52 passed, 52 skipped" and exits green. That is deliberate —
+    the pilot suite should not need a database — but a green run that skipped them
+    is not a green run of this spec, and the README says so. If you would rather it
+    fail loudly, that is a one-line change.
+
+19. **One file outside `product/` changed: root `pyproject.toml`.** `testpaths` now
+    includes `product/tests` so a bare `pytest` runs both suites, and isort is told
+    that `kettle`/`scripts`/`testsupport` are first-party. `app/` and `tests/` are
+    byte-identical — `git status -- app/ tests/` is empty. Flagging it because
+    "pilot untouched" was a hard requirement and this is the one shared file.
+
+20. **AC7 is half-verifiable here.** No Fly or Supabase account, and no Docker
+    daemon, so neither the image build nor a real deploy ran. The code half is a
+    genuine test: `test_empty_database_boots_and_passes_healthz` creates a brand-new
+    Postgres database, applies the real migrations, asserts the table and policy
+    sets, boots the app against it and checks `/healthz`. The deploy itself is
+    Hema's step; `product/README.md` has the exact commands.
