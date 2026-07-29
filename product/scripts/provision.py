@@ -1,13 +1,19 @@
-"""Provision a beta family (spec 002 §5).
+"""Provision a beta family, or revoke a lost phone (spec 002 §5).
 
     python -m scripts.provision --family "Sharma" --parent "Amma" \
         --parent "Appa:America/Chicago" --owner-email child@example.com
 
     python -m scripts.provision --demo
 
-Prints each person's device token, the ready-to-use ping URLs, and the name of
-the shortcut each URL belongs in. This is the onboarding path until the wizard
-exists (spec 005).
+    python -m scripts.provision --revoke <device_token>
+
+Provisioning prints each person's device token, the ready-to-use ping URLs, and
+the name of the shortcut each URL belongs in. This is the onboarding path until
+the wizard exists (spec 005).
+
+Revocation exists because a lost phone is an operational emergency and the
+operator should not be hand-writing SQL at midnight. It kills exactly one
+device; every other phone in the family keeps working.
 """
 
 from __future__ import annotations
@@ -20,8 +26,11 @@ from kettle import db
 from kettle.provisioning import (
     provision_demo_family,
     provision_family,
+    render_revocation,
     render_summary,
+    revoke_by_token,
 )
+from kettle.timeutil import now_utc
 
 
 def _parse_parent(value: str) -> tuple[str, str | None]:
@@ -60,6 +69,12 @@ def main(argv: list[str] | None = None) -> int:
         "--demo", action="store_true", help="provision the standard demo family"
     )
     parser.add_argument(
+        "--revoke",
+        metavar="DEVICE_TOKEN",
+        default=None,
+        help="revoke one lost/replaced device; leaves every other device working",
+    )
+    parser.add_argument(
         "--base-url",
         default=os.environ.get("PUBLIC_BASE_URL", "https://kettle-api.fly.dev"),
     )
@@ -72,8 +87,26 @@ def main(argv: list[str] | None = None) -> int:
 
     if not args.database_url:
         parser.error("DATABASE_URL is not set and --database-url was not given")
-    if not args.demo and not (args.family and args.parent):
-        parser.error("--family and at least one --parent are required (or --demo)")
+    if args.revoke and (args.demo or args.family or args.parent):
+        parser.error("--revoke cannot be combined with provisioning arguments")
+    if not args.revoke and not args.demo and not (args.family and args.parent):
+        parser.error(
+            "--family and at least one --parent are required (or --demo, or --revoke)"
+        )
+
+    if args.revoke:
+        with db.connect(args.database_url) as conn:
+            revoked = revoke_by_token(conn, args.revoke, now_utc())
+        if revoked is None:
+            print(
+                "No device matches that token — nothing revoked. "
+                "Check the token (it is the segment after /p/ in the ping URL) "
+                "and try again.",
+                file=sys.stderr,
+            )
+            return 1
+        print(render_revocation(revoked, args.revoke))
+        return 0
 
     with db.connect(args.database_url) as conn:
         if args.demo:

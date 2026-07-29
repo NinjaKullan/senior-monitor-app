@@ -36,8 +36,9 @@ def database_url() -> str:
             pass
     except psycopg.Error as exc:
         pytest.skip(
-            f"no test Postgres at {url} ({type(exc).__name__}); "
-            "see product/README.md -> Running the tests"
+            "product suite SKIPPED — no Postgres reachable; this is NOT a green "
+            f"run of spec 002. Tried {url} ({type(exc).__name__}). "
+            "See product/README.md -> Running the tests"
         )
     return url
 

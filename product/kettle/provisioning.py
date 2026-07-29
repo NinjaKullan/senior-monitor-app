@@ -9,10 +9,12 @@ shortcut names those URLs belong in.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 import psycopg
 
+from kettle import db
 from kettle.signals import STANDARD_SIGNALS, shortcut_name
 from kettle.timeutil import now_utc
 from kettle.tokens import new_device_token
@@ -152,6 +154,63 @@ def provision_demo_family(
         tz=DEMO_TZ,
         parents=list(DEMO_PARENTS),
         base_url=base_url,
+    )
+
+
+@dataclass(frozen=True)
+class RevokedDevice:
+    """What a revocation actually killed, for the operator to read back."""
+
+    device_id: Any
+    platform: str
+    parent_name: str
+    family_name: str
+    already_revoked: bool
+
+
+def revoke_by_token(
+    conn: psycopg.Connection, device_token: str, when: datetime
+) -> RevokedDevice | None:
+    """Revoke one device by its token. Returns None when the token is unknown.
+
+    A lost phone is an operational emergency, so this is idempotent: revoking an
+    already-revoked device reports that fact rather than failing.
+    """
+    device = db.device_by_token(conn, device_token)
+    if device is None:
+        return None
+
+    already = not device["active"] or device["revoked_utc"] is not None
+    if not already:
+        db.revoke_device(conn, device["device_id"], when)
+
+    return RevokedDevice(
+        device_id=device["device_id"],
+        platform=device["platform"],
+        parent_name=device["parent_name"],
+        family_name=device["family_name"],
+        already_revoked=bool(already),
+    )
+
+
+def mask_token(device_token: str) -> str:
+    """Show just enough of a token to confirm which one it was."""
+    return f"…{device_token[-6:]}" if len(device_token) > 6 else "…"
+
+
+def render_revocation(revoked: RevokedDevice, device_token: str) -> str:
+    """The operator-facing printout for a revocation."""
+    verb = "Already revoked" if revoked.already_revoked else "Revoked"
+    return "\n".join(
+        [
+            f"{verb} device {mask_token(device_token)}",
+            f"  family:   {revoked.family_name}",
+            f"  parent:   {revoked.parent_name}",
+            f"  platform: {revoked.platform}",
+            "",
+            "That phone's pings are now rejected. Every other device in the "
+            "family is unaffected.",
+        ]
     )
 
 

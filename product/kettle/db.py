@@ -46,7 +46,7 @@ def device_by_token(conn: psycopg.Connection, token: str) -> Row | None:
     """Resolve a device token to its device, parent and family in one hop."""
     return conn.execute(
         """
-        select d.id as device_id, d.active, d.revoked_utc,
+        select d.id as device_id, d.active, d.revoked_utc, d.platform,
                p.id as parent_id, p.display_name as parent_name, p.tz as parent_tz,
                f.id as family_id, f.name as family_name, f.tz as family_tz
         from devices d

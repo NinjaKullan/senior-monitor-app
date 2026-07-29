@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 import psycopg
+import pytest
 
 from kettle.provisioning import (
     DEMO_FAMILY_NAME,
@@ -135,6 +136,30 @@ def test_render_summary_is_operator_readable(conn: psycopg.Connection):
     assert "Kettle — Amma WhatsApp" in text
     assert f"{BASE_URL}/p/{family.parents[0].device_token}/whatsapp" in text
     assert "revoking one phone leaves the rest working" in text
+
+
+def test_revoking_twice_is_idempotent(conn: psycopg.Connection, database_url: str, capsys):
+    """Midnight emergencies get run twice; the second run must not look like a failure."""
+    family = provision_family(
+        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
+    )
+    token = family.parents[0].device_token
+
+    assert provision_main(["--revoke", token, "--database-url", database_url]) == 0
+    first = conn.execute("select revoked_utc from devices").fetchone()["revoked_utc"]
+
+    assert provision_main(["--revoke", token, "--database-url", database_url]) == 0
+    assert "Already revoked device" in capsys.readouterr().out
+    # The original revocation time is preserved.
+    assert conn.execute("select revoked_utc from devices").fetchone()["revoked_utc"] == first
+
+
+def test_revoke_cannot_be_mixed_with_provisioning(database_url: str):
+    """Two very different operations; refuse the ambiguous invocation."""
+    with pytest.raises(SystemExit):
+        provision_main(
+            ["--revoke", "sometoken000000000000", "--demo", "--database-url", database_url]
+        )
 
 
 def test_parse_parent_argument():

@@ -170,3 +170,42 @@ implemented so it can be corrected cheaply.
     Postgres database, applies the real migrations, asserts the table and policy
     sets, boots the app against it and checks `/healthz`. The deploy itself is
     Hema's step; `product/README.md` has the exact commands.
+
+---
+
+## PM rulings — Fable, 2026-07-29 (review of 3ba6ebb: APPROVED, one change requested)
+
+11. **Service-role Postgres URI via psycopg** — correct reading, intended architecture. PostgREST adds nothing for a server-side service. No change.
+12. **Owner member on `--owner-email`, `auth_user_id` null until signup** — right. Real member creation belongs to the PWA (spec 005). No change.
+13. **`auth_user_id` non-unique** — approved and deliberate: one auth user in multiple families (own parents + in-laws) is a real customer shape. Keep it non-unique, keep the test.
+14. **One device per parent** — fine for beta. Multi-device waits for a real need. No change.
+15. **Revoke command** — ⬅ **CHANGE REQUESTED.** Add `--revoke <token>` to the provisioning CLI; print what was revoked (family, parent, platform); refuse with a clear message on an unknown token. A lost phone is an operational emergency and the operator path must not be hand-written SQL at midnight. Extend AC3's coverage through the CLI path.
+16. **Infra evaluated every pass with per-local-day dedupe** — approved; equivalent to and simpler than a clock-hour condition. No change.
+17. **Local Postgres + shim** — approved; sound, and the bug it caught proves it earns its keep. No change.
+18. **Skip behaviour** — keep it, but make the reason explicit: "product suite SKIPPED — no Postgres reachable; this is NOT a green run of spec 002." Revisit as a hard failure when CI exists.
+19. **Root `pyproject.toml`** — approved; shared tooling, not pilot behaviour. No change.
+20. **AC7** — acknowledged; the deploy is Hema's step.
+
+### Implementation of items 15 and 18 (2026-07-29)
+
+**15 — `--revoke <device_token>`.** `provisioning.revoke_by_token()` resolves the
+token, revokes that one device and returns what it killed;
+`render_revocation()` prints family / parent / platform with the token masked to
+its last six characters (the operator already has it; terminal history and
+screen-shares do not need it in full). Unknown token → a message naming where to
+find the token, and exit 1, never a silent success. Idempotent: a second run
+reports "Already revoked" and preserves the original `revoked_utc`, because
+emergency commands get run twice. `--revoke` refuses to be combined with
+provisioning arguments.
+
+AC3 now covers the operator path end to end
+(`test_revoke_via_the_cli_kills_only_that_device`): two phones ping fine, the CLI
+revokes one, that token gets a `403`, the *other* phone still gets a `200`, and
+the DB shows exactly one device deactivated with a timestamp. Plus an
+unknown-token test, an idempotency test, and one for the mutually-exclusive
+arguments.
+
+**18 — Skip reason.** Now reads exactly as ruled, with the URL and error type
+appended. `-rs` added to the root pytest `addopts` so the reason always shows in
+the summary — without it a fully-skipped product suite prints only "56 skipped",
+which is the misreading the ruling is about.

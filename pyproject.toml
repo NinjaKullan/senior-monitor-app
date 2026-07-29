@@ -15,3 +15,7 @@ known-first-party = ["app", "tests", "kettle", "scripts", "testsupport"]
 # product backend and needs a Postgres — it skips itself when none is reachable.
 testpaths = ["tests", "product/tests"]
 filterwarnings = ["ignore::DeprecationWarning"]
+# -rs prints skip reasons in the summary. Without it a run that skipped the whole
+# product suite for want of a Postgres just says "56 skipped", which reads as
+# green. The reason says, in words, that it is not.
+addopts = "-rs"

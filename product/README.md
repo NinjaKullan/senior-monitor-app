@@ -89,9 +89,19 @@ pytest product/tests            # or just `pytest` for the whole repo
 The suite reads `TEST_DATABASE_URL`, defaulting to
 `postgresql://postgres:postgres@127.0.0.1:5432/kettle_test` — the standard GitHub
 Actions `postgres` service-container credentials, which is why that default is a
-throwaway and not a secret. If no Postgres is reachable the product tests **skip**
-with that reason rather than fail, so the pilot suite still runs on a bare machine.
-A green run that skipped them is not a green run of this spec.
+throwaway and not a secret.
+
+If no Postgres is reachable the product tests **skip** rather than fail, so the
+pilot suite still runs on a bare machine. The skip reason says so in words:
+
+```
+product suite SKIPPED — no Postgres reachable; this is NOT a green run of
+spec 002. Tried postgresql://... (OperationalError).
+```
+
+`-rs` is in the root pytest `addopts` so that reason always appears in the
+summary — otherwise a run that skipped everything just says "56 skipped", which
+reads as green. Revisit as a hard failure once CI exists.
 
 Each session drops and recreates `public`, then applies
 `migrations/local/0000_supabase_shim.sql` followed by the real numbered
@@ -164,8 +174,29 @@ per-parent timezone (`Appa:America/Chicago`) overrides the family's, which is ho
 "Mom is visiting Texas" becomes a data change rather than a code change.
 
 Nobody types these URLs. They ship inside pre-built shortcuts delivered as tapped
-iCloud links or a QR scan (spec 005). Tokens are per device, so a lost phone is one
-revoke that leaves every other phone in the family working.
+iCloud links or a QR scan (spec 005).
+
+### 4. Revoke a lost phone
+
+```bash
+DATABASE_URL=... python -m scripts.provision --revoke <device_token>
+```
+
+Prints the family, person and platform it just killed, so you can confirm you got
+the right phone before you put the laptop down:
+
+```
+Revoked device …7Q4Mxb
+  family:   Sharma
+  parent:   Amma
+  platform: ios_shortcuts
+```
+
+Tokens are per device, so this leaves every other phone in the family working —
+that ping route starts returning `403` and nothing else changes. An unknown token
+is refused with a message and a non-zero exit, never a silent success. Running it
+twice is safe: the second run reports "Already revoked" and keeps the original
+revocation time.
 
 ## Environment variables
 

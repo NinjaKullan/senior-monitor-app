@@ -11,6 +11,7 @@ import psycopg
 from kettle import db
 from kettle.provisioning import provision_family
 from kettle.timeutil import now_utc
+from scripts.provision import main as provision_main
 from testsupport import BASE_URL
 
 EXPECTED_PING_COLUMNS = {"id", "parent_id", "signal", "ts_utc", "ip_hash"}
@@ -116,6 +117,55 @@ def test_revoking_one_device_kills_only_that_device(client, conn):
             "select count(*) as n from pings where parent_id = %s", (amma.parent_id,)
         ).fetchone()["n"]
         == 1
+    )
+
+
+def test_revoke_via_the_cli_kills_only_that_device(
+    client, conn, database_url: str, capsys
+):
+    """AC3 through the operator path: `--revoke <token>`, not hand-written SQL."""
+    family = _family(conn)
+    amma, appa = family.parents
+    assert client.get(f"/p/{amma.device_token}/whatsapp").status_code == 200
+    assert client.get(f"/p/{appa.device_token}/whatsapp").status_code == 200
+
+    assert provision_main(["--revoke", amma.device_token, "--database-url", database_url]) == 0
+    out = capsys.readouterr().out
+    assert "Revoked device" in out
+    assert "family:   Sharma" in out
+    assert "parent:   Amma" in out
+    assert "platform: ios_shortcuts" in out
+    # The token itself is a credential: only enough of it to confirm which one.
+    assert amma.device_token not in out
+
+    assert client.get(f"/p/{amma.device_token}/youtube").status_code == 403
+    assert client.get(f"/p/{appa.device_token}/youtube").status_code == 200
+
+    rows = conn.execute(
+        "select p.display_name, d.active, d.revoked_utc from devices d "
+        "join parents p on p.id = d.parent_id order by p.display_name"
+    ).fetchall()
+    assert rows[0]["display_name"] == "Amma"
+    assert rows[0]["active"] is False
+    assert rows[0]["revoked_utc"] is not None
+    assert rows[1]["active"] is True
+    assert rows[1]["revoked_utc"] is None
+
+
+def test_revoke_via_the_cli_refuses_an_unknown_token(conn, database_url: str, capsys):
+    """A typo must not look like a successful revocation."""
+    family = _family(conn)
+    args = ["--revoke", "nosuchdevicetoken0000", "--database-url", database_url]
+    assert provision_main(args) == 1
+
+    captured = capsys.readouterr()
+    assert "nothing revoked" in captured.err
+    assert captured.out == ""
+
+    # Nothing was touched.
+    assert (
+        conn.execute("select count(*) as n from devices where active").fetchone()["n"]
+        == len(family.parents)
     )
 
 
