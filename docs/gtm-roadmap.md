@@ -59,6 +59,8 @@ The gates were designed when the concept itself was unproven. Since then: Parent
 2. Path-style readable ping URLs (`/p/<family-code>/<who>/<signal>`) alongside query-param route. → spec 002.
 3. Wizard verifies by server-side proof: "open WhatsApp now" → green check only when the ping lands. Setup is done when the server says so. → spec 005.
 4. Apple's periodic "N automations ran" notification cannot be suppressed: handled by expectation-setting (consent script line + senior-facing "what your phone will show you" one-pager) + heartbeat detection with child-facing repair flow. → spec 005 content.
+5. Any elder, not just parents (founder, Jul 29): families add unlimited monitored loved ones (grandparent, aunt, uncle) at per-person pricing — schema already supports it (spec 002 parents table is unbounded, per-person tz/signals/devices). Invariants: consent flow runs per person (no silent adds, ever) and each elder gets their own baseline + ladder. Product copy says "loved ones."
+6. Token delivery: tokens are never typed by humans. Delivery = pre-built shortcut via tapped iCloud link or QR scan. Apple can't mass-generate per-family iCloud links, so: beta = semi-manual per-family shortcuts; scale = one universal shortcut with an Apple "import question" asking for a short checksummed family code (e.g. KETL-7Q4M), entered once by the child. Wrong token → silent 403, no data pollution; wizard verification (screen C) surfaces any failure in seconds. Tokens are per-device (spec 002) so a lost phone is a one-tap revoke. → specs 002/005.
 
 ## §6 Risks worth naming
 
