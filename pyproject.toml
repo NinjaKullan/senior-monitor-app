@@ -5,6 +5,13 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "W", "C4", "SIM"]
 
+[tool.ruff.lint.isort]
+# `app` is the pilot; `kettle`/`scripts`/`testsupport` are the product backend,
+# which lives under product/ and is imported by name.
+known-first-party = ["app", "tests", "kettle", "scripts", "testsupport"]
+
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+# `tests` is the pilot (SQLite, no services needed); `product/tests` is the
+# product backend and needs a Postgres — it skips itself when none is reachable.
+testpaths = ["tests", "product/tests"]
 filterwarnings = ["ignore::DeprecationWarning"]
