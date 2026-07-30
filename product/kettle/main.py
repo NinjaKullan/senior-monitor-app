@@ -20,7 +20,9 @@ from psycopg_pool import ConnectionPool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from kettle import db
+from kettle.channels import build_channels
 from kettle.config import Settings, settings_from_env
+from kettle.digest import DigestState, digest_loop
 from kettle.heartbeat import HeartbeatState, heartbeat_loop
 from kettle.notify import LogOnlyNotifier, Notifier, NtfyNotifier
 from kettle.timeutil import now_utc
@@ -60,23 +62,43 @@ def create_app(
         app.state.notifier = notifier or (
             NtfyNotifier(cfg.ntfy_topic) if cfg.ntfy_topic else LogOnlyNotifier()
         )
-        task: asyncio.Task[None] | None = None
-        hb_conn: psycopg.Connection | None = None
+        app.state.digest = DigestState()
+        app.state.channels = build_channels(cfg)
+        tasks: list[asyncio.Task[None]] = []
+        loop_conns: list[psycopg.Connection] = []
         if cfg.heartbeat_loop:
-            # Its own connection: the loop runs in a worker thread.
+            # Each loop gets its own connection: they run in worker threads.
             hb_conn = db.connect(cfg.database_url)
-            task = asyncio.create_task(
-                heartbeat_loop(hb_conn, cfg, app.state.notifier, app.state.heartbeat)
+            loop_conns.append(hb_conn)
+            tasks.append(
+                asyncio.create_task(
+                    heartbeat_loop(hb_conn, cfg, app.state.notifier, app.state.heartbeat)
+                )
+            )
+            # Sibling loop rather than more work inside the heartbeat: ops
+            # alerting and family-facing sending should not share a failure mode.
+            dg_conn = db.connect(cfg.database_url)
+            loop_conns.append(dg_conn)
+            tasks.append(
+                asyncio.create_task(
+                    digest_loop(
+                        dg_conn,
+                        cfg,
+                        app.state.channels,
+                        app.state.notifier,
+                        app.state.digest,
+                    )
+                )
             )
         try:
             yield
         finally:
-            if task is not None:
+            for task in tasks:
                 task.cancel()
                 with suppress(asyncio.CancelledError):
                     await task
-            if hb_conn is not None:
-                hb_conn.close()
+            for conn in loop_conns:
+                conn.close()
             pool.close()
 
     app = FastAPI(

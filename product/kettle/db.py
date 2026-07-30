@@ -8,7 +8,7 @@ anything else.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from hashlib import sha256
 from typing import Any
 
@@ -189,6 +189,120 @@ def family_last_ping(conn: psycopg.Connection, family_id: Any) -> datetime | Non
         (family_id,),
     ).fetchone()
     return row["ts"] if row else None
+
+
+def first_alarm_ping_between(
+    conn: psycopg.Connection, parent_id: Any, start: datetime, end: datetime
+) -> datetime | None:
+    """The earliest alarm-grade ping for one parent in [start, end).
+
+    This is the evidence the morning digest is built from — there is no path
+    that renders "day started normally" without a row coming back from here.
+    """
+    row = conn.execute(
+        """
+        select min(p.ts_utc) as ts
+        from pings p
+        join parent_signals ps
+          on ps.parent_id = p.parent_id and ps.signal = p.signal
+        where p.parent_id = %s
+          and ps.alarm_grade and ps.active
+          and p.ts_utc >= %s and p.ts_utc < %s
+        """,
+        (parent_id, start, end),
+    ).fetchone()
+    return row["ts"] if row else None
+
+
+# --- digest (family-facing, spec 003) ---------------------------------------
+
+
+def families_for_digest(conn: psycopg.Connection) -> list[Row]:
+    """Families that have explicitly opted in. Defaults to none."""
+    return conn.execute(
+        "select id as family_id, name as family_name, tz as family_tz "
+        "from families where digest_enabled order by name"
+    ).fetchall()
+
+
+def parents_for_family(conn: psycopg.Connection, family_id: Any) -> list[Row]:
+    """The monitored people in one family."""
+    return conn.execute(
+        "select id as parent_id, display_name as parent_name, tz as parent_tz "
+        "from parents where family_id = %s order by display_name",
+        (family_id,),
+    ).fetchall()
+
+
+def digest_recipients(conn: psycopg.Connection, family_id: Any) -> list[Row]:
+    """Members who have a channel and a number to reach it on."""
+    return conn.execute(
+        """
+        select id as member_id, display_name as member_name,
+               phone_e164, digest_channel
+        from members
+        where family_id = %s
+          and digest_channel <> 'none'
+          and phone_e164 is not null and phone_e164 <> ''
+        order by created_utc, id
+        """,
+        (family_id,),
+    ).fetchall()
+
+
+def digest_send_exists(
+    conn: psycopg.Connection,
+    family_id: Any,
+    parent_id: Any | None,
+    kind: str,
+    local_date: date,
+    member_id: Any,
+) -> bool:
+    """Has this exact message already gone to this recipient today?
+
+    The idempotency question is asked of the database, never of process memory,
+    so a restart mid-pass cannot produce a second send.
+    """
+    row = conn.execute(
+        """
+        select 1 from digest_sends
+        where family_id = %s
+          and parent_id is not distinct from %s
+          and kind = %s and local_date = %s and member_id = %s
+        limit 1
+        """,
+        (family_id, parent_id, kind, local_date, member_id),
+    ).fetchone()
+    return row is not None
+
+
+def record_digest_send(
+    conn: psycopg.Connection,
+    family_id: Any,
+    parent_id: Any | None,
+    kind: str,
+    local_date: date,
+    member_id: Any,
+    channel: str,
+    status: str,
+    ts_utc: datetime,
+) -> bool:
+    """Record one delivery attempt. False when the unique index already had it.
+
+    `on conflict do nothing` makes the write itself the race guard: two passes
+    overlapping across a restart cannot both insert.
+    """
+    row = conn.execute(
+        """
+        insert into digest_sends
+            (family_id, parent_id, kind, local_date, member_id, channel, status, ts_utc)
+        values (%s, %s, %s, %s, %s, %s, %s, %s)
+        on conflict do nothing
+        returning id
+        """,
+        (family_id, parent_id, kind, local_date, member_id, channel, status, ts_utc),
+    ).fetchone()
+    return row is not None
 
 
 # --- ops alerts (founder-only) ----------------------------------------------
