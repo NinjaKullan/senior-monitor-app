@@ -309,3 +309,42 @@ after 0002 `anon` holds a direct EXECUTE grant that survived
     grant for authenticated too. If yours revoked from `anon` only, future tables
     would silently re-acquire the full set for `authenticated`, and that is worth
     catching now rather than at the next migration.
+
+    **PM resolution — Fable, 2026-07-29: repo file is canonical; production
+    converged to it.** Production's migration ledger does *not* match this repo
+    statement-for-statement, and that is now a recorded fact rather than a
+    discrepancy:
+
+    - **Step 1**, applied via the Supabase connector as
+      `0004_revoke_residual_table_privileges` before the repo file existed:
+      revoked all table and sequence privileges from `anon`; revoked
+      insert/update/delete/truncate/references/trigger on all tables and
+      `select on ops_alerts` from `authenticated`; revoked all sequence
+      privileges from `authenticated`; and three
+      `alter default privileges for role postgres ... revoke all on
+      {tables,sequences,functions} from anon` — **`anon` only**.
+    - **Step 2**, applied today after reviewing this repo's file: the three
+      `revoke all on {tables,sequences,functions} from anon, authenticated`
+      statements, adopting the stronger both-roles doctrine from item 22.
+
+    End state in production verified to match this repo's test assertions. The
+    file stays as written; the ledger reads as two steps to the same place.
+
+23. **`pg_default_acl` assertions must be scoped to the migrating role.** Noted
+    by the PM: a hosted Supabase project carries default-ACL rows owned by
+    `supabase_admin` that still name `anon`/`authenticated`. Those govern objects
+    the platform creates, not ours, and cannot be altered from the `postgres`
+    role — so the unscoped assertion in
+    `test_residual_privileges_exist_before_0004_and_are_gone_after` was true in
+    the shim (everything postgres-owned) and would have failed against
+    production, reading as "0004 didn't work" when the app-owned defaults are
+    clean.
+
+    Fixed: the query now filters `pg_get_userbyid(d.defaclrole) = current_user`,
+    with the reasoning in the test body and in the migration's own comment so the
+    next person auditing production hits the explanation before the confusion.
+    Verified rather than assumed — creating a default ACL owned by a second role
+    and naming `anon` is seen by the unscoped query (1 row) and correctly ignored
+    by the scoped one (0 rows). The assertion also now requires the scoped set to
+    be non-empty, so a future mis-scoping that matches nothing fails loudly
+    instead of passing vacuously.

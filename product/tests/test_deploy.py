@@ -159,10 +159,22 @@ def test_residual_privileges_exist_before_0004_and_are_gone_after(fresh_database
         }
 
         # Future objects must not re-acquire any of it.
+        #
+        # Scoped to defaults owned by the migrating role on purpose. ALTER
+        # DEFAULT PRIVILEGES only ever touches one role's defaults, and in
+        # production pg_default_acl also holds rows owned by `supabase_admin`
+        # that still name anon/authenticated. Those govern objects created by
+        # the platform's own machinery, not by our migrations, and cannot be
+        # altered from the postgres role — so an unscoped version of this
+        # assertion would fail against production and read as "0004 didn't
+        # work" when the app-owned defaults are in fact clean.
         defaults = conn.execute(
             "select defaclobjtype, defaclacl::text as acl from pg_default_acl d "
-            "join pg_namespace n on n.oid = d.defaclnamespace where n.nspname = 'public'"
+            "join pg_namespace n on n.oid = d.defaclnamespace "
+            "where n.nspname = 'public' "
+            "  and pg_get_userbyid(d.defaclrole) = current_user"
         ).fetchall()
+        assert defaults  # service_role keeps its defaults; an empty set means bad scoping
         for row in defaults:
             assert "anon=" not in row["acl"]
             assert "authenticated=" not in row["acl"]

@@ -1,15 +1,15 @@
 -- 0004 — strip the residual table/sequence privileges Supabase's bootstrap left
 -- on `anon` and `authenticated`.
 --
--- NOTE FOR REVIEW (Claude Code, 2026-07-29): the PM's message pasted a
--- placeholder rather than the SQL they ran against production, so the statements
--- below are written to reach the END STATE they specified, not copied from that
--- run. The end state is asserted by tests:
+-- This file is the canonical text (PM ruling, 2026-07-29). Production reached the
+-- same end state in two steps — a differently-worded 0004 that revoked default
+-- privileges from `anon` only, then a follow-up applying the both-roles form
+-- below — and has been converged to this. See specs/QUESTIONS.md item 22.
+--
+-- End state, asserted by tests rather than described:
 --   * anon holds zero privileges on every public table and sequence
 --   * authenticated holds exactly SELECT on the six family tables
 --   * authenticated holds nothing at all on ops_alerts
--- Diff this against what was applied to production and replace it verbatim if
--- the statements differ; see specs/QUESTIONS.md item 21.
 --
 -- Why this is needed: Supabase's project bootstrap sets default privileges that
 -- grant the FULL privilege set on new public-schema objects to anon,
@@ -38,6 +38,13 @@ revoke all on ops_alerts from authenticated;
 
 -- Stop the bootstrap defaults from re-granting all of this to the next table,
 -- sequence or function anyone creates. From here, access is explicit or absent.
+--
+-- These affect only defaults owned by the role running the migration (postgres,
+-- implicitly — equivalent to `for role postgres`). A hosted Supabase project also
+-- carries default-ACL rows owned by `supabase_admin` that still name anon and
+-- authenticated; those govern objects the platform creates, not ours, and cannot
+-- be altered from the postgres role. Auditing `pg_default_acl` after this
+-- migration, filter on the migrating role or those rows will look like a failure.
 alter default privileges in schema public revoke all on tables from anon, authenticated;
 alter default privileges in schema public revoke all on sequences from anon, authenticated;
 alter default privileges in schema public revoke all on functions from anon, authenticated;
