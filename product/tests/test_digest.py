@@ -527,6 +527,104 @@ def test_two_timezone_groups_both_get_their_evening(
     assert len(ist_group) == 2 and len(chicago_group) == 2
 
 
+def test_evening_is_final_once_the_group_has_been_sent(
+    conn, settings, channels, channel, notifier
+):
+    """PM ruling: a 21:15 first ping does not earn a second text that day.
+
+    The digest's contract is a predictable cadence — one morning, one evening. A
+    surprise late message is an anomaly even with positive content, and a parent
+    silent until 9pm is heartbeat information, not digest information.
+    """
+    family = _family(conn, [("Amma", None), ("Appa", None)])
+    enable_digests(conn, family.family_id)
+    amma, appa = family.parents
+    _ping(conn, amma.parent_id, "whatsapp", MORNING_PING)
+
+    run_digests(conn, settings, channels, notifier, EVENING)
+    assert channel.sent[-1][1] == "Amma had a normal, active day."
+    texts_after_the_summary = len(channel.sent)
+
+    # Appa finally pings at 21:15 — well after his group's summary went out.
+    _ping(conn, appa.parent_id, "whatsapp", datetime(2026, 8, 3, 21, 15, tzinfo=IST))
+    late = [
+        s
+        for s in run_digests(
+            conn, settings, channels, notifier, datetime(2026, 8, 3, 21, 20, tzinfo=IST)
+        )
+        if s.kind == KIND_EVENING
+    ]
+
+    assert late == []
+    assert len(channel.sent) == texts_after_the_summary  # zero additional texts
+    assert (
+        conn.execute(
+            "select count(*) as n from digest_sends where kind = 'evening'"
+        ).fetchone()["n"]
+        == 1
+    )
+
+    # The founder was told, and still is — that is where a 9pm start belongs.
+    skipped = conn.execute(
+        "select * from ops_alerts where kind = %s", (OPS_SKIPPED,)
+    ).fetchall()
+    assert len(skipped) == 1
+    assert skipped[0]["parent_id"] == appa.parent_id
+
+    # Finality is per local date: the next day starts clean.
+    next_day = datetime(2026, 8, 4, 8, 12, tzinfo=IST)
+    for parent in family.parents:
+        _ping(conn, parent.parent_id, "whatsapp", next_day)
+    tomorrow = run_digests(
+        conn, settings, channels, notifier, datetime(2026, 8, 4, 20, 30, tzinfo=IST)
+    )
+    assert [s.kind for s in tomorrow if s.kind == KIND_EVENING]
+    assert channel.sent[-1][1] == "Amma and Appa both had normal, active days."
+
+
+def test_finality_is_per_group_not_per_family(
+    conn, settings, channels, channel, notifier
+):
+    """One group's completed evening must not silence another group's."""
+    family = _family(conn, [("Amma", None), ("Patti", "America/Chicago")])
+    enable_digests(conn, family.family_id)
+    amma, patti = family.parents
+    _ping(conn, amma.parent_id, "whatsapp", MORNING_PING)
+    _ping(conn, patti.parent_id, "whatsapp", datetime(2026, 8, 3, 8, 12, tzinfo=CHICAGO))
+
+    run_digests(conn, settings, channels, notifier, EVENING)
+    summaries = [m for _, m in channel.sent if "active day" in m]
+    assert summaries == ["Amma had a normal, active day."]
+
+    run_digests(
+        conn, settings, channels, notifier, datetime(2026, 8, 3, 20, 30, tzinfo=CHICAGO)
+    )
+    summaries = [m for _, m in channel.sent if "active day" in m]
+    assert summaries == [
+        "Amma had a normal, active day.",
+        "Patti had a normal, active day.",
+    ]
+
+
+def test_morning_finality_is_unchanged_by_the_group_gate(
+    conn, settings, channels, channel, notifier
+):
+    """A morning's group is the one parent, so nothing about it moved."""
+    family = _family(conn, [("Amma", None), ("Appa", None)])
+    enable_digests(conn, family.family_id)
+    amma, appa = family.parents
+    _ping(conn, amma.parent_id, "whatsapp", MORNING_PING)
+
+    run_digests(conn, settings, channels, notifier, MID_MORNING)
+    assert len(channel.sent) == 1
+
+    # Appa's own morning still fires — one parent's message never gates another's.
+    _ping(conn, appa.parent_id, "whatsapp", datetime(2026, 8, 3, 9, 30, tzinfo=IST))
+    run_digests(conn, settings, channels, notifier, datetime(2026, 8, 3, 9, 35, tzinfo=IST))
+    assert len(channel.sent) == 2
+    assert "Appa" in channel.sent[-1][1]
+
+
 def test_whatsapp_members_are_skipped_without_taking_the_slot(
     conn, settings, notifier
 ):

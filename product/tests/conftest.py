@@ -35,11 +35,17 @@ def database_url() -> str:
         with psycopg.connect(url, connect_timeout=3):
             pass
     except psycopg.Error as exc:
-        pytest.skip(
+        message = (
             "product suite SKIPPED — no Postgres reachable; this is NOT a green "
             f"run of spec 002. Tried {url} ({type(exc).__name__}). "
             "See product/README.md -> Running the tests"
         )
+        # CI sets this: there, a missing database is a broken pipeline, not a
+        # machine without Postgres installed. It is what retires the "green run
+        # that actually skipped everything" failure mode for good.
+        if os.environ.get("KETTLE_REQUIRE_POSTGRES", "").strip() not in ("", "0", "false"):
+            pytest.fail(message.replace("SKIPPED", "FAILED"), pytrace=False)
+        pytest.skip(message)
     return url
 
 

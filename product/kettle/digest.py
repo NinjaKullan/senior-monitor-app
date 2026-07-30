@@ -83,7 +83,8 @@ def _fan_out(
     notifier: Notifier,
     family: dict[str, Any],
     recipients: list[dict[str, Any]],
-    parent_ids: list[Any],
+    group_parent_ids: list[Any],
+    covered_parent_ids: list[Any],
     kind: str,
     local_date: date,
     message: str,
@@ -92,9 +93,20 @@ def _fan_out(
 ) -> list[DigestSend]:
     """Deliver one composed message to every recipient who has not had it.
 
-    One message goes out per recipient; one row is recorded per parent the
-    message covered, so an aggregated evening summary leaves an audit trail
-    naming everyone it vouched for.
+    Two parent lists, and the difference is what makes a digest final:
+
+    * `group_parent_ids` is everyone this message *could* have covered — the
+      whole timezone group for an evening, the one parent for a morning. A
+      recipient who already has a row for any of them has had this message today
+      and gets nothing further.
+    * `covered_parent_ids` is who it actually vouched for, and gets a row each.
+
+    So a parent who first pings at 21:15, after their group's 20:30 summary went
+    out, is omitted from that day's digest rather than triggering a second text.
+    The digest's contract is a predictable cadence — one morning, one evening —
+    and a surprise late message is an anomaly even when the content is good. A
+    parent silent until 9pm is heartbeat information, not digest information; the
+    `digest_skipped` ops row already tells the founder.
     """
     results: list[DigestSend] = []
     for member in recipients:
@@ -108,10 +120,8 @@ def _fan_out(
             _note_channel_unavailable(conn, notifier, family, member, channel, tz, now)
             continue
 
-        missing = [
-            parent_id
-            for parent_id in parent_ids
-            if not db.digest_send_exists(
+        already_sent = any(
+            db.digest_send_exists(
                 conn,
                 family["family_id"],
                 parent_id,
@@ -119,9 +129,11 @@ def _fan_out(
                 local_date,
                 member["member_id"],
             )
-        ]
-        if not missing:
+            for parent_id in group_parent_ids
+        )
+        if already_sent:
             continue
+        missing = list(covered_parent_ids)
 
         ok = _deliver(channel, member["phone_e164"], message)
         status = STATUS_SENT if ok else STATUS_FAILED
@@ -259,6 +271,7 @@ def _morning(
         family,
         recipients,
         [parent["parent_id"]],
+        [parent["parent_id"]],
         KIND_MORNING,
         date.fromisoformat(local_day(now, tz)),
         message,
@@ -319,7 +332,8 @@ def _evening(
 
         # The message is aggregated; the record is per parent it covered, so
         # parent_id is never null and two timezone groups cannot collide on the
-        # unique index (migration 0006).
+        # unique index (migration 0006). The gate spans the whole group, which is
+        # what makes the evening final once sent.
         message = render_evening([p["parent_name"] for p in active])
         results.extend(
             _fan_out(
@@ -328,6 +342,7 @@ def _evening(
                 notifier,
                 family,
                 recipients,
+                [p["parent_id"] for p in group],
                 [p["parent_id"] for p in active],
                 KIND_EVENING,
                 local_date,

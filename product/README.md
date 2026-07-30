@@ -112,6 +112,12 @@ with no alarm-grade pings is silently omitted from the evening message and
 surfaced to the founder as a `digest_skipped` ops alert; if nobody qualifies, the
 family hears nothing at all.
 
+**The evening is final once sent**, per timezone group per local date. A parent
+whose first ping lands after their group's summary went out is omitted from that
+day's digest rather than triggering a second text — the contract is a predictable
+cadence, and a surprise late message is an anomaly even when the content is good.
+A parent silent until 9pm is heartbeat information, not digest information.
+
 **The copy is product law, not styling.** No counts, no app or signal names, no
 trends or comparisons, and no digits anywhere except the one clock time — two
 independent derivations reached that rule (PLAN.md, Jul 26), and
@@ -184,7 +190,13 @@ spec 002. Tried postgresql://... (OperationalError).
 
 `-rs` is in the root pytest `addopts` so that reason always appears in the
 summary — otherwise a run that skipped everything just says "56 skipped", which
-reads as green. Revisit as a hard failure once CI exists.
+reads as green.
+
+In CI that fallback is off: `.github/workflows/ci.yml` runs both suites against a
+Postgres service container and sets `KETTLE_REQUIRE_POSTGRES=1`, which turns the
+skip into a hard failure. A missing database on a developer laptop is a machine
+without Postgres; in CI it is a broken pipeline. Setting that variable locally
+gives you the same strictness.
 
 Each session drops and recreates `public`, then applies
 `migrations/local/0000_supabase_shim.sql` followed by the real numbered

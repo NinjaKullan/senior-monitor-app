@@ -478,3 +478,57 @@ README, both flagged as revisit-at-scale.
 
 **31.** `digest_unroutable` written once per family per local day before the
 skip, with a test that a properly routable family produces none.
+
+---
+
+## PM ruling — Fable, 2026-07-30 (evening finality) + CI
+
+**Ruling.** Evening is final per timezone group per local date. A parent whose
+first alarm-grade ping lands after their group's evening send is omitted from
+that day's digest entirely — no follow-up text. Rationale for the record: the
+digest's contract is predictable cadence (one morning, one evening); a surprise
+late text is an anomaly even with positive content, and a parent silent until 9pm
+is heartbeat/ladder information, not digest information. The existing
+`digest_skipped` ops row already tells the founder.
+
+32. **Finality mechanism: the group-send fact, derived — no new state.** Of the
+    three options offered (evaluated-marker, group-send fact, activity-before-
+    send-moment) I took the middle one, because the fact is already in the
+    database and the other two add something that can drift from it.
+
+    `_fan_out` now takes two parent lists. `group_parent_ids` is everyone the
+    message *could* have covered — the whole timezone group for an evening, the
+    single parent for a morning — and a recipient holding a row for any of them
+    has had that message today, so nothing further goes out.
+    `covered_parent_ids` is who it actually vouched for and gets the rows. No new
+    column, no marker table, and no second source of truth about whether a
+    message went out: the rows that record the send are the same rows that
+    prevent the next one.
+
+    Rejected, for the record: an evaluated-marker needs its own write and can
+    disagree with `digest_sends` after a partial failure; gating eligibility on
+    "activity before the send moment" would change what the message *means*
+    (it would silently redefine an active day as an active-by-20:30 day) and
+    would still need a send fact to stop the 21:20 pass re-sending.
+
+    Morning behaviour is unchanged by construction — its group is one parent, so
+    the gate is the same test it always was, and there is a test asserting one
+    parent's morning never gates another's.
+
+33. **CI added: `.github/workflows/ci.yml`.** One file, both suites, ruff, no
+    deployment steps. Postgres 16 service container so the product suite genuinely
+    runs, and `KETTLE_REQUIRE_POSTGRES=1` in the job env, which turns the local
+    "no database → skip" fallback into a hard failure. That is item 18's
+    "revisit as a hard failure when CI exists", now due: a missing database on a
+    laptop is a machine without Postgres, but in CI it is a broken pipeline.
+
+    Verified as far as is possible without running Actions: the workflow YAML
+    parses, the combined `pip install -r requirements-dev.txt -r
+    product/requirements-dev.txt` resolves cleanly in a fresh 3.12 venv (the two
+    files pin the overlapping packages identically), and the full suite plus ruff
+    were run from that venv with CI's exact env — 159 passed. The hard-failure
+    path was also exercised directly: with `KETTLE_REQUIRE_POSTGRES=1` and no
+    database the product suite fails with "product suite FAILED — no Postgres
+    reachable", and without the variable it still skips. What I cannot verify
+    from here is the service-container wiring itself; the first run on main will
+    say.
