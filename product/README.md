@@ -36,12 +36,30 @@ founder's plumbing log and no end-user role can read it.
 acting as the `authenticated` role, asserting both that A sees its own rows and
 that naming B's row ids explicitly still returns nothing.
 
-The policies call a SECURITY DEFINER helper, `app_current_family_ids()`, which
-reads `members` with RLS bypassed. Supabase's default privileges grant EXECUTE on
-new public functions **directly** to `anon`, and revoking from `PUBLIC` does not
-remove a direct grant — so `0003_revoke_anon_rpc.sql` revokes it explicitly and
-the local shim reproduces the grant so that migration is actually exercised by
-the tests rather than passing vacuously.
+### Grants, not just policies
+
+Supabase's project bootstrap sets default privileges that grant the full
+privilege set on new public-schema objects **directly** to `anon`,
+`authenticated` and `service_role`. Revoking from `PUBLIC` does not remove a
+direct role grant, so two migrations clean up after it:
+
+- `0003_revoke_anon_rpc.sql` — takes EXECUTE on `app_current_family_ids()` away
+  from `anon`. That helper is SECURITY DEFINER and reads `members` with RLS
+  bypassed; the pre-login role has no business calling it.
+- `0004_revoke_residual_table_privileges.sql` — takes every table and sequence
+  privilege away from `anon`, reduces `authenticated` to exactly SELECT on the
+  six family tables, removes its SELECT on `ops_alerts`, and revokes the default
+  privileges so the next object created does not re-acquire any of it.
+
+RLS alone was not sufficient cover for this: **TRUNCATE is not a row-level
+operation**, so no policy governs it, and `anon` held TRUNCATE on all seven
+tables. The end state is asserted directly against the catalog in
+`tests/test_rls.py`, and `tests/test_deploy.py` reproduces the pre-migration
+grants and proves each migration is what removes them.
+
+The local shim reproduces the bootstrap grants for exactly this reason — without
+them both migrations would pass vacuously in tests while being load-bearing in
+production.
 
 ## Endpoints
 
@@ -133,6 +151,7 @@ ruff check .        # from the repo root
 psql "$DATABASE_URL" -f migrations/0001_init.sql
 psql "$DATABASE_URL" -f migrations/0002_rls.sql
 psql "$DATABASE_URL" -f migrations/0003_revoke_anon_rpc.sql
+psql "$DATABASE_URL" -f migrations/0004_revoke_residual_table_privileges.sql
 
 # or, equivalently:
 DATABASE_URL=... python -m scripts.migrate

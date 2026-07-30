@@ -22,6 +22,39 @@ TABLES = (
 )
 
 
+# Everything except ops_alerts, which is service-only in every sense: no policy
+# and, after migration 0004, no privilege either.
+FAMILY_TABLES = tuple(t for t in TABLES if t != "ops_alerts")
+
+# Actual granted privileges on public tables and sequences, straight from the
+# catalog. information_schema.role_table_grants hides grants the caller cannot
+# see; aclexplode does not, and it covers sequences too.
+_PRIVILEGE_SQL = """
+select r.rolname as grantee, c.relkind, c.relname,
+       array_agg(a.privilege_type order by a.privilege_type) as privs
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+cross join lateral aclexplode(c.relacl) a
+join pg_roles r on r.oid = a.grantee
+where n.nspname = 'public'
+  and c.relkind in ('r', 'S')
+  and r.rolname = any(%s)
+group by 1, 2, 3
+"""
+
+
+def object_privileges(
+    conn: psycopg.Connection, roles: list[str]
+) -> dict[tuple[str, str], set[str]]:
+    """{(grantee, object_name): {privilege, ...}} for public tables and sequences.
+
+    Objects with no explicit grants have a NULL acl and simply do not appear, so
+    an empty dict means "this role holds nothing".
+    """
+    rows = conn.execute(_PRIVILEGE_SQL, (roles,)).fetchall()
+    return {(r["grantee"], r["relname"]): set(r["privs"]) for r in rows}
+
+
 class RecordingNotifier:
     """Stand-in for ntfy that records what the founder would have received."""
 

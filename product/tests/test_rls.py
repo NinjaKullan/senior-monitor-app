@@ -16,7 +16,13 @@ from psycopg.rows import dict_row
 from kettle import db
 from kettle.provisioning import provision_family
 from kettle.timeutil import now_utc
-from testsupport import BASE_URL, add_member, as_user
+from testsupport import (
+    BASE_URL,
+    FAMILY_TABLES,
+    add_member,
+    as_user,
+    object_privileges,
+)
 
 USER_A = "11111111-1111-1111-1111-111111111111"
 USER_B = "22222222-2222-2222-2222-222222222222"
@@ -122,19 +128,66 @@ def test_no_jwt_sees_nothing(two_families, authed):
 
 
 def test_ops_alerts_are_service_only(two_families, authed, conn):
-    """Ops alerts are the founder's plumbing log — no end user can read them."""
+    """Ops alerts are the founder's plumbing log — no end user can read them.
+
+    Two independent gates, and this asserts both. Before migration 0004 only the
+    second one existed: `authenticated` held SELECT from Supabase's bootstrap and
+    was stopped purely by ops_alerts having no policy.
+    """
     family_a = two_families["a"]
     db.insert_ops_alert(
         conn, family_a.family_id, family_a.parents[0].parent_id, "noon", "x", now_utc()
     )
     assert conn.execute("select count(*) as n from ops_alerts").fetchone()["n"] == 1
 
+    # Gate 1: no privilege.
+    assert object_privileges(conn, ["anon", "authenticated"]).get(
+        ("authenticated", "ops_alerts")
+    ) is None
+    # Gate 2: no policy.
+    policies = conn.execute(
+        "select policyname from pg_policies "
+        "where schemaname = 'public' and tablename = 'ops_alerts'"
+    ).fetchall()
+    assert policies == []
+
     as_user(authed, USER_A)
     with pytest.raises(psycopg.errors.InsufficientPrivilege):
         authed.execute("select * from ops_alerts").fetchall()
 
 
-def test_authenticated_role_cannot_write(two_families, authed):
+def test_anon_holds_no_privileges_on_anything(conn: psycopg.Connection):
+    """0004: the pre-login role holds nothing on any public table or sequence.
+
+    Supabase's bootstrap had granted anon the full set — including TRUNCATE,
+    which is not a row-level operation and which RLS therefore does not govern at
+    all. That was a data-loss primitive sitting on the pre-login role, not a read
+    risk RLS was quietly covering.
+    """
+    held = {
+        key: privs
+        for key, privs in object_privileges(conn, ["anon"]).items()
+        if key[0] == "anon"
+    }
+    assert held == {}
+
+
+def test_authenticated_holds_exactly_select_on_the_family_tables(
+    conn: psycopg.Connection,
+):
+    """0004: one privilege, six tables, nothing else anywhere."""
+    held = object_privileges(conn, ["authenticated"])
+    assert held == {("authenticated", table): {"SELECT"} for table in FAMILY_TABLES}
+
+    # Spelled out, because these are the ones the bootstrap left behind.
+    for table in FAMILY_TABLES:
+        privs = held[("authenticated", table)]
+        assert "TRUNCATE" not in privs
+        assert "REFERENCES" not in privs
+        assert "TRIGGER" not in privs
+
+
+def test_authenticated_role_cannot_write_or_truncate(two_families, authed):
     """Spec 002 grants reads only; ingestion runs as the service role."""
     as_user(authed, USER_A)
     with pytest.raises(psycopg.errors.InsufficientPrivilege):
@@ -142,6 +195,9 @@ def test_authenticated_role_cannot_write(two_families, authed):
             "insert into pings (parent_id, signal, ts_utc) "
             "select id, 'whatsapp', now() from parents limit 1"
         )
+    # TRUNCATE is the one RLS would not have caught.
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        authed.execute("truncate pings")
 
 
 def test_anon_cannot_execute_the_family_lookup(conn: psycopg.Connection, database_url: str):

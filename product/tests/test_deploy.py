@@ -14,7 +14,7 @@ from psycopg.rows import dict_row
 from kettle.config import Settings
 from kettle.main import create_app
 from kettle.migrations import apply_migrations, migration_files
-from testsupport import BASE_URL, TABLES
+from testsupport import BASE_URL, FAMILY_TABLES, TABLES, object_privileges
 
 FRESH_DB = "kettle_fresh_boot_test"
 PRODUCT_ROOT = Path(__file__).resolve().parent.parent
@@ -122,6 +122,50 @@ def test_anon_grant_exists_before_0003_and_is_gone_after(fresh_database: str):
 
         conn.execute(revoke.read_text())
         assert conn.execute(privilege).fetchone()["anon_exec"] is False
+
+
+def test_residual_privileges_exist_before_0004_and_are_gone_after(fresh_database: str):
+    """0004 is load-bearing — reproduce what production actually had, then fix it.
+
+    The PM's audit found anon holding the full privilege set (TRUNCATE included)
+    on all seven tables, and authenticated holding TRUNCATE/REFERENCES/TRIGGER
+    plus SELECT on ops_alerts. The shim reproduces the bootstrap that caused it,
+    so this asserts the same before-state and that 0004 is what clears it.
+    """
+    files = migration_files(include_local=True)
+    revoke = next(p for p in files if p.name.startswith("0004"))
+    before = files[: files.index(revoke)]
+
+    with psycopg.connect(fresh_database, autocommit=True, row_factory=dict_row) as conn:
+        for path in before:
+            conn.execute(path.read_text())
+
+        held = object_privileges(conn, ["anon", "authenticated"])
+        # anon had everything, on every table.
+        for table in TABLES:
+            assert held[("anon", table)] >= {
+                "SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER",
+            }
+            assert held[("authenticated", table)] >= {"TRUNCATE", "REFERENCES", "TRIGGER"}
+        assert "SELECT" in held[("authenticated", "ops_alerts")]
+        # Identity-column sequences were caught by the same bootstrap.
+        assert any(key[1].endswith("_id_seq") for key in held)
+
+        conn.execute(revoke.read_text())
+
+        after = object_privileges(conn, ["anon", "authenticated"])
+        assert after == {
+            ("authenticated", table): {"SELECT"} for table in FAMILY_TABLES
+        }
+
+        # Future objects must not re-acquire any of it.
+        defaults = conn.execute(
+            "select defaclobjtype, defaclacl::text as acl from pg_default_acl d "
+            "join pg_namespace n on n.oid = d.defaclnamespace where n.nspname = 'public'"
+        ).fetchall()
+        for row in defaults:
+            assert "anon=" not in row["acl"]
+            assert "authenticated=" not in row["acl"]
 
 
 def test_migrations_are_numbered_and_ordered():

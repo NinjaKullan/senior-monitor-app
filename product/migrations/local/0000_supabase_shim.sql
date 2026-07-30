@@ -68,5 +68,15 @@ grant execute on function auth.uid() to anon, authenticated, service_role;
 -- is the right answer for the wrong reason.
 grant usage on schema public to anon, authenticated, service_role;
 
+-- The bootstrap grants the full privilege set on tables and sequences too, not
+-- just EXECUTE on functions — which is how anon ended up holding TRUNCATE on
+-- every table in production. 0004 strips all of it; reproducing the grants here
+-- is what makes that migration testable instead of vacuous.
 alter default privileges in schema public
-    grant execute on functions to anon, authenticated, service_role;
+    grant all on tables to anon, authenticated, service_role;
+
+alter default privileges in schema public
+    grant all on sequences to anon, authenticated, service_role;
+
+alter default privileges in schema public
+    grant all on functions to anon, authenticated, service_role;

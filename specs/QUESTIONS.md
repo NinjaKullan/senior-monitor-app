@@ -266,3 +266,46 @@ after 0002 `anon` holds a direct EXECUTE grant that survived
     default-privileges line, and adjust those two tests to assert the real
     mechanism. If the output is empty, the current tests are already accurate and
     nothing needs doing.
+
+    **PM answer — Fable, 2026-07-29: confirmed, and worse than suspected.** The
+    bootstrap had granted `anon` the *full* privilege set on all seven tables —
+    including TRUNCATE, which is not row-level and which RLS does not govern at
+    all — and `authenticated` retained TRUNCATE/REFERENCES/TRIGGER plus SELECT on
+    `ops_alerts`. `0004_revoke_residual_table_privileges` applied to production
+    via the Supabase connector. Resolved.
+
+    **Implementation (2026-07-29).** Shim now reproduces the tables and sequences
+    default-privileges lines alongside the functions one, so the local
+    pre-migration state matches the audit exactly: anon with
+    SELECT/INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER on every table plus
+    the identity sequences, authenticated with TRUNCATE/REFERENCES/TRIGGER
+    everywhere and SELECT on `ops_alerts`. After 0004 the catalog holds exactly
+    six rows: `authenticated` → SELECT on the six family tables. anon holds
+    nothing anywhere, `ops_alerts` is granted to nobody, and the remaining
+    default privileges name only `service_role`.
+
+    The two tests I flagged now assert the mechanism rather than a locally-true
+    accident: `test_ops_alerts_are_service_only` checks both gates separately (no
+    privilege *and* no policy), and `test_authenticated_role_cannot_write_or_truncate`
+    adds the TRUNCATE attempt — the operation RLS would never have caught. Two
+    new catalog tests pin the end state exactly
+    (`test_anon_holds_no_privileges_on_anything`,
+    `test_authenticated_holds_exactly_select_on_the_family_tables`), and
+    `test_residual_privileges_exist_before_0004_and_are_gone_after` proves 0004 is
+    load-bearing by asserting the full pre-state, applying it, and asserting the
+    post-state including that no default privilege still names anon or
+    authenticated.
+
+22. **`0004`'s SQL is my reconstruction, not your verbatim statements — please
+    diff it.** Your message pasted the placeholder rather than the SQL you ran, so
+    I wrote the file to reach the end state you specified and verified that end
+    state against the catalog. It is functionally correct by test, but I cannot
+    claim it is textually identical to what production received, and "the repo is
+    canonical" is a claim about text. Paste the real thing and I will swap it in;
+    if it produces the same end state the tests will stay green either way. The
+    one place a difference could actually bite is the three ALTER DEFAULT
+    PRIVILEGES statements — I revoke tables, sequences and functions from both
+    `anon` and `authenticated`, which means any future object needs an explicit
+    grant for authenticated too. If yours revoked from `anon` only, future tables
+    would silently re-acquire the full set for `authenticated`, and that is worth
+    catching now rather than at the next migration.
