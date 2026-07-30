@@ -36,6 +36,13 @@ founder's plumbing log and no end-user role can read it.
 acting as the `authenticated` role, asserting both that A sees its own rows and
 that naming B's row ids explicitly still returns nothing.
 
+The policies call a SECURITY DEFINER helper, `app_current_family_ids()`, which
+reads `members` with RLS bypassed. Supabase's default privileges grant EXECUTE on
+new public functions **directly** to `anon`, and revoking from `PUBLIC` does not
+remove a direct grant — so `0003_revoke_anon_rpc.sql` revokes it explicitly and
+the local shim reproduces the grant so that migration is actually exercised by
+the tests rather than passing vacuously.
+
 ## Endpoints
 
 | Endpoint | Purpose |
@@ -125,6 +132,7 @@ ruff check .        # from the repo root
 # Create a project in the Supabase dashboard, then from its SQL editor or psql:
 psql "$DATABASE_URL" -f migrations/0001_init.sql
 psql "$DATABASE_URL" -f migrations/0002_rls.sql
+psql "$DATABASE_URL" -f migrations/0003_revoke_anon_rpc.sql
 
 # or, equivalently:
 DATABASE_URL=... python -m scripts.migrate

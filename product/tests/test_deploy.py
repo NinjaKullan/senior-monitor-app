@@ -98,6 +98,32 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         assert fresh_client.get("/healthz").json() == {"db": True}
 
 
+def test_anon_grant_exists_before_0003_and_is_gone_after(fresh_database: str):
+    """0003 is load-bearing, not decoration — prove the grant it removes is real.
+
+    Supabase's default privileges hand EXECUTE to anon at function-creation time.
+    The local shim reproduces that, so this asserts the whole sequence: after
+    0002 the grant is there (as it was in production), and 0003 is what takes it
+    away. If someone drops either the migration or the shim line, this fails.
+    """
+    files = migration_files(include_local=True)
+    revoke = next(p for p in files if p.name.startswith("0003"))
+    before = files[: files.index(revoke)]
+
+    privilege = (
+        "select has_function_privilege('anon', oid, 'execute') as anon_exec "
+        "from pg_proc where proname = 'app_current_family_ids'"
+    )
+
+    with psycopg.connect(fresh_database, autocommit=True, row_factory=dict_row) as conn:
+        for path in before:
+            conn.execute(path.read_text())
+        assert conn.execute(privilege).fetchone()["anon_exec"] is True
+
+        conn.execute(revoke.read_text())
+        assert conn.execute(privilege).fetchone()["anon_exec"] is False
+
+
 def test_migrations_are_numbered_and_ordered():
     """Applied in filename order, so the numbering is the contract."""
     names = [path.name for path in migration_files()]

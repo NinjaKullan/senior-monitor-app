@@ -56,3 +56,17 @@ $$;
 
 grant usage on schema auth to anon, authenticated, service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
+
+-- Supabase grants USAGE on the public schema to all three roles, and configures
+-- default privileges so every function created there is granted EXECUTE to them
+-- at creation time.
+--
+-- Reproducing both matters. The EXECUTE grant is *direct*, so `revoke all ...
+-- from public` does not remove it — without this line 0003 would look like a
+-- no-op in tests while being load-bearing in production. And without the schema
+-- USAGE, an anon test would pass because anon cannot see `public` at all, which
+-- is the right answer for the wrong reason.
+grant usage on schema public to anon, authenticated, service_role;
+
+alter default privileges in schema public
+    grant execute on functions to anon, authenticated, service_role;

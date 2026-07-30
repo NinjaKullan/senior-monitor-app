@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 
 import psycopg
 import pytest
+from psycopg.rows import dict_row
 
 from kettle import db
 from kettle.provisioning import provision_family
@@ -141,6 +142,33 @@ def test_authenticated_role_cannot_write(two_families, authed):
             "insert into pings (parent_id, signal, ts_utc) "
             "select id, 'whatsapp', now() from parents limit 1"
         )
+
+
+def test_anon_cannot_execute_the_family_lookup(conn: psycopg.Connection, database_url: str):
+    """0003: the pre-login role has no business calling a SECURITY DEFINER helper.
+
+    Supabase's default privileges grant EXECUTE on new public functions directly
+    to anon, and `revoke ... from public` does not remove a direct grant — so
+    this needs its own revoke, and its own test.
+    """
+    grants = conn.execute(
+        """
+        select
+            has_function_privilege('anon', oid, 'execute') as anon_exec,
+            has_function_privilege('authenticated', oid, 'execute') as authed_exec,
+            has_function_privilege('service_role', oid, 'execute') as service_exec
+        from pg_proc where proname = 'app_current_family_ids'
+        """
+    ).fetchone()
+    assert grants["anon_exec"] is False
+    # The roles that legitimately need it keep it.
+    assert grants["authed_exec"] is True
+    assert grants["service_exec"] is True
+
+    with psycopg.connect(database_url, autocommit=True, row_factory=dict_row) as anon:
+        anon.execute("set role anon")
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            anon.execute("select public.app_current_family_ids()").fetchall()
 
 
 def test_rls_is_enabled_on_every_table(conn: psycopg.Connection):

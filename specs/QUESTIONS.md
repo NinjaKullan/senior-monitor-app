@@ -209,3 +209,60 @@ arguments.
 appended. `-rs` added to the root pytest `addopts` so the reason always shows in
 the summary — without it a fully-skipped product suite prints only "56 skipped",
 which is the misreading the ruling is about.
+
+---
+
+## Migration 0003 — revoke anon EXECUTE (2026-07-29)
+
+Added as directed, one line, matching what you already applied in production. The
+shim needed two lines to make it testable rather than vacuous — Supabase grants
+USAGE on `public` to all three roles and sets default privileges granting EXECUTE
+on new public functions to them, and neither happens on a bare Postgres. With
+both reproduced, the sequence now demonstrably behaves as production did:
+after 0002 `anon` holds a direct EXECUTE grant that survived
+`revoke all ... from public`, and 0003 is what removes it
+(`test_anon_grant_exists_before_0003_and_is_gone_after`).
+
+21. **The same Supabase bootstrap probably grants table privileges to `anon` and
+    `authenticated` too — worth one query before we assume otherwise.** The
+    default-privileges statement that produced the function grant you found is,
+    in Supabase's standard project setup, one of a set covering tables and
+    sequences as well:
+
+    ```sql
+    alter default privileges in schema public grant all on tables    to anon, authenticated, service_role;
+    alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+    alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+    ```
+
+    If the tables line is present in our project, then in production every table
+    created by 0001 carries `ALL` for `anon` and `authenticated`, and two of my
+    test's claims are locally true but production-false:
+
+    - `ops_alerts` — my test asserts an end user gets `InsufficientPrivilege`. In
+      production they would more likely get **zero rows**, blocked by RLS having
+      no policy rather than by privilege. Same data outcome, weaker mechanism.
+    - `0002`'s `revoke insert, update, delete ... from authenticated` names only
+      `authenticated`, so `anon` would retain write privileges — again gated only
+      by RLS-with-no-policy.
+
+    No data is exposed either way: RLS with no matching policy denies both reads
+    and writes. But "protected by two independent things" and "protected by one"
+    are different postures, and I would rather you know which one we have.
+
+    I have **not** modelled this in the shim or changed those tests, because I
+    cannot see production and I would be rewriting passing security tests on an
+    assumption. One query from the Supabase connector settles it:
+
+    ```sql
+    select grantee, table_name, string_agg(privilege_type, ',' order by privilege_type) as privs
+    from information_schema.role_table_grants
+    where table_schema = 'public' and grantee in ('anon', 'authenticated')
+    group by grantee, table_name order by grantee, table_name;
+    ```
+
+    If `anon` or `authenticated` appears against any table, say the word and I
+    will add `0004` to revoke the residual privileges, teach the shim the table
+    default-privileges line, and adjust those two tests to assert the real
+    mechanism. If the output is empty, the current tests are already accurate and
+    nothing needs doing.
