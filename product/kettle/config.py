@@ -18,6 +18,15 @@ class Settings:
     default_tz: str
     public_base_url: str
     heartbeat_loop: bool
+    # Global digest kill-switch. Off by default: family-facing sending is opt-in
+    # at two levels, this one and families.digest_enabled (also false by default).
+    digest_enabled: bool
+    digest_morning_cutoff_hour: int
+    digest_evening_hour: int
+    digest_evening_minute: int
+    twilio_account_sid: str
+    twilio_auth_token: str
+    twilio_from: str
 
 
 def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
@@ -41,6 +50,29 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
             src.get("PUBLIC_BASE_URL", "").strip().rstrip("/")
             or "https://kettle-api.fly.dev"
         ),
-        heartbeat_loop=src.get("HEARTBEAT_LOOP", "1").strip()
-        not in ("0", "false", "no"),
+        heartbeat_loop=_flag(src, "HEARTBEAT_LOOP", default=True),
+        digest_enabled=_flag(src, "DIGEST_ENABLED", default=False),
+        digest_morning_cutoff_hour=_int(src, "DIGEST_MORNING_CUTOFF_HOUR", 14),
+        digest_evening_hour=_int(src, "DIGEST_EVENING_HOUR", 20),
+        digest_evening_minute=_int(src, "DIGEST_EVENING_MINUTE", 30),
+        twilio_account_sid=src.get("TWILIO_ACCOUNT_SID", "").strip(),
+        twilio_auth_token=src.get("TWILIO_AUTH_TOKEN", "").strip(),
+        twilio_from=src.get("TWILIO_FROM", "").strip(),
     )
+
+
+def _flag(src: Mapping[str, str], name: str, default: bool) -> bool:
+    """Read a boolean env var. Anything but 0/false/no is on."""
+    raw = src.get(name, "").strip().lower()
+    if not raw:
+        return default
+    return raw not in ("0", "false", "no")
+
+
+def _int(src: Mapping[str, str], name: str, default: int) -> int:
+    """Read an integer env var, falling back on anything unparseable."""
+    raw = src.get(name, "").strip()
+    try:
+        return int(raw)
+    except ValueError:
+        return default
