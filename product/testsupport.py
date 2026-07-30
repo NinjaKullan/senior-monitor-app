@@ -19,6 +19,7 @@ TABLES = (
     "parent_signals",
     "pings",
     "ops_alerts",
+    "digest_sends",
 )
 
 
@@ -64,6 +65,30 @@ class RecordingNotifier:
     def send(self, message: str) -> bool:
         self.messages.append(message)
         return True
+
+
+def enable_digests(
+    conn: psycopg.Connection,
+    family_id: object,
+    recipients: list[tuple[str, str]] | None = None,
+    channel: str = "sms",
+) -> list[dict]:
+    """Opt a family in and give it recipients. Nothing sends without both."""
+    conn.execute("update families set digest_enabled = true where id = %s", (family_id,))
+    for name, phone in recipients or [("Child", "+15125550100")]:
+        conn.execute(
+            """
+            insert into members (family_id, display_name, role, email, phone_e164,
+                                 digest_channel)
+            values (%s, %s, 'owner', %s, %s, %s)
+            """,
+            (family_id, name, f"{name.lower()}@example.test", phone, channel),
+        )
+    return conn.execute(
+        "select id as member_id, display_name, phone_e164 from members "
+        "where family_id = %s order by created_utc, id",
+        (family_id,),
+    ).fetchall()
 
 
 def as_user(authed_conn: psycopg.Connection, auth_user_id: str) -> None:

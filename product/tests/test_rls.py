@@ -7,7 +7,7 @@ were wrong, no amount of careful app code would save the tenant boundary.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 import psycopg
 import pytest
@@ -154,6 +154,58 @@ def test_ops_alerts_are_service_only(two_families, authed, conn):
     as_user(authed, USER_A)
     with pytest.raises(psycopg.errors.InsufficientPrivilege):
         authed.execute("select * from ops_alerts").fetchall()
+
+
+def test_digest_sends_are_isolated_per_family(two_families, authed, conn):
+    """AC8: a family can read its own digest history and nobody else's."""
+    for key, member_user in (("a", USER_A), ("b", USER_B)):
+        family = two_families[key]
+        member = conn.execute(
+            "select id from members where family_id = %s and auth_user_id = %s",
+            (family.family_id, member_user),
+        ).fetchone()
+        db.record_digest_send(
+            conn,
+            family.family_id,
+            family.parents[0].parent_id,
+            "morning",
+            date(2026, 8, 3),
+            member["id"],
+            "sms",
+            "sent",
+            now_utc(),
+        )
+    assert conn.execute("select count(*) as n from digest_sends").fetchone()["n"] == 2
+
+    as_user(authed, USER_A)
+    mine = _rows(authed, "select family_id from digest_sends")
+    assert [r["family_id"] for r in mine] == [two_families["a"].family_id]
+
+    # Naming B's family explicitly does not get past the policy either.
+    assert (
+        authed.execute(
+            "select count(*) as n from digest_sends where family_id = %s",
+            (two_families["b"].family_id,),
+        ).fetchone()["n"]
+        == 0
+    )
+
+    as_user(authed, USER_B)
+    assert [r["family_id"] for r in _rows(authed, "select family_id from digest_sends")] == [
+        two_families["b"].family_id
+    ]
+
+
+def test_digest_sends_are_read_only_for_members(two_families, authed, conn):
+    """Recipients can see what was sent; only the service writes it."""
+    as_user(authed, USER_A)
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        authed.execute(
+            "insert into digest_sends "
+            "(family_id, kind, local_date, member_id, channel, status) "
+            "select f.id, 'morning', current_date, m.id, 'sms', 'sent' "
+            "from families f join members m on m.family_id = f.id limit 1"
+        )
 
 
 def test_anon_holds_no_privileges_on_anything(conn: psycopg.Connection):

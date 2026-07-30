@@ -70,6 +70,15 @@ def settings(database_url: str) -> Settings:
         default_tz="Asia/Kolkata",
         public_base_url=BASE_URL,
         heartbeat_loop=False,
+        # On here so the per-family flag is what the tests exercise; the
+        # kill-switch has its own test. Both default off in real config.
+        digest_enabled=True,
+        digest_morning_cutoff_hour=14,
+        digest_evening_hour=20,
+        digest_evening_minute=30,
+        twilio_account_sid="",
+        twilio_auth_token="",
+        twilio_from="",
     )
 
 

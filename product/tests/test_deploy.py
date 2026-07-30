@@ -93,6 +93,13 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         default_tz="Asia/Kolkata",
         public_base_url=BASE_URL,
         heartbeat_loop=False,
+        digest_enabled=False,
+        digest_morning_cutoff_hour=14,
+        digest_evening_hour=20,
+        digest_evening_minute=30,
+        twilio_account_sid="",
+        twilio_auth_token="",
+        twilio_from="",
     )
     with TestClient(create_app(settings, notifier)) as fresh_client:
         assert fresh_client.get("/healthz").json() == {"db": True}
@@ -140,9 +147,20 @@ def test_residual_privileges_exist_before_0004_and_are_gone_after(fresh_database
         for path in before:
             conn.execute(path.read_text())
 
+        # Tables that exist at this point in the sequence — later migrations add
+        # more, and those inherit the cleaned defaults rather than the bootstrap.
+        existing = {
+            r["table_name"]
+            for r in conn.execute(
+                "select table_name from information_schema.tables "
+                "where table_schema = 'public'"
+            ).fetchall()
+        }
+        assert existing <= set(TABLES)
+
         held = object_privileges(conn, ["anon", "authenticated"])
         # anon had everything, on every table.
-        for table in TABLES:
+        for table in existing:
             assert held[("anon", table)] >= {
                 "SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER",
             }
@@ -155,7 +173,9 @@ def test_residual_privileges_exist_before_0004_and_are_gone_after(fresh_database
 
         after = object_privileges(conn, ["anon", "authenticated"])
         assert after == {
-            ("authenticated", table): {"SELECT"} for table in FAMILY_TABLES
+            ("authenticated", table): {"SELECT"}
+            for table in FAMILY_TABLES
+            if table in existing
         }
 
         # Future objects must not re-acquire any of it.
