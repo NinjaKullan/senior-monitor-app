@@ -428,3 +428,53 @@ the build.
     digest concerns. It also means that family generates no ops signal at all.
     Fine, or would you rather the founder be told that an enabled family has
     nowhere to send?
+
+---
+
+## PM rulings — Fable, 2026-07-30 (review of 36fcc4a: four approvals, four changes)
+
+24. **No pronoun inference** — approved, and adopted as policy: nothing ever infers pronouns from names. Neutral is the product default until spec 005's wizard collects an explicit optional field. Gendered variants stay behind the argument.
+25. **Time format** — ⬅ **CHANGE.** Render `8:12 am`, lowercase. These are family messages; warmth beats locale-purity and both target markets read 12-hour comfortably.
+26. **Cutoff gates the send moment too** — approved; a restart must never deliver a stale "good morning".
+27. **Evening aggregation** — ⬅ **CHANGE** to the recording, not the index: record evening sends per included parent (one row per parent per member, `parent_id` always set) while the delivered message stays aggregated per timezone group. `parent_id` becomes NOT NULL for both kinds, the coalesce sentinel goes, the two-group collision dies, and the audit gets richer.
+28. **Three-name evening copy** — approved; keep the pattern.
+29. **WhatsApp members** — ⬅ **CHANGE.** Skip silently while the channel is a stub: no attempt, no failed row (a failed row would hold the day's slot and eat the first real WhatsApp digest when the channel goes live). One deduped ops row, kind `digest_channel_unavailable`, once per member per local day.
+30. **Send-then-record window** — approved as built, no `pending`. The trade is right for this message class: a rare duplicate "good morning" is a harmless oddity, a silent loss is a missing reassurance. Document the window as a revisit-at-scale item; reopen when digests carry anything heavier.
+31. **Unroutable family** — ⬅ **CHANGE.** An enabled family with no reachable recipient is a misconfiguration the founder must see: deduped ops row, kind `digest_unroutable`, once per family per local day, then skip as before.
+
+### Implementation of the four changes (2026-07-30)
+
+**25.** `format_time` builds the string by hand rather than with `%-I`/`%p` —
+those are platform-dependent and upper-case respectively. Covered across the
+awkward hours: midnight reads `12:05 am`, noon `12:00 pm`.
+
+**27.** New migration `0006_digest_sends_per_parent.sql` rather than an edit to
+0005, so it converges the schema whether or not 0005 has been applied anywhere —
+the item-22 lesson. It refuses to run rather than deleting: if any aggregated
+(null-parent) rows exist it raises with an explanation, because which parents
+such a row covered was never recorded and cannot be back-filled, and silently
+destroying send history would be the wrong default. Expected to be a no-op given
+digests have never been enabled.
+
+`test_two_timezone_groups_both_get_their_evening` is the regression the change
+exists for: four monitored people, two timezone groups, two active parents in
+each, four distinct rows on one local_date. Under the 0005 shape the second
+group's message was silently blocked.
+
+One behaviour worth knowing, a consequence of per-parent rows: a parent whose
+first alarm-grade ping lands *after* their group's evening message has gone out
+gets a follow-up summary naming both parents, because their row is missing. The
+family gets two texts that evening, the second one accurate. Say the word if
+you'd rather the day's summary be final once sent.
+
+**29.** `DigestChannel` gained an `available` flag; the WhatsApp stub sets it
+False and the scheduler skips those recipients before any send or record. Ops row
+dedupe is per member per local day, keyed on the detail text since `ops_alerts`
+has no member column — `db.ops_alert_exists_with_detail` does that, and a test
+asserts two WhatsApp members produce two distinct rows rather than one.
+
+**30.** Window documented in `_fan_out` where the trade is made, and in the
+README, both flagged as revisit-at-scale.
+
+**31.** `digest_unroutable` written once per family per local day before the
+skip, with a test that a properly routable family produces none.

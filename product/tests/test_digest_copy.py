@@ -39,7 +39,7 @@ BANNED_PHRASES = ("activity level", "than yesterday", "compared to")
 
 def _digits_outside_the_time(message: str) -> str:
     """Every digit left once the one permitted clock time is removed."""
-    without_time = re.sub(r"\b\d{1,2}:\d{2}\b", "", message)
+    without_time = re.sub(r"\b\d{1,2}:\d{2} ?[ap]m\b", "", message)
     return "".join(ch for ch in without_time if ch.isdigit())
 
 
@@ -69,7 +69,7 @@ def _assert_copy_law(message: str, names: tuple[str, ...] = ()) -> None:
 def test_morning_matches_the_binding_template():
     """AC4: exact copy, neutral clock phrasing, one time and nothing else."""
     message = render_morning("Amma", MORNING_PING)
-    assert message == "Good morning — Amma's day started normally (08:12 local time)."
+    assert message == "Good morning — Amma's day started normally (8:12 am local time)."
     _assert_copy_law(message, ("Amma",))
 
 
@@ -120,9 +120,14 @@ def test_no_template_describes_absence():
             assert worrying not in lowered, f"{worrying!r} in template: {template}"
 
 
-def test_time_format_is_minute_resolution():
-    assert format_time(MORNING_PING) == "08:12"
-    assert format_time(datetime(2026, 8, 3, 8, 12, 45, tzinfo=IST)) == "08:12"
+def test_time_format_is_twelve_hour_lowercase():
+    """PM ruling on item 25: warmth beats locale-purity in a family message."""
+    assert format_time(MORNING_PING) == "8:12 am"
+    assert format_time(datetime(2026, 8, 3, 8, 12, 45, tzinfo=IST)) == "8:12 am"
+    assert format_time(datetime(2026, 8, 3, 0, 5, tzinfo=IST)) == "12:05 am"
+    assert format_time(datetime(2026, 8, 3, 12, 0, tzinfo=IST)) == "12:00 pm"
+    assert format_time(datetime(2026, 8, 3, 13, 45, tzinfo=IST)) == "1:45 pm"
+    assert format_time(datetime(2026, 8, 3, 23, 59, tzinfo=IST)) == "11:59 pm"
 
 
 def test_copy_law_holds_for_awkward_names():

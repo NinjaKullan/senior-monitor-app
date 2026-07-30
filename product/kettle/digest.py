@@ -41,6 +41,8 @@ KIND_EVENING = "evening"
 
 OPS_SKIPPED = "digest_skipped"
 OPS_FAILED = "digest_delivery_failed"
+OPS_CHANNEL_UNAVAILABLE = "digest_channel_unavailable"
+OPS_UNROUTABLE = "digest_unroutable"
 
 STATUS_SENT = "sent"
 STATUS_FAILED = "failed"
@@ -81,53 +83,88 @@ def _fan_out(
     notifier: Notifier,
     family: dict[str, Any],
     recipients: list[dict[str, Any]],
-    parent_id: Any | None,
+    parent_ids: list[Any],
     kind: str,
     local_date: date,
     message: str,
     now: datetime,
+    tz: str,
 ) -> list[DigestSend]:
-    """Deliver one composed message to every recipient who has not had it."""
+    """Deliver one composed message to every recipient who has not had it.
+
+    One message goes out per recipient; one row is recorded per parent the
+    message covered, so an aggregated evening summary leaves an audit trail
+    naming everyone it vouched for.
+    """
     results: list[DigestSend] = []
     for member in recipients:
-        if db.digest_send_exists(
-            conn, family["family_id"], parent_id, kind, local_date, member["member_id"]
-        ):
-            continue
-
         channel = channels.get(member["digest_channel"])
         if channel is None:  # 'none' is filtered out upstream; be defensive anyway
+            continue
+
+        if not channel.available:
+            # No attempt and no row: a failed row would hold today's slot and eat
+            # the first real digest on the day the channel goes live.
+            _note_channel_unavailable(conn, notifier, family, member, channel, tz, now)
+            continue
+
+        missing = [
+            parent_id
+            for parent_id in parent_ids
+            if not db.digest_send_exists(
+                conn,
+                family["family_id"],
+                parent_id,
+                kind,
+                local_date,
+                member["member_id"],
+            )
+        ]
+        if not missing:
             continue
 
         ok = _deliver(channel, member["phone_e164"], message)
         status = STATUS_SENT if ok else STATUS_FAILED
 
-        # Claim the slot before anything else can: the unique index is what makes
-        # a mid-pass restart safe, so a lost race here means somebody else sent it.
-        if not db.record_digest_send(
-            conn,
-            family["family_id"],
-            parent_id,
-            kind,
-            local_date,
-            member["member_id"],
-            channel.name,
-            status,
-            now,
-        ):
+        # Recording is what stops the next pass, so it happens for every parent
+        # the message named. `on conflict do nothing` makes the write itself the
+        # race guard.
+        #
+        # Known window, accepted (QUESTIONS.md item 30): a crash between the
+        # provider accepting the message and these rows landing would re-send on
+        # the next pass. The trade is deliberate — a duplicate "good morning" is
+        # a harmless oddity, a silent loss is a missing reassurance. Revisit at
+        # scale, or whenever a digest carries anything heavier than reassurance.
+        recorded = [
+            parent_id
+            for parent_id in missing
+            if db.record_digest_send(
+                conn,
+                family["family_id"],
+                parent_id,
+                kind,
+                local_date,
+                member["member_id"],
+                channel.name,
+                status,
+                now,
+            )
+        ]
+        if not recorded:
             continue
 
         if not ok:
+            alert_parent = recorded[0] if len(recorded) == 1 else None
             detail = (
                 f"📵 {family['family_name']}: {kind} digest could not be delivered to "
                 f"{member['member_name']} over {channel.name}."
             )
             db.insert_ops_alert(
-                conn, family["family_id"], parent_id, OPS_FAILED, detail, now
+                conn, family["family_id"], alert_parent, OPS_FAILED, detail, now
             )
             notifier.send(detail)
 
-        results.append(
+        results.extend(
             DigestSend(
                 kind=kind,
                 family_id=family["family_id"],
@@ -137,8 +174,56 @@ def _fan_out(
                 status=status,
                 message=message,
             )
+            for parent_id in recorded
         )
     return results
+
+
+def _note_channel_unavailable(
+    conn: psycopg.Connection,
+    notifier: Notifier,
+    family: dict[str, Any],
+    member: dict[str, Any],
+    channel: DigestChannel,
+    tz: str,
+    now: datetime,
+) -> None:
+    """Tell the founder a recipient's channel is not live. Once per member per day."""
+    day_start, day_end = local_day_bounds_utc(now, tz)
+    detail = (
+        f"📴 {family['family_name']}: {member['member_name']} is set to "
+        f"{channel.name}, which is not live yet. Nothing was sent and no slot "
+        "was taken."
+    )
+    if db.ops_alert_exists_with_detail(
+        conn, OPS_CHANNEL_UNAVAILABLE, family["family_id"], None, detail, day_start, day_end
+    ):
+        return
+    db.insert_ops_alert(
+        conn, family["family_id"], None, OPS_CHANNEL_UNAVAILABLE, detail, now
+    )
+    notifier.send(detail)
+
+
+def _note_unroutable(
+    conn: psycopg.Connection,
+    notifier: Notifier,
+    family: dict[str, Any],
+    now: datetime,
+) -> None:
+    """An enabled family with nowhere to send is a misconfiguration, not a quiet day."""
+    tz = family["family_tz"]
+    day_start, day_end = local_day_bounds_utc(now, tz)
+    if db.ops_alert_exists(
+        conn, OPS_UNROUTABLE, family["family_id"], None, day_start, day_end
+    ):
+        return
+    detail = (
+        f"📭 {family['family_name']}: digests are enabled but no member has both a "
+        "channel and a phone number. Nothing can be delivered."
+    )
+    db.insert_ops_alert(conn, family["family_id"], None, OPS_UNROUTABLE, detail, now)
+    notifier.send(detail)
 
 
 def _morning(
@@ -173,11 +258,12 @@ def _morning(
         notifier,
         family,
         recipients,
-        parent["parent_id"],
+        [parent["parent_id"]],
         KIND_MORNING,
         date.fromisoformat(local_day(now, tz)),
         message,
         now,
+        tz,
     )
 
 
@@ -231,9 +317,9 @@ def _evening(
         if not active:
             continue
 
-        # parent_id identifies a single-parent message; aggregated rows carry null,
-        # matching the unique index's coalesce.
-        parent_key = active[0]["parent_id"] if len(active) == 1 else None
+        # The message is aggregated; the record is per parent it covered, so
+        # parent_id is never null and two timezone groups cannot collide on the
+        # unique index (migration 0006).
         message = render_evening([p["parent_name"] for p in active])
         results.extend(
             _fan_out(
@@ -242,11 +328,12 @@ def _evening(
                 notifier,
                 family,
                 recipients,
-                parent_key,
+                [p["parent_id"] for p in active],
                 KIND_EVENING,
                 local_date,
                 message,
                 now,
+                tz,
             )
         )
     return results
@@ -295,6 +382,9 @@ def run_digests(
     for family in db.families_for_digest(conn):
         recipients = db.digest_recipients(conn, family["family_id"])
         if not recipients:
+            # Enabled but unreachable — a misconfiguration the founder must see,
+            # not a quiet day.
+            _note_unroutable(conn, notifier, family, now)
             continue
         parents = db.parents_for_family(conn, family["family_id"])
 

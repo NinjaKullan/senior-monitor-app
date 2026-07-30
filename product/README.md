@@ -103,7 +103,7 @@ senior at all — that is spec 004, unbuilt.
 
 | Message | When | Copy |
 |---|---|---|
-| Morning | on the first alarm-grade ping of the parent's local day, before the cutoff (14:00 local) | `Good morning — {parent}'s day started normally ({time} local time).` |
+| Morning | on the first alarm-grade ping of the parent's local day, before the cutoff (14:00 local) | `Good morning — {parent}'s day started normally (8:12 am local time).` |
 | Evening | at 20:30 parent-local | `{parent} had a normal, active day.` / `{a} and {b} both had normal, active days.` |
 
 The morning message cannot be rendered without a real first-ping time: a "day
@@ -122,10 +122,17 @@ module describes absence.
 `families.digest_enabled` per family. A family that exists is not a family that
 gets messaged.
 
-**Idempotency is the database's job.** Every (message, recipient) is a row in
-`digest_sends` behind a unique index, and the scheduler asks that table what it
+**Idempotency is the database's job.** The scheduler asks `digest_sends` what it
 has already sent — never its own memory. Restart mid-pass, re-run the pass, ping
-again: still one message.
+again: still one message. One message goes out per recipient, and one row is
+recorded per parent that message vouched for, so an aggregated evening summary
+leaves an audit trail naming everyone it covered and two timezone groups in one
+family cannot collide on the unique index.
+
+One known window, accepted deliberately: a crash between the provider accepting a
+message and its rows landing would re-send on the next pass. A duplicate "good
+morning" is a harmless oddity; a silent loss is a missing reassurance. Revisit if
+a digest ever carries anything heavier than reassurance.
 
 Delivery goes through a channel abstraction: Twilio SMS today, a WhatsApp
 template stub that honestly reports "not sent" until Meta verification lands, and
@@ -133,6 +140,17 @@ a log-only fallback when no credentials are configured (rows record `log`, so a
 `digest_sends` row never claims an SMS nobody sent). A failed send is retried
 once, then recorded as failed with a `digest_delivery_failed` ops alert — the row
 holds the slot so the next pass does not re-dial.
+
+A member on a channel that is not live yet (WhatsApp, today) is skipped without
+any attempt and **without a row**: a failed row would hold that day's slot and
+eat the first real digest on the day the channel goes live. The founder is told
+once per member per day instead. Likewise, an enabled family with no member who
+has both a channel and a phone number is a misconfiguration, not a quiet day, and
+gets a `digest_unroutable` ops row once per day.
+
+Ops alert kinds from the digest engine — all founder-only: `digest_skipped`
+(a quiet parent omitted), `digest_delivery_failed`, `digest_channel_unavailable`,
+`digest_unroutable`.
 
 ## Running the tests
 
@@ -193,6 +211,7 @@ psql "$DATABASE_URL" -f migrations/0002_rls.sql
 psql "$DATABASE_URL" -f migrations/0003_revoke_anon_rpc.sql
 psql "$DATABASE_URL" -f migrations/0004_revoke_residual_table_privileges.sql
 psql "$DATABASE_URL" -f migrations/0005_digest.sql
+psql "$DATABASE_URL" -f migrations/0006_digest_sends_per_parent.sql
 
 # or, equivalently:
 DATABASE_URL=... python -m scripts.migrate

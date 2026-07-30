@@ -18,7 +18,9 @@ from kettle.channels import DigestChannel
 from kettle.digest import (
     KIND_EVENING,
     KIND_MORNING,
+    OPS_CHANNEL_UNAVAILABLE,
     OPS_SKIPPED,
+    OPS_UNROUTABLE,
     STATUS_SENT,
     run_digests,
 )
@@ -38,6 +40,7 @@ class RecordingChannel:
     """A DigestChannel that records instead of sending."""
 
     name = "sms"
+    available = True
 
     def __init__(self, succeed: bool = True) -> None:
         self.succeed = succeed
@@ -244,14 +247,20 @@ def test_evening_aggregates_active_parents(conn, settings, channels, channel, no
     channel.sent.clear()
 
     evening = run_digests(conn, settings, channels, notifier, EVENING)
-    assert [s.kind for s in evening] == [KIND_EVENING]
+
+    # One message delivered, one row per parent it vouched for (PM ruling on
+    # item 27) — so the audit says who a given send covered.
     assert len(channel.sent) == 1
     assert channel.sent[0][1] == "Amma and Appa both had normal, active days."
-    # Aggregated rows carry no parent_id, matching the unique index.
-    row = conn.execute(
+    assert {s.kind for s in evening} == {KIND_EVENING}
+    assert {s.parent_id for s in evening} == {p.parent_id for p in family.parents}
+
+    rows = conn.execute(
         "select * from digest_sends where kind = 'evening'"
-    ).fetchone()
-    assert row["parent_id"] is None
+    ).fetchall()
+    assert len(rows) == 2
+    assert all(r["parent_id"] is not None for r in rows)
+    assert {r["parent_id"] for r in rows} == {p.parent_id for p in family.parents}
 
 
 def test_quiet_parent_is_omitted_and_reported_to_the_founder(
@@ -454,6 +463,174 @@ def test_members_without_a_phone_are_not_recipients(
 
     assert run_digests(conn, settings, channels, notifier, MID_MORNING) == []
     assert channel.sent == []
+
+
+# --- PM rulings on items 27, 29 and 31 -------------------------------------
+
+
+def test_two_timezone_groups_both_get_their_evening(
+    conn, settings, channels, channel, notifier
+):
+    """Item 27: the collision the coalesce index used to cause is gone.
+
+    Four monitored people, two timezone groups, two active parents in each. Under
+    the 0005 shape both groups recorded a null parent_id on the same local_date
+    and the second message was silently blocked.
+    """
+    family = _family(
+        conn,
+        [
+            ("Amma", None),
+            ("Appa", None),
+            ("Patti", "America/Chicago"),
+            ("Thatha", "America/Chicago"),
+        ],
+    )
+    enable_digests(conn, family.family_id)
+    for parent in family.parents[:2]:  # the IST pair
+        _ping(conn, parent.parent_id, "whatsapp", MORNING_PING)
+    for parent in family.parents[2:]:  # the Chicago pair
+        _ping(
+            conn, parent.parent_id, "whatsapp", datetime(2026, 8, 3, 8, 12, tzinfo=CHICAGO)
+        )
+
+    def summaries() -> list[str]:
+        # Mornings also fire in this window; the evening copy is what is asserted.
+        return [m for _, m in channel.sent if "active day" in m]
+
+    ist_group = [
+        s
+        for s in run_digests(conn, settings, channels, notifier, EVENING)
+        if s.kind == KIND_EVENING
+    ]
+    assert summaries() == ["Amma and Appa both had normal, active days."]
+
+    chicago_group = [
+        s
+        for s in run_digests(
+            conn, settings, channels, notifier, datetime(2026, 8, 3, 20, 30, tzinfo=CHICAGO)
+        )
+        if s.kind == KIND_EVENING
+    ]
+    assert summaries() == [
+        "Amma and Appa both had normal, active days.",
+        "Patti and Thatha both had normal, active days.",
+    ]
+
+    # Four rows, same local_date, all distinct — no sentinel, no collision.
+    rows = conn.execute(
+        "select parent_id, local_date from digest_sends where kind = 'evening'"
+    ).fetchall()
+    assert len(rows) == 4
+    assert len({r["parent_id"] for r in rows}) == 4
+    assert len({r["local_date"] for r in rows}) == 1
+    assert len(ist_group) == 2 and len(chicago_group) == 2
+
+
+def test_whatsapp_members_are_skipped_without_taking_the_slot(
+    conn, settings, notifier
+):
+    """Item 29: no attempt, no failed row, one deduped ops row.
+
+    A failed row would hold the day's slot and eat the first real WhatsApp
+    digest on the day the channel goes live.
+    """
+    from kettle.channels import build_channels
+
+    family = _family(conn, [("Amma", None)])
+    enable_digests(
+        conn, family.family_id, [("Child", "+919845550100")], channel="whatsapp"
+    )
+    _ping(conn, family.parents[0].parent_id, "whatsapp", MORNING_PING)
+
+    assert run_digests(conn, settings, build_channels(settings), notifier, MID_MORNING) == []
+    assert _rows(conn) == []  # the slot is still free
+
+    alerts = conn.execute(
+        "select * from ops_alerts where kind = %s", (OPS_CHANNEL_UNAVAILABLE,)
+    ).fetchall()
+    assert len(alerts) == 1
+    assert "not live yet" in alerts[0]["detail"]
+    assert "no slot" in alerts[0]["detail"]
+
+    # Deduped: once per member per local day, across passes.
+    run_digests(conn, settings, build_channels(settings), notifier, EVENING)
+    assert (
+        conn.execute(
+            "select count(*) as n from ops_alerts where kind = %s",
+            (OPS_CHANNEL_UNAVAILABLE,),
+        ).fetchone()["n"]
+        == 1
+    )
+
+
+def test_channel_unavailable_is_per_member(conn, settings, notifier):
+    """Two whatsapp members are two distinct ops rows, not one."""
+    from kettle.channels import build_channels
+
+    family = _family(conn, [("Amma", None)])
+    enable_digests(
+        conn,
+        family.family_id,
+        [("Child", "+919845550100"), ("Sister", "+919845550101")],
+        channel="whatsapp",
+    )
+    _ping(conn, family.parents[0].parent_id, "whatsapp", MORNING_PING)
+
+    run_digests(conn, settings, build_channels(settings), notifier, MID_MORNING)
+    alerts = conn.execute(
+        "select detail from ops_alerts where kind = %s order by id",
+        (OPS_CHANNEL_UNAVAILABLE,),
+    ).fetchall()
+    assert len(alerts) == 2
+    assert {"Child", "Sister"} == {
+        "Child" if "Child" in a["detail"] else "Sister" for a in alerts
+    }
+
+
+def test_enabled_family_with_nowhere_to_send_is_reported(
+    conn, settings, channels, channel, notifier
+):
+    """Item 31: enabled but unreachable is a misconfiguration, not a quiet day."""
+    family = _family(conn, [("Amma", None)])
+    conn.execute(
+        "update families set digest_enabled = true where id = %s", (family.family_id,)
+    )
+    _ping(conn, family.parents[0].parent_id, "whatsapp", MORNING_PING)
+
+    assert run_digests(conn, settings, channels, notifier, MID_MORNING) == []
+    assert channel.sent == []
+
+    alerts = conn.execute(
+        "select * from ops_alerts where kind = %s", (OPS_UNROUTABLE,)
+    ).fetchall()
+    assert len(alerts) == 1
+    assert "no member has both a channel and a phone number" in alerts[0]["detail"]
+
+    # Once per family per local day.
+    run_digests(conn, settings, channels, notifier, EVENING)
+    assert (
+        conn.execute(
+            "select count(*) as n from ops_alerts where kind = %s", (OPS_UNROUTABLE,)
+        ).fetchone()["n"]
+        == 1
+    )
+
+
+def test_a_routable_family_produces_no_unroutable_alert(
+    conn, settings, channels, notifier
+):
+    family = _family(conn, [("Amma", None)])
+    enable_digests(conn, family.family_id)
+    _ping(conn, family.parents[0].parent_id, "whatsapp", MORNING_PING)
+
+    run_digests(conn, settings, channels, notifier, MID_MORNING)
+    assert (
+        conn.execute(
+            "select count(*) as n from ops_alerts where kind = %s", (OPS_UNROUTABLE,)
+        ).fetchone()["n"]
+        == 0
+    )
 
 
 # --- the senior is never a recipient ---------------------------------------

@@ -25,6 +25,10 @@ class DigestChannel(Protocol):
     """Anything that can deliver one digest message to one recipient."""
 
     name: str
+    # False means "do not even attempt": the scheduler skips these recipients
+    # without recording a send, so the slot stays free for the day the channel
+    # goes live.
+    available: bool
 
     def send(self, to_e164: str, message: str) -> bool:
         """Deliver the message; return True when it was accepted."""
@@ -35,6 +39,7 @@ class TwilioSmsChannel:
     """SMS via Twilio. The launch channel — WhatsApp replaces it when approved."""
 
     name = "sms"
+    available = True
 
     def __init__(
         self,
@@ -72,17 +77,19 @@ class TwilioSmsChannel:
 class WhatsAppTemplateChannel:
     """Stub for the WhatsApp Business template send.
 
-    Deliberately inert. Meta business verification is on the critical path
-    (roadmap §6 risk 1) and the API shape is not settled until it lands, so this
-    reports "not delivered" rather than pretending. A member set to `whatsapp`
-    before then gets one recorded failure per message, which is exactly the
-    signal the founder needs, and SMS remains the working default.
+    Deliberately inert, and marked unavailable so the scheduler skips these
+    recipients entirely rather than recording a failure. A failed row would hold
+    that day's slot and eat the first real WhatsApp digest on the day the channel
+    goes live; the founder is told through a `digest_channel_unavailable` ops row
+    instead. Meta business verification is on the critical path (roadmap §6 risk
+    1) and the API shape is not settled until it lands.
     """
 
     name = "whatsapp"
+    available = False
 
     def send(self, to_e164: str, message: str) -> bool:
-        """Always False: not wired yet."""
+        """Always False: not wired yet, and never called while unavailable."""
         log.warning("whatsapp channel is not configured yet; message not sent")
         return False
 
@@ -96,6 +103,7 @@ class LogOnlyChannel:
     """
 
     name = "log"
+    available = True
 
     def send(self, to_e164: str, message: str) -> bool:
         """Log the message and report it handled."""

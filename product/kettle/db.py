@@ -347,3 +347,32 @@ def ops_alert_exists(
         (kind, family_id, parent_id, start, end),
     ).fetchone()
     return row is not None
+
+
+def ops_alert_exists_with_detail(
+    conn: psycopg.Connection,
+    kind: str,
+    family_id: Any,
+    parent_id: Any | None,
+    detail: str,
+    start: datetime,
+    end: datetime,
+) -> bool:
+    """Dedupe on the message text as well as the kind.
+
+    `ops_alerts` has no member column, so per-member dedupe keys on the detail
+    string, which is deterministic for a given member on a given day.
+    """
+    row = conn.execute(
+        """
+        select 1 from ops_alerts
+        where kind = %s
+          and family_id = %s
+          and parent_id is not distinct from %s
+          and detail = %s
+          and ts_utc >= %s and ts_utc < %s
+        limit 1
+        """,
+        (kind, family_id, parent_id, detail, start, end),
+    ).fetchone()
+    return row is not None

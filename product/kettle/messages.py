@@ -34,8 +34,15 @@ CLOCK_NEUTRAL = "local time"
 
 
 def format_time(local_dt: datetime) -> str:
-    """The one number allowed in a digest: a wall-clock time, to the minute."""
-    return local_dt.strftime("%H:%M")
+    """The one number allowed in a digest: a wall-clock time, to the minute.
+
+    Twelve-hour with lowercase am/pm — these are messages to a family, and both
+    target markets read "8:12 am" more warmly than "08:12". Built by hand rather
+    than with %-I/%p, which are platform-dependent and upper-case respectively.
+    """
+    hour = local_dt.hour % 12 or 12
+    meridiem = "am" if local_dt.hour < 12 else "pm"
+    return f"{hour}:{local_dt.minute:02d} {meridiem}"
 
 
 def render_morning(
