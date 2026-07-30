@@ -348,3 +348,83 @@ after 0002 `anon` holds a direct EXECUTE grant that survived
     by the scoped one (0 rows). The assertion also now requires the scoped set to
     be non-empty, so a future mis-scoping that matches nothing fails loudly
     instead of passing vacuously.
+
+---
+
+## Spec 003 — digest engine (2026-07-30)
+
+Built as specified; all 9 acceptance criteria have tests. None of these blocked
+the build.
+
+24. **There is no pronoun column, so the gendered copy never renders.** §1 gives
+    `({time} her time)` with a neutral `({time} local time)` "when pronoun
+    unknown", but neither spec 002's schema nor this one stores a pronoun. So the
+    neutral form is what every message uses today. `render_morning()` takes an
+    optional `pronoun` argument and the gendered variants are implemented and
+    tested, so adding a `parents.pronoun` column later is a one-line wiring
+    change.
+
+    Worth stating explicitly because it is a product decision, not just a schema
+    gap: nothing infers a pronoun from a name. "Amma" means mother in Tamil and
+    the guess would usually be right, which is exactly what makes it a bad habit
+    to build in — the one time it is wrong, it is wrong in a message to that
+    person's family. If you want gendered copy, it should come from a field
+    someone filled in during onboarding.
+
+25. **Time renders 24-hour (`08:12`).** Unambiguous for both Chennai and Texas
+    recipients and locale-free. `8:12 am` reads warmer if you prefer it — one
+    line in `messages.format_time`, and the copy-law test does not care which.
+
+26. **The morning cutoff also applies to the moment of sending.** §1 words it as
+    "not sent if the first ping arrives after 14:00", but the stated reason — a
+    "day started" at dinnertime is noise — applies just as much when the ping was
+    at 08:12 and the server was down until 18:00. I gate on both, so a restart in
+    the evening cannot deliver a stale "good morning". Say the word if you want
+    the literal ping-time-only reading.
+
+27. **Evening groups parents by timezone, and there is an index edge case.**
+    §1 says a family's active parents aggregate into one message; AC5 says a
+    Chicago parent gets their evening on Chicago's clock. Both hold only if the
+    aggregation is per timezone group within the family, which is what I built:
+    Appa (IST) gets his summary at 20:30 IST, Amma (Chicago) hers ~10.5 hours
+    later. Single-parent messages record `parent_id`; aggregated ones record
+    null, matching the unique index's `coalesce`.
+
+    The edge case: a family with **two or more timezone groups that each have two
+    or more active parents** would produce two aggregated rows, both with
+    `parent_id` null and the same `local_date`, and the unique index would block
+    the second group's message. Needs 4+ monitored people split across timezones,
+    so it cannot bite the beta — but it is silent when it does. Fix is a
+    discriminator in the index (the tz string, or a group id). I did not change
+    your DDL to add one; say if you want it.
+
+28. **Three-or-more-parent evening copy is mine.** §1 gives the one- and
+    two-parent forms only. I extended the pattern: `Amma, Appa and Patti all had
+    normal, active days.` The roadmap's "any elder, not just parents" makes three
+    reachable. Confirm the wording.
+
+29. **A `whatsapp` member before Meta verification produces one failure per
+    message.** The stub reports "not sent" rather than pretending, so those
+    recipients get a `failed` row and a `digest_delivery_failed` ops alert each
+    time. That is honest and self-limiting (the failed row holds the slot for the
+    day), and no beta family will be on `whatsapp` since the column defaults to
+    `sms` — but if you would rather those members be skipped silently until the
+    channel is live, that is a small change.
+
+30. **The send-then-record window is real, and the schema hints at why.** True
+    "never double-send" would claim the `digest_sends` row *before* dialling, but
+    the `status` CHECK allows only `sent`/`failed` — there is no `pending` to
+    claim with. So I send, then insert with `on conflict do nothing`. Restarts
+    between passes are safe (tested); a crash in the narrow window between the
+    provider accepting the message and the row landing would re-send on the next
+    pass. The alternative trades a possible duplicate for a possible silent
+    loss, which for a reassurance message seems the worse failure — but if you
+    want the stronger guarantee, add `'pending'` to the CHECK and I will claim
+    first and update after.
+
+31. **A family with no reachable recipients is skipped entirely.** If an opted-in
+    family has no member with a channel and a phone, the pass moves on without
+    writing `digest_skipped` rows for its quiet parents — there is nobody the
+    digest concerns. It also means that family generates no ops signal at all.
+    Fine, or would you rather the founder be told that an enabled family has
+    nowhere to send?

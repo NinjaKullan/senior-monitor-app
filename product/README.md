@@ -94,6 +94,46 @@ minute is safe. Every alert is written to `ops_alerts` and sent to the founder's
 ntfy topic. **Nothing family- or parent-facing fires from this service** — the
 escalation ladder is spec 004 and is not built (product law #3).
 
+## Digests (spec 003)
+
+The first family-facing feature, and the only one authorised to send: digests are
+reassurance messages that go out **when routine is observed**. Nothing here
+messages a family about the *absence* of activity, and nothing here messages the
+senior at all — that is spec 004, unbuilt.
+
+| Message | When | Copy |
+|---|---|---|
+| Morning | on the first alarm-grade ping of the parent's local day, before the cutoff (14:00 local) | `Good morning — {parent}'s day started normally ({time} local time).` |
+| Evening | at 20:30 parent-local | `{parent} had a normal, active day.` / `{a} and {b} both had normal, active days.` |
+
+The morning message cannot be rendered without a real first-ping time: a "day
+started normally" with no evidence behind it is manufactured reassurance. A parent
+with no alarm-grade pings is silently omitted from the evening message and
+surfaced to the founder as a `digest_skipped` ops alert; if nobody qualifies, the
+family hears nothing at all.
+
+**The copy is product law, not styling.** No counts, no app or signal names, no
+trends or comparisons, and no digits anywhere except the one clock time — two
+independent derivations reached that rule (PLAN.md, Jul 26), and
+`tests/test_digest_copy.py` enforces it, including a test that no template in the
+module describes absence.
+
+**Two switches, both off by default.** `DIGEST_ENABLED` globally, and
+`families.digest_enabled` per family. A family that exists is not a family that
+gets messaged.
+
+**Idempotency is the database's job.** Every (message, recipient) is a row in
+`digest_sends` behind a unique index, and the scheduler asks that table what it
+has already sent — never its own memory. Restart mid-pass, re-run the pass, ping
+again: still one message.
+
+Delivery goes through a channel abstraction: Twilio SMS today, a WhatsApp
+template stub that honestly reports "not sent" until Meta verification lands, and
+a log-only fallback when no credentials are configured (rows record `log`, so a
+`digest_sends` row never claims an SMS nobody sent). A failed send is retried
+once, then recorded as failed with a `digest_delivery_failed` ops alert — the row
+holds the slot so the next pass does not re-dial.
+
 ## Running the tests
 
 RLS cannot be tested against a fake, so the suite needs a real Postgres. Two
@@ -152,6 +192,7 @@ psql "$DATABASE_URL" -f migrations/0001_init.sql
 psql "$DATABASE_URL" -f migrations/0002_rls.sql
 psql "$DATABASE_URL" -f migrations/0003_revoke_anon_rpc.sql
 psql "$DATABASE_URL" -f migrations/0004_revoke_residual_table_privileges.sql
+psql "$DATABASE_URL" -f migrations/0005_digest.sql
 
 # or, equivalently:
 DATABASE_URL=... python -m scripts.migrate
@@ -234,5 +275,9 @@ revocation time.
 | `IP_HASH_SALT` | salt for the IP hash | random per boot |
 | `DEFAULT_TZ` | default family timezone | `Asia/Kolkata` |
 | `PUBLIC_BASE_URL` | base URL printed into provisioned links | `https://kettle-api.fly.dev` |
-| `HEARTBEAT_LOOP` | `0` disables the background monitor (tests) | `1` |
+| `HEARTBEAT_LOOP` | `0` disables the background loops (tests) | `1` |
+| `DIGEST_ENABLED` | global digest kill-switch | **off** |
+| `DIGEST_MORNING_CUTOFF_HOUR` | no "day started" at/after this local hour | `14` |
+| `DIGEST_EVENING_HOUR` / `_MINUTE` | parent-local summary time | `20` / `30` |
+| `TWILIO_ACCOUNT_SID` / `_AUTH_TOKEN` / `_FROM` | SMS delivery (secrets) | unset = log-only |
 | `TEST_DATABASE_URL` | tests only | local `kettle_test` |
