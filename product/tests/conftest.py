@@ -85,6 +85,7 @@ def settings(database_url: str) -> Settings:
         twilio_account_sid="",
         twilio_auth_token="",
         twilio_from="",
+        ladder_enabled=True,
     )
 
 

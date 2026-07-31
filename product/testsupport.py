@@ -20,6 +20,9 @@ TABLES = (
     "pings",
     "ops_alerts",
     "digest_sends",
+    "family_contacts",
+    "ladder_candidates",
+    "ladder_events",
 )
 
 
@@ -89,6 +92,26 @@ def enable_digests(
         "where family_id = %s order by created_utc, id",
         (family_id,),
     ).fetchall()
+
+
+def enable_ladder(
+    conn: psycopg.Connection, family_id: object, mode: str = "shadow"
+) -> None:
+    """Put a family into a ladder mode. `live` needs digests on first (DB CHECK)."""
+    if mode == "live":
+        conn.execute(
+            "update families set digest_enabled = true where id = %s", (family_id,)
+        )
+    conn.execute("update families set ladder_mode = %s where id = %s", (mode, family_id))
+
+
+def set_senior_phone(
+    conn: psycopg.Connection, parent_id: object, phone_e164: str
+) -> None:
+    """Give a monitored person a number the ASK stage can reach."""
+    conn.execute(
+        "update parents set phone_e164 = %s where id = %s", (phone_e164, parent_id)
+    )
 
 
 def as_user(authed_conn: psycopg.Connection, auth_user_id: str) -> None:

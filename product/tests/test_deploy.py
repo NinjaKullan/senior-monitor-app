@@ -100,6 +100,7 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         twilio_account_sid="",
         twilio_auth_token="",
         twilio_from="",
+        ladder_enabled=False,
     )
     with TestClient(create_app(settings, notifier)) as fresh_client:
         assert fresh_client.get("/healthz").json() == {"db": True}

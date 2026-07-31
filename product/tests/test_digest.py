@@ -737,24 +737,23 @@ def test_a_routable_family_produces_no_unroutable_alert(
 def test_nothing_is_ever_sent_to_a_parent(conn, settings, channels, channel, notifier):
     """Spec 003 §0: nothing in this spec messages the senior.
 
-    Parents have no contact column at all, so this asserts the structural fact:
-    the recipient list comes from `members`, and every number dialled belongs to
-    one of them.
+    Spec 004 gave `parents` a `phone_e164` for the ladder's ASK stage, so the
+    old proxy — "parents have no contact column" — no longer proves anything.
+    This asserts the property directly instead: with the senior's number on file
+    and reachable, the digest still dials only members.
     """
     family = _family(conn, [("Amma", None)])
     members = enable_digests(conn, family.family_id)
+    senior_phone = "+919845559999"
+    conn.execute(
+        "update parents set phone_e164 = %s where id = %s",
+        (senior_phone, family.parents[0].parent_id),
+    )
     _ping(conn, family.parents[0].parent_id, "whatsapp", MORNING_PING)
+    run_digests(conn, settings, channels, notifier, MID_MORNING)
     run_digests(conn, settings, channels, notifier, EVENING)
 
-    member_phones = {m["phone_e164"] for m in members}
-    assert {to for to, _ in channel.sent} <= member_phones
-
-    parent_columns = {
-        r["column_name"]
-        for r in conn.execute(
-            "select column_name from information_schema.columns "
-            "where table_name = 'parents'"
-        ).fetchall()
-    }
-    assert "phone_e164" not in parent_columns
-    assert "email" not in parent_columns
+    dialled = {to for to, _ in channel.sent}
+    assert dialled == {m["phone_e164"] for m in members}
+    assert senior_phone not in dialled
+    assert dialled  # the digest did run; this is not a vacuous pass
