@@ -305,6 +305,194 @@ def record_digest_send(
     return row is not None
 
 
+def count_any_pings_between(
+    conn: psycopg.Connection, parent_id: Any, start: datetime, end: datetime
+) -> int:
+    """Every ping in the window, whatever its grade.
+
+    Alarm-grade answers "did a person do something"; this answers "is the phone
+    and the pipeline alive at all", which is a different question and the one
+    that decides whether asking the senior is even possible.
+    """
+    row = conn.execute(
+        "select count(*) as n from pings "
+        "where parent_id = %s and ts_utc >= %s and ts_utc < %s",
+        (parent_id, start, end),
+    ).fetchone()
+    return int(row["n"])
+
+
+# --- ladder (spec 004) ------------------------------------------------------
+
+
+def families_for_ladder(conn: psycopg.Connection) -> list[Row]:
+    """Families with the ladder switched on at all. Defaults to none."""
+    return conn.execute(
+        "select id as family_id, name as family_name, tz as family_tz, "
+        "       ladder_mode, digest_enabled "
+        "from families where ladder_mode <> 'off' order by name"
+    ).fetchall()
+
+
+def ladder_parents(conn: psycopg.Connection, family_id: Any) -> list[Row]:
+    """Monitored people with their rule-v1 thresholds and timings."""
+    return conn.execute(
+        """
+        select id as parent_id, display_name as parent_name, tz as parent_tz,
+               phone_e164, alarm_deadline, max_gap_minutes, grace_minutes,
+               family_gap_minutes
+        from parents where family_id = %s order by display_name
+        """,
+        (family_id,),
+    ).fetchall()
+
+
+def ladder_recipients(conn: psycopg.Connection, family_id: Any) -> list[Row]:
+    """The family circle in escalation order: owner first, then by created order."""
+    return conn.execute(
+        """
+        select id as member_id, display_name as member_name, phone_e164,
+               digest_channel, role
+        from members
+        where family_id = %s
+          and digest_channel <> 'none'
+          and phone_e164 is not null and phone_e164 <> ''
+        order by (role = 'owner') desc, created_utc, id
+        """,
+        (family_id,),
+    ).fetchall()
+
+
+def family_contact(conn: psycopg.Connection, family_id: Any) -> Row | None:
+    """The family's named local contact, if the wizard has captured one."""
+    return conn.execute(
+        "select name, phone_e164, relation from family_contacts "
+        "where family_id = %s order by created_utc, id limit 1",
+        (family_id,),
+    ).fetchone()
+
+
+def candidate_for_day(
+    conn: psycopg.Connection, parent_id: Any, local_date: date
+) -> Row | None:
+    """The one candidate this parent may have today, resolved or not."""
+    return conn.execute(
+        "select * from ladder_candidates where parent_id = %s and local_date = %s",
+        (parent_id, local_date),
+    ).fetchone()
+
+
+def open_candidate_for_parent(conn: psycopg.Connection, parent_id: Any) -> Row | None:
+    """The parent's unresolved candidate, if one is running."""
+    return conn.execute(
+        "select * from ladder_candidates "
+        "where parent_id = %s and resolved_utc is null "
+        "order by opened_utc desc limit 1",
+        (parent_id,),
+    ).fetchone()
+
+
+def insert_candidate(
+    conn: psycopg.Connection,
+    family_id: Any,
+    parent_id: Any,
+    local_date: date,
+    mode: str,
+    trigger: str,
+    mechanism_ok: bool,
+    stage: str,
+    opened_utc: datetime,
+) -> Row | None:
+    """Open a candidate. None when today's already exists (unique index)."""
+    return conn.execute(
+        """
+        insert into ladder_candidates
+            (family_id, parent_id, local_date, mode, trigger, mechanism_ok,
+             stage, opened_utc)
+        values (%s, %s, %s, %s, %s, %s, %s, %s)
+        on conflict do nothing
+        returning *
+        """,
+        (family_id, parent_id, local_date, mode, trigger, mechanism_ok, stage, opened_utc),
+    ).fetchone()
+
+
+def set_candidate_stage(
+    conn: psycopg.Connection,
+    candidate_id: int,
+    stage: str,
+    column: str | None,
+    when: datetime,
+) -> Row:
+    """Move a candidate to a stage, stamping that stage's timestamp column."""
+    allowed = {"ask_utc", "family_1_utc", "family_all_utc", None}
+    if column not in allowed:
+        raise ValueError(f"unknown stage column: {column}")
+    if column is None:
+        sql = "update ladder_candidates set stage = %s where id = %s returning *"
+        params: tuple[Any, ...] = (stage, candidate_id)
+    else:
+        sql = (
+            f"update ladder_candidates set stage = %s, {column} = %s "
+            "where id = %s returning *"
+        )
+        params = (stage, when, candidate_id)
+    return conn.execute(sql, params).fetchone()
+
+
+def resolve_candidate(
+    conn: psycopg.Connection, candidate_id: int, resolution: str, when: datetime
+) -> Row | None:
+    """Close a candidate. None if it was already closed — first resolution wins."""
+    return conn.execute(
+        """
+        update ladder_candidates
+        set stage = 'resolved', resolution = %s, resolved_utc = %s
+        where id = %s and resolved_utc is null
+        returning *
+        """,
+        (resolution, when, candidate_id),
+    ).fetchone()
+
+
+def insert_ladder_event(
+    conn: psycopg.Connection,
+    candidate_id: int,
+    family_id: Any,
+    parent_id: Any,
+    stage: str,
+    mode: str,
+    detail: str,
+    ts_utc: datetime,
+) -> None:
+    """Append one transition to the ledger."""
+    conn.execute(
+        """
+        insert into ladder_events
+            (candidate_id, family_id, parent_id, stage, mode, detail, ts_utc)
+        values (%s, %s, %s, %s, %s, %s, %s)
+        """,
+        (candidate_id, family_id, parent_id, stage, mode, detail, ts_utc),
+    )
+
+
+def parent_by_phone(conn: psycopg.Connection, phone_e164: str) -> Row | None:
+    """Resolve an inbound sender to a monitored person, for the ASK reply."""
+    return conn.execute(
+        """
+        select p.id as parent_id, p.display_name as parent_name, p.tz as parent_tz,
+               p.grace_minutes,
+               f.id as family_id, f.name as family_name, f.tz as family_tz,
+               f.ladder_mode
+        from parents p
+        join families f on f.id = p.family_id
+        where p.phone_e164 = %s
+        limit 1
+        """,
+        (phone_e164,),
+    ).fetchone()
+
+
 # --- ops alerts (founder-only) ----------------------------------------------
 
 

@@ -11,6 +11,7 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
+from urllib.parse import parse_qs
 
 import psycopg
 from fastapi import FastAPI, Request
@@ -24,8 +25,10 @@ from kettle.channels import build_channels
 from kettle.config import Settings, settings_from_env
 from kettle.digest import DigestState, digest_loop
 from kettle.heartbeat import HeartbeatState, heartbeat_loop
+from kettle.ladder import LadderState, ladder_loop, resolve_by_senior_reply
 from kettle.notify import LogOnlyNotifier, Notifier, NtfyNotifier
 from kettle.timeutil import now_utc
+from kettle.twilio_signature import is_valid
 
 log = logging.getLogger("kettle")
 
@@ -63,6 +66,7 @@ def create_app(
             NtfyNotifier(cfg.ntfy_topic) if cfg.ntfy_topic else LogOnlyNotifier()
         )
         app.state.digest = DigestState()
+        app.state.ladder = LadderState()
         app.state.channels = build_channels(cfg)
         tasks: list[asyncio.Task[None]] = []
         loop_conns: list[psycopg.Connection] = []
@@ -87,6 +91,21 @@ def create_app(
                         app.state.channels,
                         app.state.notifier,
                         app.state.digest,
+                    )
+                )
+            )
+            # The ladder is its own loop for the same reason: the alert path
+            # must not share a failure mode with reassurance or with ops.
+            ld_conn = db.connect(cfg.database_url)
+            loop_conns.append(ld_conn)
+            tasks.append(
+                asyncio.create_task(
+                    ladder_loop(
+                        ld_conn,
+                        cfg,
+                        app.state.channels,
+                        app.state.notifier,
+                        app.state.ladder,
                     )
                 )
             )
@@ -145,6 +164,51 @@ def create_app(
                 DEDUPE_WINDOW_S,
             )
         return PlainTextResponse("ok")
+
+    @app.post("/twilio/inbound", response_class=PlainTextResponse)
+    async def twilio_inbound(request: Request) -> PlainTextResponse:
+        """A senior's reply to the ASK stage (spec 004 §3).
+
+        Two things matter here and nothing else does. First, the request is
+        genuinely Twilio's — an unsigned or mismatched call is a bare 403 that
+        records nothing. Second, **the message body is dropped**. It is read only
+        to compute the signature Twilio itself computed, and never stored,
+        logged, or passed on. What resolves a candidate is that the right number
+        answered at all; what they said is content, and this product does not
+        hold content.
+        """
+        raw = (await request.body()).decode("utf-8", errors="replace")
+        params = {k: v[0] for k, v in parse_qs(raw, keep_blank_values=True).items()}
+
+        url = str(request.url)
+        forwarded_proto = request.headers.get("x-forwarded-proto")
+        if forwarded_proto == "https" and url.startswith("http://"):
+            # Fly terminates TLS; Twilio signed the https URL it called.
+            url = "https://" + url[len("http://") :]
+
+        if not is_valid(
+            cfg.twilio_auth_token,
+            url,
+            params,
+            request.headers.get("x-twilio-signature"),
+        ):
+            raise StarletteHTTPException(status_code=403, detail="forbidden")
+
+        sender = (params.get("From") or "").strip()
+        # From here on, `params` is not consulted again — the body is gone.
+        del params, raw
+
+        with request.app.state.pool.connection() as conn:
+            parent = db.parent_by_phone(conn, sender) if sender else None
+            if parent is not None:
+                resolve_by_senior_reply(
+                    conn, request.app.state.notifier, parent, now_utc()
+                )
+        # Empty TwiML: acknowledged, and the senior gets no automated reply.
+        return PlainTextResponse(
+            '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
+            media_type="application/xml",
+        )
 
     @app.get("/healthz")
     async def healthz(request: Request) -> JSONResponse:
