@@ -36,7 +36,7 @@ State machine per candidate, all transitions recorded in `ladder_events` (0007: 
 ## 4. Copy (binding, same law as 003 — calm, no counts, no speculation, no medical language)
 
 - ASK (to senior): `This is Kettle. {Name}, your phone has been quiet today. All good? Reply YES.` (WhatsApp button variant when live.)
-- FAMILY (mechanism_ok=true): `Kettle: {Parent}'s usual routine hasn't been seen today, and she hasn't answered a gentle check-in. A call from you may be all this needs. {contact-line if any}`
+- FAMILY (mechanism_ok=true): `Kettle: {Parent}'s usual routine hasn't been seen today, and they haven't answered a gentle check-in. A call from you may be all this needs. {contact-line if any}` *(neutral clause is the default per items 24/34 — she/he variants only via an explicitly recorded pronoun field; the template takes a whole clause for verb agreement)*
 - FAMILY (mechanism_ok=false): `Kettle: {Parent}'s phone has been unreachable today (no signals of any kind). This is often a phone or network issue. A call from you is the fastest way to know. {contact-line}`
 - ALL-CLEAR: `Kettle: {Parent}'s routine has resumed. All normal.`
 - Copy-law test: extend 003's — no digits (no times needed here), no signal names, no "emergency/urgent/worried/alarm" vocabulary anywhere in ladder copy.
