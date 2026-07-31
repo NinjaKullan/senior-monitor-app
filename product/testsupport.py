@@ -122,6 +122,29 @@ def as_user(authed_conn: psycopg.Connection, auth_user_id: str) -> None:
     )
 
 
+def as_user_with_email(
+    authed_conn: psycopg.Connection, auth_user_id: str, email: str
+) -> None:
+    """Present a Supabase Auth user *and* their verified email, as Auth does."""
+    authed_conn.execute(
+        "select set_config('request.jwt.claims', %s, false)",
+        (f'{{"sub": "{auth_user_id}", "email": "{email}"}}',),
+    )
+
+
+def invite_member(
+    conn: psycopg.Connection, family_id: object, email: str, role: str = "owner"
+) -> object:
+    """A member row as provisioning leaves it: email known, auth_user_id null."""
+    return conn.execute(
+        """
+        insert into members (family_id, display_name, role, email)
+        values (%s, %s, %s, %s) returning id
+        """,
+        (family_id, email.split("@")[0], role, email),
+    ).fetchone()["id"]
+
+
 def add_member(
     conn: psycopg.Connection, family_id: object, auth_user_id: str, role: str = "owner"
 ) -> None:

@@ -208,6 +208,19 @@ no schema change, no code change.
 Ladder copy carries the digest copy law plus a ban on urgency vocabulary, and
 lives in its own module so neither law has to be weakened for the other.
 
+## Child PWA (spec 005a)
+
+The read-only demo app lives in `webapp/` and is deployed separately. It talks to
+this same database as the `authenticated` role, filtered by the same policies —
+`webapp/README.md` has the deploy steps and the demo script.
+
+`0008_claim_membership.sql` is the one backend piece it needs:
+`members.auth_user_id` is null until the invited person signs up, and that RPC
+links them at first login. SECURITY DEFINER, matching on the **verified** email
+from the JWT rather than any parameter, filling only nulls, and linking every
+matching membership — one person genuinely can belong to two families. Grants
+follow the 0004 doctrine: `authenticated` only, `anon` explicitly revoked.
+
 ## Running the tests
 
 RLS cannot be tested against a fake, so the suite needs a real Postgres. Two
@@ -275,6 +288,7 @@ psql "$DATABASE_URL" -f migrations/0004_revoke_residual_table_privileges.sql
 psql "$DATABASE_URL" -f migrations/0005_digest.sql
 psql "$DATABASE_URL" -f migrations/0006_digest_sends_per_parent.sql
 psql "$DATABASE_URL" -f migrations/0007_ladder.sql
+psql "$DATABASE_URL" -f migrations/0008_claim_membership.sql
 
 # or, equivalently:
 DATABASE_URL=... python -m scripts.migrate
