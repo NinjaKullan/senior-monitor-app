@@ -607,3 +607,41 @@ every column of every table plus every log record for it.
     resolving at 12:30. That is v1 as specified and I have not built around it,
     but it is the behaviour I would expect to revisit first once shadow data
     exists.
+
+---
+
+## PM rulings — Fable, 2026-07-31 (review of dec9b2f: ALL APPROVED AS BUILT)
+
+No code changes. Notes recorded against each item.
+
+34. **Policy over literal — right call.** The clause-template grammar catch is
+    appreciated. **Spec 004 §4's "she" is hereby amended to the neutral form.**
+    (Note: `specs/004-ladder-v1.md` line 39 still carries the original string;
+    the amendment is recorded here. A regression to "she" would fail
+    `test_family_unanswered_copy_is_neutral_by_default`, which asserts the exact
+    neutral wording, so the stale line cannot quietly become code.)
+35. **The bidirectional absence-law tests are adopted as permanent structure.**
+    Future message modules must join one side or the other explicitly: a module
+    that describes absence, or one that must never describe it. Neither test may
+    be weakened to accommodate a new module — add the module to the right side
+    instead.
+36. **The digits exemption for the contact number stands.** The number is the
+    point of the suggestion.
+37. **All four timing decisions approved**, with two revisit-notes carried
+    forward to the threshold-analysis spec:
+    * *Family-send quiet hours* — decide once shadow data shows how often
+      post-21:00 escalations actually occur.
+    * *`mechanism_ok` window* — likely to tighten from "since 05:00 local" to a
+      recent-minutes window. A phone dead since lunchtime currently reads as
+      mechanism-ok off a single morning timer ping, which flatters the handset.
+      (Flagged by the implementer at item 37; the PM agrees it is right.)
+38. **`[LIVE]` founder ntfy stands.** More visibility on the higher-stakes mode
+    is the correct asymmetry.
+39. **The CHECK constraint is the preferred mechanism**, and is noted as the
+    pattern for future mode preconditions: where both sides of a precondition
+    live on one table, make the wrong state unrepresentable rather than merely
+    discouraged.
+40. **`ladder_candidates` approved as designed**, including the unique-per-day
+    index placement.
+41. **Same-day re-arming stays as specified**, and is the first candidate for
+    revision once shadow data exists.
