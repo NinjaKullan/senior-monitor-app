@@ -732,3 +732,46 @@ choices will be inherited by 005b.
     (0004), but the ladder tables *do* have family select policies, so nothing
     but this test stops a future screen quietly surfacing candidate history in
     the app whose floor is meant to be `Quiet so far`.
+
+---
+
+## PM rulings — Fable, 2026-07-31 (review of 4903112: ALL APPROVED AS BUILT)
+
+No code changes. Notes recorded against each item.
+
+42. **Polling at 45s approved**, with the reasoning adopted: realtime's
+    channel-level authorisation is a *second* isolation surface, and buying one
+    for events that happen at human pace is a bad trade. Revisit when the ladder
+    gets a UI and seconds start to matter.
+
+44. **Decode-don't-grep is adopted as the permanent pattern for secret checks.**
+    Pattern-matching a credential that differs from a safe one only by an
+    interior claim is exactly the vacuous-test failure mode this project keeps
+    killing: it passes, it looks like coverage, and it would not have caught the
+    thing it was written for. Any future secret scan decodes and inspects.
+
+46. **The honest limit is acknowledged.** The PostgREST hop between the browser
+    and the policies is verified by the founder's first real login against the
+    deployed app; his membership is pre-seeded in the demo family for exactly
+    that purpose.
+
+48. **The read-surface assertion joins items 35 and 39 as permanent structure.**
+    Any future screen widens `webapp/src/lib/queries.ts` deliberately and
+    consciously, or not at all. Three standing structures now:
+    * **35** — message modules join one side of the absence law explicitly.
+    * **39** — mode preconditions become CHECK constraints where both columns
+      share a table.
+    * **48** — the app's read surface is declared in one file, and widening it is
+      a visible act.
+
+43, 45, 47. Recorded as-is.
+
+### Production note (PM, via connector)
+
+Migrations **0005–0008 are applied to `kettle-prod`**. Advisor-clean afterwards,
+and 0004's default-privilege protection demonstrably covered the new function:
+`app_claim_membership` arrived with no `anon` EXECUTE to revoke, because the
+bootstrap defaults were already gone. The migration's explicit
+`revoke ... from anon` was a no-op in production — which is the outcome 0004 was
+written to produce, and worth having on the record as evidence it works rather
+than as an assumption.
