@@ -51,3 +51,27 @@ jobs:
 
       - name: Test (pilot + product)
         run: pytest
+
+  webapp:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: webapp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # lint -> test -> build -> verify:build. The last step greps the built
+      # output for the Supabase service key and anything else that has no
+      # business in a static bundle; it is why this job builds at all.
+      - name: Lint, test, build, verify
+        run: npm run ci

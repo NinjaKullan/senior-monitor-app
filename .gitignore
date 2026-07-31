@@ -16,3 +16,8 @@ __pycache__/
 
 # OS/editor
 .DS_Store
+
+# Webapp build + deps
+node_modules/
+webapp/dist/
+.env.local

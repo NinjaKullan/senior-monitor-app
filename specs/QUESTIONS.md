@@ -645,3 +645,90 @@ No code changes. Notes recorded against each item.
     index placement.
 41. **Same-day re-arming stays as specified**, and is the first candidate for
     revision once shadow data exists.
+
+---
+
+## Spec 005a — child PWA, demo-grade (2026-07-31)
+
+All nine acceptance criteria have tests. The stack decisions §1 left implicit
+are recorded here too, since this is the first frontend in the repo and these
+choices will be inherited by 005b.
+
+42. **Refresh: 45-second polling, not Supabase realtime.** §3.1 left this open.
+    Polling wins on three counts for this app specifically. The underlying
+    events happen at human pace — a handful of pings a day, and the state only
+    ever moves one way — so a socket buys latency nobody is waiting on. It has
+    no channel-level RLS to reason about separately from the table policies,
+    which matters because realtime authorisation is a second place isolation can
+    be got wrong. And it has no reconnect path to get wrong on a phone that has
+    been in a pocket for six hours, which is the actual usage pattern. Realtime
+    becomes worth it when the ladder gets a surface (005b/004 UI) and seconds
+    start to matter; today it would be complexity in the highest-trust screen.
+
+43. **Stack setup decisions** (RosterPro-style, but the details were mine):
+    * **TypeScript**, strict, with `tsc --noEmit` in both `build` and `lint`.
+      The row shapes coming back from RLS-filtered queries are exactly the kind
+      of thing worth typing.
+    * **shadcn/ui components vendored by hand**, not via `npx shadcn init`. The
+      CLI is interactive and network-dependent; what it does is copy source into
+      your tree, so `components/ui/{card,button,input}.tsx` are those files,
+      written directly, in the same shape the CLI produces. Adding more later is
+      the same operation.
+    * **Tailwind v3, not v4.** v4's engine is fine but shadcn's ecosystem and
+      every example still assume v3's config file. No reason to spend the
+      novelty budget here.
+    * **Vitest + Testing Library**, jsdom environment. Vitest shares Vite's
+      transform pipeline, so there is no second build config to keep in sync.
+    * **Vite pinned to 5.4** rather than 6. Vitest 2.1 depends on Vite 5, and
+      with both installed TypeScript sees two copies of Vite's types and refuses
+      to typecheck the config. Pinning to one Vite is simpler than either a
+      `vitest.config.ts` split or type-suppression, and Vite 6 buys this app
+      nothing.
+    * **eslint 9 flat config** with typescript-eslint and react-hooks. `npm run
+      lint` is eslint; `npm run ci` is lint → test → build → verify:build, which
+      is exactly what the CI job runs.
+
+44. **The service-key guard decodes JWTs rather than pattern-matching them.**
+    AC7 asks CI to grep the build output. A literal grep would miss the case
+    that actually matters: a service key and a publishable key are both
+    `eyJ…`-shaped JWTs, and the only difference is the `role` claim inside. So
+    `check-build-secrets.mjs` extracts every JWT-looking string, base64-decodes
+    the payload, and fails on any role that is not `anon` — plus literal patterns
+    for `sb_secret_`, `service_role`, connection strings, and the Twilio/ntfy env
+    names. Verified by planting both a fake service-role JWT and an
+    `sb_secret_…` string in `dist/` and watching it exit 1.
+
+45. **The morning digest's clock time is recomputed, not stored.** §3.2 says
+    recompose from templates and store no message text. But the morning template
+    contains a time that `digest_sends` does not record. Rather than add a
+    column — which would be storing message content by another name — the app
+    finds the first alarm-grade ping of that local date and re-derives the time
+    from it, exactly as the backend did. If no such ping survives, that entry is
+    omitted rather than rendered with a guess.
+
+46. **AC1 is proved from the Python side, not through PostgREST.** "Re-use the
+    two-family RLS fixtures through the real app's queries" cannot literally run
+    the JS client here — that needs a live Supabase, and this container has
+    Postgres only. So the app's entire read surface is declared in one file
+    (`webapp/src/lib/queries.ts`), and `product/tests/test_webapp_contract.py`
+    parses it, asserts every table it names is RLS-protected with a policy,
+    asserts every column exists, and then runs those same selects as the
+    `authenticated` role over the two-family fixtures. The selects carry no
+    WHERE clause, which is the point: the app never filters by family, so if a
+    policy were wrong the test would return the neighbour's rows. What is *not*
+    covered is the supabase-js/PostgREST layer between the browser and those
+    policies; the first real login against the deployed app is what confirms it.
+
+47. **Copy now lives in two languages, with a guard against drift.** The digest
+    templates exist in `kettle/messages.py` and `webapp/src/lib/copy.ts`, because
+    the app recomposes messages rather than storing them.
+    `test_webapp_copy_matches_the_backend_templates` parses the TS file and
+    compares the strings, so drift fails the backend suite rather than shipping a
+    digest list that quietly disagrees with the SMS a family received.
+
+48. **`ops_alerts` and the ladder tables are absent from the read surface by
+    assertion, not by omission.** A test checks `queries.ts` names neither. The
+    founder's plumbing log has no privilege granted to `authenticated` anyway
+    (0004), but the ladder tables *do* have family select policies, so nothing
+    but this test stops a future screen quietly surfacing candidate history in
+    the app whose floor is meant to be `Quiet so far`.
