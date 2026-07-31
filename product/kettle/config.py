@@ -27,6 +27,9 @@ class Settings:
     twilio_account_sid: str
     twilio_auth_token: str
     twilio_from: str
+    # Global ladder kill-switch, over and above each family's ladder_mode.
+    # Off by default: this is the alert path.
+    ladder_enabled: bool
 
 
 def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
@@ -58,6 +61,7 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         twilio_account_sid=src.get("TWILIO_ACCOUNT_SID", "").strip(),
         twilio_auth_token=src.get("TWILIO_AUTH_TOKEN", "").strip(),
         twilio_from=src.get("TWILIO_FROM", "").strip(),
+        ladder_enabled=_flag(src, "LADDER_ENABLED", default=False),
     )
 
 
