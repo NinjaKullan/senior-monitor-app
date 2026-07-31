@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="Kettle">
+  <rect width="192" height="192" rx="42" fill="#0f766e"/>
+  <path d="M58 76h58a26 26 0 0 1 26 26v20a26 26 0 0 1-26 26H70a26 26 0 0 1-26-26v-32a14 14 0 0 1 14-14Z"
+        fill="none" stroke="#ffffff" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M142 92h8a14 14 0 0 1 0 28h-8" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
+  <path d="M74 58c0-9 10-9 10-18M96 58c0-9 10-9 10-18" fill="none" stroke="#ffffff"
+        stroke-width="8" stroke-linecap="round" opacity="0.85"/>
+</svg>
