@@ -62,6 +62,11 @@ The gates were designed when the concept itself was unproven. Since then: Parent
 5. Any elder, not just parents (founder, Jul 29): families add unlimited monitored loved ones (grandparent, aunt, uncle) at per-person pricing — schema already supports it (spec 002 parents table is unbounded, per-person tz/signals/devices). Invariants: consent flow runs per person (no silent adds, ever) and each elder gets their own baseline + ladder. Product copy says "loved ones."
 6. Token delivery: tokens are never typed by humans. Delivery = pre-built shortcut via tapped iCloud link or QR scan. Apple can't mass-generate per-family iCloud links, so: beta = semi-manual per-family shortcuts; scale = one universal shortcut with an Apple "import question" asking for a short checksummed family code (e.g. KETL-7Q4M), entered once by the child. Wrong token → silent 403, no data pollution; wizard verification (screen C) surfaces any failure in seconds. Tokens are per-device (spec 002) so a lost phone is a one-tap revoke. → specs 002/005.
 
+## Founder decisions, Jul 31
+
+- **Spec 005 split.** 005a = demo-grade child PWA (read-only: auth, glance view, digest history, live off kettle-api/Supabase via RLS) — starts NOW because beta recruiting needs an app people can see and feel; a backend demo only works on the founder's own parents. 005b = onboarding wizard + billing + TestFlight wrap, written after the Dad-setup field research.
+- **Free "Phone Watch" tier (limited-time founding offer).** Device-liveness only: "know when their phone dies or goes unreachable." HARD GUARDRAIL: phone-status language only, person-status language forbidden — device_alive/charger events must never be presented as evidence a person is fine (product law #6 / attribution rule; a charger event can be anyone's hand). Enforced by the same copy-law test pattern as digests. Upgrade path to full routine monitoring. Implementation post-beta; signals already exist.
+
 ## §6 Risks worth naming
 
 1. **WhatsApp Business verification lag** → SMS fallback specced from day one.
