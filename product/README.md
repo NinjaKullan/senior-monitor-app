@@ -66,6 +66,7 @@ production.
 | Endpoint | Purpose |
 |---|---|
 | `GET\|POST /p/{device_token}/{signal}` | record a ping; returns `ok` |
+| `POST /twilio/inbound` | a senior's reply to the check-in; Twilio-signature validated |
 | `GET /healthz` | `{"db": true}`, no auth, for Fly health checks |
 
 The device token *is* the identity: there is no `who` in the URL to guess. Unknown,
@@ -91,8 +92,9 @@ effective timezone** (parent `tz` when set, else family `tz`).
 
 Each `(kind, parent-or-family)` fires at most once per local day, so running every
 minute is safe. Every alert is written to `ops_alerts` and sent to the founder's
-ntfy topic. **Nothing family- or parent-facing fires from this service** — the
-escalation ladder is spec 004 and is not built (product law #3).
+ntfy topic. Nothing family- or parent-facing fires from the heartbeat itself;
+family-facing sending lives in the digest (003) and the ladder (004), each behind
+its own switches.
 
 ## Digests (spec 003)
 
@@ -157,6 +159,54 @@ gets a `digest_unroutable` ops row once per day.
 Ops alert kinds from the digest engine — all founder-only: `digest_skipped`
 (a quiet parent omitted), `digest_delivery_failed`, `digest_channel_unavailable`,
 `digest_unroutable`.
+
+## Escalation ladder (spec 004)
+
+The alert path, and the only feature that can message the senior. **Three gates**
+stand between a running server and a message reaching anyone:
+
+1. `LADDER_ENABLED` — global, off by default.
+2. `families.ladder_mode` — `off` | `shadow` | `live`, per family, `off` by default.
+3. `live` additionally requires `digest_enabled`, enforced by a database CHECK —
+   a family meets Kettle as reassurance before it meets it as alarm, and the
+   wrong order is unrepresentable rather than merely discouraged.
+
+Privilege escalates only by explicit founder action, one family at a time:
+
+```bash
+python -m scripts.ladder --list
+python -m scripts.ladder --set-mode "Sharma" shadow
+python -m scripts.ladder --resolve 42 --note "called Amma, she is fine"
+```
+
+**Shadow is the beta workhorse.** The full ladder evaluates, records every
+transition in `ladder_events`, and reports each one to founder ops — and never
+invokes a channel. That is not a check performed just before sending; the send
+helper returns on the mode before it can reach the channel map, and the test that
+matters asserts zero invocations against the channel object itself.
+
+| Stage | What happens |
+|---|---|
+| Candidate | rule v1 fires: nothing alarm-grade since 05:00 local past the parent's deadline, or a gap beyond their maximum, daytime only, one per parent per local day |
+| ASK | the senior is asked "All good? Reply YES." — the only message this product ever sends them. Skipped if there is no number, or if nothing at all is arriving (you cannot ask a dead phone) |
+| REPLY | any reply from that number inside grace resolves it. The family hears nothing: for them the silence was never broken |
+| FAMILY-1 | grace expired: the first family contact, in escalation order |
+| FAMILY-ALL | after the family gap: everyone else, with the named local contact suggested. v1 never contacts that person itself |
+| RESOLVE | any alarm-grade ping resolves at any stage; a family already told gets one all-clear |
+
+**The reply body is dropped.** `/twilio/inbound` reads the POST parameters only
+to recompute the signature Twilio computed, then keeps the sender number and
+discards the rest. What resolves a candidate is that the right number answered;
+what they said is content, and this product does not hold content. A test posts a
+distinctive body and searches every table and every log record for it.
+
+Rule v1's thresholds are per-parent columns (`alarm_deadline`, `max_gap_minutes`,
+`grace_minutes`, `family_gap_minutes`) with conservative defaults. The pilot's
+Phase-1 percentile analysis will fit real per-person values by updating rows —
+no schema change, no code change.
+
+Ladder copy carries the digest copy law plus a ban on urgency vocabulary, and
+lives in its own module so neither law has to be weakened for the other.
 
 ## Running the tests
 
@@ -224,6 +274,7 @@ psql "$DATABASE_URL" -f migrations/0003_revoke_anon_rpc.sql
 psql "$DATABASE_URL" -f migrations/0004_revoke_residual_table_privileges.sql
 psql "$DATABASE_URL" -f migrations/0005_digest.sql
 psql "$DATABASE_URL" -f migrations/0006_digest_sends_per_parent.sql
+psql "$DATABASE_URL" -f migrations/0007_ladder.sql
 
 # or, equivalently:
 DATABASE_URL=... python -m scripts.migrate
@@ -310,5 +361,6 @@ revocation time.
 | `DIGEST_ENABLED` | global digest kill-switch | **off** |
 | `DIGEST_MORNING_CUTOFF_HOUR` | no "day started" at/after this local hour | `14` |
 | `DIGEST_EVENING_HOUR` / `_MINUTE` | parent-local summary time | `20` / `30` |
-| `TWILIO_ACCOUNT_SID` / `_AUTH_TOKEN` / `_FROM` | SMS delivery (secrets) | unset = log-only |
+| `TWILIO_ACCOUNT_SID` / `_AUTH_TOKEN` / `_FROM` | SMS delivery (secrets); the auth token also validates inbound webhooks | unset = log-only, inbound rejected |
+| `LADDER_ENABLED` | global escalation-ladder kill-switch | **off** |
 | `TEST_DATABASE_URL` | tests only | local `kettle_test` |

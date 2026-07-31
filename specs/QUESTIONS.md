@@ -532,3 +532,78 @@ is heartbeat/ladder information, not digest information. The existing
     reachable", and without the variable it still skips. What I cannot verify
     from here is the service-container wiring itself; the first run on main will
     say.
+
+---
+
+## Spec 004 — escalation ladder v1 (2026-07-31)
+
+Built as specified; all nine acceptance criteria have tests. The two you called
+out are the two I spent the most care on: `test_shadow_never_touches_a_channel`
+asserts zero invocations against the channel object itself, and
+`test_the_reply_body_is_dropped_everywhere` posts a distinctive body then greps
+every column of every table plus every log record for it.
+
+34. **The FAMILY copy says "she"; I render "they" unless a pronoun is recorded.**
+    §4's binding copy is `...and she hasn't answered a gentle check-in`. That
+    conflicts with the policy you adopted at item 24 — nothing infers pronouns
+    from names — so I applied your ruling rather than the literal string: the
+    default is `they haven't answered`, with `she`/`he` variants behind an
+    explicit pronoun argument, ready for the wizard's optional field.
+
+    Worth flagging beyond the policy: the substitution needs verb agreement, so
+    the template takes a clause (`she hasn't` / `they haven't`) rather than a
+    bare pronoun. A naive `{pronoun} hasn't` would have shipped "they hasn't
+    answered" to a family. Tested in all four cases.
+
+35. **Ladder copy lives in its own module.** `messages.py` carries a test that no
+    template in it describes absence — which is the digest's whole law. Ladder
+    copy exists to describe absence. Rather than weaken that test I put the
+    ladder templates in `ladder_messages.py`, and there is now a test in each
+    direction: no digest template mentions absence, no ladder template claims to
+    be a digest.
+
+36. **The contact line is the one place digits are allowed.** §3 says the
+    FAMILY-ALL message includes the named contact's "name/number"; §4 says no
+    digits anywhere. A phone number is the entire point of the suggestion, so I
+    included it and scoped the copy-law test to exempt exactly that substring —
+    everything else in the message still must contain no digit. If you would
+    rather the copy name the contact without their number, that is a one-line
+    change and the test tightens with it.
+
+37. **Timing decisions the spec left open.**
+    * The daytime window (05:00–21:00) gates *opening* a candidate. Once open, a
+      ladder keeps walking outside those hours — a 20:30 ask whose grace expires
+      at 22:00 still reaches the family. Stopping mid-ladder at 21:00 seemed
+      clearly wrong; say if you meant otherwise.
+    * `ask_skipped` goes to FAMILY-1 immediately in the same pass. There is no
+      ask to wait for, so waiting the grace period would only delay the message.
+    * The contact line appears at FAMILY-ALL only, per §3, not at FAMILY-1.
+    * `mechanism_ok` = any ping of any signal since 05:00 local. Simple and
+      defensible; a tighter "in the last N minutes" would be more sensitive to a
+      phone that died at lunchtime.
+
+38. **Founder ntfy fires in `live` too, prefixed `[LIVE ...]`.** §5 specifies it
+    for shadow. Telling the founder less on the mode where real messages go out
+    seemed like the wrong asymmetry, and it is not a privilege escalation — it
+    goes to the same ops topic either way. Easy to restrict to shadow if you
+    disagree.
+
+39. **Live mode also requires digests at the database level, not just the CLI.**
+    §1 says "requires `digest_enabled` as a precondition" and AC4 offers
+    "constraint or check at flip time". Both columns live on `families`, so a
+    table CHECK does it structurally: there is no order of operations, and no
+    direct SQL, that leaves a family live without digests. The CLI reports the
+    refusal rather than enforcing it.
+
+40. **`ladder_candidates` is my design.** §3 names `ladder_events` and its
+    columns, and references a `candidate_id`, but no candidates table is
+    specified. Mine holds the stage, the trigger branch, `mechanism_ok`, one
+    timestamp per stage, and the resolution — enough for the shadow ledger to be
+    the labelled data the threshold analysis needs. Unique on (parent, local
+    date), which is where "one candidate per parent per day" is enforced.
+
+41. **A resolved candidate blocks re-arming for the rest of the day**, per §2 —
+    including the case where the parent goes quiet again for eight hours after
+    resolving at 12:30. That is v1 as specified and I have not built around it,
+    but it is the behaviour I would expect to revisit first once shadow data
+    exists.
