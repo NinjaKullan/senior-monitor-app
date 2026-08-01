@@ -10,6 +10,12 @@
  * quantify. The law grows to match: at most two clock times (the dual-timezone
  * subline), and — the assertion that matters most here — nothing rendered may
  * encode *how much* activity there was, in text or in structure.
+ *
+ * Spec 005d adds the law's first exemption, and it is written as an allowlist
+ * rather than as a softening: `assertCopyLaw` still bans signal names by
+ * default, and exactly one view passes exactly the six humanised names. Every
+ * other surface in this file calls it with no allowlist at all, so a signal name
+ * leaking into a digest or a glance headline still fails here.
  */
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
@@ -17,8 +23,11 @@ import { Digests } from "@/screens/Digests";
 import { FamilyScreen } from "@/screens/Family";
 import { Glance } from "@/screens/Glance";
 import { NoFamily } from "@/screens/NoFamily";
+import { TripwireDetail } from "@/screens/TripwireDetail";
 import { buildDigestEntries } from "@/lib/digests";
 import { computeGlance } from "@/lib/glance";
+import { computeTripwires } from "@/lib/tripwires";
+import { SIGNAL_DISPLAY_NAMES } from "@/lib/signalNames";
 import { PRIVACY_FOOTER } from "@/lib/copy";
 import type { DigestSend, Member, Parent, ParentSignal, Ping } from "@/lib/types";
 
@@ -62,10 +71,43 @@ const PROFILE = [
   "app", "apps", "opened", "times", "count", "pings", "ping", "average", "streak",
   "trend", "score", "percent",
 ];
-const BANNED = [...URGENCY, ...MEDICAL, ...PROFILE];
+/**
+ * The humanised signal names are banned by default too.
+ *
+ * The raw keys already were, but `Daily Check` is ordinary English and walked
+ * straight past this list until 005d went looking — it could have appeared on a
+ * digest or a glance headline and nothing here would have objected. Derived from
+ * the same map the app renders from, so a new signal joins the ban for free.
+ * (The *allowlist* below is pinned by hand for the opposite reason: deriving it
+ * would let a new name exempt itself.)
+ */
+const SIGNAL_NAMES = Object.values(SIGNAL_DISPLAY_NAMES).map((name) => name.toLowerCase());
+const BANNED = [...URGENCY, ...MEDICAL, ...PROFILE, ...SIGNAL_NAMES];
 const NAMES = ["Amma", "Appa", "Hema", "Kettle"];
 
 const CLOCK = /\b\d{1,2}:\d{2}\s?[ap]m\b/gi;
+
+/**
+ * AC5 — the exemption, written out as literals.
+ *
+ * The tripwire health view is the one surface where a signal name is *necessary*
+ * copy: "her WhatsApp tripwire needs attention" cannot be said without it. This
+ * list is pinned here rather than read from `SIGNAL_DISPLAY_NAMES` so that
+ * widening it is a visible act in this file — a test below asserts the two agree,
+ * which means adding a signal to the app fails here until someone consciously
+ * adds it to the exemption too.
+ */
+const TRIPWIRE_NAME_EXEMPTION = [
+  "WhatsApp",
+  "YouTube",
+  "News",
+  "Charger On",
+  "Charger Off",
+  "Daily Check",
+  // §2: day-granularity recency is words plus one digit. Scoped like the names
+  // are — the digest and glance surfaces get no such allowance.
+  /\d+ days ago/g,
+];
 
 /** Digits are allowed only inside a clock time or an ISO date. */
 function strayDigits(text: string): string {
@@ -75,9 +117,20 @@ function strayDigits(text: string): string {
     .replace(/[^\d]/g, "");
 }
 
-function assertCopyLaw(text: string) {
+/**
+ * `allow` is a per-view allowlist, masked out before the ban scan. It defaults
+ * to empty: a caller that passes nothing gets the full law, which is what every
+ * surface but one does.
+ */
+function assertCopyLaw(text: string, allow: (string | RegExp)[] = []) {
   let scanned = text;
   for (const name of NAMES) scanned = scanned.split(name).join("«name»");
+  for (const allowed of allow) {
+    scanned =
+      typeof allowed === "string"
+        ? scanned.split(allowed).join("«allowed»")
+        : scanned.replace(allowed, "«allowed»");
+  }
   const lowered = scanned.toLowerCase();
   for (const word of BANNED) {
     expect(
@@ -189,5 +242,70 @@ describe("rendered copy law", () => {
   it("would catch a regression", () => {
     expect(() => assertCopyLaw("Kettle: this is urgent")).toThrow();
     expect(() => assertCopyLaw("Amma opened WhatsApp 4 times")).toThrow();
+  });
+});
+
+/**
+ * AC5 — the exemption is a hole of a fixed shape in one wall, not a lower wall.
+ */
+describe("the tripwire view's scoped exemption", () => {
+  const tripwirePings: Ping[] = [
+    { parent_id: "p1", signal: "whatsapp", ts_utc: "2026-08-03T02:42:00Z" },
+    { parent_id: "p1", signal: "device_alive", ts_utc: "2026-07-30T02:00:00Z" },
+  ];
+  const detailSignals: ParentSignal[] = [
+    { parent_id: "p1", signal: "whatsapp", alarm_grade: true, active: true },
+    { parent_id: "p1", signal: "news", alarm_grade: true, active: true },
+    { parent_id: "p1", signal: "device_alive", alarm_grade: false, active: true },
+  ];
+
+  function renderDetail() {
+    const [parent] = parents;
+    return render(
+      <TripwireDetail
+        glance={computeGlance(parent, IST, detailSignals, tripwirePings, NOON_IST, CHICAGO)}
+        tripwires={computeTripwires(parent, IST, detailSignals, tripwirePings, NOON_IST)}
+        onBack={() => undefined}
+      />,
+    );
+  }
+
+  it("holds for the tripwire view, with signal names allowed and nothing else", () => {
+    renderDetail();
+    const text = renderedText();
+    // The exemption is being exercised, not passing on an empty render.
+    expect(text).toContain("WhatsApp");
+    expect(text).toContain("Daily Check");
+    assertCopyLaw(text, TRIPWIRE_NAME_EXEMPTION);
+  });
+
+  it("still bans those same names on every other surface", () => {
+    for (const name of ["WhatsApp", "YouTube", "News", "Charger On", "Daily Check"]) {
+      expect(
+        () => assertCopyLaw(`Last routine seen on ${name}`),
+        `${name} escaped the law without an allowlist`,
+      ).toThrow();
+    }
+    // And the surfaces themselves are asserted with no allowlist above — the
+    // digest, glance and family tests call assertCopyLaw(text) unchanged.
+  });
+
+  it("exempts the names only, never the counting words that travel with them", () => {
+    for (const smuggled of [
+      "WhatsApp opened 4 times",
+      "Daily Check streak",
+      "News average this week",
+      "WhatsApp — she may have fallen",
+    ]) {
+      expect(() => assertCopyLaw(smuggled, TRIPWIRE_NAME_EXEMPTION), smuggled).toThrow();
+    }
+  });
+
+  it("is pinned to exactly the names the view can render", () => {
+    // Add a signal to the app and this fails until the exemption is widened on
+    // purpose — which is the only way a name should ever reach a screen.
+    expect(new Set(Object.values(SIGNAL_DISPLAY_NAMES))).toEqual(
+      new Set(TRIPWIRE_NAME_EXEMPTION.filter((e): e is string => typeof e === "string")),
+    );
   });
 });
