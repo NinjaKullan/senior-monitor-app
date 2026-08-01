@@ -221,6 +221,91 @@ from the JWT rather than any parameter, filling only nulls, and linking every
 matching membership — one person genuinely can belong to two families. Grants
 follow the 0004 doctrine: `authenticated` only, `anon` explicitly revoked.
 
+## Shortcut forge (spec 005e)
+
+Provisioning prints ping URLs; the forge turns them into files a parent can
+install by tapping. Each generated `.shortcut` is a plist holding exactly one
+`Get Contents of URL` action, named `Kettle — {Parent} {Signal}` — the same
+string the app's tripwire health view shows when that signal needs repair, so a
+family that reads "her WhatsApp tripwire needs attention" is looking for a
+shortcut with that name on the phone.
+
+### The founder loop
+
+```bash
+cd product
+
+# 1. Generate (anywhere — Linux, CI, the container). Writes out/shortcuts/,
+#    which .gitignore covers, and verifies what it wrote before it exits.
+DATABASE_URL=... python -m scripts.forge \
+    --parent "Amma" --base-url https://kettle-api.fly.dev
+
+# 2. Sign (macOS only, signed in to iCloud, online).
+./scripts/forge-sign.sh out/shortcuts out/signed
+
+# 3. Send the signed files — AirDrop if you are in the room, WhatsApp if not.
+# 4. On the phone: tap the file, "Add Shortcut". It appears in the library
+#    under the name above. Nothing to type, nothing to assemble.
+# 5. Build the automation: Shortcuts -> Automation -> + -> App -> WhatsApp ->
+#    Is Opened -> Run Immediately -> Next -> pick the pre-made shortcut. The
+#    automation wrapper is the one irreducibly manual step; the shortcut it
+#    runs is not.
+# 6. Verify for real: open WhatsApp on that phone, then check /status (or the
+#    child app). A ping that does not arrive is a setup problem you want to
+#    find while you are still holding the phone.
+```
+
+`--device-token <token>` selects a device directly when a person has more than
+one, or when you are working from a provisioning printout rather than a name.
+`--verify out/shortcuts` re-checks a directory at any time; `--inspect FILE`
+prints a real shortcut's plist shape beside the forge's, which is how the format
+assumptions in `specs/QUESTIONS.md` item 69 get confirmed against a Mac.
+
+### Treat the emitted files like the token
+
+The device token is inside the URL, and anyone holding it can post pings as that
+phone. So: files are written `0600`, `out/` and `*.shortcut` are both
+gitignored (asserted by `git check-ignore` in `product/tests/test_forge.py`),
+`--verify` fails on any file carrying a credential other than the token, and
+both directories should be deleted once the phone is set up. Sending one is
+sending a password — pick the channel accordingly.
+
+Revocation is the recovery path: `python -m scripts.provision --revoke <token>`
+kills exactly that device. A revoked device forges nothing, so a stale
+`forge --device-token …` in someone's shell history cannot re-arm a lost phone.
+
+### What `--mode anyone` asks of the receiving phone
+
+`shortcuts sign --mode anyone` sends the shortcut to Apple for validation and
+returns a signed file that **anyone** can import — as opposed to
+`--mode people-who-know-me`, which restricts import to the signer's contacts.
+Signing therefore needs a Mac that is online and signed in to iCloud; it is not
+an offline operation.
+
+On iOS 15 and later the receiving phone should need nothing: Apple removed the
+standalone **Allow Untrusted Shortcuts** toggle, and a properly signed shortcut
+imports on its own. **This has not been confirmed on a real handset from here**
+— the container has no Mac to sign with and no phone to import to — so treat it
+as expected behaviour, not established fact, and confirm it on the first real
+send. If a phone does refuse the import, the fallback is Settings → Shortcuts →
+Allow Untrusted Shortcuts, which only appears after the Shortcuts app has been
+opened at least once. Record the answer in QUESTIONS 69 either way; it decides
+whether the 005b wizard needs a "turn this on first" step.
+
+Sources for the above: [Apple, *Run shortcuts from the command
+line*](https://support.apple.com/guide/shortcuts-mac/run-shortcuts-from-the-command-line-apd455c82f02/mac);
+[Apple, *Share shortcuts on iPhone or
+iPad*](https://support.apple.com/guide/shortcuts/share-shortcuts-apdf01f8c054/ios);
+[ss64, `shortcuts` command reference](https://ss64.com/mac/shortcuts.html).
+
+### Scale (not built)
+
+This is a founder tool for the beta. The 005b path is a macOS CI runner that
+signs a family's files at provisioning time and lets the onboarding wizard serve
+them as download links, which removes the founder's laptop from the loop
+entirely. Nothing here needs to change for that — the generation half already
+runs anywhere; only the signing half needs the runner.
+
 ## Running the tests
 
 RLS cannot be tested against a fake, so the suite needs a real Postgres. Two

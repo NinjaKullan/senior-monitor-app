@@ -74,16 +74,28 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 69.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 74.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
-### State of the build (2026-08-01)
+### State of the build (2026-08-02)
 
-Specs 001–005d are built and reviewed: the pilot backend (`app/`, frozen since
-002), the multi-tenant product backend (`product/`, migrations through 0008),
-the digest engine, ladder v1, and the child PWA (`webapp/`) with its warmth pass
-and the tripwire health detail view. Both suites green on `main`.
+Specs 001–005e are built: the pilot backend (`app/`, frozen since 002), the
+multi-tenant product backend (`product/`, migrations through 0008), the digest
+engine, ladder v1, the child PWA (`webapp/`) with its warmth pass and the
+tripwire health detail view, and the shortcut forge. Both suites green on
+`main`.
+
+005e ships with one thing owed, and it cannot be paid from here: **the plist
+schema is asserted from documentation, not confirmed against a real export**,
+because this container has no macOS and no Shortcuts app. `python -m
+scripts.forge --inspect <file>` prints a hand-built shortcut's shape beside the
+forge's so the founder can close it on a Mac in two minutes; QUESTIONS 69 splits
+the format into what is known by construction and what is inference, and names
+the constant to change for each. Item 70 carries the same status for what
+`--mode anyone` asks of the receiving phone. Do not read 005e's green suite as
+evidence that a generated shortcut imports — it is evidence that the bytes are
+exactly what we intended to write.
 
 005d's rulings (QUESTIONS 58–64, 2026-08-01): 58 and 61–64 approved, **59
 deferred** — learned cadences wait for the threshold-analysis spec, fixed
@@ -99,9 +111,10 @@ expected to live there**, which is why the affordance mattered enough to fix
 before the next spec.
 
 **No unbuilt spec is in `specs/`** — 005b (onboarding wizard, family codes,
-billing, TestFlight) is what the roadmap points at next, and the tripwire view's
-repair nudge is written to hand off to its guided repair, but the PM has not
-written that spec yet. Production (`kettle-prod`) is at migration 0008,
-advisor-clean; the founder applies migrations and runs deploys, so a spec being
-"done" here means green locally and pushed, never shipped. 005d added no
-migration and no new read: it is a webapp-only change.
+billing, TestFlight) is what the roadmap points at next; the tripwire view's
+repair nudge hands off to its guided repair, and 005e's generation half is
+already the piece 005b's macOS CI signer would reuse. The PM has not written
+that spec yet. Production (`kettle-prod`) is at migration 0008, advisor-clean;
+the founder applies migrations and runs deploys, so a spec being "done" here
+means green locally and pushed, never shipped. Neither 005d nor 005e added a
+migration: 005d is webapp-only, 005e is a founder script plus tests.

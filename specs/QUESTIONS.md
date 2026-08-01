@@ -1124,3 +1124,105 @@ guardrail.
     times: the constraint is safest when the string does not exist. The model
     still knows `recency.kind === "never"` — that is the fact — it simply has no
     words for it.
+
+---
+
+## Spec 005e — shortcut forge (implementer notes, 2026-08-02)
+
+69. **The plist format, and what I could not verify.** The brief said to build a
+    shortcut by hand in the Shortcuts app, export it, inspect it, and match the
+    output. **I could not do that step.** This container is Linux; there is no
+    macOS, no Shortcuts app, and no way to obtain a genuine export. Rather than
+    write up an inspection I did not perform, here is the format as implemented,
+    split honestly by how much each part is actually known — and a command that
+    lets the founder close the gap in about two minutes on a Mac.
+
+    *Known by construction (the code would not work otherwise):*
+    * A `.shortcut` is a property list with a dictionary at the top. `plistlib`
+      reads and writes it; XML and binary are both plists, and real exports are
+      often binary, so `--verify` and `--inspect` accept either while the forge
+      writes XML (diffable, and deterministic under `sort_keys=True`).
+    * `WFWorkflowActions` is an array of action dictionaries, each with
+      `WFWorkflowActionIdentifier` (a reverse-DNS string) and
+      `WFWorkflowActionParameters` (a dictionary).
+    * `Get Contents of URL` is `is.workflow.actions.downloadurl`, and its URL
+      parameter is `WFURL`. A plain GET is the default, so no method, body, or
+      header keys are needed — and every one of those omitted is a key an
+      importing Shortcuts build cannot disagree with us about.
+
+    *Inference — plausible, unconfirmed, and the reason this item exists:*
+    * **The nine top-level keys.** Exports carry client-version, icon,
+      import-questions, input-classes, types and minimum-version keys. I believe
+      most are optional with sensible defaults, but I assert an exact set for
+      *our* files anyway. That exactness is a self-imposed contract, not Apple's
+      schema: it is what makes "an extra key fails" a meaningful test.
+    * **`WFWorkflowClientVersion` / `MinimumClientVersion` = 900.** Chosen to
+      claim as little as possible, on the theory that a low minimum asks less of
+      a parent's phone. If Shortcuts rejects the file, this is the first thing I
+      would change, and the value it wants will be in a real export.
+    * **No `WFWorkflowIcon`.** A glyph number and a colour integer guessed wrong
+      are a visible oddity on someone's home screen; omitted on the assumption
+      Shortcuts supplies its default. Unverified.
+    * **No `UUID` in the action parameters.** Believed necessary only when a
+      later action references an earlier one's output, and there is no later
+      action. If a real export has one on a lone action, note that it must be
+      *deterministic* here (uuid5 over token+signal) or the diffable-bytes
+      requirement in AC3 dies.
+    * **`WFWorkflowTypes: []`.** Assumed to mean "no surface restriction".
+    * **The signed output may not be a plist at all.** Recent macOS signs into an
+      encrypted container rather than a plist, which is why `--verify` runs
+      against the *unsigned* directory, before `forge-sign.sh`. If signing
+      produces something `plistlib` still reads, that is a bonus, not the plan.
+
+    *How to close it:* build one tripwire by hand on the Mac, export it, and run
+    `python -m scripts.forge --inspect ~/Downloads/Whatever.shortcut`. It prints
+    that file's keys, its action identifiers and parameter names, and the two
+    key-set differences against what the forge generates. Anything surprising
+    belongs back in this item — and the fix is almost always one constant in
+    `scripts/forge.py`, because everything above lives in exactly one place.
+
+70. **What `--mode anyone` asks of the receiving phone is documented but not
+    proven.** Apple's material says signing sends the shortcut to Apple for
+    validation and that "anyone" (versus "people-who-know-me") controls who may
+    import it, and iOS 15 removed the standalone *Allow Untrusted Shortcuts*
+    toggle. From that, a signed file should import with nothing turned on. I
+    could not confirm it — no Mac to sign with, no handset to import to — so
+    `product/README.md` states it as expected behaviour with the fallback
+    (Settings → Shortcuts → Allow Untrusted Shortcuts, which only appears after
+    the app has been opened once) and asks for the real answer after the first
+    send. It decides whether 005b's wizard needs a "turn this on first" step,
+    which is why it is worth writing down rather than discovering twice.
+
+71. **Validation is exact rather than permissive, and that is a product
+    decision.** `validate()` rejects an unexpected top-level key, an extra
+    action parameter, or a second action, instead of checking only that the
+    fetch is present. A permissive validator would pass every file the forge
+    currently emits and would also pass the file where someone pasted in a
+    second action — and these files get *signed and sent to a parent*, where
+    nobody will ever read the plist again. Exactness costs a failed build the
+    day Apple adds a key; permissiveness costs a shortcut that quietly does
+    something extra on someone's mother's phone. The plants make the choice
+    load-bearing: a second action, an extra key, a missing key, an extra
+    parameter, a swapped action, four wrong URL shapes, and the name/URL
+    mismatch each have a test, and I verified the set by making the validator
+    permissive and watching five of them fail.
+
+72. **Two judgement calls on the secrets discipline.** (a) The scan is stricter
+    than the webapp's: `check-build-secrets.mjs` asks whether a JWT is the
+    *safe* one, because a publishable key legitimately ships in a bundle. No JWT
+    of any role belongs in a shortcut, so any that decodes is a finding — the
+    test plants the `anon` key specifically, since that is the one a
+    shape-matcher would most happily wave through. (b) `.gitignore` covers
+    `*.shortcut` tree-wide as well as `out/`, because the founder will one day
+    pass `--out ~/Desktop` or run from the repo root, and the directory rule
+    alone would not catch it. The test asks `git check-ignore` rather than
+    re-implementing gitignore matching, and also asserts that a tracked path is
+    *not* ignored — otherwise it would be a test that passes on a broken repo.
+
+73. **The forge is one file in `scripts/`, not a `kettle/` module with a CLI.**
+    The repo's convention is logic in `kettle/`, thin entry point in `scripts/`,
+    and I departed from it deliberately: this is a founder tool, `kettle/` ships
+    in the deployed API image, and shortcut generation has no business running
+    on the server. Tests import `scripts.forge` directly, which the pytest path
+    config already supports. If the 005b CI-runner path pulls generation into a
+    service, that is the moment to promote it to `kettle/`.
