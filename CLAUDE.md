@@ -29,3 +29,53 @@ Build against the lowest-numbered spec in `specs/` that isn't marked done. Commi
 ## Definition of done
 
 Tests pass (`pytest`), `ruff check` clean, acceptance criteria in the spec each verifiably met, README updated if setup changed, no secrets in the diff.
+
+## Implementer notes (session handoff — keep current)
+
+Things a fresh implementer cannot reconstruct from the repo. Everything else —
+specs, product law, conventions — is written down already; read it there.
+
+### Container quirks
+
+- **Postgres stops between sessions.** `service postgresql start`, then
+  `pg_isready`. Without it the product suite *skips* rather than fails, and the
+  run reports "N passed" while proving nothing. The skip banner says so
+  explicitly ("this is NOT a green run of spec 002") — believe it. This has bitten
+  three times; it is the single most likely way to report a false green.
+- **`KETTLE_REQUIRE_POSTGRES=1` turns that skip into a failure.** CI sets it
+  (`.github/workflows/ci.yml`, with a Postgres service container). Set it locally
+  when you want a missing database to be loud.
+- **Use `.venv/bin/python -m pytest` / `.venv/bin/ruff`** — system Python has
+  neither installed.
+- **Webapp:** `cd webapp && npm run ci` (lint → vitest → tsc+build → secret scan).
+  `npx vitest run src/tests/<file>` for one file while iterating.
+- **Docker is unavailable**; local Postgres plus `product/migrations/local/`'s
+  Supabase shim is the substitute. Fly and Supabase deploys cannot run from here.
+
+### Working norms settled in practice
+
+- **Commits are the PM's review surface.** Split by concern — logic, rendering,
+  tests, docs — and write the message to explain *why*, not what the diff shows.
+  A `git add -A` sweep that buries four concerns in one commit has to be undone.
+- **Verify a guardrail test by planting the regression it exists to catch**,
+  then reverting. Several tests in this repo passed for the wrong reason until
+  this was done (fabricated future timestamps, substring matches, a count hidden
+  in a DOM attribute that text scanning walked straight past). A green assertion
+  is not evidence it is load-bearing.
+- **Commit WIP before destructive experiments.** `git checkout <file>` during a
+  plant-and-revert cost an entire uncommitted rewrite here.
+- **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
+  call; the PM appends a rulings section referencing those numbers. **Next item
+  number is 58.** Ambiguity goes there rather than into a guess. Rulings that
+  graduate to standing rules get made structural — stated where the rule lives
+  and enforced by a test, not just recorded (see items 35, 39, 48, 51).
+
+### State of the build (2026-08-01)
+
+Specs 001–005c are built and closed: the pilot backend (`app/`, frozen since 002),
+the multi-tenant product backend (`product/`, migrations through 0008), the
+digest engine, ladder v1, and the read-only child PWA (`webapp/`) with its warmth
+pass. `main` is green on both suites. **`specs/005d-tripwire-health.md` is speced
+and unbuilt — it is the next task.** Production (`kettle-prod`) is at migration
+0008, advisor-clean; the founder applies migrations and runs deploys, so a spec
+being "done" here means green locally and pushed, never shipped.
