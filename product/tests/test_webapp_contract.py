@@ -5,7 +5,10 @@ Two things a JS test cannot check for itself:
 * that the copy it renders is still the copy the backend sends (AC3's templates
   live in two languages now, and drift would be silent);
 * that every table the app reads is RLS-protected and returns only the caller's
-  family (AC1's isolation proof, at the app's actual read surface).
+  family (AC1's isolation proof, at the app's actual read surface);
+* that the humanised signal names the tripwire view renders are still the names
+  of the shortcuts sitting on the parent's phone (005d, and the reason those
+  names are allowed to render at all).
 """
 
 from __future__ import annotations
@@ -16,7 +19,7 @@ from pathlib import Path
 import psycopg
 import pytest
 
-from kettle import db, messages
+from kettle import db, messages, signals
 from kettle.provisioning import provision_family
 from kettle.timeutil import now_utc
 from testsupport import BASE_URL, add_member, as_user
@@ -24,6 +27,7 @@ from testsupport import BASE_URL, add_member, as_user
 WEBAPP = Path(__file__).resolve().parent.parent.parent / "webapp"
 COPY_TS = WEBAPP / "src" / "lib" / "copy.ts"
 QUERIES_TS = WEBAPP / "src" / "lib" / "queries.ts"
+SIGNAL_NAMES_TS = WEBAPP / "src" / "lib" / "signalNames.ts"
 
 USER_A = "11111111-1111-1111-1111-111111111111"
 USER_B = "22222222-2222-2222-2222-222222222222"
@@ -91,6 +95,96 @@ def test_webapp_glance_copy_is_never_darker_than_quiet():
             assert value.startswith("Quiet so far"), f"{name} left the floor: {value}"
 
 
+# Spec 005d's copy, classified the way GLANCE_* is: chips are the two health
+# states, and everything else on that view is chrome. An unclassified TRIPWIRE_
+# constant fails below rather than quietly escaping the tone scan.
+TRIPWIRE_CHIPS = {
+    "TRIPWIRE_CONNECTED": "Connected",
+    "TRIPWIRE_STALE": "Not heard in a while",
+}
+TRIPWIRE_CHROME = {
+    "TRIPWIRE_TITLE",
+    "TRIPWIRE_REPAIR",
+    "TRIPWIRE_BACK",
+    "TRIPWIRE_OPEN_LABEL",
+}
+
+
+def test_webapp_tripwire_copy_describes_equipment_not_the_person():
+    """005d §2: amber is the ceiling, and it refers to a tripwire, never a parent.
+
+    The health chips are the strings a family reads next to a signal name, which
+    makes them the place a person-claim would sneak in ("Amma may be unwell").
+    They are pinned exactly, and the rest of the view's copy is scanned for the
+    vocabulary of alarm — this screen escalates to `Not heard in a while` and no
+    further, because anything further belongs to the ladder.
+    """
+    ts = _ts_consts(COPY_TS)
+
+    assert {k: ts[k] for k in TRIPWIRE_CHIPS} == TRIPWIRE_CHIPS
+
+    unclassified = {
+        name
+        for name in ts
+        if name.startswith("TRIPWIRE_")
+        and name not in TRIPWIRE_CHIPS
+        and name not in TRIPWIRE_CHROME
+    }
+    assert not unclassified, f"classify these as chip or chrome: {unclassified}"
+
+    for name in list(TRIPWIRE_CHIPS) + sorted(TRIPWIRE_CHROME):
+        lowered = ts[name].lower()
+        for worrying in ("urgent", "emergency", "alarm", "danger", "unwell", "ill", "wrong"):
+            # Whole words: "still" and "will" are not "ill".
+            assert not re.search(rf"\b{worrying}\b", lowered), (
+                f"{name} is darker than amber: {ts[name]}"
+            )
+
+    # The nudge is the only string here that names a person, and it names them as
+    # the owner of a phone that needs two minutes.
+    assert ts["TRIPWIRE_REPAIR"] == (
+        "A tripwire may need a quick fix on {name}'s phone. "
+        "It's a two-minute FaceTime."
+    )
+
+
+def test_webapp_recency_copy_has_no_clock_variant():
+    """005d §1: day granularity is a property of the vocabulary, not of a caller.
+
+    There is no template here a future caller could pass a time into, which is
+    the point — the constraint holds because the words to break it do not exist.
+    """
+    ts = _ts_consts(COPY_TS)
+    recency = {name: value for name, value in ts.items() if name.startswith("RECENCY_")}
+
+    assert recency == {
+        "RECENCY_TODAY": "today",
+        "RECENCY_YESTERDAY": "yesterday",
+        "RECENCY_DAYS": "{days} days ago",
+        "RECENCY_NEVER": "never",
+    }
+    for name, value in recency.items():
+        assert ":" not in value, f"{name} looks like it carries a clock: {value}"
+
+
+def test_webapp_signal_names_match_the_shortcuts_on_the_phone():
+    """005d §1: the one view that renders signal names must name them correctly.
+
+    These are the shortcut names a family sees in the Shortcuts app
+    (`Kettle — Amma Charger On`), so a drift here sends someone hunting for a
+    shortcut that does not exist — on the screen whose entire job is repair.
+    """
+    source = SIGNAL_NAMES_TS.read_text()
+    block = re.search(r"SIGNAL_DISPLAY_NAMES: Record<string, string> = \{(.*?)\n\}", source, re.S)
+    assert block, "SIGNAL_DISPLAY_NAMES not found in signalNames.ts"
+    rendered = dict(re.findall(r'(\w+):\s*"([^"]+)"', block.group(1)))
+
+    assert rendered == signals.SIGNAL_LABELS
+    # Every signal a parent can actually be provisioned with has a name here, so
+    # the app's title-case fallback never runs for the standard set.
+    assert {signal for signal, _ in signals.STANDARD_SIGNALS} <= set(rendered)
+
+
 def test_webapp_beacon_describes_the_handset_not_the_person():
     """Law #6 at the pixel: a mechanism signal may never anchor a person claim."""
     assert _ts_consts(COPY_TS)["BEACON_LABEL"] == "phone"
@@ -137,6 +231,7 @@ def test_every_table_the_app_reads_is_rls_protected(conn: psycopg.Connection):
     # The app must never reach for the founder's ops log.
     assert "ops_alerts" not in surface
     assert "ladder_events" not in surface
+    assert "ladder_candidates" not in surface
 
 
 def test_the_columns_the_app_asks_for_exist(conn: psycopg.Connection):
@@ -171,10 +266,18 @@ def test_the_apps_own_queries_return_one_family_only(two_families, authed):
     The app never filters by family — RLS does. So these selects carry no WHERE
     clause, which is the point: if a policy were wrong, this would return the
     other family's rows.
+
+    Spec 005d raised the stakes on two of these tables without adding a column to
+    either (item 58). `parent_signals` used to decide a beacon's shade; it now
+    prints a named list of one parent's apps, and `pings` now decides what that
+    list says about each of them. A leak that was a wrong tint is now a
+    neighbour's tripwire inventory, so both are asserted by row rather than left
+    to the loop's `families`/`parents` spot-checks.
     """
     surface = _read_surface()
 
     as_user(authed, USER_A)
+    amma = two_families["a"].parents[0].parent_id
     for table, columns in surface.items():
         rows = authed.execute(f"select {', '.join(columns)} from {table}").fetchall()  # noqa: S608
         if table == "families":
@@ -183,14 +286,25 @@ def test_the_apps_own_queries_return_one_family_only(two_families, authed):
             assert [r["display_name"] for r in rows] == ["Amma"]
         if table == "pings":
             assert len(rows) == 1
+            assert {r["parent_id"] for r in rows} == {amma}
+        if table == "parent_signals":
+            # Every signal this family provisioned, and not one belonging to the
+            # neighbour's parent — this is the list the detail view renders.
+            assert {r["parent_id"] for r in rows} == {amma}
+            assert {r["signal"] for r in rows} == {s for s, _ in signals.STANDARD_SIGNALS}
 
     as_user(authed, USER_B)
+    patti = two_families["b"].parents[0].parent_id
     assert [
         r["name"] for r in authed.execute("select name from families").fetchall()
     ] == ["Iyer"]
     assert [
         r["display_name"] for r in authed.execute("select display_name from parents").fetchall()
     ] == ["Patti"]
+    assert {
+        r["parent_id"]
+        for r in authed.execute("select parent_id from parent_signals").fetchall()
+    } == {patti}
 
 
 def test_the_app_never_writes(two_families, authed):
