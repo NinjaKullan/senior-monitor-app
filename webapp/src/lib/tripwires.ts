@@ -29,12 +29,28 @@ import { effectiveTz, localDate } from "./time";
  * opening an app, and humans skip days: a news app she reads on Sundays is not
  * broken plumbing on a Wednesday. v1 numbers are deliberate over-estimates,
  * because a false `Not heard in a while` spends the family's attention on a
- * tripwire that is working (QUESTIONS item 59 carries the tuning notes).
+ * tripwire that is working.
+ *
+ * These fixed windows stand until the threshold-analysis spec exists (PM ruling
+ * on QUESTIONS 59). Learning a cadence from a parent's own ping history is the
+ * obvious tuning move and is **deferred, not rejected**: if it is ever built it
+ * is mechanism-health only, never displayed and never compared across time —
+ * and that ruling waits for that spec rather than being assumed here.
  */
 export const CADENCE_HOURS: Record<string, number> = { device_alive: 26 };
 export const DEFAULT_CADENCE_HOURS = 7 * 24;
 
-export type TripwireHealth = "connected" | "stale";
+/**
+ * Three states, and the third is the one that matters most (PM ruling on
+ * QUESTIONS 60).
+ *
+ * `unconfigured` — never heard from, ever — is not `stale`. Absence of *ever* is
+ * not-yet-configured, not broken: the same distinction the 001 item-4 ruling
+ * drew when it suppressed the infra alert until the first ping arrived. It gets
+ * a neutral chip, not amber, and it never triggers the repair nudge, because a
+ * family's first minutes in the app must not open with "something needs fixing".
+ */
+export type TripwireHealth = "connected" | "stale" | "unconfigured";
 export type RecencyKind = "today" | "yesterday" | "days" | "never";
 
 export interface Recency {
@@ -56,7 +72,12 @@ export interface TripwireHealthView {
   parentId: string;
   parentName: string;
   rows: TripwireRow[];
-  /** True when at least one tripwire is stale — the only thing that shows the nudge. */
+  /**
+   * True when at least one tripwire has *stopped* reporting. Deliberately not
+   * `!== "connected"`: a parent whose shortcuts are not installed yet has no
+   * repair to do, and greeting a new family with "something needs fixing" is
+   * the alarm-fatigue failure this product exists to avoid.
+   */
   needsRepair: boolean;
 }
 
@@ -102,9 +123,12 @@ export function recencyFor(last: Date | null, now: Date, timeZone: string): Rece
  *
  * The boundary breathes — exactly at cadence still reads connected — so a
  * tripwire cannot flap between states on the tick of an hour.
+ *
+ * Never heard from is `unconfigured`, and the cadence never enters into it: a
+ * shortcut nobody installed cannot be late for a deadline it never had.
  */
 export function healthFor(last: Date | null, now: Date, signal: string): TripwireHealth {
-  if (last === null) return "stale";
+  if (last === null) return "unconfigured";
   const hours = (now.getTime() - last.getTime()) / 3_600_000;
   return hours <= cadenceHoursFor(signal) ? "connected" : "stale";
 }

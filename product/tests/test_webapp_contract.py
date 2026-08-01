@@ -101,6 +101,10 @@ def test_webapp_glance_copy_is_never_darker_than_quiet():
 TRIPWIRE_CHIPS = {
     "TRIPWIRE_CONNECTED": "Connected",
     "TRIPWIRE_STALE": "Not heard in a while",
+    # Never heard from is its own state, not the amber one: absence of *ever*
+    # means not-yet-configured (PM ruling on QUESTIONS 60, the same principle as
+    # 001 item 4's "suppress the infra alert until the first ping arrives").
+    "TRIPWIRE_UNSET": "Not set up yet",
 }
 TRIPWIRE_CHROME = {
     "TRIPWIRE_TITLE",

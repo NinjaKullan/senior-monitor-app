@@ -86,10 +86,12 @@ describe("health against the expected cadence", () => {
     expect(rowFor([ago("news", DEFAULT_CADENCE_HOURS + 1)], "news").health).toBe("stale");
   });
 
-  it("reads never — and stale — for a signal that has never pinged", () => {
+  it("reads never — and unconfigured, not stale — for a signal that has never pinged", () => {
+    // A shortcut nobody installed cannot be late for a deadline it never had
+    // (PM ruling on item 60).
     const row = rowFor([ago("whatsapp", 1)], "news");
     expect(row.recency.kind).toBe("never");
-    expect(row.health).toBe("stale");
+    expect(row.health).toBe("unconfigured");
     expect(renderRecency(row.recency.kind, row.recency.days)).toBe("never");
   });
 
@@ -135,5 +137,23 @@ describe("the repair nudge", () => {
   it("appears as soon as one tripwire is stale", () => {
     const one = view([ago("whatsapp", 1), ago("news", 2), ago("device_alive", 40)]);
     expect(one.needsRepair).toBe(true);
+  });
+
+  /**
+   * The ruling on item 60, as the two cases the PM named. A family's first
+   * minutes in the app must not open with "something needs fixing"; a tripwire
+   * that used to work and stopped still must.
+   */
+  it("stays away from a parent whose shortcuts are not installed yet", () => {
+    const fresh = view([]);
+    expect(fresh.rows.every((r) => r.health === "unconfigured")).toBe(true);
+    expect(fresh.rows.some((r) => r.health === "stale")).toBe(false);
+    expect(fresh.needsRepair).toBe(false);
+  });
+
+  it("appears once a tripwire that really did report goes quiet for eight days", () => {
+    const brokeAfterWorking = view([ago("news", 8 * 24)]);
+    expect(rowFor([ago("news", 8 * 24)], "news").health).toBe("stale");
+    expect(brokeAfterWorking.needsRepair).toBe(true);
   });
 });

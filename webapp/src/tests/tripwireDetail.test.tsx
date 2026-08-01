@@ -105,6 +105,39 @@ describe("what the detail view lists", () => {
   });
 });
 
+/**
+ * The ruling on item 60, at the pixel: absence of *ever* is not-yet-configured,
+ * not broken. Both cases the PM named, asserted against what actually renders.
+ */
+describe("a parent whose shortcuts are not installed yet", () => {
+  it("opens with no amber and no nudge — nothing needs fixing yet", () => {
+    renderDetail([]);
+    expect(healths()).toEqual(["unconfigured", "unconfigured", "unconfigured"]);
+    expect(screen.getByTestId("tripwire-detail").textContent).toContain("Not set up yet");
+    for (const chip of screen.getAllByTestId("tripwire-health")) {
+      expect(chip.className, `${chip.textContent} rendered in amber`).not.toContain("attention");
+    }
+    expect(screen.queryByTestId("repair-nudge")).toBeNull();
+  });
+
+  it("turns amber and nudges once a tripwire that really reported goes quiet", () => {
+    // One real ping, then eight days of silence — past the seven-day window.
+    renderDetail([ago("news", 8 * 24)]);
+    const news = screen.getAllByTestId("tripwire-health")[1];
+    expect(news.dataset.health).toBe("stale");
+    expect(news.className).toContain("text-attention");
+    expect(screen.getByTestId("repair-nudge")).not.toBeNull();
+  });
+
+  it("keeps the unconfigured chip quieter than the connected one", () => {
+    // It should read like an empty field, not like a state worth colouring.
+    renderDetail([ago("whatsapp", 2)]);
+    const [whatsapp, news] = screen.getAllByTestId("tripwire-health");
+    expect(whatsapp.className).toContain("text-calm");
+    expect(news.className).toContain("text-muted-foreground");
+  });
+});
+
 describe("AC3 — day granularity, proved at the DOM", () => {
   // `3 days ago` is the only digit this view may render. No leading \b: element
   // text runs together into one string ("Connected3 days ago"), and a boundary

@@ -78,6 +78,12 @@ export const BEACON_LABEL = "phone";
 export const TRIPWIRE_TITLE = "Tripwires";
 export const TRIPWIRE_CONNECTED = "Connected";
 export const TRIPWIRE_STALE = "Not heard in a while";
+/**
+ * Never heard from. Neutral, not amber: absence of *ever* means nobody has
+ * installed the shortcut yet, which is a setup step, not a fault (PM ruling on
+ * QUESTIONS 60).
+ */
+export const TRIPWIRE_UNSET = "Not set up yet";
 export const TRIPWIRE_REPAIR =
   "A tripwire may need a quick fix on {name}'s phone. It's a two-minute FaceTime.";
 export const TRIPWIRE_BACK = "Back to today";

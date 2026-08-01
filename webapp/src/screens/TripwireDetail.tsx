@@ -6,6 +6,7 @@ import {
   TRIPWIRE_CONNECTED,
   TRIPWIRE_STALE,
   TRIPWIRE_TITLE,
+  TRIPWIRE_UNSET,
   renderRecency,
   renderRepairNudge,
 } from "@/lib/copy";
@@ -89,24 +90,32 @@ export function TripwireDetail({
   );
 }
 
+/**
+ * Three chips, and only one of them is amber.
+ *
+ * `unconfigured` is deliberately the quietest of the three — quieter than
+ * `Connected`, which at least earns its colour. A shortcut nobody has installed
+ * is a setup step waiting for 005b's wizard, and it should read like an empty
+ * field, not like a fault.
+ */
+const CHIP: Record<TripwireRow["health"], { label: string; className: string }> = {
+  // Amber is the darkest thing on this screen, and it means a piece of
+  // equipment that used to report went quiet. There is no red variant.
+  stale: { label: TRIPWIRE_STALE, className: "font-medium text-attention" },
+  connected: { label: TRIPWIRE_CONNECTED, className: "text-calm" },
+  unconfigured: { label: TRIPWIRE_UNSET, className: "text-muted-foreground" },
+};
+
 function TripwireRowView({ row }: { row: TripwireRow }) {
-  const stale = row.health === "stale";
+  const chip = CHIP[row.health];
   return (
     <li className="flex items-baseline justify-between gap-3" data-testid="tripwire-row">
       <span className="text-sm" data-testid="tripwire-name">
         {row.name}
       </span>
       <span className="flex items-baseline gap-2 text-xs">
-        <span
-          data-testid="tripwire-health"
-          data-health={row.health}
-          className={
-            // Amber is the darkest thing on this screen, and it means a piece of
-            // equipment went quiet. There is no red variant to reach for.
-            stale ? "font-medium text-attention" : "text-calm"
-          }
-        >
-          {stale ? TRIPWIRE_STALE : TRIPWIRE_CONNECTED}
+        <span data-testid="tripwire-health" data-health={row.health} className={chip.className}>
+          {chip.label}
         </span>
         <span className="text-muted-foreground" data-testid="tripwire-recency">
           {renderRecency(row.recency.kind, row.recency.days)}
