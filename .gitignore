@@ -21,3 +21,10 @@ __pycache__/
 node_modules/
 webapp/dist/
 .env.local
+
+# Shortcut forge output (spec 005e) — every one of these files contains a live
+# device token, so both the default output directory and the file extension
+# anywhere in the tree are ignored. product/tests/test_forge.py asserts it via
+# `git check-ignore`, including that the assertion can fail.
+out/
+*.shortcut
