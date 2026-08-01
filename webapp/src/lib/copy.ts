@@ -94,11 +94,17 @@ export const TRIPWIRE_OPEN_LABEL = "Tripwire health for {name}";
  * Recency, at day granularity and no finer. There is no clock-time variant of
  * these on purpose: a precise timestamp against each app is ammunition, and the
  * repair question — is this thing still reporting? — is answered in days.
+ *
+ * There is no `never` either, as of the founder's on-device round: a tripwire
+ * that has never reported renders its chip and no recency at all. `never` beside
+ * `Not set up yet` was redundant, and it read as a verdict. The word is gone
+ * from the module rather than merely unused at the call site — the same
+ * discipline as the missing clock variant, since a string that does not exist
+ * cannot come back by accident.
  */
 export const RECENCY_TODAY = "today";
 export const RECENCY_YESTERDAY = "yesterday";
 export const RECENCY_DAYS = "{days} days ago";
-export const RECENCY_NEVER = "never";
 
 export const DIGESTS_EMPTY = "Your daily digests will appear here.";
 export const NO_FAMILY_TITLE = "No family yet";
@@ -134,14 +140,19 @@ export function renderSubline(
     .replace("{viewerTime}", viewerTime);
 }
 
-/** Day-granularity recency. The `days` argument is ignored unless kind is `days`. */
+/**
+ * Day-granularity recency. The `days` argument is ignored unless kind is `days`.
+ *
+ * `never` is not in the parameter type: a tripwire that has never reported has
+ * no recency to render, and the caller decides that by not calling. The type is
+ * what stops a future caller reaching for a word that no longer exists.
+ */
 export function renderRecency(
-  kind: "today" | "yesterday" | "days" | "never",
+  kind: "today" | "yesterday" | "days",
   days: number = 0,
 ): string {
   if (kind === "today") return RECENCY_TODAY;
   if (kind === "yesterday") return RECENCY_YESTERDAY;
-  if (kind === "never") return RECENCY_NEVER;
   return RECENCY_DAYS.replace("{days}", String(days));
 }
 

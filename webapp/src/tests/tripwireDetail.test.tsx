@@ -13,7 +13,7 @@ import { Glance } from "@/screens/Glance";
 import { TripwireDetail } from "@/screens/TripwireDetail";
 import { computeGlance } from "@/lib/glance";
 import { computeTripwires } from "@/lib/tripwires";
-import { TRIPWIRE_CONNECTED, TRIPWIRE_STALE } from "@/lib/copy";
+import { TRIPWIRE_BACK, TRIPWIRE_CONNECTED, TRIPWIRE_STALE } from "@/lib/copy";
 import type { Parent, ParentSignal, Ping } from "@/lib/types";
 
 const IST = "Asia/Kolkata";
@@ -56,13 +56,39 @@ const healths = () =>
   screen.getAllByTestId("tripwire-health").map((n) => n.dataset.health);
 
 describe("tapping through from the card", () => {
-  it("opens the tapped parent, and hands back their id", () => {
-    const onOpen = vi.fn();
+  const renderCards = (onOpen = vi.fn()) => {
     const states = [amma, appa].map((p) => computeGlance(p, IST, signals, HEALTHY, NOW, IST));
     render(<Glance states={states} onOpen={onOpen} />);
+    return onOpen;
+  };
 
+  it("opens the tapped parent, and hands back their id", () => {
+    const onOpen = renderCards();
     fireEvent.click(screen.getAllByTestId("glance-card-tap")[1]);
     expect(onOpen).toHaveBeenCalledWith("p2");
+  });
+
+  /**
+   * The founder's on-device round: the card was tappable but did not look it.
+   * A detail view nobody discovers is a detail view nobody repairs from — and
+   * this page is where the day-detail and per-parent digest views will live.
+   */
+  it("looks tappable — a chevron per card, and a pressed state", () => {
+    renderCards();
+    expect(screen.getAllByTestId("glance-card-chevron")).toHaveLength(2);
+    // Decorative: the button's own accessible name says where the tap goes.
+    expect(screen.getAllByTestId("glance-card-chevron")[0]).toHaveAttribute(
+      "aria-hidden",
+      "true",
+    );
+
+    const tap = screen.getAllByTestId("glance-card-tap")[0];
+    expect(tap).toHaveAccessibleName("Tripwire health for Amma");
+    expect(tap.className).toContain("active:");
+    expect(tap.className).toContain("focus-visible:ring");
+    // Colour only. A transform would move for a viewer who asked nothing to
+    // move, and this app puts every animation behind motion-safe.
+    expect(tap.className).not.toMatch(/scale|translate|rotate/);
   });
 });
 
@@ -95,13 +121,13 @@ describe("what the detail view lists", () => {
     ]);
   });
 
-  it("says never for a tripwire that has never reported", () => {
+  it("says nothing at all about recency for a tripwire that has never reported", () => {
     renderDetail([ago("whatsapp", 2)]);
+    // One row pinged, two never did: one recency element, not three.
     expect(screen.getAllByTestId("tripwire-recency").map((n) => n.textContent)).toEqual([
       "today",
-      "never",
-      "never",
     ]);
+    expect(screen.getByTestId("tripwire-detail").textContent).not.toContain("never");
   });
 });
 
@@ -138,6 +164,25 @@ describe("a parent whose shortcuts are not installed yet", () => {
   });
 });
 
+describe("the view's own controls, after the on-device round", () => {
+  it("reads back as a control: a real button, with a leading chevron", () => {
+    renderDetail(HEALTHY);
+    const back = screen.getByRole("button", { name: TRIPWIRE_BACK });
+    const chevron = back.querySelector("svg");
+    expect(chevron, "no leading chevron on the back control").not.toBeNull();
+    expect(chevron).toHaveAttribute("aria-hidden", "true");
+    // Same button grammar as the rest of the app, not a bare navigating link.
+    expect(back.className).toContain("inline-flex");
+  });
+
+  it("gives each tripwire row the app's touch-target height", () => {
+    renderDetail(HEALTHY);
+    for (const row of screen.getAllByTestId("tripwire-row")) {
+      expect(row.className, "a row shorter than a comfortable tap").toContain("min-h-11");
+    }
+  });
+});
+
 describe("AC3 — day granularity, proved at the DOM", () => {
   // `3 days ago` is the only digit this view may render. No leading \b: element
   // text runs together into one string ("Connected3 days ago"), and a boundary
@@ -146,15 +191,28 @@ describe("AC3 — day granularity, proved at the DOM", () => {
   const DAY_COUNT = /\d+ days ago/g;
   const CLOCK = /\b\d{1,2}:\d{2}\s?[ap]m\b/gi;
 
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  /**
+   * Attributes that can reach a person. Everything else on an icon — `viewBox`,
+   * `stroke-width`, the path `d` — is geometry a reader and a screen reader are
+   * equally blind to, and the chevrons added in the polish round are full of
+   * digits. Narrowing the scan for SVG only, and only to these, keeps the walk
+   * honest: an `aria-label` or a `data-` count on an icon is still caught, which
+   * the plants below prove.
+   */
+  const PERCEIVABLE = /^(aria-|data-|role$|title$|alt$)/;
+
   function assertNoClockAnywhere(root: HTMLElement) {
     const text = (root.textContent ?? "").replace(DAY_COUNT, "");
     expect(text.match(CLOCK) ?? [], `clock time in: ${root.textContent}`).toHaveLength(0);
     expect(text.replace(/[^\d]/g, ""), `stray digits in: ${root.textContent}`).toBe("");
 
     for (const node of [root, ...Array.from(root.querySelectorAll("*"))]) {
+      const isSvg = node.namespaceURI === SVG_NS;
       for (const attr of Array.from(node.attributes)) {
         // Classes carry Tailwind's sizing scale; nothing else may carry digits.
         if (attr.name === "class" || attr.name === "style") continue;
+        if (isSvg && !PERCEIVABLE.test(attr.name)) continue;
         expect(
           /\d/.test(attr.value),
           `${attr.name}="${attr.value}" carries a number a screen reader could read`,
@@ -182,6 +240,13 @@ describe("AC3 — day granularity, proved at the DOM", () => {
     expect(plant("WhatsApp · opened 4 times")).toThrow();
     expect(plant('<span data-days="3">News</span>')).toThrow();
     expect(plant("News · 3 days ago")).not.toThrow();
+
+    // The SVG narrowing is geometry-only. A count hidden on an icon — in an
+    // accessible name or a data attribute — is still caught.
+    const svg = (attrs: string) => plant(`<svg ${attrs} viewBox="0 0 24 24"></svg>`);
+    expect(svg('aria-label="opened 4 times"')).toThrow();
+    expect(svg('data-days="3"')).toThrow();
+    expect(svg('aria-hidden="true"')).not.toThrow();
   });
 
   it("renders no count of anything — the only numbers are day counts", () => {

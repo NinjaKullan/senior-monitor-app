@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import { Beacon } from "@/components/beacon";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -35,34 +36,51 @@ export function Glance({
               and a family should never have to hunt for the way into it. */}
           <button
             type="button"
-            className="w-full rounded-lg text-left"
+            // Colour only, no transform: the pressed state has to survive
+            // prefers-reduced-motion, and this app moves nothing that isn't
+            // behind motion-safe.
+            className={
+              "w-full rounded-lg text-left transition-colors hover:bg-muted/30 " +
+              "active:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 " +
+              "focus-visible:ring-primary"
+            }
             data-testid="glance-card-tap"
             aria-label={TRIPWIRE_OPEN_LABEL.replace("{name}", state.name)}
             onClick={() => onOpen?.(state.parentId)}
           >
-            <CardContent className="space-y-4 pt-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">{state.name}</p>
-                  <p
-                    className={
-                      state.seenToday
-                        ? "text-2xl font-semibold leading-snug text-calm"
-                        : "text-2xl font-semibold leading-snug text-foreground"
-                    }
-                    data-testid="glance-headline"
-                  >
-                    {state.headline}
-                  </p>
+            <CardContent className="flex items-center gap-3 pt-5">
+              <div className="min-w-0 flex-1 space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">{state.name}</p>
+                    <p
+                      className={
+                        state.seenToday
+                          ? "text-2xl font-semibold leading-snug text-calm"
+                          : "text-2xl font-semibold leading-snug text-foreground"
+                      }
+                      data-testid="glance-headline"
+                    >
+                      {state.headline}
+                    </p>
+                  </div>
+                  <Beacon state={state.beacon} />
                 </div>
-                <Beacon state={state.beacon} />
+
+                <p className="text-sm text-muted-foreground" data-testid="glance-subline">
+                  {state.subline ?? GLANCE_NO_ROUTINE_YET}
+                </p>
+
+                <DayArc segments={state.arc} />
               </div>
 
-              <p className="text-sm text-muted-foreground" data-testid="glance-subline">
-                {state.subline ?? GLANCE_NO_ROUTINE_YET}
-              </p>
-
-              <DayArc segments={state.arc} />
+              {/* The affordance. Decorative — the button's aria-label already
+                  says where the tap goes. */}
+              <ChevronRight
+                aria-hidden="true"
+                data-testid="glance-card-chevron"
+                className="h-5 w-5 shrink-0 text-muted-foreground/50"
+              />
             </CardContent>
           </button>
         </Card>

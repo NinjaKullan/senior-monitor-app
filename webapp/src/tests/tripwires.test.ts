@@ -14,6 +14,7 @@ import {
   displayName,
   recencyFor,
 } from "@/lib/tripwires";
+import * as copy from "@/lib/copy";
 import { renderRecency } from "@/lib/copy";
 import type { Parent, ParentSignal, Ping } from "@/lib/types";
 
@@ -79,20 +80,33 @@ describe("health against the expected cadence", () => {
   it("keeps an app signal connected at three days — a quiet app is not a broken one", () => {
     const row = rowFor([ago("news", 72)], "news");
     expect(row.health).toBe("connected");
-    expect(renderRecency(row.recency.kind, row.recency.days)).toBe("3 days ago");
+    expect(row.recency).toEqual({ kind: "days", days: 3 });
+    expect(renderRecency("days", row.recency.days)).toBe("3 days ago");
   });
 
   it("calls an app signal stale past its generous window", () => {
     expect(rowFor([ago("news", DEFAULT_CADENCE_HOURS + 1)], "news").health).toBe("stale");
   });
 
-  it("reads never — and unconfigured, not stale — for a signal that has never pinged", () => {
+  it("reads unconfigured, not stale, for a signal that has never pinged", () => {
     // A shortcut nobody installed cannot be late for a deadline it never had
     // (PM ruling on item 60).
     const row = rowFor([ago("whatsapp", 1)], "news");
     expect(row.recency.kind).toBe("never");
     expect(row.health).toBe("unconfigured");
-    expect(renderRecency(row.recency.kind, row.recency.days)).toBe("never");
+  });
+
+  it("has no word for never — the vocabulary cannot render one", () => {
+    // The founder's on-device round removed it: `never` beside `Not set up yet`
+    // was redundant and read as a verdict. Deleted from copy.ts rather than left
+    // uncalled, and the parameter type is what keeps it deleted — a caller that
+    // reaches for it fails to compile, so this is asserted at the module.
+    expect(Object.keys(copy).filter((name) => name.startsWith("RECENCY_"))).toEqual([
+      "RECENCY_TODAY",
+      "RECENCY_YESTERDAY",
+      "RECENCY_DAYS",
+    ]);
+    expect(Object.values(copy)).not.toContain("never");
   });
 
   it("ignores another parent's pings for the same signal", () => {

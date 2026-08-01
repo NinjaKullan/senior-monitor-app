@@ -1,3 +1,4 @@
+import { ChevronLeft } from "lucide-react";
 import { Beacon } from "@/components/beacon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,7 +44,11 @@ export function TripwireDetail({
 }) {
   return (
     <div className="space-y-4" data-testid="tripwire-detail">
-      <Button variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
+      {/* A control, in the app's own button grammar — the base variant already
+          carries the icon gap, so this is the same shape as every other button
+          here rather than a bare link that happens to navigate. */}
+      <Button variant="ghost" size="sm" className="-ml-2 pl-2" onClick={onBack}>
+        <ChevronLeft aria-hidden="true" className="h-4 w-4" />
         {TRIPWIRE_BACK}
       </Button>
 
@@ -71,7 +76,7 @@ export function TripwireDetail({
       <Card>
         <CardContent className="space-y-3 pt-5">
           <h2 className="text-sm font-medium text-muted-foreground">{TRIPWIRE_TITLE}</h2>
-          <ul className="space-y-3">
+          <ul className="space-y-1">
             {tripwires.rows.map((row) => (
               <TripwireRowView key={row.signal} row={row} />
             ))}
@@ -109,17 +114,27 @@ const CHIP: Record<TripwireRow["health"], { label: string; className: string }> 
 function TripwireRowView({ row }: { row: TripwireRow }) {
   const chip = CHIP[row.health];
   return (
-    <li className="flex items-baseline justify-between gap-3" data-testid="tripwire-row">
+    // min-h-11 is the app's touch-target unit (the same 11 the Button uses),
+    // so a row is comfortable to read and to reach on a phone held one-handed.
+    <li
+      className="flex min-h-11 items-center justify-between gap-3 py-1"
+      data-testid="tripwire-row"
+    >
       <span className="text-sm" data-testid="tripwire-name">
         {row.name}
       </span>
-      <span className="flex items-baseline gap-2 text-xs">
+      <span className="flex items-center gap-2 text-xs">
         <span data-testid="tripwire-health" data-health={row.health} className={chip.className}>
           {chip.label}
         </span>
-        <span className="text-muted-foreground" data-testid="tripwire-recency">
-          {renderRecency(row.recency.kind, row.recency.days)}
-        </span>
+        {/* Recency belongs to tripwires that have actually reported. Beside
+            `Not set up yet`, the word `never` was redundant and read as a
+            verdict on the parent rather than a fact about the plumbing. */}
+        {row.recency.kind !== "never" && (
+          <span className="text-muted-foreground" data-testid="tripwire-recency">
+            {renderRecency(row.recency.kind, row.recency.days)}
+          </span>
+        )}
       </span>
     </li>
   );

@@ -152,11 +152,14 @@ def test_webapp_tripwire_copy_describes_equipment_not_the_person():
     )
 
 
-def test_webapp_recency_copy_has_no_clock_variant():
+def test_webapp_recency_copy_has_no_clock_variant_and_no_never():
     """005d §1: day granularity is a property of the vocabulary, not of a caller.
 
     There is no template here a future caller could pass a time into, which is
     the point — the constraint holds because the words to break it do not exist.
+    `never` was deleted the same way (founder's on-device round, QUESTIONS 68):
+    a tripwire that has never reported renders its chip and no recency at all,
+    and the word is gone from the module rather than merely uncalled.
     """
     ts = _ts_consts(COPY_TS)
     recency = {name: value for name, value in ts.items() if name.startswith("RECENCY_")}
@@ -165,10 +168,10 @@ def test_webapp_recency_copy_has_no_clock_variant():
         "RECENCY_TODAY": "today",
         "RECENCY_YESTERDAY": "yesterday",
         "RECENCY_DAYS": "{days} days ago",
-        "RECENCY_NEVER": "never",
     }
     for name, value in recency.items():
         assert ":" not in value, f"{name} looks like it carries a clock: {value}"
+    assert "never" not in {v.lower() for v in ts.values()}
 
 
 def test_webapp_signal_names_match_the_shortcuts_on_the_phone():
