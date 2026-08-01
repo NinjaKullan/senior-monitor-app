@@ -24,13 +24,32 @@ that on every push.
 
 | Screen | What it shows |
 |---|---|
-| **Today** (Glance) | per parent: name, `All normal` or `Quiet so far`, and "last routine seen {time} local" |
+| **Today** (Glance) | per parent: a day-part-aware headline, a dual-timezone "last routine seen" subline, a three-segment day arc, and a liveness beacon |
 | **Digests** | reverse-chron list of what was actually sent, recomposed from the templates |
 | **Family** | read-only roster of parents and members, and the privacy line |
 
-`Quiet so far` is as dark as this app ever gets. Absence that warrants more than
-that belongs to the escalation ladder, and the ladder has no surface here at
+`Quiet so far …` is as dark as this app ever gets. Absence that warrants more
+than that belongs to the escalation ladder, and the ladder has no surface here at
 all. There is no red in the palette because there is no state that earns one.
+
+Spec 005c warmed that surface without widening it: **warmth rises, information
+stays coarse.** The headline knows the parent's local time of day
+(`Amma's morning started the usual way` / `A normal, gentle day` /
+`Quiet so far today`), the subline gives their clock and yours side by side, and
+the arc gives the day a shape — three binary segments, lit once any routine
+happened in them. Binary is the point: a segment that glowed brighter for more
+pings would be a count in a costume, and counts are what turn reassurance into a
+behaviour profile. The guardrail is a test, not a convention — one asserts the
+arc's DOM carries no digit a reader or a screen reader could find, and another
+renders the same card from one ping and from many and requires identical markup.
+
+The beacon is labelled `phone` because it is phone status, never person status
+(product law #6). It breathes only while a real mechanism signal is recent,
+goes still and grey when one is not — stillness, not alarm — and is absent
+entirely for a parent with no `device_alive`/charger signal configured. An
+animation that ran unconditionally would be a liveness indicator that indicates
+nothing, which is the most expensive lie a reassurance product can tell, so a
+test plants a stale fixture and requires the still variant.
 
 The Digests screen stores nothing new: `digest_sends` records that a message
 went out and deliberately holds no text, so the list is rebuilt from the same
@@ -93,14 +112,15 @@ DATABASE_URL=... psql "$DATABASE_URL" -c \
    where name = 'Kettle Demo Family';"
 
 # 2. Sign in at https://kettle-app.fly.dev with that email, open Today.
-#    Both demo parents read "Quiet so far".
+#    Both demo parents read "Quiet so far …".
 
 # 3. Fire a real ping from the URL the provisioner printed, and watch it flip.
 curl "https://kettle-api.fly.dev/p/<demo-token>/whatsapp"
 ```
 
-Within the refresh interval the parent's card turns `All normal` and the
-last-seen time appears. Nothing about that path is special-cased for the demo:
+Within the refresh interval the parent's card warms to the headline for that
+time of day, the last-seen subline appears in both clocks, and the matching arc
+segment lights. Nothing about that path is special-cased for the demo:
 it is the same route the Shortcut on a real phone calls, the same RLS the real
 family gets, and the same templates the real digest sends.
 

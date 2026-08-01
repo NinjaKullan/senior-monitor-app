@@ -775,3 +775,84 @@ bootstrap defaults were already gone. The migration's explicit
 `revoke ... from anon` was a no-op in production — which is the outcome 0004 was
 written to produce, and worth having on the record as evidence it works rather
 than as an assumption.
+
+---
+
+## Spec 005c — Glance warmth pass (implementer notes, 2026-08-01)
+
+Nothing here blocks review; these are the judgement calls the spec left open,
+recorded so the PM can overrule any of them cheaply.
+
+49. **Pronoun default is the parent's own name, not `their`.** §1 says "her/his
+    only if a recorded pronoun exists — else `their time` / `{Name}'s time`" and
+    leaves the choice between those two. `renderClock` supports both, but with
+    no pronoun recorded it returns `Amma's time`. Two reasons: it obeys items
+    24/34 (never infer a pronoun from a name) without sounding like it is
+    working around a missing field, and it reads warmer than the grammatically
+    neutral form in a line the child sees every day. There is no pronoun column
+    on `parents` yet, so today every subline takes this branch; the pronoun
+    parameter exists so adding the column later is a data change, not a copy
+    change.
+
+50. **The subline collapses to one clock when both zones agree.** A child
+    visiting Chennai would otherwise read `8:12 am Amma's time · 8:12 am yours`,
+    which is the interface admitting it does not know where you are. Same-string
+    comparison, not same-offset: two zones that happen to render the same clock
+    for this instant read the same to the person holding the phone, which is the
+    only thing the line is for.
+
+51. **The current segment reads `ahead`, not `quiet`.** §2 says a past segment
+    with no routine renders soft/dim. That leaves the *in-progress* segment
+    ambiguous, and I gave it the neutral future state. Dimming the segment you
+    are standing in would turn "it is 10am and Amma is not up yet" into a
+    verdict rendered at 10am — the exact thing the floor copy is written to
+    avoid. A segment only ever dims once it is genuinely over.
+
+52. **Day parts cover the whole clock; the small hours are `morning`.** §2 names
+    05–12/12–17/17–21 for the arc, which leaves 21–05 unassigned for the
+    *headline*. `dayPartFor` sends anything before noon to morning, so a card
+    opened at 01:30 local reads `Quiet so far this morning`. It is the gentlest
+    true thing at that hour, and inventing a fourth "night" state would add a
+    copy line that only ever appears when nobody is looking. The arc still shows
+    three segments — an overnight ping simply lights none of them, which is
+    correct: it was not routine in any part of the day being described.
+
+53. **The arc's accessible name is `Routine seen: morning, afternoon`.** The arc
+    is `role="img"` with the segments `aria-hidden`, because three separately
+    announced bars are noise. That label is the no-numbers law's real test
+    surface: a screen-reader user must get the same coarse fact, not a richer
+    one, so the guardrail test scans element *attributes* as well as text.
+    Nothing has been seen yet reads `No routine seen yet today`.
+
+54. **Beacon freshness is 26 hours**, per §3's "~26h". The `device_alive` timer
+    fires daily, so the threshold is one cadence plus two hours of slack for a
+    phone that charged late or a network that took its time. It is deliberately
+    long: a beacon that goes still on an ordinary late morning teaches the
+    family to ignore it. Boundary is inclusive (`<= 26h` breathes) and tested,
+    so the state cannot flap on the tick.
+
+55. **Reduced motion is handled by `motion-safe:`, not by JS.** The breathing
+    class is `motion-safe:animate-breathe`, so a viewer with
+    `prefers-reduced-motion` gets the still dot's appearance while the data
+    state stays `breathing` in the DOM. That keeps the accessibility choice out
+    of the honesty test: `data-state` always reports what the data says, and the
+    animation is a presentation of it.
+
+56. **The no-numeric-activity assertion compares markup, not text.** §1 asks
+    that no rendered element encode a ping count. Scanning text would miss a
+    count in an attribute or a class, so the test renders the same card from one
+    ping and from five and requires byte-identical markup once clock times are
+    masked. I verified it by planting both regressions: a `data-hits` attribute
+    on the arc (caught by the attribute scan) and a genuine ping count threaded
+    into an empty `<span>` (caught by the markup comparison, which text scanning
+    could not have seen). The unconditional-animation regression was planted
+    too, and the still-variant test caught it.
+
+57. **`GLANCE_*` constants are now classified as headline or subline** in
+    `test_webapp_contract.py`. The old floor test scanned every constant with
+    that prefix for words like `no `, which the new subline placeholder
+    `No routine seen yet` would trip — a plain absence caption is not a verdict,
+    but a *headline* saying it would be. Rather than exempt the constant, the
+    test requires every `GLANCE_*` name to be classified and fails on an
+    unclassified one, so the floor cannot rot by someone adding a constant the
+    scan silently skips.
