@@ -14,6 +14,16 @@ export default {
         calm: { DEFAULT: "hsl(var(--calm))", foreground: "hsl(var(--calm-foreground))" },
       },
       borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)" },
+      keyframes: {
+        // A slow, shallow breath. Applied only via `motion-safe:` and only when
+        // the data says the handset is really reporting — an animation that ran
+        // regardless would be a liveness indicator that indicates nothing.
+        breathe: {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.45", transform: "scale(0.82)" },
+        },
+      },
+      animation: { breathe: "breathe 3.2s ease-in-out infinite" },
     },
   },
   plugins: [require("tailwindcss-animate")],
