@@ -1018,3 +1018,52 @@ want to overrule cheaply if I have read the spec wrong.
     rows rearrange themselves between 45-second polls is harder to read than one
     that stays put, and the amber chip already carries the attention. Trivial to
     flip if you would rather the broken one always be at the top.
+
+---
+
+## PM rulings — Fable, 2026-08-01 (review of 1dc1f57: items 58–64)
+
+One change requested (60), one deferral recorded (59), the rest approved.
+
+58. **APPROVED as built.** Structure 48's spirit is that widening the read
+    surface is a *conscious act*; the consciousness moved into row-by-row
+    isolation assertions and added coverage `parent_signals` never had, which
+    satisfies it. A literal `READ_SURFACE` diff would be a narrowing dressed as a
+    widening and is **not** required.
+
+59. **Do not build learned cadences.** v1's fixed windows stand until the
+    pilot's threshold-analysis spec exists. The deferral is recorded rather than
+    the design: *if* learned cadences are ever built they will be
+    mechanism-health only, never displayed, and never compared across time — but
+    that ruling belongs to that spec and is not made here. Cited at
+    `CADENCE_HOURS`, where someone would go to change them.
+
+60. ⬅ **CHANGE REQUESTED, and made.** `never` is `Not set up yet`, not stale.
+    Same principle as the 001 item-4 ruling: absence of *ever* means
+    not-yet-configured, not broken. Neutral chip, not amber; excluded from the
+    repair-nudge trigger. **A fresh family's first minutes must not open with
+    "something needs fixing."**
+
+    Built as a third `TripwireHealth` state rather than a rendering special-case,
+    so the distinction survives anything downstream that asks a row how it is
+    doing. `needsRepair` is `some(health === "stale")` and deliberately not
+    `some(health !== "connected")` — the comment says why, because that is the
+    exact line a future refactor would smooth over. Both cases the PM named are
+    tests, at the logic layer and again at the DOM: all-`never` parent → zero
+    amber, zero nudge; one real ping then eight stale days → amber and nudge as
+    normal. The unconfigured chip is also quieter than `Connected`, which at
+    least earns its colour — an uninstalled shortcut should read like an empty
+    field, not like a state.
+
+61. **APPROVED** — the repair surface names what the phone names. The spec's
+    humanised list in §1 is synced to the implementation (`Charger On`,
+    `Charger Off`, `Daily Check`), not the other way round.
+
+62–64. **Approved as recorded.** Standing instruction reaffirmed: flag anything
+    believed to touch product law and it reopens.
+
+### Process (founder, same day)
+
+Builds land on `main` — merge the working branch and push there, now and for
+future specs. `main` is the PM's review surface; a branch nobody has merged is
+not reviewable by a `git pull`.

@@ -8,8 +8,8 @@ Tap parent card → detail view (route or sheet, implementer's choice):
 
 - Header: parent name + the same warm headline/beacon as the card (consistency, no new states).
 - **Tripwires list** — one row per active `parent_signals` entry, from the existing RLS reads:
-  - Signal display name (humanized: `WhatsApp`, `YouTube`, `News`, `Charger`, `Daily check`). This is the ONE surface where signal names may render — they're necessary for repair ("her WhatsApp tripwire needs attention"). The copy-law tests get a scoped exemption for this view only.
-  - Health chip: `Connected` (heard within its expected cadence) / `Not heard in a while` (beyond cadence; soft amber, not red — equipment tone, not alarm). Expected cadence v1: `device_alive` ≈ daily+slack (26h); everything else uses a generous 7-day window (a news app she rarely opens is not a broken tripwire; QUESTIONS note welcome on tuning).
+  - Signal display name (humanized: `WhatsApp`, `YouTube`, `News`, `Charger On`, `Charger Off`, `Daily Check` — synced to the backend's `SIGNAL_LABELS`, PM ruling on QUESTIONS 61: the repair surface names what the phone names). This is the ONE surface where signal names may render — they're necessary for repair ("her WhatsApp tripwire needs attention"). The copy-law tests get a scoped exemption for this view only.
+  - Health chip: `Connected` (heard within its expected cadence) / `Not heard in a while` (beyond cadence; soft amber, not red — equipment tone, not alarm) / `Not set up yet` (never heard from, ever — neutral chip, not amber, and excluded from the repair-nudge trigger; PM ruling on QUESTIONS 60: absence of *ever* means not-yet-configured, not broken, and a fresh family's first minutes must not open with "something needs fixing"). Expected cadence v1: `device_alive` ≈ daily+slack (26h); everything else uses a generous 7-day window (a news app she rarely opens is not a broken tripwire). Fixed windows stand until the threshold-analysis spec; learned cadences are deferred, not rejected (ruling on QUESTIONS 59).
   - Recency at DAY granularity only: `today` / `yesterday` / `3 days ago` / `never`. **Never clock time.** Rationale (record in code comment): precise timestamps on a per-app list are ammunition ("why were you up at 2am?"); the repair question is answered by day-level recency. The existing card subline keeps its clock time — that's a single coarse "last routine" fact, not a per-app ledger.
 - Footer: the repair nudge, only when something is `Not heard in a while`: `A tripwire may need a quick fix on {Name}'s phone. It's a two-minute FaceTime.` (No instructions in-app yet — 005b's wizard owns the guided repair.)
 
@@ -22,7 +22,7 @@ Tap parent card → detail view (route or sheet, implementer's choice):
 ## 3. Acceptance criteria
 
 1. Tap card → detail renders all active signals for that parent, none for others (RLS through the UI as usual).
-2. Health logic: device_alive stale beyond 26h reads `Not heard in a while`; an app signal at 3 days reads `Connected` (within 7-day window) with `3 days ago` recency; `never` renders for a signal with no pings.
+2. Health logic: device_alive stale beyond 26h reads `Not heard in a while`; an app signal at 3 days reads `Connected` (within 7-day window) with `3 days ago` recency; `never` renders for a signal with no pings, and its chip reads `Not set up yet` (amended by the ruling on QUESTIONS 60 — an all-`never` parent shows zero amber and no nudge; one real ping then 8 stale days shows both).
 3. No clock times anywhere in the view (test walks DOM: the only digits allowed are day counts); no counts; amber max.
 4. Repair nudge appears only when ≥1 tripwire is stale, with the exact copy above.
 5. Copy-law scoped exemption implemented as an explicit allowlist for this view, not a weakening of the global test (the digest/glance surfaces must still fail on signal names).

@@ -94,6 +94,15 @@ the person holding it, and the repair nudge appears only when something is
 actually stale — a standing "may need a fix" under a healthy list is a low-grade
 alarm, and this app's alerting goes to the founder, never to the family.
 
+A signal never heard from is a third state, `Not set up yet`, and it is neither
+amber nor a nudge trigger. **Absence of *ever* means not-yet-configured, not
+broken** — the same distinction that stops the backend's infra alert firing
+before the first ping ever arrives. A family's first minutes in the app must not
+open with "something needs fixing", so an uninstalled shortcut reads like an
+empty field waiting for 005b's wizard. One real ping followed by silence is a
+different thing entirely, and that does go amber. (PM ruling, 2026-08-01,
+QUESTIONS 60; both cases are tests.)
+
 Cadences are v1 guesses and deliberately generous: 26 hours for the daily timer,
 seven days for anything a human opens by hand. A news app she reads on Sundays
 is not broken plumbing on a Wednesday, and a false `Not heard in a while` spends

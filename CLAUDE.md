@@ -8,7 +8,7 @@ Passive peace-of-mind monitoring for adult children with aging parents far away.
 - **Fable 5 (Cowork session)** — PM/project manager: writes specs in `specs/`, reviews every build after Hema does `git pull`.
 - **Claude Code (you)** — implementer. Build exactly what the active spec says. If a spec is ambiguous or seems wrong, stop and leave a question in `specs/QUESTIONS.md` rather than guessing.
 
-Build against the lowest-numbered spec in `specs/` that isn't marked done. Commit in coherent units with descriptive messages — commits are the review surface.
+Build against the lowest-numbered spec in `specs/` that isn't marked done. Commit in coherent units with descriptive messages — commits are the review surface, and they are reviewed **from `main`**: merge the working branch and push there when a build is green.
 
 ## Hard constraints (product law — never violate, never "improve" around)
 
@@ -45,6 +45,14 @@ specs, product law, conventions — is written down already; read it there.
 - **`KETTLE_REQUIRE_POSTGRES=1` turns that skip into a failure.** CI sets it
   (`.github/workflows/ci.yml`, with a Postgres service container). Set it locally
   when you want a missing database to be loud.
+- **A fresh container has no `.venv` and no `node_modules`.** Rebuild with
+  `python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt -r
+  product/requirements-dev.txt`, and `cd webapp && npm ci`.
+- **`service postgresql start` is not enough on a fresh container** — the role
+  and the database do not exist yet, so `pg_isready` says "accepting
+  connections" while the suite skips anyway. The rest of the recipe is in
+  `product/README.md`: `su postgres -c "psql -c \"alter user postgres with
+  password 'postgres'\""` then `su postgres -c "createdb kettle_test"`.
 - **Use `.venv/bin/python -m pytest` / `.venv/bin/ruff`** — system Python has
   neither installed.
 - **Webapp:** `cd webapp && npm run ci` (lint → vitest → tsc+build → secret scan).
@@ -72,27 +80,21 @@ specs, product law, conventions — is written down already; read it there.
 
 ### State of the build (2026-08-01)
 
-Specs 001–005d are built: the pilot backend (`app/`, frozen since 002), the
-multi-tenant product backend (`product/`, migrations through 0008), the digest
-engine, ladder v1, and the child PWA (`webapp/`) with its warmth pass and the
-tripwire health detail view. Both suites green; 005d is pushed and awaiting PM
-review (QUESTIONS 58–64). **No unbuilt spec is in `specs/` — 005b (onboarding
-wizard, family codes, billing, TestFlight) is what the roadmap points at next
-and the tripwire view's repair nudge is written to hand off to its guided
-repair, but the PM has not written that spec yet.** Production (`kettle-prod`) is at
-migration 0008, advisor-clean; the founder applies migrations and runs deploys,
-so a spec being "done" here means green locally and pushed, never shipped.
+Specs 001–005d are built and reviewed: the pilot backend (`app/`, frozen since
+002), the multi-tenant product backend (`product/`, migrations through 0008),
+the digest engine, ladder v1, and the child PWA (`webapp/`) with its warmth pass
+and the tripwire health detail view. Both suites green on `main`.
 
-005d added no migration and no new read: it is a webapp-only change.
+005d's rulings (QUESTIONS 58–64, 2026-08-01): 58 and 61–64 approved, **59
+deferred** — learned cadences wait for the threshold-analysis spec, fixed
+windows stand — and **60 changed**: a signal never heard from reads `Not set up
+yet`, neutral and outside the repair-nudge trigger, because absence of *ever*
+means not-yet-configured rather than broken.
 
-### Container quirks, continued
-
-- **A fresh container has no `.venv` and no `node_modules`.** Rebuild with
-  `python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt -r
-  product/requirements-dev.txt`, and `cd webapp && npm ci`.
-- **`service postgresql start` is not enough on a fresh container** — the role
-  and the database do not exist yet. `pg_isready` says "accepting connections"
-  and the suite still skips. The rest of the recipe is in `product/README.md`:
-  `su postgres -c "psql -c \"alter user postgres with password 'postgres'\""`
-  then `su postgres -c "createdb kettle_test"`. Always confirm with
-  `KETTLE_REQUIRE_POSTGRES=1`.
+**No unbuilt spec is in `specs/`** — 005b (onboarding wizard, family codes,
+billing, TestFlight) is what the roadmap points at next, and the tripwire view's
+repair nudge is written to hand off to its guided repair, but the PM has not
+written that spec yet. Production (`kettle-prod`) is at migration 0008,
+advisor-clean; the founder applies migrations and runs deploys, so a spec being
+"done" here means green locally and pushed, never shipped. 005d added no
+migration and no new read: it is a webapp-only change.
