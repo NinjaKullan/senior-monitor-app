@@ -1,30 +1,29 @@
-# Static child PWA. Its own Fly app, separate from kettle-api and kettle-pilot.
-app = "kettle-app"
-primary_region = "sin"
+# fly.toml app configuration file generated for kettle-app on 2026-07-31T22:11:09-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'kettle-app'
+primary_region = 'sin'
 
 [build]
-  # Supplied at deploy time; both are public values (see README).
-  [build.args]
-    VITE_SUPABASE_URL = ""
-    VITE_SUPABASE_PUBLISHABLE_KEY = ""
-
 [http_service]
   internal_port = 8080
   force_https = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
-  # Static files with no background work: unlike the API, this one may sleep.
-  auto_stop_machines = "stop"
   min_machines_running = 0
 
   [[http_service.checks]]
-    grace_period = "5s"
-    interval = "30s"
-    method = "GET"
-    path = "/healthz"
-    protocol = "http"
-    timeout = "5s"
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '5s'
+    method = 'GET'
+    path = '/healthz'
+    protocol = 'http'
 
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "256mb"
+  size = 'shared-cpu-1x'
+  memory = '256mb'
   cpus = 1
+  memory_mb = 256
