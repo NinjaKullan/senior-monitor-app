@@ -16,6 +16,11 @@
        no red anywhere, because there is no state here that warrants one. */
     --calm: 158 50% 32%;
     --calm-foreground: 0 0% 100%;
+    /* Amber, and the ceiling. It appears on one surface only — the tripwire
+       health view — and it means a piece of equipment stopped reporting. There
+       is still no red in this file, because nothing this app can know about
+       warrants one. */
+    --attention: 32 70% 38%;
     --border: 220 13% 89%;
     --radius: 0.75rem;
   }
@@ -32,6 +37,7 @@
       --primary-foreground: 220 18% 11%;
       --calm: 158 45% 60%;
       --calm-foreground: 220 18% 11%;
+      --attention: 36 65% 62%;
       --border: 220 14% 26%;
     }
   }

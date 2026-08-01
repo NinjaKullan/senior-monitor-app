@@ -12,6 +12,9 @@ export default {
         card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
         primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" },
         calm: { DEFAULT: "hsl(var(--calm))", foreground: "hsl(var(--calm-foreground))" },
+        // Amber. The darkest colour in the app, reserved for equipment that
+        // stopped reporting — never for a person. There is no red token.
+        attention: { DEFAULT: "hsl(var(--attention))" },
       },
       borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)" },
       keyframes: {

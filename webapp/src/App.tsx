@@ -5,11 +5,13 @@ import { claimMembership, loadSnapshot, type FamilySnapshot } from "@/lib/data";
 import { buildDigestEntries } from "@/lib/digests";
 import { computeGlance } from "@/lib/glance";
 import { supabase } from "@/lib/supabase";
+import { computeTripwires } from "@/lib/tripwires";
 import { Digests } from "@/screens/Digests";
 import { FamilyScreen } from "@/screens/Family";
 import { Glance } from "@/screens/Glance";
 import { Login } from "@/screens/Login";
 import { NoFamily } from "@/screens/NoFamily";
+import { TripwireDetail } from "@/screens/TripwireDetail";
 
 /**
  * Refresh interval. Polling rather than Supabase realtime — see QUESTIONS.md
@@ -31,6 +33,8 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [snapshot, setSnapshot] = useState<FamilySnapshot | null>(null);
   const [tab, setTab] = useState<Tab>("glance");
+  /** The parent whose tripwire health is open, or null for the card list (005d). */
+  const [openParentId, setOpenParentId] = useState<string | null>(null);
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -102,6 +106,12 @@ export default function App() {
     snapshot.pings,
   );
 
+  // The open parent survives a refresh only while they are still in the
+  // snapshot; a parent removed from the family closes the detail rather than
+  // leaving a stale one on screen.
+  const openParent = snapshot.parents.find((p) => p.id === openParentId) ?? null;
+  const openGlance = states.find((s) => s.parentId === openParentId) ?? null;
+
   return (
     <Shell onSignOut={() => supabase.auth.signOut()}>
       <nav className="mb-5 flex gap-1" aria-label="Screens">
@@ -110,13 +120,31 @@ export default function App() {
             key={entry.id}
             variant={tab === entry.id ? "default" : "ghost"}
             size="sm"
-            onClick={() => setTab(entry.id)}
+            onClick={() => {
+              setTab(entry.id);
+              setOpenParentId(null);
+            }}
           >
             {entry.label}
           </Button>
         ))}
       </nav>
-      {tab === "glance" && <Glance states={states} />}
+      {tab === "glance" &&
+        (openParent && openGlance ? (
+          <TripwireDetail
+            glance={openGlance}
+            tripwires={computeTripwires(
+              openParent,
+              familyTz,
+              snapshot.signals,
+              snapshot.pings,
+              now,
+            )}
+            onBack={() => setOpenParentId(null)}
+          />
+        ) : (
+          <Glance states={states} onOpen={setOpenParentId} />
+        ))}
       {tab === "digests" && <Digests entries={entries} />}
       {tab === "family" && (
         <FamilyScreen
