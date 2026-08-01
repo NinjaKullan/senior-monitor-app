@@ -65,6 +65,35 @@ export const ARC_LABEL_PREFIX = "Routine seen: ";
 /** The beacon describes the handset, never the person (attribution law). */
 export const BEACON_LABEL = "phone";
 
+/**
+ * The tripwire health view (spec 005d) — a maintenance surface, in equipment
+ * tone throughout.
+ *
+ * Every string below describes plumbing. `Not heard in a while` is as dark as
+ * this screen goes and it is amber, not red, because a tripwire that stopped
+ * reporting is a Shortcuts problem until proven otherwise; the person it reports
+ * on is not mentioned by any of it. The nudge is the one string that names the
+ * parent, and it names them as the owner of a phone that needs two minutes.
+ */
+export const TRIPWIRE_TITLE = "Tripwires";
+export const TRIPWIRE_CONNECTED = "Connected";
+export const TRIPWIRE_STALE = "Not heard in a while";
+export const TRIPWIRE_REPAIR =
+  "A tripwire may need a quick fix on {name}'s phone. It's a two-minute FaceTime.";
+export const TRIPWIRE_BACK = "Back to today";
+/** The Glance card's accessible name for its tap target — it names the destination. */
+export const TRIPWIRE_OPEN_LABEL = "Tripwire health for {name}";
+
+/**
+ * Recency, at day granularity and no finer. There is no clock-time variant of
+ * these on purpose: a precise timestamp against each app is ammunition, and the
+ * repair question — is this thing still reporting? — is answered in days.
+ */
+export const RECENCY_TODAY = "today";
+export const RECENCY_YESTERDAY = "yesterday";
+export const RECENCY_DAYS = "{days} days ago";
+export const RECENCY_NEVER = "never";
+
 export const DIGESTS_EMPTY = "Your daily digests will appear here.";
 export const NO_FAMILY_TITLE = "No family yet";
 export const NO_FAMILY_BODY =
@@ -97,6 +126,21 @@ export function renderSubline(
   return SUBLINE_TEMPLATE.replace("{time}", theirTime)
     .replace("{clock}", renderClock(name, pronoun))
     .replace("{viewerTime}", viewerTime);
+}
+
+/** Day-granularity recency. The `days` argument is ignored unless kind is `days`. */
+export function renderRecency(
+  kind: "today" | "yesterday" | "days" | "never",
+  days: number = 0,
+): string {
+  if (kind === "today") return RECENCY_TODAY;
+  if (kind === "yesterday") return RECENCY_YESTERDAY;
+  if (kind === "never") return RECENCY_NEVER;
+  return RECENCY_DAYS.replace("{days}", String(days));
+}
+
+export function renderRepairNudge(name: string): string {
+  return TRIPWIRE_REPAIR.replace("{name}", name);
 }
 
 export function renderEvening(parents: string[]): string {
