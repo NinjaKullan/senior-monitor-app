@@ -67,6 +67,10 @@ The gates were designed when the concept itself was unproven. Since then: Parent
 - **Spec 005 split.** 005a = demo-grade child PWA (read-only: auth, glance view, digest history, live off kettle-api/Supabase via RLS) — starts NOW because beta recruiting needs an app people can see and feel; a backend demo only works on the founder's own parents. 005b = onboarding wizard + billing + TestFlight wrap, written after the Dad-setup field research.
 - **Free "Phone Watch" tier (limited-time founding offer).** Device-liveness only: "know when their phone dies or goes unreachable." HARD GUARDRAIL: phone-status language only, person-status language forbidden — device_alive/charger events must never be presented as evidence a person is fine (product law #6 / attribution rule; a charger event can be anyone's hand). Enforced by the same copy-law test pattern as digests. Upgrade path to full routine monitoring. Implementation post-beta; signals already exist.
 
+## Design language decision (founder, Aug 1)
+
+Oura's register adopted for landing page + app polish: warm gradient palettes, editorial serif for human moments, scenario-tab storytelling, calm authority of tone. Oura's instrument panel REFUSED: no scores, no charts, no graphs — a score is a diagnosis in a party dress. Landing page structure: scenario tabs "Her morning · Her afternoon · When something's off · What you see." Founder supplies Oura screens for pattern analysis (type scale, spacing, palette, card grammar) — patterns only, no layout/copy cloning (trade-dress line). Landing page spec follows the analysis session.
+
 ## §6 Risks worth naming
 
 1. **WhatsApp Business verification lag** → SMS fallback specced from day one.
