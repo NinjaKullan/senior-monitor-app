@@ -145,9 +145,21 @@ describe("the day arc", () => {
     expect(buildArc([], 14).map((s) => s.state)).toEqual(["quiet", "ahead", "ahead"]);
   });
 
-  it("treats the current segment as still open, never as a verdict", () => {
-    // 11am with nothing yet: the morning has not failed, it is still happening.
-    expect(buildArc([], 11)[0].state).toBe("ahead");
+  it("renders no verdict on unfinished time, in any segment", () => {
+    // Standing principle, alongside the floor: the stretch you are standing in
+    // has not failed, it is still happening. 11am with nothing yet is a parent
+    // who slept in, and the arc does not get to call that a bad morning.
+    for (const [hour, segment] of [
+      [11, 0],
+      [14, 1],
+      [19, 2],
+    ] as const) {
+      expect(buildArc([], hour)[segment].state, `hour ${hour} judged too early`).toBe(
+        "ahead",
+      );
+    }
+    // And it does dim, once the stretch is genuinely over.
+    expect(buildArc([], 14)[0].state).toBe("quiet");
   });
 
   it("is binary — a busy segment looks exactly like a barely-present one", () => {

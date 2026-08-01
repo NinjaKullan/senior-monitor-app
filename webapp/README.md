@@ -28,9 +28,18 @@ that on every push.
 | **Digests** | reverse-chron list of what was actually sent, recomposed from the templates |
 | **Family** | read-only roster of parents and members, and the privacy line |
 
-`Quiet so far …` is as dark as this app ever gets. Absence that warrants more
-than that belongs to the escalation ladder, and the ladder has no surface here at
-all. There is no red in the palette because there is no state that earns one.
+Two rules govern everything on that screen.
+
+**The floor.** `Quiet so far …` is as dark as this app ever gets. Absence that
+warrants more than that belongs to the escalation ladder, and the ladder has no
+surface here at all. There is no red in the palette because there is no state
+that earns one.
+
+**No verdicts on unfinished time.** The stretch of the day you are currently
+standing in renders `ahead`, never `quiet`. A dimmed morning segment at 10am is
+an accusation against someone who slept in; `ahead` is patience. A segment dims
+only once it is genuinely over. (PM ruling, 2026-08-01, graduating QUESTIONS 51
+to principle.)
 
 Spec 005c warmed that surface without widening it: **warmth rises, information
 stays coarse.** The headline knows the parent's local time of day

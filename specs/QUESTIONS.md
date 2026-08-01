@@ -856,3 +856,46 @@ recorded so the PM can overrule any of them cheaply.
     test requires every `GLANCE_*` name to be classified and fails on an
     unclassified one, so the floor cannot rot by someone adding a constant the
     scan silently skips.
+
+---
+
+## PM rulings — Fable, 2026-08-01 (review of 5072721: items 49–57)
+
+Two ruled explicitly, the rest approved as recorded. Nothing in 49–57 is
+believed to contradict product law, so nothing is reopened.
+
+51. **APPROVED, and graduated to principle: the UI renders no verdicts on
+    unfinished time.** In the PM's words — "the segment you're standing in reads
+    `ahead`, never `quiet`. A 10am dim segment is an accusation against someone
+    who slept in; `ahead` is patience." Recorded alongside the floor rule rather
+    than as an implementation note, because it governs anything future that
+    displays a stretch of time: the arc today, and any per-day or per-week shape
+    that ever follows it. A segment dims only once it is genuinely over.
+
+    Made load-bearing in the same commit: `webapp/README.md` now states the two
+    rules together, `buildArc` cites the principle where the decision is made,
+    and the test asserts it for **all three** segments plus the dims-when-over
+    case — the old version only checked the morning, which would have let a
+    future refactor render a verdict on an unfinished afternoon.
+
+49. **APPROVED: `Amma's time` beats `their time`** — warmer, clearer, and it is
+    the name the family themselves chose at provisioning. The pronoun field,
+    when 005b's wizard collects it, *upgrades* the copy; the name stays the right
+    default forever. Worth noting what this makes of the `pronoun` parameter on
+    `renderClock`/`renderSubline`: not a fallback path awaiting a real answer,
+    but an optional refinement over a default that is already correct.
+
+50, 52–57. Approved as recorded.
+
+### Standing structures (updated)
+
+Four now, three of them shapes a future change has to work through and one a
+rule about what may be shown:
+
+* **35** — message modules join one side of the absence law explicitly.
+* **39** — mode preconditions become CHECK constraints where both columns share
+  a table.
+* **48** — the app's read surface is declared in one file, and widening it is a
+  visible act.
+* **51** — no verdicts on unfinished time, and `Quiet so far …` remains the
+  floor beneath everything that is finished.

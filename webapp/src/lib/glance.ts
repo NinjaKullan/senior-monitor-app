@@ -119,8 +119,10 @@ export function buildArc(routineHours: number[], currentHour: number): ArcSegmen
   return SEGMENT_BOUNDS.map(([start, end], index) => {
     const lit = routineHours.some((h) => h >= start && h < end);
     if (lit) return { name: ARC_SEGMENTS[index], state: "lit" as const };
-    // The current segment is still open for business, so it reads the same as
-    // one that has not started: neutral, never dim.
+    // No verdicts on unfinished time (standing principle, alongside the floor).
+    // The stretch you are standing in reads the same as one that has not
+    // started: a dimmed morning at 10am is an accusation against someone who
+    // slept in. A segment dims only once it is genuinely over.
     return { name: ARC_SEGMENTS[index], state: currentHour >= end ? "quiet" : "ahead" };
   });
 }
