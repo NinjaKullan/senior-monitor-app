@@ -25,6 +25,7 @@ that on every push.
 | Screen | What it shows |
 |---|---|
 | **Today** (Glance) | per parent: a day-part-aware headline, a dual-timezone "last routine seen" subline, a three-segment day arc, and a liveness beacon |
+| **Tripwire health** | tap a card: that parent's configured tripwires, each with a health chip and a day-granularity recency |
 | **Digests** | reverse-chron list of what was actually sent, recomposed from the templates |
 | **Family** | read-only roster of parents and members, and the privacy line |
 
@@ -59,6 +60,45 @@ entirely for a parent with no `device_alive`/charger signal configured. An
 animation that ran unconditionally would be a liveness indicator that indicates
 nothing, which is the most expensive lie a reassurance product can tell, so a
 test plants a stale fixture and requires the still variant.
+
+## Tripwire health — the one exemption, and why it is safe
+
+Tapping a parent's card opens their tripwire health (spec 005d). This is the
+only screen in the app that is **maintenance rather than reassurance**: it
+answers "is this piece of plumbing still reporting?", and it is the surface the
+005b repair wizard will hang off. Three rules make that distinction real, and
+each is a test rather than a convention.
+
+**Signal names render here and nowhere else.** Repair is impossible without them
+— "her WhatsApp tripwire needs attention" is the whole sentence — and
+reassurance is worse with them, because a named list of apps is a behaviour
+profile. So the copy law keeps banning signal names globally and this one view
+passes an explicit allowlist of the six humanised names. The allowlist is pinned
+as literals in `copyLaw.test.tsx`: adding a signal to the app fails that test
+until someone widens the exemption on purpose. Deriving the *ban* from the same
+map closed a hole nobody had noticed — `Daily Check` is ordinary English and
+could have appeared on a digest unchallenged.
+
+**Day granularity, never clock time.** `today` / `yesterday` / `3 days ago` /
+`never`, and there is no clock-time variant of that vocabulary to reach for. A
+per-app list stamped with times is ammunition ("why were you up at 2am?"); the
+repair question is answered in days. The card's subline keeps its clock, because
+one coarse "last routine" fact is not a per-app ledger. The guardrail walks the
+rendered DOM — text *and* attributes — and allows exactly one shape of digit.
+
+**Amber is the ceiling, and it describes equipment.** A tripwire past its
+expected cadence reads `Not heard in a while` in amber; there is still no red
+token in the palette. A dead tripwire is a Shortcuts problem until proven
+otherwise (product law #6), so nothing on this screen reaches past the phone to
+the person holding it, and the repair nudge appears only when something is
+actually stale — a standing "may need a fix" under a healthy list is a low-grade
+alarm, and this app's alerting goes to the founder, never to the family.
+
+Cadences are v1 guesses and deliberately generous: 26 hours for the daily timer,
+seven days for anything a human opens by hand. A news app she reads on Sundays
+is not broken plumbing on a Wednesday, and a false `Not heard in a while` spends
+the family's attention on a tripwire that works. Tuning notes are in
+`specs/QUESTIONS.md` item 59.
 
 The Digests screen stores nothing new: `digest_sends` records that a message
 went out and deliberately holds no text, so the list is rebuilt from the same
@@ -135,7 +175,8 @@ family gets, and the same templates the real digest sends.
 
 ## What is deliberately not here
 
-Onboarding wizard, Shortcuts links, family codes, billing (all 005b). Any ladder
-or alert surface. Settings or editing of any kind — read-only means read-only.
+Onboarding wizard, Shortcuts links, family codes, billing (all 005b) — including
+the guided repair the tripwire view's nudge points at, which 005b owns. Any
+ladder or alert surface. Settings or editing of any kind — read-only means read-only.
 Push notifications. **Analytics of any kind**, including the privacy-friendly
 sort; product law #4 does not have an exception for well-behaved trackers.

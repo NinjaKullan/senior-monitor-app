@@ -66,16 +66,33 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 58.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 65.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
 ### State of the build (2026-08-01)
 
-Specs 001–005c are built and closed: the pilot backend (`app/`, frozen since 002),
-the multi-tenant product backend (`product/`, migrations through 0008), the
-digest engine, ladder v1, and the read-only child PWA (`webapp/`) with its warmth
-pass. `main` is green on both suites. **`specs/005d-tripwire-health.md` is speced
-and unbuilt — it is the next task.** Production (`kettle-prod`) is at migration
-0008, advisor-clean; the founder applies migrations and runs deploys, so a spec
-being "done" here means green locally and pushed, never shipped.
+Specs 001–005d are built: the pilot backend (`app/`, frozen since 002), the
+multi-tenant product backend (`product/`, migrations through 0008), the digest
+engine, ladder v1, and the child PWA (`webapp/`) with its warmth pass and the
+tripwire health detail view. Both suites green; 005d is pushed and awaiting PM
+review (QUESTIONS 58–64). **No unbuilt spec is in `specs/` — 005b (onboarding
+wizard, family codes, billing, TestFlight) is what the roadmap points at next
+and the tripwire view's repair nudge is written to hand off to its guided
+repair, but the PM has not written that spec yet.** Production (`kettle-prod`) is at
+migration 0008, advisor-clean; the founder applies migrations and runs deploys,
+so a spec being "done" here means green locally and pushed, never shipped.
+
+005d added no migration and no new read: it is a webapp-only change.
+
+### Container quirks, continued
+
+- **A fresh container has no `.venv` and no `node_modules`.** Rebuild with
+  `python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt -r
+  product/requirements-dev.txt`, and `cd webapp && npm ci`.
+- **`service postgresql start` is not enough on a fresh container** — the role
+  and the database do not exist yet. `pg_isready` says "accepting connections"
+  and the suite still skips. The rest of the recipe is in `product/README.md`:
+  `su postgres -c "psql -c \"alter user postgres with password 'postgres'\""`
+  then `su postgres -c "createdb kettle_test"`. Always confirm with
+  `KETTLE_REQUIRE_POSTGRES=1`.

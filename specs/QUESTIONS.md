@@ -899,3 +899,122 @@ rule about what may be shown:
   visible act.
 * **51** — no verdicts on unfinished time, and `Quiet so far …` remains the
   floor beneath everything that is finished.
+
+---
+
+## Spec 005d — tripwire health panel (implementer notes, 2026-08-01)
+
+Nothing here blocked the build. Items 58 and 59 are the two the PM will most
+want to overrule cheaply if I have read the spec wrong.
+
+58. **The read surface did not widen — the *consequence* of reading it did.**
+    §2 anticipates "this view widens `queries.ts` deliberately (parent_signals +
+    per-signal last ping)", and standing structure 48 says that widening is a
+    visible act. It turned out there was nothing to widen: 005a already reads
+    `parent_signals` and `pings` whole, columns and all, so the detail view
+    needed no new column and no new table. Rather than treat that as nothing to
+    do, I asked what actually changed and made *that* the conscious act.
+
+    What changed is stakes. `parent_signals.signal` used to pick a beacon's
+    shade — an RLS leak there would have mis-tinted a dot. It now prints a named
+    list of one parent's apps, so the same leak would print a neighbour's
+    tripwire inventory. `pings.signal` likewise now decides what that list says
+    about each row. So both tables are asserted row-by-row for isolation in
+    `test_the_apps_own_queries_return_one_family_only` (they previously rode on
+    the loop's `families`/`parents` spot-checks; `parent_signals` had no
+    assertion at all), `queries.ts`'s header records why, and I verified the new
+    assertion by dropping *only* the `parent_signals` policy and watching it
+    catch the other family's rows. `ladder_candidates` joined the absent-tables
+    assertion while I was there — 004 added it after item 48 was written, and it
+    has a family select policy.
+
+    If the PM would rather structure 48 be satisfied by a literal diff to
+    `READ_SURFACE`, say so and I will narrow the two selects to the columns each
+    screen genuinely uses — but that would be a *narrowing* dressed as a
+    widening, and I do not think it is what the rule is for.
+
+59. **Cadence defaults, and what would tune them.** Built as specified: 26h for
+    `device_alive`, 7 days for everything else. Three notes for when there is
+    pilot data to tune against.
+
+    * **The 7-day window is a guess about *people*, not about equipment.** It has
+      to cover the slowest real user of the least-used app, and today nobody
+      knows what that is. A parent who opens the news app fortnightly will read
+      `Not heard in a while` forever, and the repair nudge will sit on her card
+      permanently until someone deactivates the signal — which is arguably the
+      correct outcome (a tripwire nobody trips is not a tripwire) but arrives as
+      a false alarm rather than as a decision. **The tuning data already exists:
+      per-signal ping history is exactly what would give each signal its own
+      cadence from that parent's own median gap.** That is the version I would
+      build once the pilot has a month of data — per-parent, per-signal, learned
+      rather than declared.
+    * **A learned cadence is close to the line drawn by product law #1**, and
+      I have not built it for that reason. "This signal usually arrives every
+      2 days and hasn't in 5" is trend inference about equipment; the same
+      sentence about a person is decline detection. If the PM wants the learned
+      version, I would want the ruling to say explicitly that a per-signal
+      cadence may never be shown, compared across time, or used for anything but
+      choosing between the two chips.
+    * **26h and the beacon's 26h are the same number for the same reason** but
+      are two constants (`BEACON_FRESH_HOURS`, `CADENCE_HOURS.device_alive`). I
+      left them separate deliberately: they answer different questions (is the
+      handset alive? / is this tripwire reporting?) and will tune apart. If they
+      are meant to move together, say so and I will make one reference the other.
+
+60. **`never` reads as `Not heard in a while`, so a fresh family sees the repair
+    nudge immediately.** A signal with no pings at all is beyond any cadence, so
+    it is stale, so the nudge appears the first time the child opens the detail
+    view for a parent whose shortcuts are not installed yet. That is the
+    opposite of the 001 item-4 ruling (suppress the infra alert until the first
+    ping ever arrives), so it is worth flagging — but I think the difference is
+    real. That was an unsolicited ntfy push at a fixed hour, and nagging before
+    setup teaches the founder to ignore it. This is a screen someone deliberately
+    opened to ask "is my equipment working?", and the honest answer for an
+    uninstalled shortcut is no. The nudge — "a two-minute FaceTime" — is also
+    exactly the right instruction for a half-finished setup. A third chip
+    (`Not set up yet`) would say it more precisely and would add a state the spec
+    did not ask for; happy to add it if you want the precision.
+
+61. **Signal names follow the backend's `SIGNAL_LABELS`, so `Charger On` and
+    `Charger Off` are two rows, not one `Charger`.** §1's list of humanised names
+    reads `Charger`, but §1 also says one row per active `parent_signals` entry,
+    and the standard set has two charger signals. I resolved it toward the
+    backend's existing labels because of what this screen is *for*: those strings
+    are the names of the shortcuts on the parent's phone (`Kettle — Amma Charger
+    On`), and a repair surface that calls a shortcut something other than its
+    name sends the family hunting. `Daily Check` keeps the backend's casing for
+    the same reason. A Python test now fails if the two ever drift. If you would
+    rather see a single collapsed `Charger` row whose health is the newest of
+    either signal, that is a small change to `computeTripwires` plus one line in
+    the exemption list.
+
+62. **The exemption is an allowlist passed by one caller; the ban is derived.**
+    AC5 asks for a scoped exemption rather than a weakened global test, so
+    `assertCopyLaw(text, allow)` masks an explicit list before the ban scan and
+    every other surface calls it with no allowlist at all. Two asymmetries are
+    deliberate: the **allowlist** is pinned as literals (deriving it from
+    `SIGNAL_DISPLAY_NAMES` would let a newly added signal exempt itself), while
+    the **ban** *is* derived from that map (so a new signal joins the ban for
+    free). Deriving the ban immediately paid for itself: the law banned the raw
+    keys but not the humanised names, and `Daily Check` — ordinary English —
+    could have appeared on a digest or a glance headline with nothing objecting.
+    That gap is now closed globally, which makes this commit a net *tightening*
+    of the copy law rather than its first loosening.
+
+63. **Day-granularity is enforced against the DOM, not against the copy.** The
+    AC3 walk scans text *and* attributes for digits and allows exactly one shape,
+    `N days ago`. Two things I got wrong first and fixed: the mask needs no
+    leading `\b` (element text concatenates to `Connected3 days ago`, and the
+    boundary silently stopped it matching — a mask that never matches is a test
+    that proves nothing), and the mask must not become a blanket digit
+    allowance, so the plant test asserts `opened 4 times` and a `data-days="3"`
+    attribute both still throw. Verified the whole guardrail set by planting five
+    regressions in the real components — a clock time on the recency line, an
+    always-on repair nudge, a red chip, another parent's signals in the list, and
+    a signal name on the Glance subline — and confirming each was caught by the
+    test written for it before reverting.
+
+64. **Rows are in configured order, not stale-first.** A maintenance list whose
+    rows rearrange themselves between 45-second polls is harder to read than one
+    that stays put, and the amber chip already carries the attention. Trivial to
+    flip if you would rather the broken one always be at the top.
