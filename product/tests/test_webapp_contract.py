@@ -53,18 +53,47 @@ def test_webapp_copy_matches_the_backend_templates():
     assert ts["CLOCK_NEUTRAL"] == messages.CLOCK_NEUTRAL
 
 
-def test_webapp_glance_copy_is_never_darker_than_quiet():
-    """Spec 005a §3.1: `Quiet so far` is the floor for this whole app."""
-    ts = _ts_consts(COPY_TS)
-    assert ts["GLANCE_ALL_NORMAL"] == "All normal"
-    assert ts["GLANCE_QUIET"] == "Quiet so far"
+# The headline is the one string a family reads at an anxious moment, so it is
+# the one the floor law governs. Sublines are captions on it and may state a
+# plain absence ("No routine seen yet"); a headline may not.
+GLANCE_HEADLINES = {
+    "GLANCE_SEEN_MORNING": "{name}'s morning started the usual way",
+    "GLANCE_SEEN_AFTERNOON": "A normal day so far",
+    "GLANCE_SEEN_EVENING": "A normal, gentle day",
+    "GLANCE_QUIET_MORNING": "Quiet so far this morning",
+    "GLANCE_QUIET_TODAY": "Quiet so far today",
+}
+GLANCE_SUBLINES = {"GLANCE_NO_ROUTINE_YET"}
 
-    for name, value in ts.items():
-        if not name.startswith("GLANCE_"):
-            continue
+
+def test_webapp_glance_copy_is_never_darker_than_quiet():
+    """005a §3.1, carried into 005c: `Quiet so far` is still the floor."""
+    ts = _ts_consts(COPY_TS)
+
+    assert {k: ts[k] for k in GLANCE_HEADLINES} == GLANCE_HEADLINES
+
+    # A newly added GLANCE_ constant has to be classified rather than quietly
+    # escaping the scan below — that is how a floor rots.
+    unclassified = {
+        name
+        for name in ts
+        if name.startswith("GLANCE_")
+        and name not in GLANCE_HEADLINES
+        and name not in GLANCE_SUBLINES
+    }
+    assert not unclassified, f"classify these as headline or subline: {unclassified}"
+
+    for name, value in GLANCE_HEADLINES.items():
         lowered = value.lower()
         for worrying in ("no ", "not ", "unreachable", "silent", "concern", "alert"):
             assert worrying not in lowered, f"{name} is darker than the floor: {value}"
+        if name.startswith("GLANCE_QUIET"):
+            assert value.startswith("Quiet so far"), f"{name} left the floor: {value}"
+
+
+def test_webapp_beacon_describes_the_handset_not_the_person():
+    """Law #6 at the pixel: a mechanism signal may never anchor a person claim."""
+    assert _ts_consts(COPY_TS)["BEACON_LABEL"] == "phone"
 
 
 def test_privacy_footer_is_verbatim():
