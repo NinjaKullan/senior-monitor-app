@@ -24,8 +24,8 @@ that on every push.
 
 | Screen | What it shows |
 |---|---|
-| **Today** (Glance) | per parent: a day-part-aware headline, a dual-timezone "last routine seen" subline, a three-segment day arc, and a liveness beacon |
-| **Tripwire health** | tap a card: that parent's configured tripwires, each with a health chip and a day-granularity recency |
+| **Today** (Glance) | per parent: a day-part-aware headline, a dual-timezone "last routine seen" subline, a three-segment day arc, and a liveness beacon. The whole card is a tap target — chevron and pressed state — into that parent's detail page |
+| **Tripwire health** | tap a card: that parent's configured tripwires, each with a health chip and a day-granularity recency. This page is the parent's home, and future per-parent views (day detail, that parent's digests) belong here |
 | **Digests** | reverse-chron list of what was actually sent, recomposed from the templates |
 | **Family** | read-only roster of parents and members, and the privacy line |
 
@@ -95,7 +95,11 @@ actually stale — a standing "may need a fix" under a healthy list is a low-gra
 alarm, and this app's alerting goes to the founder, never to the family.
 
 A signal never heard from is a third state, `Not set up yet`, and it is neither
-amber nor a nudge trigger. **Absence of *ever* means not-yet-configured, not
+amber nor a nudge trigger — and it renders **no recency beside it at all**. The
+word `never` is gone from `copy.ts` rather than merely uncalled, and
+`renderRecency` no longer accepts the kind, so a caller reaching for it fails to
+compile: beside that chip it was redundant, and it read as a verdict on the
+parent rather than a fact about the plumbing. **Absence of *ever* means not-yet-configured, not
 broken** — the same distinction that stops the backend's infra alert firing
 before the first ping ever arrives. A family's first minutes in the app must not
 open with "something needs fixing", so an uninstalled shortcut reads like an

@@ -1067,3 +1067,60 @@ One change requested (60), one deferral recorded (59), the rest approved.
 Builds land on `main` — merge the working branch and push there, now and for
 future specs. `main` is the PM's review surface; a branch nobody has merged is
 not reviewable by a `git pull`.
+
+---
+
+## UI polish round — founder, on-device (implementer notes, 2026-08-01)
+
+Four changes from holding the app on a phone, no spec. Recorded because two of
+them made judgement calls the founder's brief left to me, and one narrowed a
+guardrail.
+
+65. **The card's tap affordance is a chevron plus a colour-only pressed state.**
+    `active:bg-muted/60` and a `focus-visible` ring, and deliberately no
+    transform. A scale or translate on press would be the app's first animation
+    outside `motion-safe:`, which item 55 put there on purpose — a viewer who
+    asked for no motion should not get a card that jumps under the thumb. The
+    test asserts the absence, not just the presence, so the cheap version of this
+    (`active:scale-95`) cannot arrive later without failing.
+
+    The chevron is `aria-hidden`: the tap target already carries
+    `Tripwire health for {name}` as its accessible name, and a second announced
+    element would only make the card noisier to a screen reader.
+
+66. **The row height is `min-h-11`, the same 11 the Button uses.** Reusing the
+    app's existing touch-target unit rather than inventing a padding value —
+    it's the one number in this codebase that already means "comfortable to hit
+    on a phone".
+
+67. **The DOM walk narrows for SVG, and this is the one thing here I would flag
+    as guardrail-adjacent.** The chevrons put `viewBox="0 0 24 24"` and
+    `stroke-width="2"` in the detail view, which the AC3 digit walk correctly
+    objected to. Rather than exempt the icons or drop the attribute scan, the
+    walk now skips *geometry* attributes on SVG-namespaced elements only, and
+    still scans `aria-*`, `data-*`, `role`, `title` and `alt` everywhere. Two
+    plants prove the narrowing is that narrow: an icon carrying
+    `aria-label="opened 4 times"` and one carrying `data-days="3"` both still
+    fail, while a decorative chevron passes.
+
+    The principle I applied: the walk exists to catch what a reader or a screen
+    reader could reach, and it already skipped `class` for exactly that reason
+    (Tailwind's scale is full of digits). Path geometry is in the same category.
+    If the PM reads this as a weakening rather than a sharpening, the fallback is
+    CSS-drawn chevrons and no SVG in the tree at all — a little uglier, and it
+    would keep the scan absolute.
+
+68. **`never` is deleted, not merely unrendered.** The founder's call was that a
+    tripwire with no pings shows its chip and no recency text; the choice between
+    an em dash and nothing was left to me, and I chose **nothing**. An em dash
+    is a glyph a screen reader announces for a row that has nothing to say, and
+    the row needs no filler to hold its shape — the chip is right-aligned either
+    way. (The Family screen's `—` for a missing name is the other precedent, but
+    that one is holding a column in a two-column list.)
+
+    The word came out of `copy.ts` entirely and `renderRecency` no longer accepts
+    the `never` kind, so a future caller reaching for it fails to compile. That
+    follows the same reasoning the recency vocabulary already used against clock
+    times: the constraint is safest when the string does not exist. The model
+    still knows `recency.kind === "never"` — that is the fact — it simply has no
+    words for it.

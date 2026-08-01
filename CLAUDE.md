@@ -74,7 +74,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 65.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 69.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -90,6 +90,13 @@ deferred** — learned cadences wait for the threshold-analysis spec, fixed
 windows stand — and **60 changed**: a signal never heard from reads `Not set up
 yet`, neutral and outside the repair-nudge trigger, because absence of *ever*
 means not-yet-configured rather than broken.
+
+A founder-led UI polish round followed on-device (QUESTIONS 65–68, no spec): tap
+affordance on the parent cards, `Back to today` as a control, taller tripwire
+rows, and `never` deleted from the recency vocabulary. **The parent detail page
+is the parent's future home — day-detail and per-parent digest views are
+expected to live there**, which is why the affordance mattered enough to fix
+before the next spec.
 
 **No unbuilt spec is in `specs/`** — 005b (onboarding wizard, family codes,
 billing, TestFlight) is what the roadmap points at next, and the tripwire view's
