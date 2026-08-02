@@ -12,7 +12,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SCENARIOS, Scenarios } from "@/sections/Scenarios";
-import { OFF_TAB, SEEN_TAB } from "@/copy";
+import { OFF_NOTIF, OFF_TAB, SEEN_NOTIF, SEEN_TAB } from "@/copy";
 
 const tabs = () => screen.getAllByTestId("scenario-tab");
 const panels = () => screen.getAllByTestId("scenario-panel");
@@ -143,6 +143,20 @@ describe("AC6 — the measured tab grammar", () => {
   it("keeps only the active tab in the tab order", () => {
     render(<Scenarios />);
     expect(tabs().map((t) => t.getAttribute("tabindex"))).toEqual(["0", "-1", "-1", "-1"]);
+  });
+});
+
+describe("the two notifications, and whose phone each is on", () => {
+  it("shows the senior-first question on her phone and the digest naming Dad on yours", () => {
+    // Amendment A's persona balance, asserted at the panel. The `off` panel is a
+    // question addressed to her; the `seen` panel is the sample digest a child
+    // receives, and it names Dad. The asymmetry is the point — the scenarios
+    // follow one parent, the page shows both — so it is pinned here rather than
+    // left to look like a mismatch someone should tidy.
+    render(<Scenarios />);
+    const bodies = screen.getAllByTestId("notification-body").map((n) => n.textContent);
+    expect(bodies).toEqual([`Kettle: ${OFF_NOTIF}`, `Kettle: ${SEEN_NOTIF}`]);
+    expect(bodies[1]).toContain("Dad's");
   });
 });
 

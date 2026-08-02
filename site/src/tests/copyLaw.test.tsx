@@ -55,6 +55,20 @@ const SURVEILLANCE = ["track", "tracking", "tracked", "surveillance", "monitor h
 /** Verdicts about a person's state, as assertions. */
 const VERDICTS = ["she's fine", "she is fine", "is safe", "doing well", "she's okay", "she is okay"];
 
+/**
+ * Romanized kinship terms and culture-coded vocabulary (Amendment A).
+ *
+ * The audience is English-fluent and broader than any one culture, so a word a
+ * reader cannot parse costs more than it earns — the photography carries the
+ * specificity instead. Case-insensitive, like every ban here, because the scan
+ * lowercases first.
+ *
+ * `beta` is deliberately absent. It is a kinship term in several languages and
+ * also the word this product will one day use for its own beta, and a ban that
+ * fights the roadmap is a ban someone deletes.
+ */
+const CULTURE_CODED = ["amma", "appa", "chai", "paati", "thatha", "nani", "dadi", "ajji"];
+
 /** App and platform names. Permitted in §3.4's mechanism copy and nowhere else. */
 const APP_NAMES = ["whatsapp", "facetime", "shortcuts", "youtube", "instagram"];
 
@@ -106,6 +120,18 @@ function assertCopyLaw(text: string, allow: (string | RegExp)[] = []) {
     expect(
       new RegExp(`\\b${word.replace(/'/g, "['’]")}\\b`).test(scanned),
       `"${word}" appeared in: ${text}`,
+    ).toBe(false);
+  }
+
+  // Scanned against the *unmasked* text, unlike every other ban here. Amendment
+  // A says "no allowlist entries", and the way to mean that is to make the
+  // exemption unreachable rather than merely empty: a future allowlist addition
+  // cannot smuggle a kinship term in behind it.
+  const raw = text.toLowerCase();
+  for (const word of CULTURE_CODED) {
+    expect(
+      new RegExp(`\\b${word}\\b`).test(raw),
+      `culture-coded "${word}" appeared in: ${text}`,
     ).toBe(false);
   }
   // An exclamation mark in a heading or a CTA is urgency wearing punctuation.
@@ -160,6 +186,46 @@ describe("AC3 — the copy module obeys the marketing bans", () => {
     expect(() => assertCopyLaw("Track her daily routine")).toThrow();
     expect(() => assertCopyLaw("Request invite!")).toThrow();
     expect(() => assertCopyLaw("Spot the early symptoms of decline")).toThrow();
+  });
+
+  it("carries no romanized kinship term or culture-coded word", () => {
+    // The sweep, done by the test rather than by memory — Amendment A says so
+    // in those words, because a hand sweep is exactly what misses the one in an
+    // alt text nobody rereads.
+    for (const [name, value] of STRINGS) {
+      for (const word of CULTURE_CODED) {
+        expect(
+          new RegExp(`\\b${word}\\b`).test(value.toLowerCase()),
+          `${name} carries "${word}": ${value}`,
+        ).toBe(false);
+      }
+    }
+  });
+
+  it("would catch a kinship term in a heading, and cannot be allowlisted past", () => {
+    expect(() => assertCopyLaw("Amma's day started normally.")).toThrow();
+    expect(() => assertCopyLaw("By the time the chai went cold")).toThrow();
+    expect(() => assertCopyLaw("APPA is up early")).toThrow();
+
+    // The exemption is unreachable, not empty: passing the offending string as
+    // its own allowlist entry still fails.
+    const kin = "Amma's day started normally.";
+    expect(() => assertCopyLaw(kin, [kin])).toThrow();
+  });
+
+  it("leaves beta alone, so a future beta mention does not fight the ban", () => {
+    // A kinship term in several languages, and the word this product will use
+    // for its own beta. Amendment A excludes it deliberately.
+    expect(CULTURE_CODED).not.toContain("beta");
+    expect(() => assertCopyLaw("Join the beta")).not.toThrow();
+  });
+
+  it("shows both parents: plural in the hero, Dad in the sample digest", () => {
+    // The scenarios follow one parent because a day needs a person in it; the
+    // page as a whole balances. Asserted so it is not tidied into a match.
+    expect(copy.HERO_BODY).toContain("your parents'");
+    expect(copy.HERO_BODY).toContain("asks them first");
+    expect(copy.SEEN_NOTIF).toBe("Dad's day started normally.");
   });
 
   it("exempts the senior-first question without exempting a verdict", () => {
@@ -319,7 +385,7 @@ describe("AC4 — the only digits are a price and three numerals", () => {
       node.innerHTML = html;
       return () => digitWalk(node);
     };
-    expect(plant("<span>Amma's day started normally · 7:42 am</span>")).toThrow();
+    expect(plant("<span>Dad's day started normally · 7:42 am</span>")).toThrow();
     expect(plant("<span>She opened 4 apps today</span>")).toThrow();
     expect(plant('<span data-count="9">Today</span>')).toThrow();
     expect(plant(`<span>${WAITLIST_BODY}</span>`)).not.toThrow();
