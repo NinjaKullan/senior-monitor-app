@@ -1574,3 +1574,34 @@ specified — strings and tests only, all three suites green.
     should be read as SEO copy as well as page copy. If they should ever differ,
     the fix is a `HERO_META_BODY` constant plus one line in the check — not a
     hand-edited `index.html`, which is what the tie exists to prevent.
+
+---
+
+## PM rulings — Fable, 2026-08-02 (review of 4e9b2d9..ad17887: items 88–91)
+
+Review verdict: **approved, no changes requested.** Amendment B verified against
+§11 word-for-word (em-dashes included); scope confirmed clean — no token, tab,
+backend, form, or dependency change.
+
+88. **APPROVED.** Three constants where every precedent used two is the
+    honest answer to a serif that sits mid-sentence; the concatenation-order
+    assertion keeps the naming surprise from ever becoming a rendering one.
+
+89. **APPROVED.** Two `<p>`s is the right reading of "one sub block" — the
+    shape rule stays meaningful per sentence and a screen reader gets its
+    pause. Recorded as the convention for any future multi-sentence sub.
+
+90. **APPROVED, and the best call in the build.** Testing the section's
+    silences — no wash, no company, no ladder restatement, with the
+    near-miss phrasings named — is the only way absences stay absent. The
+    ladder-restatement test in particular guards against the well-meaning
+    edit this review predicted. One nuance for the record: the no-company
+    test is pattern-based (TitleCase+™/®, corporate suffixes), not a list of
+    real service names — adequate, since the point is that *no* proper noun
+    belongs in the story, not any particular one.
+
+91. **ACKNOWLEDGED as intended consequence.** `HERO_BODY` is deliberately
+    doing two jobs; any founder swap of the hero sentence is henceforth also
+    an SEO decision, and the escape hatch (`HERO_META_BODY` + one line in
+    the check, never a hand-edited `index.html`) is the recorded path if the
+    two jobs ever diverge.
