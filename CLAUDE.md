@@ -143,8 +143,17 @@ repair nudge hands off to its guided repair, and 005e's generation half is
 already the piece 005b's macOS CI signer would reuse. The PM has not written
 that spec yet.
 
+**The site is LIVE at kettle-site.fly.dev** (founder deploy, 2026-08-02): Fly
+static app, `site/Dockerfile` serves `dist/` via gostatic on 8080 — the
+Dockerfile must copy `dist/`, never the source tree (a `COPY .` served the dev
+`index.html` as a blank page), and `.dockerignore` must exclude `node_modules`
+but never `dist/`. Deploy workflow: `cd site && VITE_API_BASE_URL=
+"https://kettle-api.fly.dev" npm run ci && fly deploy`.
+
 Production (`kettle-prod`) is at migration 0008 and **0009 is owed** — the
-waitlist table, which the landing page needs before it can collect anything. The
-founder applies migrations and runs deploys, so a spec being "done" here means
-green locally and pushed, never shipped; 006 additionally needs DNS and a static
-host pointed at `site/dist/` (`site/README.md` has the three steps).
+waitlist table, which the form needs before it can collect anything. **The form
+is also CORS-dead until `WAITLIST_ORIGINS` on kettle-api includes the serving
+origin** (`https://kettle-site.fly.dev` now; the getkettle.* domains after
+DNS). The founder applies migrations and runs deploys, so a spec being "done"
+here means green locally and pushed, never shipped. Spec 006 Amendment B (the
+kettle-story section, spec §11) is ACTIVE.

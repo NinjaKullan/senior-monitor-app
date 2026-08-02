@@ -1,6 +1,6 @@
 # Spec 006 — Landing page (getkettle.*)
 
-**STATUS: BUILT — `1effca4..0bbf9cc`, reviewed and approved by PM 2026-08-02 (rulings 78–83 in QUESTIONS.md). Amendment A (§10, founder site review same day) is ACTIVE — build it. Remaining founder steps: migration 0009 to `kettle-prod`, DNS, static host → `site/dist/` (`site/README.md`).**
+**STATUS: BUILT — `1effca4..0bbf9cc`, reviewed and approved by PM 2026-08-02 (rulings 78–83 in QUESTIONS.md). Amendment A (§10) is BUILT (`369f33e..66457ee`, approved). Amendment B (§11, the kettle story) is ACTIVE — build it. Site is LIVE at kettle-site.fly.dev; remaining founder steps: migration 0009 to `kettle-prod`, `WAITLIST_ORIGINS` to include the serving origin, DNS.**
 
 *PM: Fable, 2026-08-02. The Wave-0 landing page: one static page whose job is to collect a waitlist and ask THE question ("What phone does your parent use?" — it decides Wave 2 priority with data, per the GTM roadmap). `docs/design-language.md` is the law of this surface; this spec locks its TBD-at-spec-time values, defines the page, and wires the copy-law tests into marketing. Rulings 74–76 govern typography, the eyebrow slot, and the trade-dress line. Where this spec drafts copy, the **rules** are binding and the **strings** are founder-editable at review — swap a sentence freely, but it must still pass the tests in §8.*
 
@@ -161,3 +161,23 @@ Two founder rulings from reviewing the built page, now law in `docs/design-langu
 **Copy-law extension:** a new banned group `CULTURE_CODED`, case-insensitive: `amma`, `appa`, `chai`, `paati`, `thatha`, `nani`, `dadi`, `ajji`. (Deliberately excludes `beta` — a future "beta" product mention must not fight the ban.) No allowlist entries; nothing on the page may use these.
 
 **Acceptance:** all §8 ACs still green after the ripple; the new ban verified by planting `Amma` in a heading and watching it fail; the *seen*-panel test asserts the `Dad's` string; prerender list updated; no structural or token change anywhere — this amendment is strings and tests only.
+
+## 11. Amendment B — the kettle story (founder direction after launch, 2026-08-02)
+
+The name gets its origin told. One new section plus one hero line; everything else untouched.
+
+**11.1 Hero sub gains a second sentence.** After the existing sub: `No new devices — only the phone they already have.` (Both sentences render as one sub block; MUST_RENDER updated.)
+
+**11.2 New section between the scenario tabs (§3.2) and the three fields (§3.3)** — deliberately placed so the story hands off to the privacy centrepiece: kettle → phone → three fields. Canvas ground, no gradient wash, standard entry motion, one idea per viewport. Structure: eyebrow + H2 + three short paragraphs, serif budget spent once. Strings:
+
+- Eyebrow: `WHY THE NAME`
+- H2: `Named after a kettle.`
+- Para 1: `In Japan, a tea kettle once told faraway families that their parents had started the day as usual.`
+- Para 2: `The idea was gentle — `*`notice the ordinary, and say so.`*` Kettle does the same with the phone your parents already own.` (the italic span is the section's serif phrase, per design-language §3)
+- Para 3: `Nothing to install in their home. Nothing to wear, nothing to charge, nothing to learn.`
+
+The story stays anonymous by design — no company or product named (a real service inspired it; marketing doesn't borrow its trademark). The founder's "before alerting family" framing is deliberately *not* added anywhere: `alert` is banned on this surface, and the senior-first mechanism is already the off-panel's copy — the story section must not restate it.
+
+**11.3 Item-85 debt comes due in this build** (it touches `site/` mechanisms, per the PM ruling on 85): the prerender check asserts `index.html`'s meta description equals `HERO_BODY` structurally rather than by duplicated string.
+
+**Acceptance:** all §8 ACs green after the change; the new section passes copy shape (H2 4 words, paragraphs ≤23), the serif-slot test, and the full ban set; prerender list includes the five new strings and the meta≡HERO_BODY tie; section order asserted (scenarios → kettle story → three fields); no token, tab, backend, or form change.
