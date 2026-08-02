@@ -29,13 +29,16 @@ stricter.
 | Notification proportions live in one place | `motion.test.tsx` against `lib/notification.ts` |
 | No foreign origin in `dist/` | `scripts/check-foreign-origins.mjs`, in `npm run ci` |
 | The page reads with JavaScript off | `scripts/check-prerender.mjs`, in `npm run ci` |
+| The meta description never drifts from `HERO_BODY` | `scripts/check-prerender.mjs` compares them structurally |
+| Sections stay in argument order (scenarios → story → three fields) | `story.test.tsx`, rendered and static |
 
 Every one of those was verified by planting the regression it exists to catch —
 an urgency word, a `!` CTA, a person-status verdict, an app name inside a
 scenario, a drifted three-fields claim, a clock time in a notification, a
 `hover:scale`, an ungated entry animation, a red chip outside the form, a serif
-on a second consecutive element, a kinship term in a heading — and watching it
-fail before reverting.
+on a second consecutive element, a kinship term in a heading, a reordered
+section, a second serif, a drifted meta description — and watching it fail
+before reverting.
 
 **Universal English, and both parents** (Amendment A, founder site review). The
 copy carries no romanized kinship terms and no culture-coded vocabulary: the

@@ -74,7 +74,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 88.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 92.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -121,6 +121,12 @@ is the parent's future home — day-detail and per-parent digest views are
 expected to live there**, which is why the affordance mattered enough to fix
 before the next spec.
 
+**Amendment B** (2026-08-02) is built: the kettle-story section sits between the
+scenarios and the three fields — kettle, then phone, then the whole record, which
+is one argument and is asserted as an order — plus the hero's second sub line and
+the item-85 debt (the meta description is now tied to `HERO_BODY` in the
+prerender check rather than duplicated by hand). Notes are QUESTIONS 88–91.
+
 **Amendment A** (founder site review, 2026-08-02) is built: marketing copy is
 universal English — no romanized kinship terms, no culture-coded vocabulary —
 and the page shows both parents (hero plural, sample digest names Dad, scenarios
@@ -155,5 +161,5 @@ waitlist table, which the form needs before it can collect anything. **The form
 is also CORS-dead until `WAITLIST_ORIGINS` on kettle-api includes the serving
 origin** (`https://kettle-site.fly.dev` now; the getkettle.* domains after
 DNS). The founder applies migrations and runs deploys, so a spec being "done"
-here means green locally and pushed, never shipped. Spec 006 Amendment B (the
-kettle-story section, spec §11) is ACTIVE.
+here means green locally and pushed, never shipped — the live site is running
+the pre-Amendment-B build until the next deploy.

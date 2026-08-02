@@ -1529,3 +1529,48 @@ specified — strings and tests only, all three suites green.
     digest — is Amendment A exactly as intended, and pinning it with two tests
     plus the `copy.ts` header paragraph is the house pattern: the deliberate
     choice defended against the obvious future "fix".
+
+---
+
+## Spec 006 Amendment B — the kettle story (implementer notes, 2026-08-02)
+
+88. **Paragraph 2 is three strings, not two.** The existing serif split
+    (QUESTIONS 79/86) is lead-then-serif, because every scenario sentence ends
+    on its emphasis. This one has the serif in the *middle* — `The idea was
+    gentle — ` *`notice the ordinary, and say so.`* ` Kettle does the same …` —
+    so it needs a tail as well: `STORY_TWO_LEAD`, `STORY_TWO_SERIF`,
+    `STORY_TWO_BODY`. All three carry existing role suffixes, so the shape and
+    prerender checks pick them up with no change to either. Worth noting only
+    because "the `_BODY` of paragraph two comes *after* its `_SERIF`" is
+    surprising if you meet the file cold and assume the suffix implies order.
+
+89. **The hero sub is a `<div>` of two `<p>`s, not one paragraph with a break.**
+    §11.1 says both sentences render as one sub block. Two paragraphs keep each
+    sentence its own element — a screen reader pauses between them, and the ≤23
+    word shape rule stays meaningful per sentence rather than being satisfied by
+    a combined string that is really two. The block has its own testid so the
+    "one sub block" reading is asserted rather than implied by adjacency.
+
+90. **Three of the story section's tests assert absences**, which is deliberate
+    and worth flagging as the shape of this section's risk. It carries no wash
+    (a tint would imply a fifth scenario), names no company, and does not restate
+    the senior-first mechanism. That last one is the likely regression: someone
+    who has just read the off panel will feel the story should close the loop,
+    and the founder's own "before alerting family" framing is the sentence they
+    will reach for. §11 rules it out, `alert` is banned here anyway, and the test
+    names the near-miss phrasings (`asks them first`, `before anyone`) so the
+    ban's word-boundary scan is not the only thing standing in the way.
+
+91. **The meta≡`HERO_BODY` tie compares against the *built* HTML**, not the
+    source template, so it also catches a build step that mangles or drops the
+    tag. Entities are decoded and whitespace collapsed first — the source wraps
+    the attribute across lines, and a check that failed on indentation would be
+    noise. Verified by planting a drifted description and watching it name both
+    strings back.
+
+    One consequence worth stating: `HERO_BODY` is now the meta description, so a
+    founder swap of that string changes what search results show. That is the
+    intent of the tie, but it means the hero sentence is doing two jobs and
+    should be read as SEO copy as well as page copy. If they should ever differ,
+    the fix is a `HERO_META_BODY` constant plus one line in the check — not a
+    hand-edited `index.html`, which is what the tie exists to prevent.
