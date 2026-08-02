@@ -1,7 +1,14 @@
 import { Eyebrow } from "@/components/Eyebrow";
 import { ImageSlot } from "@/components/ImageSlot";
 import { PillLink } from "@/components/Pill";
-import { HERO_ALT, HERO_BODY, HERO_CTA, HERO_EYEBROW, HERO_H1 } from "@/copy";
+import {
+  HERO_ALT,
+  HERO_BODY,
+  HERO_CTA,
+  HERO_EYEBROW,
+  HERO_H1,
+  HERO_NO_DEVICE_BODY,
+} from "@/copy";
 import { washBackground } from "@/lib/wash";
 
 /**
@@ -22,7 +29,12 @@ export function Hero() {
         <h1 className="max-w-2xl text-display font-light" data-testid="page-heading">
           {HERO_H1}
         </h1>
-        <p className="max-w-xl text-lead text-secondary">{HERO_BODY}</p>
+        {/* One sub block, two sentences: what Kettle notices, and the objection
+            it answers before anyone raises it. */}
+        <div className="flex max-w-xl flex-col gap-2" data-testid="hero-sub">
+          <p className="text-lead text-secondary">{HERO_BODY}</p>
+          <p className="text-lead text-secondary">{HERO_NO_DEVICE_BODY}</p>
+        </div>
         <div>
           <PillLink href="#waitlist">{HERO_CTA}</PillLink>
         </div>

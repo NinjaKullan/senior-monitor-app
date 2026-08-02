@@ -37,6 +37,9 @@ export const HERO_EYEBROW = "For families far away";
 export const HERO_H1 = "Know the day started normally.";
 export const HERO_BODY =
   "Kettle notices when your parents' ordinary phone routine doesn't happen — and asks them first, before anyone worries.";
+/** The second half of the sub block. The objection this page answers before it
+ *  is raised: nothing arrives, nothing is worn, nothing new has to be learned. */
+export const HERO_NO_DEVICE_BODY = "No new devices — only the phone they already have.";
 export const HERO_CTA = "Join waitlist";
 export const HERO_ALT =
   "A mother tending an unruly balcony garden while her son, in another city, exhales at a simple notification.";
@@ -90,6 +93,29 @@ export const SEEN_BODY = "Never a feed, never a score, never a graph.";
 export const SEEN_ALT =
   "Grandparents teaching a granddaughter a family recipe over a propped-up tablet, flour on the counter.";
 export const SEEN_NOTIF = "Dad's day started normally.";
+
+/* ---------------------------------------------------------------------- */
+/* Why the name (Amendment B)                                               */
+/* ---------------------------------------------------------------------- */
+
+/*
+ * The story stays anonymous by design: a real service inspired it, and
+ * marketing does not borrow someone else's trademark to explain its own name.
+ *
+ * It is also deliberately silent about what happens next. The founder's
+ * "before alerting family" framing is not here — `alert` is banned on this
+ * surface, and the senior-first mechanism is already the off-panel's copy. A
+ * story section that restated it would be selling the ladder twice.
+ */
+export const STORY_EYEBROW = "Why the name";
+export const STORY_H2 = "Named after a kettle.";
+export const STORY_ONE_BODY =
+  "In Japan, a tea kettle once told faraway families that their parents had started the day as usual.";
+export const STORY_TWO_LEAD = "The idea was gentle — ";
+export const STORY_TWO_SERIF = "notice the ordinary, and say so.";
+export const STORY_TWO_BODY = "Kettle does the same with the phone your parents already own.";
+export const STORY_THREE_BODY =
+  "Nothing to install in their home. Nothing to wear, nothing to charge, nothing to learn.";
 
 /* ---------------------------------------------------------------------- */
 /* The three fields                                                         */

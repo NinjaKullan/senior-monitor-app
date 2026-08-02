@@ -1,5 +1,6 @@
 import { Hero } from "@/sections/Hero";
 import { Scenarios } from "@/sections/Scenarios";
+import { KettleStory } from "@/sections/KettleStory";
 import { ThreeFields } from "@/sections/ThreeFields";
 import { HowItWorks } from "@/sections/HowItWorks";
 import { Waitlist } from "@/sections/Waitlist";
@@ -17,6 +18,7 @@ export default function App() {
     <main className="bg-canvas font-sans text-ink">
       <Hero />
       <Scenarios />
+      <KettleStory />
       <ThreeFields />
       <HowItWorks />
       <Waitlist />
