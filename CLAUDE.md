@@ -74,7 +74,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 74.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 77.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -109,6 +109,16 @@ rows, and `never` deleted from the recency vocabulary. **The parent detail page
 is the parent's future home — day-detail and per-parent digest views are
 expected to live there**, which is why the affordance mattered enough to fix
 before the next spec.
+
+Landing-page groundwork (research only, 2026-08-02, no product code):
+`docs/oura-design-analysis.md` extracts Oura's tokens from their compiled
+Tailwind theme and measured assets, per the founder's Aug-1 design-language
+decision. Its §10 lists the three things a fetch could not see — scroll
+choreography, scenario-tab active states, and one unlocated gradient pair — and
+they need founder screenshots, not another fetch. QUESTIONS 74–76 hold the
+calls the landing-page spec is blocked on (typeface licensing, whether the
+status-eyebrow form may travel without its diagnostic meaning, and where the
+trade-dress line sits on colour).
 
 **No unbuilt spec is in `specs/`** — 005b (onboarding wizard, family codes,
 billing, TestFlight) is what the roadmap points at next; the tripwire view's

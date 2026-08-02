@@ -1226,3 +1226,56 @@ guardrail.
     on the server. Tests import `scripts.forge` directly, which the pytest path
     config already supports. If the 005b CI-runner path pulls generation into a
     service, that is the moment to promote it to `kettle/`.
+
+---
+
+## Oura design analysis — research, no spec (2026-08-02)
+
+Three calls raised by `docs/oura-design-analysis.md`. None blocked the research;
+all three block the landing-page spec, and 75 touches product law.
+
+74. **Both Oura typefaces are commercial, and the substitution is a design
+    decision, not a swap.** The sans is Akkurat LL (Lineto), the serif is PP
+    Editorial New (Pangram Pangram) — self-hosted `.woff2`, read from their
+    `@font-face` block, so this is certain rather than guessed. Neither can be
+    used by Kettle without a licence. Two things follow. (a) **Budget or open
+    substitutes?** A licence pair is real money for a pre-revenue product; open
+    alternatives exist for both roles but none is a drop-in for the serif's
+    ultralight italic, which is precisely the face doing the emotional work in
+    their system (§1). (b) **Whatever we pick must ship a real semibold.** Oura
+    does not: they declare only 300 and 400 of the sans and then apply
+    `font-bold` to every CTA, so every button on their site renders faux-bold.
+    That is a bug we would be copying by accident. I have not chosen a pair —
+    the analysis names the requirements per role (§11) and stops there.
+
+75. **The "status eyebrow" is the one pattern I could not resolve against
+    product law #1, and I want a ruling before the landing-page spec uses it.**
+    Their data cards open with a small-caps, wide-tracked status word in a warm
+    clay (`#D89078`) or pink (`#F06898`) — `PAY ATTENTION`, `STRESSFUL DAY` —
+    followed by a serif sentence that interprets the number underneath it. The
+    *typographic* device is the best thing on the site for our purposes: it
+    states a condition without shouting, and the colour vocabulary deliberately
+    excludes red. But the device exists to deliver a **judgement about a
+    person's state**, which is exactly what law #1 forbids and law #6 constrains.
+    My reading, which I have written into the doc as form-carries /
+    semantics-refused: Kettle may use the eyebrow slot for a statement about
+    **the routine or the setup** ("Not set up yet" already lives in this
+    register, per the 005d ruling on item 60), and never for a statement about
+    the person. If the PM wants the slot banned outright rather than
+    re-purposed, say so before the spec — it changes the card grammar, not one
+    string.
+
+76. **The trade-dress line needs a number, not an adjective.** The brief said
+    patterns yes, cloning no, and for structure that is easy to honour: type
+    ratios, a 4px spacing unit, a 22-column named-line grid and a corner-anchored
+    radial wash are techniques, and §11 carries them across without hesitation.
+    Colour is where it gets uncomfortable. "Warm neutrals" is a look half the
+    wellness market shares, but `#F7F1E8` ground with `#4A4741` ink *as a pair*
+    is recognisably Oura's, and a landing page in that exact pair alongside an
+    editorial serif and scenario tabs would read as an imitation to anyone who
+    knows the reference. I proposed shifted values (`#F6F2EC` / `#403C36`) as
+    candidates rather than picking, because how far to move is a brand call, not
+    an implementation one. The question for the PM: is "same family, different
+    values, and never their exact pair" the standing rule, or does Kettle want a
+    deliberately different warmth — greener, greyer, or lighter — so the
+    reference is invisible? The second is more work and a stronger position.
