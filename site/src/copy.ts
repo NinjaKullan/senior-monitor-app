@@ -13,6 +13,18 @@
  * same classify-or-fail structure the glance floor has carried since item 57,
  * because that is how a rule quietly stops applying.
  *
+ * **Universal English** (Amendment A, founder site review): no romanized kinship
+ * terms and no culture-coded vocabulary anywhere on this surface. The audience is
+ * English-fluent and broader than any one culture; a word a reader cannot parse
+ * costs more than it earns, and the photography carries the specificity instead.
+ * `CULTURE_CODED` in the copy-law test enforces it with no allowlist at all —
+ * unlike every other ban here, this one cannot be exempted.
+ *
+ * **The personas balance.** The scenarios follow one vivid parent because a day
+ * needs a person in it; the page as a whole shows both, so the hero speaks of
+ * parents, plural, and the sample digest names Dad. That asymmetry is deliberate
+ * and is asserted — it is not a mismatch waiting to be tidied up.
+ *
  * The strings themselves are the founder's shipping drafts and are swappable at
  * review. The rules around them are not.
  */
@@ -24,10 +36,10 @@
 export const HERO_EYEBROW = "For families far away";
 export const HERO_H1 = "Know the day started normally.";
 export const HERO_BODY =
-  "Kettle notices when your mother's ordinary phone routine doesn't happen — and asks her first, before anyone worries.";
+  "Kettle notices when your parents' ordinary phone routine doesn't happen — and asks them first, before anyone worries.";
 export const HERO_CTA = "Join waitlist";
 export const HERO_ALT =
-  "Mother tending an unruly balcony garden in Chennai while her son in Brooklyn exhales at a simple notification";
+  "A mother tending an unruly balcony garden while her son, in another city, exhales at a simple notification.";
 
 /* ---------------------------------------------------------------------- */
 /* Scenario tabs                                                            */
@@ -45,11 +57,11 @@ export const SCENARIOS_H2 = "An ordinary day.";
 export const MORNING_TAB = "Her morning";
 export const MORNING_EYEBROW = "Her morning";
 export const MORNING_LEAD =
-  "By the time the chai went cold she'd called her sister, read the news, and ";
+  "By the time her coffee went cold she'd called her sister, read the news, and ";
 export const MORNING_SERIF = "lost an argument with the crossword.";
 export const MORNING_BODY = "Her phone did its ordinary things. That's all Kettle ever needs.";
 export const MORNING_ALT =
-  "Grandmother mid-laugh on a slightly crooked video call, chai steaming beside her phone, crossword and reading glasses in frame";
+  "Grandmother mid-laugh on a slightly crooked video call, a steaming cup beside her phone, crossword and reading glasses in frame.";
 
 export const AFTERNOON_TAB = "Her afternoon";
 export const AFTERNOON_EYEBROW = "Her afternoon";
@@ -57,7 +69,7 @@ export const AFTERNOON_LEAD = "Kettle knows the shape of her whole day, so ";
 export const AFTERNOON_SERIF = "a quiet afternoon reads as exactly that.";
 export const AFTERNOON_BODY = "A nap is not a signal.";
 export const AFTERNOON_ALT =
-  "A father home from the market on his scooter, helmet under one arm, his daughter's voice note playing from the handlebar";
+  "A father back from the market, bags in one hand, his daughter's voice note playing from the phone in the other.";
 
 export const OFF_TAB = "When something's off";
 export const OFF_EYEBROW = "When something's off";
@@ -65,7 +77,7 @@ export const OFF_LEAD = "When the morning doesn't look like her morning, ";
 export const OFF_SERIF = "Kettle asks her first, quietly.";
 export const OFF_BODY = "Only if she doesn't answer does anyone else hear a thing.";
 export const OFF_ALT =
-  "An older woman at neighbourhood dance rehearsal, phone resting on the piano, mid-step and mid-laugh";
+  "An older woman at dance rehearsal, phone resting on the piano, her daughter watching from another city.";
 /** Addressed *to* her, and a question rather than a claim — the one reason this
  *  string is on the pinned allowlist rather than banned. */
 export const OFF_NOTIF = "Everything okay today? Reply whenever suits.";
@@ -76,8 +88,8 @@ export const SEEN_LEAD = "Two short messages a day — ";
 export const SEEN_SERIF = "a phrase, when there's something worth saying.";
 export const SEEN_BODY = "Never a feed, never a score, never a graph.";
 export const SEEN_ALT =
-  "Grandparents teaching a granddaughter a family recipe over a propped-up tablet, flour on the counter";
-export const SEEN_NOTIF = "Amma's day started normally.";
+  "Grandparents teaching a granddaughter a family recipe over a propped-up tablet, flour on the counter.";
+export const SEEN_NOTIF = "Dad's day started normally.";
 
 /* ---------------------------------------------------------------------- */
 /* The three fields                                                         */

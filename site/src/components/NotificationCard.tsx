@@ -10,7 +10,7 @@ import { NOTIF_APP_LABEL, NOTIF_TIMESTAMP_LABEL } from "@/copy";
  * because there is no token on this site to make one with.
  *
  * The timestamp reads `Today`, never a clock time. A landing page that shows
- * `7:42 am` beside a mother's name has published her waking hour to everyone who
+ * `7:42 am` beside a parent's name has published their waking hour to everyone who
  * scrolls past, and the digit walk (AC4) fails on it.
  */
 export function NotificationCard({ body }: { body: string }) {
