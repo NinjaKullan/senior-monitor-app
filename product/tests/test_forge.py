@@ -14,6 +14,7 @@ import base64
 import json
 import plistlib
 import subprocess
+import sys
 from pathlib import Path
 
 import psycopg
@@ -294,6 +295,133 @@ def test_the_signing_wrapper_refuses_to_run_off_macos():
     result = subprocess.run(["bash", str(script), "irrelevant"], check=False, capture_output=True)
     assert result.returncode == 2
     assert "macOS only" in result.stderr.decode()
+
+
+# ---------------------------------------------------------------------------
+# QUESTIONS 77 — the bare-Mac path
+# ---------------------------------------------------------------------------
+
+#: Makes `import psycopg` fail the way it fails on a laptop that never installed
+#: the backend. Monkeypatching the module object would not do: the bug was an
+#: import at module scope, so the test has to run a real interpreter in which
+#: the driver genuinely cannot be imported.
+NO_PSYCOPG = """
+import sys
+
+class Absent:
+    def find_module(self, name, path=None):
+        return self.find_spec(name, path)
+
+    def find_spec(self, name, path=None, target=None):
+        if name == "psycopg" or name.startswith("psycopg."):
+            raise ModuleNotFoundError("No module named 'psycopg'")
+        return None
+
+sys.meta_path.insert(0, Absent())
+"""
+
+
+def _forge_without_psycopg(tmp_path: Path, *args: str, **env_extra: str):
+    blocker = tmp_path / "sitecustomize.py"
+    blocker.write_text(NO_PSYCOPG)
+    env = {
+        "PATH": "/usr/bin:/bin",
+        "PYTHONPATH": f"{tmp_path}:{REPO / 'product'}",
+        "PUBLIC_BASE_URL": "https://kettle-api.test",
+        **env_extra,
+    }
+    return subprocess.run(
+        [sys.executable, "-m", "scripts.forge", *args],
+        cwd=REPO / "product",
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_the_blocker_really_blocks_psycopg(tmp_path: Path):
+    """Otherwise every test below would pass on a machine that simply has it.
+
+    Drives the *database* path — a parent lookup with a DATABASE_URL set — which
+    is the one path that must still import the driver. It has to fail, and fail
+    for the right reason.
+    """
+    result = _forge_without_psycopg(
+        tmp_path,
+        "--parent",
+        "Amma",
+        "--out",
+        str(tmp_path / "x"),
+        DATABASE_URL="postgresql://unused.invalid/db",
+    )
+
+    assert result.returncode != 0
+    assert "No module named 'psycopg'" in (result.stderr + result.stdout)
+
+
+def test_device_token_mode_runs_with_psycopg_absent(tmp_path: Path):
+    """QUESTIONS 77: the founder's laptop has a token and no backend installed.
+
+    `--device-token --name` needs nothing from the database — the token and the
+    name are both on the command line — so it must not import a driver to prove
+    it. This failed in the field with ModuleNotFoundError before the import
+    moved inside the query path.
+    """
+    out = tmp_path / "shortcuts"
+    result = _forge_without_psycopg(
+        tmp_path, "--device-token", TOKEN, "--name", "Amma", "--out", str(out)
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "offline: no database consulted" in result.stdout
+    written = sorted(p.name for p in out.iterdir())
+    assert written == sorted(forge.file_name("Amma", s) for s, _ in STANDARD_SIGNALS)
+    for path in out.iterdir():
+        assert forge.validate(path.read_bytes(), forge.signal_from_name(path.name)) == []
+
+
+def test_offline_mode_takes_an_explicit_signal_list(tmp_path: Path):
+    """A parent who turned one off is a `--signals` away, still with no database."""
+    out = tmp_path / "shortcuts"
+    result = _forge_without_psycopg(
+        tmp_path,
+        "--device-token",
+        TOKEN,
+        "--name",
+        "Amma",
+        "--signals",
+        "whatsapp,device_alive",
+        "--out",
+        str(out),
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert sorted(p.name for p in out.iterdir()) == [
+        "Kettle — Amma Daily Check.shortcut",
+        "Kettle — Amma WhatsApp.shortcut",
+    ]
+
+
+def test_verify_and_inspect_are_offline_too(tmp_path: Path):
+    """Both run on the founder's Mac after signing; neither needs a database."""
+    out = tmp_path / "shortcuts"
+    forge.write(forge.generate("Amma", TOKEN, ["whatsapp"], BASE_URL), out)
+
+    assert _forge_without_psycopg(tmp_path, "--verify", str(out)).returncode == 0
+    inspected = _forge_without_psycopg(
+        tmp_path, "--inspect", str(out / forge.file_name("Amma", "whatsapp"))
+    )
+    assert inspected.returncode == 0
+    assert "differences from what forge generates" in inspected.stdout
+
+
+def test_a_token_with_no_name_and_no_database_says_what_to_do(tmp_path: Path):
+    """The failure the founder actually hit, now with an instruction in it."""
+    result = _forge_without_psycopg(tmp_path, "--device-token", TOKEN, "--out", str(tmp_path / "x"))
+
+    assert result.returncode == 2
+    assert "--name" in result.stderr
 
 
 # ---------------------------------------------------------------------------

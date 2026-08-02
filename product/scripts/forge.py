@@ -42,12 +42,20 @@ import plistlib
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import psycopg
+from kettle.signals import SIGNAL_LABELS, STANDARD_SIGNALS, shortcut_name
 
-from kettle import db
-from kettle.signals import SIGNAL_LABELS, shortcut_name
+if TYPE_CHECKING:  # pragma: no cover - typing only, never imported at runtime
+    import psycopg
+
+# psycopg and kettle.db are imported *inside* the two functions that query, not
+# here. This is a founder tool: `--device-token --name` forges a set of
+# shortcuts from a provisioning printout with no database in the picture, and it
+# has to run on a bare Mac that has never installed the backend. Importing a
+# database driver at module scope made that mode fail with ModuleNotFoundError
+# on a laptop in the field (QUESTIONS 77). --verify and --inspect are offline
+# for the same reason.
 
 # ---------------------------------------------------------------------------
 # The plist
@@ -414,6 +422,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--device-token", help="the device to forge shortcuts for")
     parser.add_argument("--parent", help="look the device up by the person's display name")
     parser.add_argument(
+        "--name",
+        help="the person's display name, for offline use with --device-token (no database)",
+    )
+    parser.add_argument(
+        "--signals",
+        help="comma-separated signals for offline mode (default: the standard set)",
+    )
+    parser.add_argument(
         "--out",
         type=Path,
         default=DEFAULT_OUT,
@@ -442,21 +458,47 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("one of --device-token, --parent, --verify or --inspect is required")
     if not args.base_url:
         parser.error("--base-url (or PUBLIC_BASE_URL) is required when generating")
+    if args.name and not args.device_token:
+        parser.error("--name is for offline use with --device-token; --parent looks the name up")
 
-    database_url = os.environ.get("DATABASE_URL")
-    if not database_url:
-        print("DATABASE_URL is not set", file=sys.stderr)
-        return 2
-
-    with db.connect(database_url) as conn:
-        try:
-            if args.device_token:
-                parent_name, token, signals = lookup_by_token(conn, args.device_token)
-            else:
-                parent_name, token, signals = lookup_by_parent(conn, args.parent)
-        except LookupError as exc:
-            print(str(exc), file=sys.stderr)
+    if args.name:
+        # Offline: everything needed is on the command line, so no database is
+        # opened and no driver is imported (QUESTIONS 77). The signal list is
+        # the standard set unless given, which is what a provisioning printout
+        # in the founder's hand actually lists — and it is printed back below
+        # so an unexpected sixth file is noticed at the terminal, not on a
+        # parent's phone.
+        parent_name = args.name
+        token = args.device_token
+        signals = (
+            [s.strip() for s in args.signals.split(",") if s.strip()]
+            if args.signals
+            else [signal for signal, _ in STANDARD_SIGNALS]
+        )
+        print(f"offline: no database consulted, forging {', '.join(signals)} for {parent_name}")
+    else:
+        database_url = os.environ.get("DATABASE_URL")
+        if not database_url:
+            print(
+                "DATABASE_URL is not set. For a device token with no database, "
+                "pass --name (and --signals if the parent's set is not the standard one).",
+                file=sys.stderr,
+            )
             return 2
+
+        # Imported here, not at module scope: the offline path above must run on
+        # a laptop that has never installed psycopg.
+        from kettle import db
+
+        with db.connect(database_url) as conn:
+            try:
+                if args.device_token:
+                    parent_name, token, signals = lookup_by_token(conn, args.device_token)
+                else:
+                    parent_name, token, signals = lookup_by_parent(conn, args.parent)
+            except LookupError as exc:
+                print(str(exc), file=sys.stderr)
+                return 2
 
     written = write(generate(parent_name, token, signals, args.base_url), args.out)
     for path in written:
