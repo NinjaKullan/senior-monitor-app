@@ -15,12 +15,13 @@ from urllib.parse import parse_qs
 
 import psycopg
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from kettle import db
+from kettle import db, waitlist
 from kettle.channels import build_channels
 from kettle.config import Settings, settings_from_env
 from kettle.digest import DigestState, digest_loop
@@ -33,6 +34,11 @@ from kettle.twilio_signature import is_valid
 log = logging.getLogger("kettle")
 
 DEDUPE_WINDOW_S = 60
+
+#: The landing page's bot trap. A real person never fills it: it is hidden, and
+#: it is named for something a form-filler expects to see rather than something
+#: that announces itself as a trap.
+HONEYPOT_FIELD = "company"
 
 
 def _client_ip(request: Request) -> str | None:
@@ -129,6 +135,17 @@ def create_app(
     )
     app.state.settings = cfg
 
+    # CORS exists for exactly one route — the landing page's waitlist POST — and
+    # is locked to the origins that page is served from. The ingest route needs
+    # none of this: a Shortcut is not a browser and sends no Origin.
+    if cfg.waitlist_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(cfg.waitlist_origins),
+            allow_methods=["POST"],
+            allow_headers=["content-type"],
+        )
+
     @app.exception_handler(StarletteHTTPException)
     async def _plain_errors(
         request: Request, exc: StarletteHTTPException
@@ -209,6 +226,58 @@ def create_app(
             '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
             media_type="application/xml",
         )
+
+    @app.post("/waitlist", response_class=PlainTextResponse)
+    async def join_waitlist(request: Request) -> PlainTextResponse:
+        """The landing page's one write (spec 006 §7).
+
+        Accepts JSON or form-encoded, because the page's form degrades to a
+        plain POST with JavaScript off and must still work — the same body comes
+        back either way.
+
+        Everything unusual here is about not leaking. A duplicate signup returns
+        the same 200 and the same sentence as a first one, so the endpoint cannot
+        be asked whether an address is on the list. A honeypot hit returns that
+        too, because telling a bot it was caught only teaches it which field to
+        leave alone. And nothing about the request is stored beyond the two
+        fields that were typed: no IP, no user agent, no referrer. The page
+        carries no analytics (law #4) and this is not going to become the
+        analytics by the back door.
+        """
+        content_type = request.headers.get("content-type", "")
+        if content_type.startswith("application/json"):
+            try:
+                payload = await request.json()
+            except ValueError:
+                raise StarletteHTTPException(
+                    status_code=400, detail="malformed request"
+                ) from None
+            if not isinstance(payload, dict):
+                raise StarletteHTTPException(status_code=400, detail="malformed request")
+        else:
+            # `parse_qs` rather than `request.form()`, exactly as the Twilio
+            # handler does: form parsing in Starlette pulls in python-multipart,
+            # and a browser form posts url-encoded anyway. No new dependency for
+            # a body this app can read in one line.
+            raw = (await request.body()).decode("utf-8", errors="replace")
+            payload = {k: v[0] for k, v in parse_qs(raw, keep_blank_values=True).items()}
+
+        def field(name: str) -> str:
+            value = payload.get(name, "")
+            return value if isinstance(value, str) else ""
+
+        if field(HONEYPOT_FIELD).strip():
+            # Accepted, discarded, and indistinguishable from a real signup.
+            return PlainTextResponse(waitlist.WAITLIST_SUCCESS)
+
+        email = waitlist.normalise_email(field("email"))
+        parent_phone = waitlist.normalise_choice(field("parent_phone"))
+        if email is None or parent_phone is None:
+            raise StarletteHTTPException(status_code=400, detail="check the form")
+
+        with request.app.state.pool.connection() as conn:
+            waitlist.record(conn, email, parent_phone)
+        return PlainTextResponse(waitlist.WAITLIST_SUCCESS)
 
     @app.get("/healthz")
     async def healthz(request: Request) -> JSONResponse:

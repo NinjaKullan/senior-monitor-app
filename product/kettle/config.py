@@ -30,6 +30,10 @@ class Settings:
     # Global ladder kill-switch, over and above each family's ladder_mode.
     # Off by default: this is the alert path.
     ladder_enabled: bool
+    # Browser origins allowed to POST /waitlist. An explicit list, not a
+    # wildcard: this is the only route a browser ever calls, and the landing
+    # page is served from origins we control (spec 006 §7).
+    waitlist_origins: tuple[str, ...]
 
 
 def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
@@ -62,7 +66,26 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         twilio_auth_token=src.get("TWILIO_AUTH_TOKEN", "").strip(),
         twilio_from=src.get("TWILIO_FROM", "").strip(),
         ladder_enabled=_flag(src, "LADDER_ENABLED", default=False),
+        waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
     )
+
+
+#: getkettle.* per the GTM roadmap, plus the Vite dev server. Further TLDs are an
+#: env var at deploy, not a code change.
+DEFAULT_WAITLIST_ORIGINS = (
+    "https://getkettle.com",
+    "https://www.getkettle.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+)
+
+
+def _origins(src: Mapping[str, str], name: str) -> tuple[str, ...]:
+    """Comma-separated origin allowlist, falling back to the shipped default."""
+    raw = src.get(name, "").strip()
+    if not raw:
+        return DEFAULT_WAITLIST_ORIGINS
+    return tuple(origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip())
 
 
 def _flag(src: Mapping[str, str], name: str, default: bool) -> bool:
