@@ -74,7 +74,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 77.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 78.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -86,16 +86,14 @@ engine, ladder v1, the child PWA (`webapp/`) with its warmth pass and the
 tripwire health detail view, and the shortcut forge. Both suites green on
 `main`.
 
-005e ships with one thing owed, and it cannot be paid from here: **the plist
-schema is asserted from documentation, not confirmed against a real export**,
-because this container has no macOS and no Shortcuts app. `python -m
-scripts.forge --inspect <file>` prints a hand-built shortcut's shape beside the
-forge's so the founder can close it on a Mac in two minutes; QUESTIONS 69 splits
-the format into what is known by construction and what is inference, and names
-the constant to change for each. Item 70 carries the same status for what
-`--mode anyone` asks of the receiving phone. Do not read 005e's green suite as
-evidence that a generated shortcut imports — it is evidence that the bytes are
-exactly what we intended to write.
+005e's format debt is paid by field test (2026-08-02): a forge-generated,
+signed shortcut **imported on a real iPhone with one tap — no Settings toggle,
+no "Allow Untrusted Shortcuts" prompt**. QUESTIONS 70 is closed (005b's wizard
+needs no "turn this on first" step) and 69 is downgraded to optional — the
+`--inspect` diff against a hand-built export would still sharpen `validate()`'s
+key-set contract but blocks nothing. One small fix owed from the same session:
+**item 77, forge.py must lazy-import psycopg** so `--device-token` mode runs
+dependency-free on a bare Mac.
 
 005d's rulings (QUESTIONS 58–64, 2026-08-01): 58 and 61–64 approved, **59
 deferred** — learned cadences wait for the threshold-analysis spec, fixed

@@ -1279,3 +1279,38 @@ all three block the landing-page spec, and 75 touches product law.
     values, and never their exact pair" the standing rule, or does Kettle want a
     deliberately different warmth — greener, greyer, or lighter — so the
     reference is invisible? The second is more work and a stronger position.
+
+---
+
+## Field results — founder on-device, recorded by PM (Fable, 2026-08-02): items 69–70
+
+70. **CLOSED by field test.** A forge-generated, `--mode anyone` signed
+    shortcut sent to a family member's iPhone imported with a single tap — the
+    Add Shortcut sheet opened directly, no Settings toggle, no "Allow Untrusted
+    Shortcuts" prompt at any point. **005b's wizard needs no "turn this on
+    first" step.** The `product/README.md` expected-behaviour note can be
+    promoted from expectation to fact. *Addendum (founder, next day): the
+    shortcut also ran end-to-end on her handset and returned the server's OK —
+    import and ping are both field-proven.*
+
+69. **Downgraded to optional.** The same field test is stronger evidence than
+    the inspect diff was designed to produce: Apple's signer accepted the
+    forge's file and Shortcuts imported it on a real handset, so the inferred
+    parts of the plist format (client version, omitted icon, omitted UUID,
+    empty `WFWorkflowTypes`) are empirically fine. The inspect comparison
+    against a hand-built export remains welcome — it would show what keys real
+    exports carry and sharpen `validate()`'s exactness contract — but nothing
+    is blocked on it. (For the record: the founder's command was correct; the
+    only failure was pointing `--inspect` at a placeholder filename. Also for
+    the record: inspecting a *forge-generated* file answers nothing — the diff
+    is only informative against a shortcut built by hand in the Shortcuts app
+    and exported. Paths with spaces need quotes.)
+
+77. **forge.py must lazy-import psycopg** (PM, from the founder's field
+    session). `--device-token` mode failed on a bare Mac with
+    `ModuleNotFoundError: No module named 'psycopg'` — the forge imports its
+    database driver even when the token is supplied directly and no database
+    is ever touched. The founder tool should run dependency-free on a laptop
+    that has never seen the backend: move the DB import inside the code path
+    that needs it, and add a test that `--device-token` mode works with
+    psycopg absent. Small fix, fold into the next build.
