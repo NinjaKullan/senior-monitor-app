@@ -20,6 +20,7 @@ stricter.
 | Every colour in one file; ink ≥7:1 and secondary ≥4.5:1 on canvas | `tokens.test.ts` computes the ratios from `tokens.css` |
 | No amber token exists; `--error` only inside the waitlist form | `tokens.test.ts` names the one file allowed to spend red |
 | No urgency, diagnosis, medical, alarm, surveillance or person-verdict copy | `copyLaw.test.tsx`, over `copy.ts` **and** the rendered DOM |
+| No romanized kinship or culture-coded vocabulary | `copyLaw.test.tsx`'s `CULTURE_CODED`, scanned unmasked so no allowlist can reach it |
 | App names only in the mechanism steps, never narrating her day | `copyLaw.test.tsx` |
 | Only digits: the price and the three step numerals | DOM digit walk, attributes included |
 | Four panels differ by tint and content, never by structure | `scenarios.test.tsx` compares DOM skeletons |
@@ -33,7 +34,21 @@ Every one of those was verified by planting the regression it exists to catch �
 an urgency word, a `!` CTA, a person-status verdict, an app name inside a
 scenario, a drifted three-fields claim, a clock time in a notification, a
 `hover:scale`, an ungated entry animation, a red chip outside the form, a serif
-on a second consecutive element — and watching it fail before reverting.
+on a second consecutive element, a kinship term in a heading — and watching it
+fail before reverting.
+
+**Universal English, and both parents** (Amendment A, founder site review). The
+copy carries no romanized kinship terms and no culture-coded vocabulary: the
+audience is English-fluent and broader than any one culture, a word a reader
+cannot parse costs more than it earns, and the photography carries the
+specificity instead. `CULTURE_CODED` enforces it, and it is the one ban here
+scanned against the *unmasked* string — "no allowlist entries" means the
+exemption is unreachable, not merely empty. `beta` is deliberately excluded so a
+future beta mention does not fight the ban.
+
+The hero speaks of parents, plural; the scenarios follow one parent, because a
+day needs a person in it; the sample digest names Dad. **That asymmetry is the
+balance, not a mismatch** — two tests pin it so it is not tidied into a match.
 
 **Two things that are not decoration.** There is no amber on this site because
 amber is equipment vocabulary for the app ("this tripwire stopped reporting"),

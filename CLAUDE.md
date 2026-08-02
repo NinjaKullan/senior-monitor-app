@@ -74,7 +74,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 84.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 88.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -121,6 +121,13 @@ is the parent's future home — day-detail and per-parent digest views are
 expected to live there**, which is why the affordance mattered enough to fix
 before the next spec.
 
+**Amendment A** (founder site review, 2026-08-02) is built: marketing copy is
+universal English — no romanized kinship terms, no culture-coded vocabulary —
+and the page shows both parents (hero plural, sample digest names Dad, scenarios
+still follow one). `CULTURE_CODED` in `site/src/tests/copyLaw.test.tsx` is the
+first ban here scanned against *unmasked* text, so it cannot be allowlisted past;
+notes are QUESTIONS 84–87.
+
 006's own notes are QUESTIONS 78–83. Two are worth a reader's time before
 touching `site/`: **80**, where §3.2 and AC5 disagree about whether the
 notification breaks panel structure (read as "the `off` panel must not be
@@ -135,11 +142,6 @@ billing, TestFlight) is what the roadmap points at next; the tripwire view's
 repair nudge hands off to its guided repair, and 005e's generation half is
 already the piece 005b's macOS CI signer would reuse. The PM has not written
 that spec yet.
-
-**Spec 006 Amendment A is ACTIVE** (spec §10, from the founder's review of the
-built page): universal-English copy — no romanized kinship or culture-coded
-vocabulary, enforced as a new copy-law ban group — plural-parents hero, and
-`Dad's day started normally.` in the sample digest. Strings and tests only.
 
 Production (`kettle-prod`) is at migration 0008 and **0009 is owed** — the
 waitlist table, which the landing page needs before it can collect anything. The

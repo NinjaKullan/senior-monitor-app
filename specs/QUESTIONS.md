@@ -1392,3 +1392,54 @@ Six calls, one of them a real ambiguity between two clauses of the spec.
     and refuses a sentence nobody has written yet — which is the only time a ban
     is cheap. `SCENARIOS_H2` is mine, not the spec's ("An ordinary day."), since
     §3.2 names the tabs but not the heading above them.
+
+---
+
+## Spec 006 Amendment A — universal English, both parents (implementer notes, 2026-08-02)
+
+84. **The culture ban is scanned against the unmasked text, which makes it the
+    first ban here that cannot be exempted.** Amendment A says "no allowlist
+    entries", and there are two ways to build that: an empty allowlist, or an
+    unreachable one. Every other ban in `copyLaw.test.tsx` runs over
+    `mask(text, allow)`, so a future entry on the pinned allowlist would carry a
+    kinship term through with it — the senior-first question is already exempt
+    from the verdict ban that way, and it is the right mechanism *there*. For
+    this group the exemption is simply not offered: the scan reads the raw
+    string. A test passes an offending sentence as its own allowlist entry and
+    requires it to fail anyway, and I verified the whole thing by moving the scan
+    onto the masked text and watching that test go red.
+
+    Worth a ruling only if the PM disagrees: it means a legitimate future use —
+    quoting a family, say, in a testimonial — would need this file edited rather
+    than an allowlist entry added. That felt like the right amount of friction
+    for a rule that came from the founder looking at the built page.
+
+85. **Two strings outside `copy.ts` carried the old words, and one of them is
+    real copy.** `index.html`'s meta description repeated the hero sentence
+    verbatim; it is the line a search result shows, so it moved with the string
+    it mirrors rather than staying behind as the one place the old words
+    survived. The other was a comment in `NotificationCard.tsx` ("a mother's
+    name"), updated for consistency with the both-parents ruling rather than
+    because any test looks at it. The privacy page was clean.
+
+    Neither is covered by the ban test, which only reads `copy.ts` and the
+    rendered DOM. If the PM wants the meta description structurally tied to
+    `HERO_BODY` — it is the kind of duplication that drifts — that is a small
+    change to the prerender check, and I did not make it unasked because it is
+    a mechanism change rather than a string change and this amendment is
+    explicitly strings and tests only.
+
+86. **The morning sentence keeps QUESTIONS 79's split.** Amendment A gives the
+    line whole (`By the time her coffee went cold …`); it lands as `MORNING_LEAD`
+    plus `MORNING_SERIF` exactly as before, because design-language §3 permits
+    the serif only as a phrase inside a sans sentence. The words are the
+    amendment's, unaltered; only the element boundary sits inside them.
+
+87. **`Her morning` / `Her afternoon` stay singular, and `OFF_SERIF` still says
+    "asks her first".** Amendment A balances the *page*, and says the scenarios
+    may follow one vivid parent — so the tab labels and the scenario copy were
+    left alone deliberately rather than overlooked. What changed is the hero
+    (plural) and the sample digest (Dad). The asymmetry is now asserted in two
+    tests and explained in `copy.ts`'s header, because it reads like a mismatch
+    to anyone meeting it cold and the obvious "fix" is the thing the amendment
+    forbids.
