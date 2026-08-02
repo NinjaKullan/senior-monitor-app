@@ -1395,6 +1395,62 @@ Six calls, one of them a real ambiguity between two clauses of the spec.
 
 ---
 
+## PM rulings — Fable, 2026-08-02 (review of 1effca4..0bbf9cc: items 78–83, plus the 74–76 record)
+
+Review verdict: **approved, no changes requested.** One spec amendment made by
+the PM (AC5, per the ruling on 80) so the spec and the suite agree in writing.
+
+74–76. Formally recorded here for the numbering trail: ruled into
+    `docs/design-language.md` §3/§7/§4 before spec 006 was written — Fraunces +
+    Instrument Sans, self-hosted, with a true semibold (74); the eyebrow's
+    typographic form travels for sections and scenarios only, person-status
+    semantics refused under law #1 (75); Oura's palette strategy adopted with
+    every value re-chosen around Kettle green, never their exact pair (76).
+    Spec 006 §2 locked the resulting values.
+
+78. **APPROVED.** The right fix — an offline mode taking its facts from the
+    provisioning printout, rather than a lazy import that would have moved the
+    failure one line. The blocker-with-companion test (prove the block blocks)
+    is the plant-and-revert norm applied to an import, noted approvingly.
+
+79. **APPROVED, with one norm restated.** The serif carrying a phrase rather
+    than a whole sentence is not a deviation at all — it is design-language §3
+    verbatim ("the emotional phrase inside an otherwise plain sans sentence").
+    Review also found two wording changes item 79 did *not* disclose: step 1's
+    body reworded ("Pre-built shortcuts note her phone's ordinary moments") and
+    "at all" appended to step 2. Both are accepted on merit — they read better
+    and pass the law — but the norm stands: copy edits are disclosed, not
+    discovered in review.
+
+80. **RULED: the purpose reading stands.** AC5 existed so the `off` panel can
+    never be escalated. Morning≡afternoon, off≡seen, one class list across all
+    four, and off's structural head equal to morning's proves that better than
+    an always-rendered empty notification slot, which would be markup written
+    for a test rather than a reader. Spec 006 AC5 is amended to say what is
+    tested; no build change requested.
+
+81. **APPROVED.** Two named inert strings with lookalike-host plants proving
+    exact-host matching is a scoped exemption in the item-62 mould.
+
+82. **APPROVED, and graduated to a working norm:** any source-text scan of
+    Tailwind classes in this repo is assumed blind until proved otherwise;
+    guards walk the rendered DOM, with source scans as a second net at most.
+    Already recorded in CLAUDE.md's state-of-build; the plant discipline
+    finding this hole is exactly why the discipline exists.
+
+83. **APPROVED.** The medical group tightens in law #1's direction, and banning
+    words no drafted sentence uses is the only time a ban is cheap.
+    `An ordinary day.` stands. One nuance so item 62 is not over-read: this ban
+    list is hand-written categories rather than data-derived — correct here,
+    because marketing has no live vocabulary source to derive from. "Derived
+    where possible" never meant inventing a source to derive from.
+
+Owed by the founder before the page is live: migration 0009 applied to
+`kettle-prod`, DNS, and a static host pointed at `site/dist/`
+(`site/README.md`, three steps).
+
+---
+
 ## Spec 006 Amendment A — universal English, both parents (implementer notes, 2026-08-02)
 
 84. **The culture ban is scanned against the unmasked text, which makes it the
@@ -1443,3 +1499,33 @@ Six calls, one of them a real ambiguity between two clauses of the spec.
     tests and explained in `copy.ts`'s header, because it reads like a mismatch
     to anyone meeting it cold and the obvious "fix" is the thing the amendment
     forbids.
+
+---
+
+## PM rulings — Fable, 2026-08-02 (review of 369f33e..66457ee: items 84–87)
+
+Review verdict: **approved, no changes requested.** Amendment A built as
+specified — strings and tests only, all three suites green.
+
+84. **RULED: the unreachable exemption stands.** A rule that came from the
+    founder looking at the built page must not be bypassable by an allowlist
+    entry; the offending-sentence-as-its-own-allowlist test makes the
+    unreachability load-bearing. If a real testimonial ever needs a kinship
+    term, the right act is editing the ban's own file with the founder decision
+    cited — widening as a conscious, visible act, the structure-48 philosophy
+    applied to vocabulary. That friction is the feature.
+
+85. **APPROVED as left, with one note for the next build that touches
+    `site/`:** tie the meta description structurally to `HERO_BODY` in the
+    prerender check — it is exactly the duplication that drifts. Declining to
+    make a mechanism change inside a strings-only amendment was the right
+    instinct; the find itself (a search result is copy, and the copy most
+    people will ever see) is noted approvingly.
+
+86. **APPROVED** — the 79 split applied to the new words is design-language §3
+    working as intended.
+
+87. **APPROVED.** The kept asymmetry — her scenarios, plural hero, Dad's
+    digest — is Amendment A exactly as intended, and pinning it with two tests
+    plus the `copy.ts` header paragraph is the house pattern: the deliberate
+    choice defended against the obvious future "fix".
