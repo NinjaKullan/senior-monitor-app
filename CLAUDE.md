@@ -124,8 +124,8 @@ before the next spec.
 006's own notes are QUESTIONS 78–83. Two are worth a reader's time before
 touching `site/`: **80**, where §3.2 and AC5 disagree about whether the
 notification breaks panel structure (read as "the `off` panel must not be
-escalated", tested that way, reversible in one commit if the PM wants the
-literal reading); and **82**, where a source-text scan of Tailwind classes was
+escalated", tested that way, and **ruled that way** — AC5 amended to match,
+nothing owed); and **82**, where a source-text scan of Tailwind classes was
 found to miss any class built from a template literal — the motion guard now
 walks the rendered DOM, and *any* future source-text class scan in this repo
 should be assumed blind until proved otherwise.
@@ -135,6 +135,11 @@ billing, TestFlight) is what the roadmap points at next; the tripwire view's
 repair nudge hands off to its guided repair, and 005e's generation half is
 already the piece 005b's macOS CI signer would reuse. The PM has not written
 that spec yet.
+
+**Spec 006 Amendment A is ACTIVE** (spec §10, from the founder's review of the
+built page): universal-English copy — no romanized kinship or culture-coded
+vocabulary, enforced as a new copy-law ban group — plural-parents hero, and
+`Dad's day started normally.` in the sample digest. Strings and tests only.
 
 Production (`kettle-prod`) is at migration 0008 and **0009 is owed** — the
 waitlist table, which the landing page needs before it can collect anything. The

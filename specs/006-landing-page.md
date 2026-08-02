@@ -1,6 +1,6 @@
 # Spec 006 — Landing page (getkettle.*)
 
-**STATUS: ACTIVE — approved by founder 2026-08-02 (draft copy stands as shipping v1; strings founder-swappable later, rules and tests binding).**
+**STATUS: BUILT — `1effca4..0bbf9cc`, reviewed and approved by PM 2026-08-02 (rulings 78–83 in QUESTIONS.md). Amendment A (§10, founder site review same day) is ACTIVE — build it. Remaining founder steps: migration 0009 to `kettle-prod`, DNS, static host → `site/dist/` (`site/README.md`).**
 
 *PM: Fable, 2026-08-02. The Wave-0 landing page: one static page whose job is to collect a waitlist and ask THE question ("What phone does your parent use?" — it decides Wave 2 priority with data, per the GTM roadmap). `docs/design-language.md` is the law of this surface; this spec locks its TBD-at-spec-time values, defines the page, and wires the copy-law tests into marketing. Rulings 74–76 govern typography, the eyebrow slot, and the trade-dress line. Where this spec drafts copy, the **rules** are binding and the **strings** are founder-editable at review — swap a sentence freely, but it must still pass the tests in §8.*
 
@@ -131,7 +131,7 @@ Five slots, keyed to design-language §9's commissioned concepts: hero→3, morn
 2. **No alarm colours.** No amber token exists in `site/`; `--error` appears in form-error styles and nowhere else — asserted by scanning built CSS/class usage, and verified by planting a red chip outside the form.
 3. **Copy law.** The §4 bans run over `copy.ts` and the rendered DOM (including alt/aria); the allowlist is pinned literals; the ban side derives from shared vocabulary where possible. Plants, each verified caught then reverted: an urgency word, a `!` CTA, a person-status verdict, a person-status eyebrow, an app name inside activity narration, and a three-fields claim that drifts from `who · signal · when`.
 4. **Digits.** DOM digit walk passes with only the pinned allowlist (price, step numerals); plants for a clock time in a mockup timestamp and a count of her activity both fail.
-5. **Gradients & panel structure.** Tint constants match §2 exactly (geometry, corner anchoring, alpha bounds, `transparent` terminal stop, one template four tint-sets); the four scenario panels render identical DOM structure, differing by tint and content only.
+5. **Gradients & panel structure.** Tint constants match §2 exactly (geometry, corner anchoring, alpha bounds, `transparent` terminal stop, one template four tint-sets). Panel structure — amended per the ruling on QUESTIONS 80, whose purpose is that the `off` panel must never be escalated: morning≡afternoon and off≡seen structurally, one class list across all four, and `off` adds nothing structural beyond the notification slot that `seen` also carries. An always-rendered empty slot on all four is explicitly not required.
 6. **Tab grammar.** Active/inactive states match §3.2's measured set; 300ms opacity ease on tabs; no transition on the panel; tabs are keyboard-operable with `tablist`/`tab`/`tabpanel` roles and a visible focus ring.
 7. **Motion.** Every animation sits behind `motion-safe:`; `prefers-reduced-motion` yields a fully static page; hovers are colour-only — planted `hover:scale` and a non-gated entry animation both fail.
 8. **Self-containment.** `dist/` contains no foreign-origin reference; fonts are self-hosted woff2; no third-party script or beacon of any kind.
@@ -144,4 +144,20 @@ Five slots, keyed to design-language §9's commissioned concepts: hero→3, morn
 
 ## 9. Explicitly not decided here
 
-Final photography (commission after the optional Gemini cross-check of the five concepts); privacy-policy legal text (founder + counsel — placeholder page ships); hosting/DNS (founder); the final H1 phrasing (draft ships; founder swaps when the one-liner is settled); Phone Watch tier presence on this page (post-beta, own spec). QUESTIONS.md numbering continues at **77**.
+Final photography (commission after the optional Gemini cross-check of the five concepts); privacy-policy legal text (founder + counsel — placeholder page ships); hosting/DNS (founder); the final H1 phrasing (draft ships; founder swaps when the one-liner is settled); Phone Watch tier presence on this page (post-beta, own spec).
+
+## 10. Amendment A — universal English, both parents (founder site review, 2026-08-02)
+
+Two founder rulings from reviewing the built page, now law in `docs/design-language.md` §8/§9: **the words are universal, the personas balance**. Marketing copy carries no romanized kinship terms or culture-coded vocabulary; the page shows both parents; the imagery brief is re-cast broadly (photography change is a commissioning matter — only alt text changes in code).
+
+**Exact string changes in `site/src/copy.ts`** (ripple into pinned allowlists, MUST_RENDER prerender list, and any test asserting these literals):
+
+1. Hero sub: `Kettle notices when your parents' ordinary phone routine doesn't happen — and asks them first, before anyone worries.` (plural parents, `asks them first`).
+2. Morning lead: `By the time her coffee went cold she'd called her sister, read the news, and lost an argument with the crossword.`
+3. *What you see* notification body: `Dad's day started normally.` (the page's persona balance: scenarios follow her, the sample digest names Dad — deliberate, do not "fix" to match).
+4. All five image-slot alt texts re-written per design-language §9's re-cast concepts (universal English, agency intact): 1 `Grandmother mid-laugh on a slightly crooked video call, a steaming cup beside her phone, crossword and reading glasses in frame.` · 2 `A father back from the market, bags in one hand, his daughter's voice note playing from the phone in the other.` · 3 `A mother tending an unruly balcony garden while her son, in another city, exhales at a simple notification.` · 4 `Grandparents teaching a granddaughter a family recipe over a propped-up tablet, flour on the counter.` · 5 `An older woman at dance rehearsal, phone resting on the piano, her daughter watching from another city.`
+5. Sweep every remaining string (including the privacy page) for the banned group below — the test, not memory, is the completeness check.
+
+**Copy-law extension:** a new banned group `CULTURE_CODED`, case-insensitive: `amma`, `appa`, `chai`, `paati`, `thatha`, `nani`, `dadi`, `ajji`. (Deliberately excludes `beta` — a future "beta" product mention must not fight the ban.) No allowlist entries; nothing on the page may use these.
+
+**Acceptance:** all §8 ACs still green after the ripple; the new ban verified by planting `Amma` in a heading and watching it fail; the *seen*-panel test asserts the `Dad's` string; prerender list updated; no structural or token change anywhere — this amendment is strings and tests only.

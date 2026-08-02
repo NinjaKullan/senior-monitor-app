@@ -130,7 +130,15 @@ Headings run **3–5 words**; paragraphs run **~20 words**; almost nothing sits 
 **`you`/`your` dominate**, "we" is near-absent — the company is not a character in its own copy.
 Describe in the past tense; name the moment, not the gap; let the serif phrase carry the feeling
 while the sans states the fact. **No urgency vocabulary, ever** — no "now," no "hurry," no "don't
-miss," no exclamation CTAs; CTA labels are one or two flat words. This extends the product's existing
+miss," no exclamation CTAs; CTA labels are one or two flat words.
+
+**Universal English (founder ruling, Aug 2).** Marketing copy carries no romanized kinship terms and
+no culture-coded vocabulary — no `Amma`, `Appa`, `chai`, `paati`, `thatha` or kin. The audience is
+English-fluent and broader than any one culture; a word a reader can't parse costs more than it
+earns, and the photography (§9) carries the specificity instead. Personas balance across the page:
+scenarios may follow one vivid parent, but the page as a whole shows both — the hero speaks of
+parents, plural, and the sample digest names Dad. Enforced by the copy-law ban list like everything
+else in this section. This extends the product's existing
 copy-law tests to marketing: the same banned-vocabulary and no-diagnosis assertions that guard digest
 text apply to landing-page copy, and the landing-page spec wires them up rather than inventing a
 second standard.
@@ -139,8 +147,11 @@ second standard.
 
 **The register:** Oura's grading and light pointed at the people the category photographs, shown
 alive and mid-moment. Grading fragments: warm side light, earthy grade, lifted blacks, shallow
-domestic haze. Casting changes completely — elders in Chennai and their adult children abroad. Warm
-and low-key tips from calm to elegiac fast when a subject is alone and still, so every frame moves.
+domestic haze. Casting changes completely — elders with real lives and their adult children in other
+cities, **cast broadly across the families the product serves, never coded to a single culture**
+(founder ruling, Aug 2, alongside the universal-English copy rule in §8: warmth is carried by light
+and moment, not by cultural props). Warm and low-key tips from calm to elegiac fast when a subject
+is alone and still, so every frame moves.
 
 **Banned clichés** (category audit — none of these, in any variation): toothpaste-ad senior smiles;
 scrubs-as-competence caregiver leaning in; helper/recipient body hierarchy (young acts, old
@@ -151,11 +162,11 @@ passivity sells the need.* Kettle only ever sells the aspiration.
 
 **Five commissioned concepts:**
 
-1. Grandmother mid-laugh on a slightly crooked video call, chai steaming beside her phone, crossword
-   and reading glasses messily in frame.
-2. A 68-year-old father returning from the market on his scooter, helmet under one arm, daughter's
-   voice note playing from the handlebar phone.
-3. Mother tending an unruly balcony garden in Chennai while her adult son in Brooklyn exhales at a
+1. Grandmother mid-laugh on a slightly crooked video call, a steaming cup beside her phone,
+   crossword and reading glasses messily in frame.
+2. A 68-year-old father returning from the market, bags in one hand, his daughter's voice note
+   playing from the phone in the other.
+3. Mother tending an unruly balcony garden while her adult son in another city exhales at a
    simple notification — distance present, anxiety absent.
 4. Grandparents teaching a granddaughter a family recipe over a propped-up tablet, flour on the
    counter, everyone imperfectly framed.
