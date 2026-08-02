@@ -14,7 +14,13 @@ from psycopg.rows import dict_row
 from kettle.config import Settings
 from kettle.main import create_app
 from kettle.migrations import apply_migrations, migration_files
-from testsupport import BASE_URL, FAMILY_TABLES, TABLES, object_privileges
+from testsupport import (
+    BASE_URL,
+    FAMILY_TABLES,
+    SERVICE_ONLY_TABLES,
+    TABLES,
+    object_privileges,
+)
 
 FRESH_DB = "kettle_fresh_boot_test"
 PRODUCT_ROOT = Path(__file__).resolve().parent.parent
@@ -84,7 +90,10 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         policies = conn.execute(
             "select tablename from pg_policies where schemaname = 'public'"
         ).fetchall()
-        assert {p["tablename"] for p in policies} == set(TABLES) - {"ops_alerts"}
+        # Two tables carry no policy at all, and that absence is the access
+        # control: ops_alerts is the founder's log, waitlist is strangers'
+        # addresses. RLS on plus zero policies denies everything by default.
+        assert {p["tablename"] for p in policies} == set(TABLES) - set(SERVICE_ONLY_TABLES)
 
     settings = Settings(
         database_url=fresh_database,
@@ -101,6 +110,7 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         twilio_auth_token="",
         twilio_from="",
         ladder_enabled=False,
+        waitlist_origins=("https://getkettle.com",),
     )
     with TestClient(create_app(settings, notifier)) as fresh_client:
         assert fresh_client.get("/healthz").json() == {"db": True}

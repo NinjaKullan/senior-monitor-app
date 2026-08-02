@@ -86,6 +86,8 @@ def settings(database_url: str) -> Settings:
         twilio_auth_token="",
         twilio_from="",
         ladder_enabled=True,
+        # The landing page is the only browser that calls this API (spec 006).
+        waitlist_origins=("https://getkettle.com",),
     )
 
 

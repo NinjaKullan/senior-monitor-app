@@ -1,0 +1,67 @@
+/* Every colour on this site. Spec 006 §2 locks these values; AC1 asserts that no
+   hex, hsl or rgba literal appears anywhere else in `site/`, and the contrast
+   test computes its ratios from this file rather than trusting the comments.
+
+   Ruling 76 governs the palette: adopt Oura's *strategy* — warm low-contrast
+   ground, no red in the status vocabulary, time-of-day tinting — and re-choose
+   every value around Kettle's existing green. Warm neutrals are common
+   property; their `#F7F1E8`/`#4A4741` pair is theirs, and nothing here is it. */
+
+:root {
+  /* Warm canvas. Shifted greener than the reference ground, which both serves
+     Kettle green and honours "never their pair". */
+  --canvas: #f6f2ec;
+  /* Warm dark, R>G>B, never true black. ~9.8:1 on canvas. */
+  --ink: #403c36;
+  /* Kettle green stays primary — the same value as webapp/src/index.css. */
+  --calm: hsl(158 50% 32%);
+  /* Secondary warmth: grounds and warm accents only, never a status. Dustier
+     and greyer than the reference clay, same trade-dress reasoning. */
+  --clay: #c29179;
+  /* ~5.1:1 on canvas. AC1 verifies it rather than taking this comment's word. */
+  --text-secondary: #6c665d;
+  /* FORM ERRORS ONLY. Never a status, never a person, never decoration — the
+     only red on this site, and only inside the waitlist form (AC2). */
+  --error: #9e3b2e;
+
+  /* There is deliberately no --attention here. Amber is equipment vocabulary
+     for the app ("this tripwire stopped reporting"); marketing carries zero
+     alert states, so the colour to style one with does not exist. AC2 asserts
+     the absence. */
+
+  /* Corner-wash tints — four sets on one geometry template (spec 006 §2).
+     Panels differ by tint alone, never by structure. Invariants: anchored at
+     edges and corners, never centred on content; alpha 0.3–0.7; always fading
+     to `transparent`, never to another colour.
+
+     The "off" set is cooler slate-green. It is never red and never warm-alarm:
+     a morning that does not look like her morning is a question, not an
+     emergency, and the page may not shade it like one. */
+  --tint-morning-1: rgba(226, 178, 140, 0.5);
+  --tint-morning-2: rgba(233, 199, 158, 0.45);
+  --tint-morning-3: rgba(214, 169, 133, 0.5);
+  --tint-morning-4: rgba(226, 178, 140, 0.4);
+
+  --tint-afternoon-1: rgba(178, 182, 166, 0.4);
+  --tint-afternoon-2: rgba(196, 196, 182, 0.35);
+  --tint-afternoon-3: rgba(170, 178, 164, 0.4);
+  --tint-afternoon-4: rgba(186, 188, 172, 0.35);
+
+  --tint-off-1: rgba(84, 110, 100, 0.4);
+  --tint-off-2: rgba(100, 124, 114, 0.35);
+  --tint-off-3: rgba(76, 104, 94, 0.45);
+  --tint-off-4: rgba(92, 116, 106, 0.35);
+
+  --tint-seen-1: rgba(122, 164, 146, 0.35);
+  --tint-seen-2: rgba(180, 190, 178, 0.3);
+  --tint-seen-3: rgba(134, 170, 152, 0.35);
+  --tint-seen-4: rgba(160, 180, 168, 0.3);
+}
+
+/* Dark sections invert exactly: ink ground, canvas text. No third scheme, and
+   in particular no "dark mode" — this is a section treatment, not a theme. */
+.inverted {
+  --canvas: #403c36;
+  --ink: #f6f2ec;
+  --text-secondary: #c8c2b8;
+}

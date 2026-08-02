@@ -20,6 +20,8 @@ __pycache__/
 # Webapp build + deps
 node_modules/
 webapp/dist/
+site/dist/
+site/dist-ssr/
 .env.local
 
 # Shortcut forge output (spec 005e) — every one of these files contains a live

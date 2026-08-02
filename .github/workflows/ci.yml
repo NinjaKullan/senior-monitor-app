@@ -75,3 +75,29 @@ jobs:
       # business in a static bundle; it is why this job builds at all.
       - name: Lint, test, build, verify
         run: npm run ci
+
+  # Same shape as the webapp job: lint -> test -> build -> verify. The site's
+  # verify step is three checks rather than one — no secrets, no foreign origin,
+  # and the built HTML actually contains the page (it must read with JavaScript
+  # off, and a prerender step that silently stopped running looks fine to
+  # everyone whose browser runs scripts).
+  site:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Lint, test, build, verify
+        run: npm run ci

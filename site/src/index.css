@@ -1,0 +1,34 @@
+/* Self-hosted at build: @fontsource vendors the woff2 files into the bundle, so
+   there is no runtime request to a font CDN and no third-party origin anywhere
+   in `dist/` (law #4, asserted by scripts/check-foreign-origins.mjs).
+
+   The 600 weight is a real file, not a faux-bold. The reference declares only
+   300 and 400 and then applies `font-bold` to every CTA, which synthesises the
+   weight in the browser; that is a bug worth not copying. */
+@import "@fontsource/instrument-sans/400.css";
+@import "@fontsource/instrument-sans/600.css";
+@import "@fontsource/fraunces/300-italic.css";
+
+@import "./tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* A viewer who asked for no motion gets none, including from the anchor
+     scroll — the one piece of movement Tailwind's motion-safe: cannot gate. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    @apply bg-canvas text-ink antialiased;
+  }
+}

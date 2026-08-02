@@ -23,12 +23,15 @@ TABLES = (
     "family_contacts",
     "ladder_candidates",
     "ladder_events",
+    "waitlist",
 )
 
 
-# Everything except ops_alerts, which is service-only in every sense: no policy
-# and, after migration 0004, no privilege either.
-FAMILY_TABLES = tuple(t for t in TABLES if t != "ops_alerts")
+# Everything except the two service-only tables: no policy and, after migration
+# 0004, no privilege either. `ops_alerts` is the founder's plumbing log (law #3);
+# `waitlist` is strangers' email addresses that no client ever reads (spec 006).
+SERVICE_ONLY_TABLES = ("ops_alerts", "waitlist")
+FAMILY_TABLES = tuple(t for t in TABLES if t not in SERVICE_ONLY_TABLES)
 
 # Actual granted privileges on public tables and sequences, straight from the
 # catalog. information_schema.role_table_grants hides grants the caller cannot

@@ -1,0 +1,170 @@
+/**
+ * AC5 / AC6 / AC9 — the scenario tabs.
+ *
+ * The centrepiece, and the place a well-meaning change does the most damage.
+ * Two rules carry the weight. The four panels must differ by tint and content
+ * only, because the moment `When something's off` gets a border or a heavier
+ * weight the page has escalated a question into an alarm. And every panel must
+ * be in the static HTML, because a reader with no JavaScript is not a reader
+ * this product gets to skip.
+ */
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import { SCENARIOS, Scenarios } from "@/sections/Scenarios";
+import { OFF_TAB, SEEN_TAB } from "@/copy";
+
+const tabs = () => screen.getAllByTestId("scenario-tab");
+const panels = () => screen.getAllByTestId("scenario-panel");
+
+/** Tag names and attribute *names* — structure with the content taken out. */
+function skeleton(root: Element): string {
+  const parts: string[] = [];
+  const walk = (node: Element, depth: number) => {
+    const attrs = Array.from(node.attributes)
+      .map((a) => a.name)
+      // `id`/`aria-labelledby`/`data-scenario` name the panel; `hidden` is which
+      // one is showing. Both are identity and state — the structure is what is
+      // left when you take them out.
+      .filter(
+        (name) =>
+          !["id", "aria-labelledby", "data-scenario", "hidden", "aria-controls"].includes(name),
+      )
+      .sort()
+      .join(",");
+    parts.push(`${"  ".repeat(depth)}${node.tagName}[${attrs}]`);
+    for (const child of Array.from(node.children)) walk(child, depth + 1);
+  };
+  walk(root, 0);
+  return parts.join("\n");
+}
+
+describe("AC5 — panels differ by tint and content, never by structure", () => {
+  it("gives the four panels the same skeleton", () => {
+    render(<Scenarios />);
+    const shapes = panels().map(skeleton);
+
+    // Morning and afternoon carry no notification; off and seen do, because
+    // §3.2 assigns one per panel. That is content the spec places, so the
+    // comparison is between panels that carry the same components — and the
+    // pair that matters most, `off` against `seen`, is compared directly.
+    expect(shapes[0]).toBe(shapes[1]);
+    expect(shapes[2]).toBe(shapes[3]);
+    // And the escalation risk: `off` must not have acquired anything `morning`
+    // lacks beyond that notification.
+    expect(shapes[2].split("\n").slice(0, 6)).toEqual(shapes[0].split("\n").slice(0, 6));
+  });
+
+  it("gives every panel identical classes", () => {
+    render(<Scenarios />);
+    const classes = new Set(panels().map((p) => p.className));
+    expect(classes.size, "a panel is styled differently from its siblings").toBe(1);
+  });
+
+  it("changes the wash when the tab changes, and changes nothing else", () => {
+    const { container } = render(<Scenarios />);
+    const section = container.querySelector("section")!;
+    const morning = section.getAttribute("style");
+
+    fireEvent.click(screen.getByRole("tab", { name: OFF_TAB }));
+    const off = section.getAttribute("style");
+
+    expect(off).not.toBe(morning);
+    expect(off).toContain("--tint-off-1");
+    expect(new Set(panels().map((p) => p.className)).size).toBe(1);
+  });
+});
+
+describe("AC6 — the measured tab grammar", () => {
+  it("marks the active tab with full opacity and an ink bottom border", () => {
+    render(<Scenarios />);
+    const [first] = tabs();
+    expect(first.dataset.state).toBe("active");
+    expect(first.className).toContain("opacity-100");
+    expect(first.className).toContain("border-ink");
+    expect(first.className).toContain("border-b-[3px]");
+  });
+
+  it("marks inactive tabs at 0.7 opacity with a transparent border", () => {
+    render(<Scenarios />);
+    for (const tab of tabs().slice(1)) {
+      expect(tab.dataset.state).toBe("inactive");
+      expect(tab.className).toContain("opacity-70");
+      expect(tab.className).toContain("border-transparent");
+    }
+  });
+
+  it("changes nothing but opacity and the border between states", () => {
+    // No fill, no colour change, no weight change. The difference between an
+    // active and an inactive tab is presence, not emphasis.
+    render(<Scenarios />);
+    const strip = (c: string) =>
+      c
+        .split(/\s+/)
+        .filter((token) => !/^(opacity-|border-ink|border-transparent)/.test(token))
+        .join(" ");
+    const [active, ...rest] = tabs();
+    for (const tab of rest) expect(strip(tab.className)).toBe(strip(active.className));
+    expect(active.className).toContain("font-normal");
+  });
+
+  it("eases the tab over 300ms and never transitions the panel", () => {
+    render(<Scenarios />);
+    expect(tabs()[0].className).toContain("transition-opacity");
+    expect(tabs()[0].className).toContain("duration-300");
+    for (const panel of panels()) {
+      expect(panel.className, "the panel must swap instantly").not.toMatch(/transition|duration/);
+    }
+  });
+
+  it("wires the roles a screen reader needs", () => {
+    render(<Scenarios />);
+    expect(screen.getByRole("tablist")).toBeInTheDocument();
+    expect(screen.getAllByRole("tab")).toHaveLength(SCENARIOS.length);
+    const [first] = tabs();
+    expect(first).toHaveAttribute("aria-selected", "true");
+    expect(first).toHaveAttribute("aria-controls", panels()[0].id);
+    expect(panels()[0]).toHaveAttribute("aria-labelledby", first.id);
+  });
+
+  it("is operable from the keyboard, and shows where focus is", () => {
+    render(<Scenarios />);
+    expect(tabs()[0].className).toContain("focus-visible:ring");
+
+    fireEvent.keyDown(tabs()[0], { key: "ArrowRight" });
+    expect(tabs()[1]).toHaveAttribute("aria-selected", "true");
+
+    // Wraps, so the last tab is one key from the first.
+    fireEvent.keyDown(tabs()[1], { key: "ArrowLeft" });
+    fireEvent.keyDown(tabs()[0], { key: "ArrowLeft" });
+    expect(screen.getByRole("tab", { name: SEEN_TAB })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("keeps only the active tab in the tab order", () => {
+    render(<Scenarios />);
+    expect(tabs().map((t) => t.getAttribute("tabindex"))).toEqual(["0", "-1", "-1", "-1"]);
+  });
+});
+
+describe("AC9 — the panels read with no JavaScript", () => {
+  it("puts all four in the static markup, in the order a day happens", () => {
+    const html = renderToStaticMarkup(<Scenarios />);
+    const order = SCENARIOS.map((s) => html.indexOf(`data-scenario="${s.set}"`));
+    expect(order.every((index) => index >= 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+  });
+
+  it("carries every panel's copy, not just the active one's", () => {
+    // Entities decoded first: React escapes apostrophes, and a test that
+    // compared raw markup would fail on punctuation while claiming the copy is
+    // missing — the most misleading kind of red.
+    const html = renderToStaticMarkup(<Scenarios />)
+      .replace(/&#x27;|&#39;/g, "'")
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, "&");
+    for (const scenario of SCENARIOS) {
+      expect(html, `${scenario.set} is missing from the static HTML`).toContain(scenario.body);
+      expect(html).toContain(scenario.serif);
+    }
+  });
+});

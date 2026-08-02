@@ -1,0 +1,39 @@
+import { Section } from "@/components/Section";
+import { SerifPhrase } from "@/components/SerifPhrase";
+import { FIELDS_BODY, FIELDS_CHIPS, FIELDS_H2, FIELDS_SERIF } from "@/copy";
+
+/**
+ * The privacy centrepiece, and the one section whose claims must be literally
+ * true of the schema.
+ *
+ * `who · signal · when` is not a simplification for marketing — it is the whole
+ * row. The copy-law test plants a drifted claim (a fourth chip, a softened
+ * "almost nothing else") and requires it to fail, because a privacy promise that
+ * has quietly stopped matching the database is the most expensive sentence a
+ * company like this can publish.
+ *
+ * Dark section: `inverted` swaps the tokens, so the ground becomes ink and the
+ * text becomes canvas with no second palette anywhere.
+ */
+export function ThreeFields() {
+  return (
+    <Section inverted>
+      <h2 className="text-display font-light" data-testid="section-heading">
+        {FIELDS_H2}
+      </h2>
+      <ul className="flex flex-wrap gap-3" data-testid="field-chips">
+        {FIELDS_CHIPS.map((chip) => (
+          <li
+            key={chip}
+            data-testid="field-chip"
+            className="rounded-tile border border-ink/30 px-5 py-2 text-body"
+          >
+            {chip}
+          </li>
+        ))}
+      </ul>
+      <p className="max-w-xl text-body text-secondary">{FIELDS_BODY}</p>
+      <SerifPhrase as="p">{FIELDS_SERIF}</SerifPhrase>
+    </Section>
+  );
+}
