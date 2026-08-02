@@ -60,6 +60,29 @@ if (missing.length > 0) {
   process.exit(1);
 }
 
+// The meta description is copy — and, for most people who ever encounter this
+// page, the *only* copy they read. It duplicated HERO_BODY by hand, which is
+// exactly the pair that drifts: one gets edited at review, the other stays
+// behind in a file nobody thinks of as containing sentences. Tied structurally
+// here rather than by a second copy of the string (QUESTIONS 85, PM-approved).
+const description = html.match(/<meta\s+name="description"\s+content="([^"]*)"/s);
+if (!description) {
+  console.error("dist/index.html has no meta description");
+  process.exit(1);
+}
+const meta = description[1]
+  .replace(/\s+/g, " ")
+  .replace(/&#x27;|&#39;/g, "'")
+  .replace(/&quot;/g, '"')
+  .replace(/&amp;/g, "&")
+  .trim();
+if (meta !== constants.get("HERO_BODY")) {
+  console.error("The meta description has drifted from HERO_BODY.");
+  console.error(`  index.html: ${meta}`);
+  console.error(`  HERO_BODY:  ${constants.get("HERO_BODY")}`);
+  process.exit(1);
+}
+
 // All four scenario panels, in the order a day happens.
 const order = ["morning", "afternoon", "off", "seen"].map((set) =>
   html.indexOf(`data-scenario="${set}"`),
