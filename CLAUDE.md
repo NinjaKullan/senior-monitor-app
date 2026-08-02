@@ -74,17 +74,28 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 78.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 84.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
 ### State of the build (2026-08-02)
 
-Specs 001–005e are built: the pilot backend (`app/`, frozen since 002), the
-multi-tenant product backend (`product/`, migrations through 0008), the digest
-engine, ladder v1, the child PWA (`webapp/`) with its warmth pass and the
-tripwire health detail view, and the shortcut forge. Both suites green on
-`main`.
+Specs 001–006 are built: the pilot backend (`app/`, frozen since 002), the
+multi-tenant product backend (`product/`, migrations through **0009**), the
+digest engine, ladder v1, the child PWA (`webapp/`) with its warmth pass and the
+tripwire health detail view, the shortcut forge, and the landing page
+(`site/`). **Three** suites now — `pytest`, `webapp && npm run ci`, and
+`site && npm run ci` — all green on `main`.
+
+006 added the first top-level directory since `webapp/` and the first table with
+no family attached. `site/` reuses the webapp's toolchain with two extra CI
+checks: a foreign-origin scan of `dist/` (law #4 made mechanical — a font CDN
+would disclose every visitor's interest in elder monitoring before they had
+decided to trust anything) and a prerender check (the page is rendered to HTML
+at build time so it reads with JavaScript off, and a prerender step that stops
+running looks fine to everyone whose browser runs scripts). `docs/design-language.md`
+is the law of that surface; spec 006 §2 locked its values, and they live in
+`site/src/tokens.css` alone.
 
 005e's format debt is paid by field test (2026-08-02): a forge-generated,
 signed shortcut **imported on a real iPhone with one tap — no Settings toggle,
@@ -93,7 +104,9 @@ needs no "turn this on first" step) and 69 is downgraded to optional — the
 `--inspect` diff against a hand-built export would still sharpen `validate()`'s
 key-set contract but blocks nothing. One small fix owed from the same session:
 **item 77, forge.py must lazy-import psycopg** so `--device-token` mode runs
-dependency-free on a bare Mac.
+dependency-free on a bare Mac — **done**, and it needed more than a lazy import
+(QUESTIONS 78): the token path also queried for the parent's name and signal
+list, so there is now an explicit offline mode, `--device-token TOKEN --name`.
 
 005d's rulings (QUESTIONS 58–64, 2026-08-01): 58 and 61–64 approved, **59
 deferred** — learned cadences wait for the threshold-analysis spec, fixed
@@ -108,21 +121,23 @@ is the parent's future home — day-detail and per-parent digest views are
 expected to live there**, which is why the affordance mattered enough to fix
 before the next spec.
 
-Landing-page groundwork (research only, 2026-08-02, no product code):
-`docs/oura-design-analysis.md` extracts Oura's tokens from their compiled
-Tailwind theme and measured assets, per the founder's Aug-1 design-language
-decision. Its §10 lists the three things a fetch could not see — scroll
-choreography, scenario-tab active states, and one unlocated gradient pair — and
-they need founder screenshots, not another fetch. QUESTIONS 74–76 hold the
-calls the landing-page spec is blocked on (typeface licensing, whether the
-status-eyebrow form may travel without its diagnostic meaning, and where the
-trade-dress line sits on colour).
+006's own notes are QUESTIONS 78–83. Two are worth a reader's time before
+touching `site/`: **80**, where §3.2 and AC5 disagree about whether the
+notification breaks panel structure (read as "the `off` panel must not be
+escalated", tested that way, reversible in one commit if the PM wants the
+literal reading); and **82**, where a source-text scan of Tailwind classes was
+found to miss any class built from a template literal — the motion guard now
+walks the rendered DOM, and *any* future source-text class scan in this repo
+should be assumed blind until proved otherwise.
 
 **No unbuilt spec is in `specs/`** — 005b (onboarding wizard, family codes,
 billing, TestFlight) is what the roadmap points at next; the tripwire view's
 repair nudge hands off to its guided repair, and 005e's generation half is
 already the piece 005b's macOS CI signer would reuse. The PM has not written
-that spec yet. Production (`kettle-prod`) is at migration 0008, advisor-clean;
-the founder applies migrations and runs deploys, so a spec being "done" here
-means green locally and pushed, never shipped. Neither 005d nor 005e added a
-migration: 005d is webapp-only, 005e is a founder script plus tests.
+that spec yet.
+
+Production (`kettle-prod`) is at migration 0008 and **0009 is owed** — the
+waitlist table, which the landing page needs before it can collect anything. The
+founder applies migrations and runs deploys, so a spec being "done" here means
+green locally and pushed, never shipped; 006 additionally needs DNS and a static
+host pointed at `site/dist/` (`site/README.md` has the three steps).

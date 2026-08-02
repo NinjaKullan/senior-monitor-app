@@ -306,6 +306,33 @@ them as download links, which removes the founder's laptop from the loop
 entirely. Nothing here needs to change for that — the generation half already
 runs anywhere; only the signing half needs the runner.
 
+## Waitlist (spec 006)
+
+`POST /waitlist` is the landing page's one write, and migration `0009` is the
+table behind it. Both are shaped around not leaking:
+
+* A **duplicate signup is indistinguishable from a first one** — same status,
+  same body — so the endpoint cannot be asked whether an address is on the list.
+* A **honeypot hit looks exactly like a success.** Telling a bot it was caught
+  teaches whoever wrote it which field to leave alone.
+* The row holds **an address and one fixed-choice answer**. No IP, no user agent,
+  no referrer; the page carries no analytics (law #4) and this endpoint does not
+  become the analytics by the back door. A test asserts the column list.
+* The table has RLS on and **no policy at all** — the same shape `ops_alerts`
+  has carried since 002. Nothing reads it from a client, so there is nothing to
+  write a policy for, and 0004's revoked defaults plus an explicit revoke in
+  0009 mean neither client role holds a privilege either.
+* `parent_phone` is a CHECK constraint, not validation (standing structure 39).
+  The answer decides Wave 2 platform priority, and a typo in it is a silently
+  wrong decision months later.
+
+`WAITLIST_ORIGINS` sets the browser origins allowed to POST — an explicit list,
+never a wildcard. It defaults to `getkettle.com`, `www.getkettle.com` and the
+Vite dev server.
+
+Counting signups is `python -c` against the database, deliberately: there is no
+endpoint that reads this table.
+
 ## Running the tests
 
 RLS cannot be tested against a fake, so the suite needs a real Postgres. Two
@@ -461,5 +488,6 @@ revocation time.
 | `DIGEST_MORNING_CUTOFF_HOUR` | no "day started" at/after this local hour | `14` |
 | `DIGEST_EVENING_HOUR` / `_MINUTE` | parent-local summary time | `20` / `30` |
 | `TWILIO_ACCOUNT_SID` / `_AUTH_TOKEN` / `_FROM` | SMS delivery (secrets); the auth token also validates inbound webhooks | unset = log-only, inbound rejected |
+| `WAITLIST_ORIGINS` | comma-separated browser origins allowed to POST /waitlist (default: the getkettle.* pair plus localhost dev) |
 | `LADDER_ENABLED` | global escalation-ladder kill-switch | **off** |
 | `TEST_DATABASE_URL` | tests only | local `kettle_test` |

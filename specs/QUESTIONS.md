@@ -1314,3 +1314,81 @@ all three block the landing-page spec, and 75 touches product law.
     that has never seen the backend: move the DB import inside the code path
     that needs it, and add a test that `--device-token` mode works with
     psycopg absent. Small fix, fold into the next build.
+
+---
+
+## Spec 006 — landing page (implementer notes, 2026-08-02)
+
+Six calls, one of them a real ambiguity between two clauses of the spec.
+
+78. **`--device-token` did not mean what item 77 said it meant, and fixing it
+    took more than a lazy import.** Item 77 describes the mode as one where "no
+    database is ever touched", but the code as built queried for two things the
+    token alone does not carry: the parent's display name (which *is* the
+    filename) and their active signal list. So a lazy import would have moved
+    the failure rather than removed it — `psycopg` unimported, then imported one
+    line later.
+
+    Built instead as an explicit offline mode: `--device-token TOKEN --name
+    "Amma"` takes both facts from the command line, exactly as they appear on a
+    provisioning printout, and touches nothing. Signals default to the standard
+    set with `--signals` to override, and the list is printed back before the
+    files are written so an unexpected sixth shortcut is noticed at the terminal
+    rather than on a parent's phone. With `DATABASE_URL` set, nothing changes:
+    the database stays authoritative about what is active. If the PM would rather
+    offline mode refuse to guess the signal list and require `--signals`, that is
+    one line — but the founder had six shortcuts on a printout, and defaulting to
+    the set that printout describes is the behaviour that matches the field.
+
+79. **The drafted scenario sentences are intact word for word; the element
+    boundary falls inside them.** §3.2 asks for "a serif emphasis phrase inside a
+    sans sentence", which the drafts do not arrive pre-split into. Rather than
+    set a whole sentence in the serif — which would break design-language §3's
+    only permitted serif shape and the scarcity that makes it work — each
+    scenario is a `_LEAD` (sans) and a `_SERIF` (its closing phrase). Nothing was
+    reworded. Two of the four moved a clause between the lead and the following
+    paragraph so the emphasis lands on the phrase carrying the feeling rather
+    than the fact; the founder swaps strings freely at review either way.
+
+80. **AC5 and §3.2 disagree about the notification, and I read AC5 as the
+    narrower claim.** §3.2 gives the notification component to two panels ("where
+    noted"); AC5 asks the four panels to "render identical DOM structure". Taken
+    literally together they cannot both hold. I read AC5's purpose as *the `off`
+    panel must not be escalated* — no extra border, no heavier weight, no badge —
+    and tested it that way: the four panels share one component, one class list
+    is asserted across all four, morning matches afternoon and off matches seen
+    exactly, and `off`'s first six structural lines are compared against
+    `morning`'s. If the PM wants the stricter literal reading, the fix is an
+    always-rendered notification slot that is empty on two panels; I did not do
+    that because an empty flex child changes the spacing and would be markup
+    added to satisfy a test rather than a reader.
+
+81. **The foreign-origin scan needed two named exemptions, and both are
+    inert strings rather than requests.** `www.w3.org` is the SVG namespace
+    identifier. `reactjs.org` is baked into React's production build as the
+    minified-error link, inside a `throw`. Neither is ever fetched. They are
+    listed by name with the reason beside them — the same visible-exemption
+    shape item 67 used for the SVG geometry narrowing — and `foreignOrigins.test.ts`
+    plants a font CDN, four analytics beacons, and two lookalike hosts
+    (`cdn.reactjs.org.evil.test`, `w3.org.evil.test`) to prove the allowlist is
+    exact-host and not a substring match.
+
+82. **The motion scan reads the rendered DOM, not the source, and that change
+    came out of a plant.** The first version scanned class literals in the
+    source; planting an ungated `animate-rise` on `Section` did **not** fail it,
+    because that component builds its class string from a template literal the
+    regex could not see. A guard that reports green over the exact regression it
+    exists to catch is worse than no guard, so the scan now walks every rendered
+    element's `classList`, with the source scan kept as a second net. Worth
+    recording because the lesson generalises: any source-text scan of Tailwind
+    classes in this repo is one refactor away from silently covering nothing.
+
+83. **Marketing's ban list is longer than the product's, on purpose.** Beyond the
+    spec's six categories I added a medical group (`unwell`, `ill`, `hospital`,
+    `fallen`, `injured`, `collapse`, `frail`, `at risk`) and `condition` /
+    `cognitive` to the diagnosis group. §4 lists categories rather than closed
+    vocabularies, and these are the words a well-meaning marketing edit reaches
+    for first. None appears in any drafted string, so this costs nothing today
+    and refuses a sentence nobody has written yet — which is the only time a ban
+    is cheap. `SCENARIOS_H2` is mine, not the spec's ("An ordinary day."), since
+    §3.2 names the tabs but not the heading above them.

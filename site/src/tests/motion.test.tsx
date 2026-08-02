@@ -47,21 +47,37 @@ function classTokens(): { file: string; token: string }[] {
   return found;
 }
 
+/**
+ * A class token that moves something. `motion-safe:animate-rise` does not match:
+ * the prefix is the gate, and Tailwind emits it inside the media query.
+ */
+const MOVES = (token: string) =>
+  /^(animate-|transform\b|translate-|scale-|rotate-)/.test(token) ||
+  /^hover:(scale|translate|rotate)/.test(token);
+
 describe("AC7 — every animation sits behind motion-safe", () => {
   it("finds enough classes to be scanning anything", () => {
     expect(classTokens().length).toBeGreaterThan(50);
   });
 
-  it("gates every animation and every transform", () => {
-    const ungated = classTokens().filter(
-      ({ token }) =>
-        /^(animate-|transform\b|translate-|scale-|rotate-)/.test(token) ||
-        /^hover:(scale|translate|rotate)/.test(token),
-    );
-    expect(
-      ungated.map((t) => `${t.file}: ${t.token}`),
-      "motion that a reduced-motion viewer would still get",
-    ).toEqual([]);
+  it("gates every animation and every transform, in the rendered page", () => {
+    // Scanned off the DOM, not off the source. Class strings get assembled from
+    // template literals and concatenation, and a source scan that missed one
+    // would report green over an animation a reduced-motion viewer still gets —
+    // which is exactly what happened while this test was being written.
+    const { container } = render(<App />);
+    const ungated: string[] = [];
+    for (const node of [container, ...Array.from(container.querySelectorAll("*"))]) {
+      for (const token of Array.from(node.classList ?? [])) {
+        if (MOVES(token)) ungated.push(`${node.tagName}: ${token}`);
+      }
+    }
+    expect(ungated, "motion that a reduced-motion viewer would still get").toEqual([]);
+  });
+
+  it("gates them in the source too, as a second net", () => {
+    const ungated = classTokens().filter(({ token }) => MOVES(token));
+    expect(ungated.map((t) => `${t.file}: ${t.token}`)).toEqual([]);
   });
 
   it("keeps hovers to colour, with no elevation and no movement", () => {
@@ -79,16 +95,13 @@ describe("AC7 — every animation sits behind motion-safe", () => {
   });
 
   it("would catch a hover:scale and an ungated entry animation", () => {
-    // The two regressions AC7 names, run through the same predicate the real
-    // scan uses rather than a looser one written for the plant.
-    const gated = (token: string) =>
-      /^(animate-|transform\b|translate-|scale-|rotate-)/.test(token) ||
-      /^hover:(scale|translate|rotate)/.test(token);
-    expect(gated("hover:scale-105")).toBe(true);
-    expect(gated("animate-rise")).toBe(true);
-    expect(gated("motion-safe:animate-rise")).toBe(false);
-    expect(gated("hover:bg-calm")).toBe(false);
-    expect(gated("transition-colors")).toBe(false);
+    // The two regressions AC7 names, run through the same predicate both scans
+    // use rather than a looser one written for the plant.
+    expect(MOVES("hover:scale-105")).toBe(true);
+    expect(MOVES("animate-rise")).toBe(true);
+    expect(MOVES("motion-safe:animate-rise")).toBe(false);
+    expect(MOVES("hover:bg-calm")).toBe(false);
+    expect(MOVES("transition-colors")).toBe(false);
   });
 
   it("carries the entry animation on the sections themselves", () => {
