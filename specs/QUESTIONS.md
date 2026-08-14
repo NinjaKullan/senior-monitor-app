@@ -1605,3 +1605,21 @@ backend, form, or dependency change.
     an SEO decision, and the escape hatch (`HERO_META_BODY` + one line in
     the check, never a hand-edited `index.html`) is the recorded path if the
     two jobs ever diverge.
+
+---
+
+## Field log — founder's wife, second device (PM-recorded, 2026-08-03)
+
+92. **First automation run on a locked phone fails with "requires privacy
+    permissions that cannot be granted while your device is locked."** The
+    shortcut's first-ever run needs the user to approve the connection to
+    `kettle-api.fly.dev`, and iOS cannot show that consent prompt while
+    locked — so an automation that fires before any manual run errors
+    silently from the family's point of view. Fix observed: one manual run
+    in the Shortcuts app while unlocked, tap Allow, and locked/automation
+    runs work thereafter. **Consequence for 005b:** the wizard's server-side
+    verify step ("open it now, watch for the green check") must run
+    *unlocked and before automations arm* — it was already the design for
+    proving setup; it is now also the step that grants the URL permission.
+    Add the expectation line to the senior-facing one-pager. Heartbeat
+    detection is the net for families who skip it.
