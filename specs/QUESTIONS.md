@@ -1623,3 +1623,111 @@ backend, form, or dependency change.
     proving setup; it is now also the step that grants the URL permission.
     Add the expectation line to the senior-facing one-pager. Heartbeat
     detection is the net for families who skip it.
+
+93. **The forge should derive its own output path from the token** (PM, from the founder's
+    first-principles push on the onboarding runbook). Today the founder passes `--out
+    ~/Projects/kettle-files/<family>/<person>-shortcuts`, which re-enters data the system already
+    holds: a device token identifies exactly one device, belonging to exactly one parent, in
+    exactly one family. Any value a human retypes is a value they can get wrong, and here getting
+    it wrong means one person's shortcuts land on another person's phone.
+
+    Asked for: with `--device-token X` (or `--parent NAME`) and no `--out`, the forge writes
+    `out/<family-slug>/<person-slug>/` and prints the absolute path it chose. `--out` stays as an
+    override for the offline `--name` mode, which by definition has no database to ask. Small
+    change, and it deletes a class of founder error rather than mitigating it.
+
+    Related and deliberately *not* asked for: preventing the mix-up outright. It is recoverable
+    (`--revoke`, re-forge) and cheap; what makes it dangerous is silence. The runbook's answer is
+    detection — §2.6 now requires naming the expected card *before* the parent opens the app, so a
+    crossed pair announces itself in ten seconds. Prevention where it is free (this item),
+    detection where prevention is not.
+
+94. **Per-parent signal selection has no path that isn't SQL or a code edit** (PM, from the founder
+    asking mid-onboarding to drop `news` and add `safari` for one parent). Two gaps, different
+    sizes:
+
+    * **Choosing from the existing set.** `kettle/signals.py` is explicit that
+      `STANDARD_SIGNALS` is a *seed* and the real allowlist is per parent in `parent_signals` —
+      but `scripts/provision.py` has no way to express that. Asked for: `--signals
+      whatsapp,youtube,charge_on,charge_off,device_alive` (and ideally
+      `--parent "Amma:Asia/Kolkata:whatsapp,youtube"`) so a family's set is chosen at
+      provisioning rather than seeded-then-edited. Today the founder either leaves an unused
+      signal reading `Not set up yet` forever or hand-writes an UPDATE.
+    * **Adding a signal to the vocabulary.** A new key needs `SIGNAL_LABELS` *and* the webapp's
+      `SIGNAL_DISPLAY_NAMES`, with the existing drift test keeping them honest. That coupling is
+      correct and should stay; what is missing is that it is nobody's documented procedure. A
+      short "adding a signal" section in `product/README.md` naming both files, the drift test,
+      and the copy-law ban that derives from the map would make it a ten-minute change instead of
+      an archaeology exercise.
+
+    Product note attached to the same request, so it is not lost: browser signals (`safari`) are
+    law-clean — we see that an app opened, never what was in it — but they *read* differently to a
+    parent than a video app does, and the consent script needs a sentence for it. Financial apps
+    stay excluded at every tier per the signal-expansion review; do not add one as a tripwire.
+    Choosing signals per parent from their own habits is the manual prototype of the parked
+    routine-discovery onboarding, and the answers belong in 005b's notes.
+
+95. **Revocation is a one-way door: there is no re-issue path** (PM, from the founder asking how to
+    rotate a token before a rehearsal run). `--revoke` kills a device and reports what it killed,
+    which is the right half. The missing half is that `provision_family` always inserts a *new
+    family*, so there is no command that adds or replaces a device for a parent who already
+    exists. The founder's real cases are ordinary: a parent buys a new phone, a token is
+    mishandled and must be rotated, a rehearsal device is retired.
+
+    Asked for: `--add-device --parent "Amma" [--family "Suryaprakasam"]` printing a token and ping
+    URLs in the same shape as provisioning, and `--rotate <old_token>` as the two-step (revoke +
+    issue) done atomically so a family is never left with zero working devices. Both are small
+    against the existing provisioning module.
+
+    Also missing and lower priority: no way to remove a family. Rehearsal and demo families
+    accumulate; today the answer is SQL or leaving them. A `--delete-family` guarded by an explicit
+    confirmation would close it — but note the deliberate asymmetry, since deleting a family
+    deletes real ping history and should be harder than creating one.
+
+96. **Shortcut names drop the parent, and shortcuts get an icon** (founder, on-device during the
+    rehearsal run, 2026-08-13). Two changes to `shortcut_name()` and the forge, plus one dormant
+    task that is now the way to get the values.
+
+    **(a) `Kettle — {Signal}`, not `Kettle — {Parent} {Signal}`.** On an iPhone tile the current
+    name renders as `Kettle — TestDad C…` — the parent's name consumes the line and the signal,
+    the only thing a reader needs, is what gets cut. Ask who reads the string: the parent, in
+    their own library, where their own name is redundant; the person building automations, who
+    must pick one of five by signal; and the child app, which already shows the signal inside a
+    per-parent view. The parent's name is the least informative token in the string at the moment
+    anyone reads it.
+
+    Cost, accepted: identical names across two parents' phones make a crossed-files mix-up less
+    visible. That defence has already moved to the runbook's verify-by-prediction step, which
+    catches it in ten seconds independent of naming, so the legibility is worth more than the
+    redundancy. Note this does *not* weaken the ruling on item 61 — the repair surface must still
+    name what the phone names, so the app's tripwire rows and `shortcut_name()` change together
+    or not at all, and the existing drift test is what keeps them honest.
+
+    Blast radius is small: `shortcut_name()` in `kettle/signals.py`, the provisioning printout,
+    forge output filenames, and any test asserting the old shape.
+
+    **(b) Ship an icon and colour.** Item 69 omitted `WFWorkflowIcon` on the reasoning that a
+    guessed glyph number and colour integer are a visible oddity on someone's home screen. The
+    founder now wants the Kettle mark and a brand colour, which makes the omission the wrong
+    default — five unlabelled beige tiles in a library full of Amazon and airline shortcuts is
+    exactly the not-findable case.
+
+    **The values, resolved 2026-08-13, and item 69 closes with them.** The founder set the icon by
+    hand in the Shortcuts app and shared the result; the iCloud record for a shared shortcut
+    exposes them directly, which turned out to be a faster route than `--inspect` and is worth
+    remembering: `https://www.icloud.com/shortcuts/api/records/<share-id>` returns JSON carrying
+    `name`, `icon_color`, `icon_glyph` and `signingStatus`.
+
+    * `icon_color = 4251333119` — RGBA packed into one integer, `0xFD6631FF`, rgb(253, 102, 49).
+    * `icon_glyph = 62041` — `0xF259`, the chain-link glyph.
+
+    Both are founder picks from Apple's built-in palette, not defaults. The format finding matters
+    beyond these two numbers: colour is a plain packed RGBA integer, so the palette is plausibly a
+    UI constraint rather than a file-format one, and an arbitrary brand colour may well render.
+    Untested; worth one experiment before anyone assumes otherwise.
+
+    PM note recorded, not enforced: orange is the one hue `docs/design-language.md` reserves for
+    *equipment attention* — amber means a device stopped reporting, never a person. A shortcut tile
+    is equipment, so nothing is violated, but five orange tiles on a parent's home screen read
+    faintly as warning to someone who does not know the system, where green would read as ordinary.
+    The founder chose orange with that trade-off stated.
