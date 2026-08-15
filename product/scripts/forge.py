@@ -23,12 +23,11 @@ exactly like the token: the default output directory is gitignored, and
 
 ## On the plist format
 
-The schema is stable but under-documented; what is asserted here is recorded in
-`specs/QUESTIONS.md` item 69, honestly split into what is known by construction
-and what is inference. `--inspect` exists to close that gap: run it on macOS
-against a shortcut built by hand in the Shortcuts app, and it prints that file's
-shape next to this module's, so the assumptions can be confirmed or corrected
-against the only authority that matters.
+The schema is stable but under-documented; `specs/QUESTIONS.md` item 69 records
+what was known by construction versus inferred, and is now closed — the field
+test proved import and ping end-to-end, and the icon values are measured from a
+real signed shortcut (item 96b). `--inspect` remains for the next format
+question: it prints a real file's shape beside this module's.
 """
 
 from __future__ import annotations
@@ -76,6 +75,17 @@ URL_PARAMETER = "WFURL"
 CLIENT_VERSION = "900"
 MINIMUM_CLIENT_VERSION = 900
 
+#: The tile's look (QUESTIONS 96b). Both values are *measured*, not guessed —
+#: the founder set the icon by hand in Shortcuts and the iCloud record for the
+#: shared shortcut exposed them (`…/shortcuts/api/records/<share-id>` returns
+#: `icon_color` and `icon_glyph` directly). That closes item 69's inference:
+#: colour is RGBA packed into one integer — 0xFD6631FF, rgb(253, 102, 49) — and
+#: the glyph is an id from Apple's built-in set, 0xF259, the chain link.
+#: Five unlabelled beige tiles in a library full of Amazon and airline shortcuts
+#: was exactly the not-findable case the earlier omission created.
+ICON_COLOR = 4251333119
+ICON_GLYPH = 62041
+
 #: Every top-level key this module writes, and nothing else. `--verify` requires
 #: an exact match rather than a superset: an unexpected key is either a Shortcuts
 #: build adding something we do not understand, or an edit nobody meant to make,
@@ -86,6 +96,7 @@ TOP_LEVEL_KEYS = frozenset(
         "WFWorkflowClientVersion",
         "WFWorkflowHasOutputParameters",
         "WFWorkflowHasShortcutInputVariables",
+        "WFWorkflowIcon",
         "WFWorkflowImportQuestions",
         "WFWorkflowInputContentItemClasses",
         "WFWorkflowMinimumClientVersion",
@@ -118,9 +129,14 @@ def build_plist(url: str) -> dict[str, Any]:
         "WFWorkflowMinimumClientVersion": MINIMUM_CLIENT_VERSION,
         "WFWorkflowMinimumClientVersionString": CLIENT_VERSION,
         "WFWorkflowTypes": [],
-        # No WFWorkflowIcon: an icon is a glyph number and a colour integer, and
-        # a wrong guess at either is a visible oddity on someone's home screen.
-        # Shortcuts supplies its default when the key is absent (QUESTIONS 69).
+        # Present since QUESTIONS 96b. The key was omitted while the values
+        # would have been guesses; these are read from a real signed shortcut,
+        # so the "visible oddity on someone's home screen" risk is gone and the
+        # unlabelled-beige-tile problem it left behind is what gets fixed.
+        "WFWorkflowIcon": {
+            "WFWorkflowIconGlyphNumber": ICON_GLYPH,
+            "WFWorkflowIconStartColor": ICON_COLOR,
+        },
     }
 
 
@@ -263,6 +279,20 @@ def validate(raw: bytes, expected_signal: str | None = None) -> list[str]:
         return problems
     if set(parameters) != {URL_PARAMETER}:
         problems.append(f"unexpected action parameters: {sorted(parameters)}")
+
+    # The icon is validated as exactly as the action: a wrong glyph or colour
+    # is not corruption, but it is a file that will not look like the other
+    # five on the phone, and these get signed and sent.
+    icon = plist.get("WFWorkflowIcon")
+    if not isinstance(icon, dict):
+        problems.append("WFWorkflowIcon is not a dictionary")
+    else:
+        expected_icon = {
+            "WFWorkflowIconGlyphNumber": ICON_GLYPH,
+            "WFWorkflowIconStartColor": ICON_COLOR,
+        }
+        if icon != expected_icon:
+            problems.append(f"unexpected icon: {icon!r}")
 
     url = parameters.get(URL_PARAMETER)
     if not isinstance(url, str):

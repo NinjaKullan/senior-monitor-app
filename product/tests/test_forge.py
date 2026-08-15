@@ -53,6 +53,12 @@ def test_a_generated_shortcut_round_trips_through_plistlib():
     ]
     assert plist["WFWorkflowHasOutputParameters"] is False
     assert plist["WFWorkflowHasShortcutInputVariables"] is False
+    # The measured icon (QUESTIONS 96b): founder-picked values read from a real
+    # signed shortcut's iCloud record, not guesses.
+    assert plist["WFWorkflowIcon"] == {
+        "WFWorkflowIconGlyphNumber": 62041,
+        "WFWorkflowIconStartColor": 4251333119,
+    }
     assert forge.validate(one(), expected_signal="whatsapp") == []
 
 
@@ -131,8 +137,36 @@ def test_a_second_action_fails_validation():
 
 
 def test_an_extra_top_level_key_fails_validation():
-    problems = forge.validate(_mutated(lambda p: p.update({"WFWorkflowIcon": {}})))
+    # WFWorkflowIcon was this test's plant until QUESTIONS 96b made it a real
+    # key; the plant moves to a key the forge still never writes.
+    problems = forge.validate(_mutated(lambda p: p.update({"WFWorkflowName": "x"})))
     assert any("unexpected top-level keys" in p for p in problems), problems
+
+
+def test_a_wrong_icon_fails_validation():
+    """A wrong glyph or colour is a tile that does not look like the other five.
+
+    These files get signed and sent; nobody re-opens the plist afterwards, so
+    the only moment to notice a drifted icon is before the signature.
+    """
+    recoloured = _mutated(
+        lambda p: p["WFWorkflowIcon"].update({"WFWorkflowIconStartColor": 4292093695})
+    )
+    assert any("unexpected icon" in x for x in forge.validate(recoloured))
+
+    reglyphed = _mutated(
+        lambda p: p["WFWorkflowIcon"].update({"WFWorkflowIconGlyphNumber": 59511})
+    )
+    assert any("unexpected icon" in x for x in forge.validate(reglyphed))
+
+    # An extra key inside the icon dict is caught by the same exact comparison.
+    padded = _mutated(lambda p: p["WFWorkflowIcon"].update({"WFWorkflowIconImageData": b""}))
+    assert any("unexpected icon" in x for x in forge.validate(padded))
+
+
+def test_a_missing_icon_fails_validation():
+    problems = forge.validate(_mutated(lambda p: p.pop("WFWorkflowIcon")))
+    assert any("missing top-level keys" in p for p in problems), problems
 
 
 def test_a_missing_top_level_key_fails_validation():
