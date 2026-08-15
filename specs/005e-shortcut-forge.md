@@ -4,7 +4,7 @@
 
 ## 1. What it is
 
-A founder tool (beta) that, given a device, emits ready-to-send signed `.shortcut` files — one per active signal — named exactly as the repair surface names them (`Kettle — {Parent} {Signal}`), each containing a single `Get Contents of URL` action pointed at that device's ping URL.
+A founder tool (beta) that, given a device, emits ready-to-send signed `.shortcut` files — one per active signal — named exactly as the repair surface names them (`Kettle — {Signal}` — amended by QUESTIONS 96a, founder on-device: the parent's name truncated the tile and told the reader nothing), each containing a single `Get Contents of URL` action pointed at that device's ping URL.
 
 Two components:
 

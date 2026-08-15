@@ -1181,6 +1181,16 @@ guardrail.
     belongs back in this item — and the fix is almost always one constant in
     `scripts/forge.py`, because everything above lives in exactly one place.
 
+    **CLOSED 2026-08-15 (via item 96).** The field test already proved import
+    and ping end-to-end; the last open inference — the omitted `WFWorkflowIcon`
+    — is now resolved with measured values rather than an export diff: the
+    iCloud record for a founder-shared shortcut exposes `icon_color` and
+    `icon_glyph` directly, and the forge emits them
+    (`ICON_COLOR = 4251333119` = 0xFD6631FF, `ICON_GLYPH = 62041` = the chain
+    link). Colour is plain packed RGBA, so the palette is plausibly a UI
+    constraint rather than a format one — untested, one experiment if a brand
+    colour is ever wanted. `--inspect` stays for the next format question.
+
 70. **What `--mode anyone` asks of the receiving phone is documented but not
     proven.** Apple's material says signing sends the shortcut to Apple for
     validation and that "anyone" (versus "people-who-know-me") controls who may
@@ -1731,3 +1741,23 @@ backend, form, or dependency change.
     is equipment, so nothing is violated, but five orange tiles on a parent's home screen read
     faintly as warning to someone who does not know the system, where green would read as ordinary.
     The founder chose orange with that trade-off stated.
+
+
+---
+
+## QUESTIONS 96 build notes (implementer, 2026-08-15)
+
+97. **`--name` survives as a label only, and a bare token now forges offline.**
+    Item 96a removed the parent's name from filenames, which retired the one
+    fact `--name` existed to supply (QUESTIONS 78: the token path queried the
+    database for the display name because filenames needed it). Rather than
+    keep requiring a flag whose value nothing consumes, offline mode now
+    triggers on `--device-token` plus any of: `--name`, `--signals`, or no
+    `DATABASE_URL` at all — so the exact failure the founder hit in the field
+    (token in hand, bare Mac, an error demanding a flag) can no longer be
+    spelled. With a `DATABASE_URL` set and no override, the database remains
+    authoritative about which signals are active. `--name` still prints "for
+    {name}" in the terminal output, which is worth keeping when forging for two
+    parents in one sitting. Tested with psycopg genuinely absent, as before.
+    If the PM would rather offline stay opt-in-by-flag even now, that is a
+    two-line revert of the trigger condition.

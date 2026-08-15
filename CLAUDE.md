@@ -74,7 +74,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 97.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 98.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -100,9 +100,11 @@ is the law of that surface; spec 006 §2 locked its values, and they live in
 005e's format debt is paid by field test (2026-08-02): a forge-generated,
 signed shortcut **imported on a real iPhone with one tap — no Settings toggle,
 no "Allow Untrusted Shortcuts" prompt**. QUESTIONS 70 is closed (005b's wizard
-needs no "turn this on first" step) and 69 is downgraded to optional — the
-`--inspect` diff against a hand-built export would still sharpen `validate()`'s
-key-set contract but blocks nothing. One small fix owed from the same session:
+needs no "turn this on first" step) and **69 is now closed too** (via 96b: the
+icon values are measured from a real signed shortcut's iCloud record, the last
+open inference). Shortcut names dropped the parent — `Kettle — {Signal}`,
+QUESTIONS 96a — and a bare `--device-token` forges offline with no flag at all
+(97). One small fix owed from the same session:
 **item 77, forge.py must lazy-import psycopg** so `--device-token` mode runs
 dependency-free on a bare Mac — **done**, and it needed more than a lazy import
 (QUESTIONS 78): the token path also queried for the parent's name and signal

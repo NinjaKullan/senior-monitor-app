@@ -225,7 +225,8 @@ follow the 0004 doctrine: `authenticated` only, `anon` explicitly revoked.
 
 Provisioning prints ping URLs; the forge turns them into files a parent can
 install by tapping. Each generated `.shortcut` is a plist holding exactly one
-`Get Contents of URL` action, named `Kettle — {Parent} {Signal}` — the same
+`Get Contents of URL` action, named `Kettle — {Signal}` (no parent name — an iPhone tile truncates it away,
+QUESTIONS 96a) — the same
 string the app's tripwire health view shows when that signal needs repair, so a
 family that reads "her WhatsApp tripwire needs attention" is looking for a
 shortcut with that name on the phone.
@@ -445,7 +446,7 @@ DATABASE_URL=... python -m scripts.provision --demo
 ```
 
 It prints, per person: the device token, one ready-to-use ping URL per signal, and
-the name of the shortcut that URL belongs in ("Kettle — Amma WhatsApp"). A
+the name of the shortcut that URL belongs in ("Kettle — WhatsApp"). A
 per-parent timezone (`Appa:America/Chicago`) overrides the family's, which is how
 "Mom is visiting Texas" becomes a data change rather than a code change.
 
