@@ -124,7 +124,7 @@ def provision_family(
                     signal=signal,
                     alarm_grade=alarm_grade,
                     url=f"{base_url.rstrip('/')}/p/{token}/{signal}",
-                    shortcut=shortcut_name(display_name, signal),
+                    shortcut=shortcut_name(signal),
                 )
             )
 

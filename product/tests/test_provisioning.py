@@ -100,10 +100,12 @@ def test_urls_and_shortcut_names_are_ready_to_use(conn: psycopg.Connection):
 
     whatsapp = by_signal["whatsapp"]
     assert whatsapp.url == f"{BASE_URL}/p/{parent.device_token}/whatsapp"
-    assert whatsapp.shortcut == "Kettle — Amma WhatsApp"
+    assert whatsapp.shortcut == "Kettle — WhatsApp"
     assert whatsapp.alarm_grade is True
     assert by_signal["device_alive"].alarm_grade is False
-    assert by_signal["device_alive"].shortcut == "Kettle — Amma Daily Check"
+    # No parent name in the shortcut (QUESTIONS 96a): the tile truncates it,
+    # and everyone reading the string already knows whose phone it is on.
+    assert by_signal["device_alive"].shortcut == "Kettle — Daily Check"
     # No `who` in the URL — the token is the identity.
     assert "who=" not in whatsapp.url
 
@@ -133,7 +135,7 @@ def test_render_summary_is_operator_readable(conn: psycopg.Connection):
     text = render_summary(family)
     assert "Family: Sharma" in text
     assert "[tz America/Chicago]" in text
-    assert "Kettle — Amma WhatsApp" in text
+    assert "Kettle — WhatsApp" in text
     assert f"{BASE_URL}/p/{family.parents[0].device_token}/whatsapp" in text
     assert "revoking one phone leaves the rest working" in text
 
@@ -177,7 +179,7 @@ def test_cli_demo_flag(conn: psycopg.Connection, database_url: str, capsys):
 
     out = capsys.readouterr().out
     assert DEMO_FAMILY_NAME in out
-    assert "Kettle — Demo Amma WhatsApp" in out
+    assert "Kettle — WhatsApp" in out
 
     token = conn.execute(
         "select device_token from devices join parents p on p.id = devices.parent_id "

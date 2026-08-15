@@ -50,9 +50,9 @@ if TYPE_CHECKING:  # pragma: no cover - typing only, never imported at runtime
     import psycopg
 
 # psycopg and kettle.db are imported *inside* the two functions that query, not
-# here. This is a founder tool: `--device-token --name` forges a set of
-# shortcuts from a provisioning printout with no database in the picture, and it
-# has to run on a bare Mac that has never installed the backend. Importing a
+# here. This is a founder tool: `--device-token` alone forges a set of shortcuts
+# from a provisioning printout with no database in the picture, and it has to
+# run on a bare Mac that has never installed the backend. Importing a
 # database driver at module scope made that mode fail with ModuleNotFoundError
 # on a laptop in the field (QUESTIONS 77). --verify and --inspect are offline
 # for the same reason.
@@ -139,15 +139,16 @@ def ping_url(base_url: str, token: str, signal: str) -> str:
     return f"{base_url.rstrip('/')}/p/{token}/{signal}"
 
 
-def file_name(parent_name: str, signal: str) -> str:
-    """`Kettle — Amma WhatsApp.shortcut`.
+def file_name(signal: str) -> str:
+    """`Kettle — WhatsApp.shortcut`.
 
     The name a `.shortcut` imports under is its filename, so this is not
     cosmetic: it is the string the tripwire health view shows when that signal
     needs repair, and the string the founder says on the phone. One source
-    (`kettle.signals`) keeps all three in step.
+    (`kettle.signals`) keeps all three in step — and per QUESTIONS 96a the
+    parent's name is not in it, so two parents' files are identical by design.
     """
-    return f"{shortcut_name(parent_name, signal)}.shortcut"
+    return f"{shortcut_name(signal)}.shortcut"
 
 
 # ---------------------------------------------------------------------------
@@ -279,7 +280,7 @@ def validate(raw: bytes, expected_signal: str | None = None) -> list[str]:
 
 
 def signal_from_name(name: str) -> str | None:
-    """Recover the signal from `Kettle — Amma WhatsApp.shortcut`, or None.
+    """Recover the signal from `Kettle — WhatsApp.shortcut`, or None.
 
     Used to cross-check a file's name against the URL inside it — the one
     mismatch that would survive every other assertion here and still send a
@@ -297,10 +298,10 @@ def signal_from_name(name: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def generate(parent_name: str, token: str, signals: list[str], base_url: str) -> dict[str, bytes]:
+def generate(token: str, signals: list[str], base_url: str) -> dict[str, bytes]:
     """{filename: file bytes} for one device. Pure — no filesystem, no clock."""
     return {
-        file_name(parent_name, signal): dump_plist(build_plist(ping_url(base_url, token, signal)))
+        file_name(signal): dump_plist(build_plist(ping_url(base_url, token, signal)))
         for signal in signals
     }
 
@@ -423,7 +424,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--parent", help="look the device up by the person's display name")
     parser.add_argument(
         "--name",
-        help="the person's display name, for offline use with --device-token (no database)",
+        help="optional label for offline output (names left files since QUESTIONS 96a)",
     )
     parser.add_argument(
         "--signals",
@@ -459,11 +460,17 @@ def main(argv: list[str] | None = None) -> int:
     if not args.base_url:
         parser.error("--base-url (or PUBLIC_BASE_URL) is required when generating")
     if args.name and not args.device_token:
-        parser.error("--name is for offline use with --device-token; --parent looks the name up")
+        parser.error("--name labels offline output for --device-token; --parent looks names up")
 
-    if args.name:
-        # Offline: everything needed is on the command line, so no database is
-        # opened and no driver is imported (QUESTIONS 77). The signal list is
+    database_url = os.environ.get("DATABASE_URL")
+    # Offline: the token alone is enough now that filenames carry no parent name
+    # (QUESTIONS 96a retired the one thing the database was still needed for on
+    # this path). Taken when the command line says so (--name/--signals) or when
+    # there is simply no database to ask — the bare-Mac case QUESTIONS 77/78
+    # exist for. With a DATABASE_URL and no override, the database stays
+    # authoritative about which signals are active.
+    if args.device_token and (args.name or args.signals or not database_url):
+        # No driver is imported on this path (QUESTIONS 77). The signal list is
         # the standard set unless given, which is what a provisioning printout
         # in the founder's hand actually lists — and it is printed back below
         # so an unexpected sixth file is noticed at the terminal, not on a
@@ -475,13 +482,13 @@ def main(argv: list[str] | None = None) -> int:
             if args.signals
             else [signal for signal, _ in STANDARD_SIGNALS]
         )
-        print(f"offline: no database consulted, forging {', '.join(signals)} for {parent_name}")
+        whose = f" for {parent_name}" if parent_name else ""
+        print(f"offline: no database consulted, forging {', '.join(signals)}{whose}")
     else:
-        database_url = os.environ.get("DATABASE_URL")
         if not database_url:
             print(
-                "DATABASE_URL is not set. For a device token with no database, "
-                "pass --name (and --signals if the parent's set is not the standard one).",
+                "DATABASE_URL is not set, and --parent needs a database to look a name up. "
+                "A device token forges offline without one.",
                 file=sys.stderr,
             )
             return 2
@@ -500,11 +507,12 @@ def main(argv: list[str] | None = None) -> int:
                 print(str(exc), file=sys.stderr)
                 return 2
 
-    written = write(generate(parent_name, token, signals, args.base_url), args.out)
+    written = write(generate(token, signals, args.base_url), args.out)
     for path in written:
         print(f"wrote {path}")
+    label = f" for {parent_name}" if parent_name else ""
     print(
-        f"\n{len(written)} unsigned shortcut(s) for {parent_name}."
+        f"\n{len(written)} unsigned shortcut(s){label}."
         "\nThese files contain the device token — treat them like the token itself."
         "\nNext: ./product/scripts/forge-sign.sh (macOS), then send the signed files."
     )

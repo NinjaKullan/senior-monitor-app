@@ -27,12 +27,11 @@ from testsupport import BASE_URL
 
 REPO = Path(__file__).resolve().parent.parent.parent
 TOKEN = "TESTt0ken_TESTt0ken_TEST"  # 24 url-safe chars, the shape tokens.py emits
-PARENT = "Demo Amma"
 
 
 def one(signal: str = "whatsapp", token: str = TOKEN) -> bytes:
     """One generated file's bytes."""
-    return forge.generate(PARENT, token, [signal], BASE_URL)[forge.file_name(PARENT, signal)]
+    return forge.generate(token, [signal], BASE_URL)[forge.file_name(signal)]
 
 
 # ---------------------------------------------------------------------------
@@ -58,23 +57,27 @@ def test_a_generated_shortcut_round_trips_through_plistlib():
 
 
 def test_the_file_is_named_the_way_the_repair_surface_names_it():
-    """One vocabulary: the app, the shortcut on the phone, and this filename."""
-    assert forge.file_name(PARENT, "whatsapp") == "Kettle — Demo Amma WhatsApp.shortcut"
-    assert forge.file_name(PARENT, "charge_on") == "Kettle — Demo Amma Charger On.shortcut"
+    """One vocabulary: the app, the shortcut on the phone, and this filename.
+
+    And no parent name in it (QUESTIONS 96a): the signal is the token a reader
+    needs, and it is what an iPhone tile was truncating away.
+    """
+    assert forge.file_name("whatsapp") == "Kettle — WhatsApp.shortcut"
+    assert forge.file_name("charge_on") == "Kettle — Charger On.shortcut"
 
     # And the name survives the round trip back to a signal, for every signal a
     # parent can be provisioned with — that is what lets validate() cross-check
     # a file's name against the URL inside it.
     for signal, _ in STANDARD_SIGNALS:
-        assert forge.signal_from_name(forge.file_name(PARENT, signal)) == signal
+        assert forge.signal_from_name(forge.file_name(signal)) == signal
 
 
 def test_one_file_per_signal_each_pointed_at_its_own_url():
-    files = forge.generate(PARENT, TOKEN, ["whatsapp", "device_alive"], BASE_URL)
+    files = forge.generate(TOKEN, ["whatsapp", "device_alive"], BASE_URL)
 
     assert sorted(files) == [
-        "Kettle — Demo Amma Daily Check.shortcut",
-        "Kettle — Demo Amma WhatsApp.shortcut",
+        "Kettle — Daily Check.shortcut",
+        "Kettle — WhatsApp.shortcut",
     ]
     for name, raw in files.items():
         assert forge.validate(raw, expected_signal=forge.signal_from_name(name)) == []
@@ -84,8 +87,8 @@ def test_output_is_byte_identical_across_runs(tmp_path: Path):
     """AC3: two runs diff clean, so a regenerated file is reviewable."""
     first, second = tmp_path / "a", tmp_path / "b"
     signals = [s for s, _ in STANDARD_SIGNALS]
-    forge.write(forge.generate(PARENT, TOKEN, signals, BASE_URL), first)
-    forge.write(forge.generate(PARENT, TOKEN, signals, BASE_URL), second)
+    forge.write(forge.generate(TOKEN, signals, BASE_URL), first)
+    forge.write(forge.generate(TOKEN, signals, BASE_URL), second)
 
     for path in sorted(first.iterdir()):
         assert path.read_bytes() == (second / path.name).read_bytes(), path.name
@@ -94,7 +97,7 @@ def test_output_is_byte_identical_across_runs(tmp_path: Path):
 
 def test_written_files_are_owner_only(tmp_path: Path):
     """The token is inside. The filesystem should say so."""
-    written = forge.write(forge.generate(PARENT, TOKEN, ["whatsapp"], BASE_URL), tmp_path / "o")
+    written = forge.write(forge.generate(TOKEN, ["whatsapp"], BASE_URL), tmp_path / "o")
     assert written
     for path in written:
         assert path.stat().st_mode & 0o077 == 0, f"{path.name} is readable by others"
@@ -176,7 +179,7 @@ def _set_url(plist, url: str) -> None:
 def test_a_file_whose_name_disagrees_with_its_url_fails_validation():
     """The mismatch every other assertion here would happily sign and send."""
     whatsapp_bytes = one("whatsapp")
-    named_youtube = forge.file_name(PARENT, "youtube")
+    named_youtube = forge.file_name("youtube")
 
     problems = forge.validate(whatsapp_bytes, expected_signal=forge.signal_from_name(named_youtube))
     assert any("URL signal is" in p for p in problems), problems
@@ -255,7 +258,7 @@ def _ignored(path: str) -> bool:
 
 def test_the_output_directory_cannot_be_committed():
     """AC5: emitted files are credentials; git must refuse them by default."""
-    assert _ignored(f"product/{forge.DEFAULT_OUT}/{forge.file_name(PARENT, 'whatsapp')}")
+    assert _ignored(f"product/{forge.DEFAULT_OUT}/{forge.file_name('whatsapp')}")
     assert _ignored("out/anything.shortcut")
 
 
@@ -376,7 +379,7 @@ def test_device_token_mode_runs_with_psycopg_absent(tmp_path: Path):
     assert result.returncode == 0, result.stderr
     assert "offline: no database consulted" in result.stdout
     written = sorted(p.name for p in out.iterdir())
-    assert written == sorted(forge.file_name("Amma", s) for s, _ in STANDARD_SIGNALS)
+    assert written == sorted(forge.file_name(s) for s, _ in STANDARD_SIGNALS)
     for path in out.iterdir():
         assert forge.validate(path.read_bytes(), forge.signal_from_name(path.name)) == []
 
@@ -398,30 +401,46 @@ def test_offline_mode_takes_an_explicit_signal_list(tmp_path: Path):
 
     assert result.returncode == 0, result.stderr
     assert sorted(p.name for p in out.iterdir()) == [
-        "Kettle — Amma Daily Check.shortcut",
-        "Kettle — Amma WhatsApp.shortcut",
+        "Kettle — Daily Check.shortcut",
+        "Kettle — WhatsApp.shortcut",
     ]
 
 
 def test_verify_and_inspect_are_offline_too(tmp_path: Path):
     """Both run on the founder's Mac after signing; neither needs a database."""
     out = tmp_path / "shortcuts"
-    forge.write(forge.generate("Amma", TOKEN, ["whatsapp"], BASE_URL), out)
+    forge.write(forge.generate(TOKEN, ["whatsapp"], BASE_URL), out)
 
     assert _forge_without_psycopg(tmp_path, "--verify", str(out)).returncode == 0
     inspected = _forge_without_psycopg(
-        tmp_path, "--inspect", str(out / forge.file_name("Amma", "whatsapp"))
+        tmp_path, "--inspect", str(out / forge.file_name("whatsapp"))
     )
     assert inspected.returncode == 0
     assert "differences from what forge generates" in inspected.stdout
 
 
-def test_a_token_with_no_name_and_no_database_says_what_to_do(tmp_path: Path):
-    """The failure the founder actually hit, now with an instruction in it."""
-    result = _forge_without_psycopg(tmp_path, "--device-token", TOKEN, "--out", str(tmp_path / "x"))
+def test_a_bare_token_forges_offline_with_no_name_at_all(tmp_path: Path):
+    """QUESTIONS 96a's consequence: the token really is enough now.
 
-    assert result.returncode == 2
-    assert "--name" in result.stderr
+    --name existed (QUESTIONS 78) to supply the one fact filenames needed from
+    the database. With the parent's name out of the filename, that fact has no
+    consumer, so the failure the founder originally hit — token in hand, no
+    database, an error demanding a flag — cannot recur.
+    """
+    out = tmp_path / "bare"
+    result = _forge_without_psycopg(tmp_path, "--device-token", TOKEN, "--out", str(out))
+
+    assert result.returncode == 0, result.stderr
+    assert "offline: no database consulted" in result.stdout
+    assert sorted(p.name for p in out.iterdir()) == sorted(
+        forge.file_name(s) for s, _ in STANDARD_SIGNALS
+    )
+
+
+def test_parent_lookup_without_a_database_still_says_what_to_do(tmp_path: Path):
+    """--parent has no offline story — a name lookup needs somewhere to look."""
+    result = _forge_without_psycopg(tmp_path, "--parent", "Amma", "--out", str(tmp_path / "x"))
+    assert result.returncode != 0
 
 
 # ---------------------------------------------------------------------------
@@ -446,13 +465,15 @@ def test_forging_for_a_provisioned_device_emits_every_active_signal(
     assert token == parent.device_token
     assert sorted(signals) == sorted(s for s, _ in STANDARD_SIGNALS)
 
-    files = forge.generate(name, token, signals, BASE_URL)
+    files = forge.generate(token, signals, BASE_URL)
     assert len(files) == len(STANDARD_SIGNALS)
     for filename, raw in files.items():
         assert forge.validate(raw, expected_signal=forge.signal_from_name(filename)) == []
         # The URL provisioning printed and the URL in the file are the same URL.
         wanted = next(s.url for s in parent.signals if s.shortcut + ".shortcut" == filename)
         assert wanted.encode() in raw
+    # Two parents' files are identical by name (QUESTIONS 96a) — the runbook's
+    # verify-by-prediction step, not the filename, is what catches a mix-up.
 
 
 def test_a_deactivated_signal_gets_no_shortcut(conn: psycopg.Connection, provisioned):
@@ -492,5 +513,5 @@ def test_an_unknown_parent_is_an_error_not_an_empty_directory(
 
 
 def test_every_standard_signal_has_a_human_name_to_forge_under():
-    """A signal with no label would emit `Kettle — Amma charge_on.shortcut`."""
+    """A signal with no label would emit `Kettle — charge_on.shortcut`."""
     assert {s for s, _ in STANDARD_SIGNALS} <= set(SIGNAL_LABELS)

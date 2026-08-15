@@ -32,6 +32,20 @@ SIGNAL_LABELS: dict[str, str] = {
 }
 
 
-def shortcut_name(parent_name: str, signal: str) -> str:
-    """The iCloud shortcut name for one parent's signal, e.g. 'Kettle — Amma WhatsApp'."""
-    return f"Kettle — {parent_name} {SIGNAL_LABELS.get(signal, signal)}"
+def shortcut_name(signal: str) -> str:
+    """The shortcut's name on the phone, e.g. `Kettle — WhatsApp`.
+
+    No parent name (QUESTIONS 96a, founder on-device). An iPhone tile truncates
+    to `Kettle — TestDad C…` — the name consumes the line and the signal, the
+    only token a reader needs, is what gets cut. Everyone who reads this string
+    already knows whose phone it is on: the parent in their own library, the
+    person building automations who must pick one of five *by signal*, and the
+    app, which shows signals inside a per-parent view.
+
+    The cost — identical names across two parents' phones make a crossed-files
+    mix-up less visible — is accepted because the runbook's verify-by-prediction
+    step catches that in ten seconds regardless of naming. Ruling 61 still
+    holds: the repair surface names what the phone names, so the app's tripwire
+    labels and this function move together, and the drift test keeps it so.
+    """
+    return f"Kettle — {SIGNAL_LABELS.get(signal, signal)}"

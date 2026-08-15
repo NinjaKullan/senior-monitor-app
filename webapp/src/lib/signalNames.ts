@@ -11,7 +11,7 @@
  * The values mirror `kettle/signals.py`'s SIGNAL_LABELS, and
  * product/tests/test_webapp_contract.py fails if they drift. That is not
  * housekeeping: those labels are the names of the shortcuts sitting on the
- * parent's phone (`Kettle — Amma Charger On`), so a family reading a stale name
+ * parent's phone (`Kettle — Charger On`), so a family reading a stale name
  * here would go hunting for a shortcut that does not exist.
  */
 export const SIGNAL_DISPLAY_NAMES: Record<string, string> = {

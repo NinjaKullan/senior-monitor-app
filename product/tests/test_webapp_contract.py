@@ -178,7 +178,7 @@ def test_webapp_signal_names_match_the_shortcuts_on_the_phone():
     """005d §1: the one view that renders signal names must name them correctly.
 
     These are the shortcut names a family sees in the Shortcuts app
-    (`Kettle — Amma Charger On`), so a drift here sends someone hunting for a
+    (`Kettle — Charger On`), so a drift here sends someone hunting for a
     shortcut that does not exist — on the screen whose entire job is repair.
     """
     source = SIGNAL_NAMES_TS.read_text()
