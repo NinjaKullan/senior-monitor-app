@@ -1975,3 +1975,41 @@ item 102, gated on the §5.1 experiment (HTTPS-served signed `.shortcut` → Add
      parent. This also gives routine-discovery (parked) a cleaner target: discovery can later
      upgrade a merged parent to per-app if the family wants it, rather than being needed on day
      one.
+
+
+---
+
+## Items 107/102 build notes (implementer, 2026-08-16)
+
+110. **`--signals` is one set per invocation, and the grade always comes from the
+     vocabulary.** Q94 asked for per-parent triples (`"Amma:TZ:whatsapp,youtube"`) as an
+     "ideally"; this pass lands the family-wide flag only — provisioning two parents with
+     different sets is two invocations, which matches how the founder actually runs the
+     terminal. Alarm grade is never caller-supplied: `kettle.signals.ALARM_GRADE` covers the
+     whole vocabulary, so `routine` cannot arrive corroborating or `charger` alarm-grade by
+     typo. `--set-signals <token> --signals routine,charger` is the Appa migration as a
+     printed command — this container cannot reach production, so the deliverable is the
+     tooling plus the runbook line, and the founder runs it. Old rows go **inactive, not
+     deleted**: history keeps its rows, and `Not set up yet` never lies about a signal that
+     really did report. One cosmetic note built verbatim from the item: "Daily routine" is
+     sentence case where "Daily Check" is title case; both maps agree, and the pinned
+     exemption test will catch anyone who "fixes" one side.
+
+111. **The §5.1 harness verifies the unsigned sibling because the signed file is
+     unreadable.** A signed shortcut is an opaque Apple archive; no tool of ours can read a
+     token out of it. So the gate is: the unsigned copy from the same forge run must pass
+     `forge.validate`, its embedded token is printed in capitals (and checked against
+     `--expect-token` when given), and byte-identical signed/unsigned input is refused
+     outright — that means nobody ran `forge-sign.sh`. The residual trust is that the two
+     files really are siblings, which only the founder's directory hygiene guarantees; the
+     loud token print is what makes a mix-up visible at the terminal.
+
+     The content type is deliberately the *only* variable: nginx's `/x/` block isolates it
+     to one line with the fallback order written beside it (`application/x-shortcut`, then
+     `application/octet-stream`, then `application/x-apple-shortcut`), so a failed tap is a
+     one-line change and a redeploy rather than a diagnosis. kettle-app hosts the experiment
+     because it already serves static files over HTTPS and redeploys in one command; nothing
+     touches kettle-api. Slug entropy matches a device token's — the URL *is* the token in
+     transit, per 102's security note — and cache is `no-store` so a deleted file is a dead
+     link everywhere. Record the tap result here either way; 005b's delivery section waits
+     on it.

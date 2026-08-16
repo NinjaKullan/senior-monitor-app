@@ -262,6 +262,23 @@ one, or when you are working from a provisioning printout rather than a name.
 prints a real shortcut's plist shape beside the forge's, which is how the format
 assumptions in `specs/QUESTIONS.md` item 69 get confirmed against a Mac.
 
+### Adding a signal to the vocabulary (the QUESTIONS 94 procedure)
+
+A new key is a two-file code change with a drift test, never a database row:
+
+1. `kettle/signals.py` — add the key to `SIGNAL_LABELS` (the humanised name is
+   the shortcut's name on the phone) and to `ALARM_GRADE` (may this signal ever
+   speak for a person? Charger/timer plumbing may not — law #6).
+2. `webapp/src/lib/signalNames.ts` — the same key and label.
+   `test_webapp_signal_names_match_the_shortcuts_on_the_phone` fails until the
+   two agree, and the webapp's pinned copy-law exemption fails until the new
+   name is added there *consciously* (`TRIPWIRE_NAME_EXEMPTION`).
+3. If the parent should get it: `--signals` at provisioning, or
+   `--set-signals <device_token> --signals …` for a live parent.
+4. A browser-ish or ambiguous signal needs its consent sentence in
+   `docs/consent-onepager.md` before the call, not during. Financial apps are
+   excluded at every tier, permanently.
+
 ### Treat the emitted files like the token
 
 The device token is inside the URL, and anyone holding it can post pings as that
