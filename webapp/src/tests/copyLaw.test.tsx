@@ -50,6 +50,38 @@ const signals: ParentSignal[] = parents.flatMap((p) => [
   { parent_id: p.id, signal: "device_alive", alarm_grade: false, active: true },
 ]);
 const pings: Ping[] = [{ parent_id: "p1", signal: "whatsapp", ts_utc: "2026-08-03T02:42:00Z" }];
+/**
+ * Setup entries in all three states (spec 005b), so the Family screen's
+ * forwarding surface is scanned under the full law: the slug rides in the
+ * href, which the DOM-text walk ignores — but a slug *printed* as text, or a
+ * signal name in a status label, fails here like anywhere else.
+ */
+const setupEntries = [
+  {
+    parentId: "p1",
+    parentName: "Amma",
+    status: "ready" as const,
+    url: "https://kettle-api.fly.dev/s/slug000000000000000000A1",
+    shareHref: "https://wa.me/?text=x",
+    expiresDate: "2026-08-10",
+  },
+  {
+    parentId: "p2",
+    parentName: "Appa",
+    status: "reporting" as const,
+    url: null,
+    shareHref: null,
+    expiresDate: null,
+  },
+  {
+    parentId: "p3",
+    parentName: "Paati",
+    status: "needs_link" as const,
+    url: null,
+    shareHref: null,
+    expiresDate: null,
+  },
+];
 const sends: DigestSend[] = [
   { parent_id: "p1", kind: "morning", local_date: "2026-08-03", ts_utc: "2026-08-03T03:00:00Z" },
   { parent_id: "p1", kind: "evening", local_date: "2026-08-02", ts_utc: "2026-08-02T15:00:00Z" },
@@ -230,11 +262,22 @@ describe("rendered copy law", () => {
   });
 
   it("holds for the Family screen, and carries the privacy line verbatim", () => {
-    render(<FamilyScreen parents={parents} members={members} familyTz={IST} />);
+    render(
+      <FamilyScreen
+        parents={parents}
+        members={members}
+        familyTz={IST}
+        setupEntries={setupEntries}
+      />,
+    );
     const text = renderedText();
     expect(screen.getByTestId("privacy-footer")).toHaveTextContent(PRIVACY_FOOTER);
     // `sms` is a channel name, not a signal name — allowed, and worth pinning.
     expect(text).toContain("sms");
+    // The setup card is genuinely on screen in every state before the scan.
+    expect(text).toContain("Ready to send");
+    expect(text).toContain("Set up and reporting");
+    expect(text).toContain("Needs a fresh link");
     assertCopyLaw(text);
   });
 

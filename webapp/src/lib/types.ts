@@ -40,3 +40,16 @@ export interface DigestSend {
   local_date: string;
   ts_utc: string;
 }
+
+/**
+ * A parent's setup-page link (spec 005b). The slug is the page's credential;
+ * this app may *forward* it — that is the whole point of the row — but must
+ * never print it as visible text, only carry it inside an href.
+ */
+export interface SetupLink {
+  parent_id: string;
+  slug: string;
+  created_utc: string;
+  expires_utc: string;
+  revoked_utc: string | null;
+}

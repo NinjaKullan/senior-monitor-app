@@ -118,6 +118,28 @@ export const LOGIN_RATE_LIMITED =
   "That's a few links in a row, and the mailer needs a short break. Wait a few minutes, then try once more.";
 export const LOGIN_FAILED = "That didn't go through. Check the address and try again.";
 
+/**
+ * The setup card (spec 005b §4.1) — the Family screen's forwarding surface.
+ *
+ * This copy renders on a surface the copy law scans with no allowlist, so it
+ * names no signal and no app — not even the channel the share button opens
+ * (the wa.me href says it for us). "Reach for on their phone" is the habits
+ * question (§4.5) phrased inside the law; the answer guides which everyday
+ * things the routine watches, and it is asked of the child, not the parent.
+ */
+export const SETUP_TITLE = "Setup";
+export const SETUP_READY = "Ready to send";
+export const SETUP_REPORTING = "Set up and reporting";
+export const SETUP_NEEDS_LINK = "Needs a fresh link";
+export const SETUP_SEND_LABEL = "Send {name}'s setup link";
+export const SETUP_EXPIRES = "Link works until {date}";
+export const SETUP_HOW = [
+  "Send the link first, then that person's button files into the same chat, " +
+    "as documents — one person's set at a time.",
+  "Before sending: ask what they reach for on their phone every day without " +
+    "thinking. That is what the routine should watch.",
+] as const;
+
 export const DIGESTS_EMPTY = "Your daily digests will appear here.";
 export const NO_FAMILY_TITLE = "No family yet";
 export const NO_FAMILY_BODY =

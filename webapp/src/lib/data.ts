@@ -8,7 +8,15 @@
 
 import { supabase } from "./supabase";
 import { READ_SURFACE } from "./queries";
-import type { DigestSend, Family, Member, Parent, ParentSignal, Ping } from "./types";
+import type {
+  DigestSend,
+  Family,
+  Member,
+  Parent,
+  ParentSignal,
+  Ping,
+  SetupLink,
+} from "./types";
 
 async function readAll<T>(table: keyof typeof READ_SURFACE): Promise<T[]> {
   const { data, error } = await supabase.from(table).select(READ_SURFACE[table]);
@@ -23,6 +31,7 @@ export interface FamilySnapshot {
   signals: ParentSignal[];
   pings: Ping[];
   digests: DigestSend[];
+  setupLinks: SetupLink[];
 }
 
 /**
@@ -44,14 +53,16 @@ export async function claimMembership(): Promise<void> {
 }
 
 export async function loadSnapshot(): Promise<FamilySnapshot> {
-  const [families, parents, members, signals, pings, digests] = await Promise.all([
-    readAll<Family>("families"),
-    readAll<Parent>("parents"),
-    readAll<Member>("members"),
-    readAll<ParentSignal>("parent_signals"),
-    readAll<Ping>("pings"),
-    readAll<DigestSend>("digest_sends"),
-  ]);
+  const [families, parents, members, signals, pings, digests, setupLinks] =
+    await Promise.all([
+      readAll<Family>("families"),
+      readAll<Parent>("parents"),
+      readAll<Member>("members"),
+      readAll<ParentSignal>("parent_signals"),
+      readAll<Ping>("pings"),
+      readAll<DigestSend>("digest_sends"),
+      readAll<SetupLink>("setup_links"),
+    ]);
   return {
     family: families[0] ?? null,
     parents,
@@ -59,5 +70,6 @@ export async function loadSnapshot(): Promise<FamilySnapshot> {
     signals,
     pings,
     digests,
+    setupLinks,
   };
 }

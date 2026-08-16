@@ -299,6 +299,11 @@ def test_the_apps_own_queries_return_one_family_only(two_families, authed):
             # neighbour's parent — this is the list the detail view renders.
             assert {r["parent_id"] for r in rows} == {amma}
             assert {r["signal"] for r in rows} == {s for s, _ in signals.STANDARD_SIGNALS}
+        if table == "setup_links":
+            # The slug is a credential the app is allowed to *forward* (spec
+            # 005b): one row, this family's parent, and never the neighbour's.
+            assert {r["parent_id"] for r in rows} == {amma}
+            assert len(rows) == 1
 
     as_user(authed, USER_B)
     patti = two_families["b"].parents[0].parent_id

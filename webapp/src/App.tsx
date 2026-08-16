@@ -9,6 +9,7 @@ import {
 } from "@/lib/data";
 import { buildDigestEntries } from "@/lib/digests";
 import { computeGlance } from "@/lib/glance";
+import { buildSetupEntries } from "@/lib/setupLinks";
 import { supabase } from "@/lib/supabase";
 import { computeTripwires } from "@/lib/tripwires";
 import { Digests } from "@/screens/Digests";
@@ -152,6 +153,12 @@ export default function App() {
           parents={snapshot.parents}
           members={snapshot.members}
           familyTz={familyTz}
+          setupEntries={buildSetupEntries(
+            snapshot.parents,
+            snapshot.setupLinks,
+            snapshot.pings,
+            now,
+          )}
         />
       )}
     </Shell>
