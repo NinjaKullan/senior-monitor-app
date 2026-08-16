@@ -2112,3 +2112,80 @@ programmatic sharing is unsupported.
      slug directory is deleted; the `/x/` nginx block and `stage_shortcut.py` stay as a
      harness for future delivery experiments. The experiment cost three deploys and five taps,
      and settled the last open question in the product's delivery story.
+
+---
+
+## Spec 005b build notes (implementer, 2026-08-16)
+
+118. **Scope reading: provisioning stays terminal in this build; the wizard surface is
+     forwarding and status, not creation.** Spec §1 describes the child wizard as
+     "provisions parents, chooses signals"; acceptance 1 says green cards "with the
+     founder's hands off the keyboard **after provisioning**". The two only reconcile if
+     provisioning is still a founder act in v1, and the signing constraint decides it: a
+     family the wizard provisioned in-app would hold tokens the founder cannot forge or
+     sign files for without a signing service (explicitly out of this spec's scope, §3),
+     so in-app creation today mints setup links for buttons that cannot exist. Built
+     accordingly: `provision` emits per-parent setup URLs (and `--setup-link
+     <device_token>` re-issues for an existing parent — the Appa case); the child app
+     renders the links as forwardable cards. The habits question (§4.5) is carried as
+     guidance copy beside the send link. When the signing runner exists, in-app
+     provisioning becomes an RPC layer over the same `setup_links` table — nothing built
+     here has to be undone. Overrulable cheaply if the PM wanted creation UI now.
+
+119. **The setup page is served by kettle-api at `/s/<slug>`, not by the webapp.** The
+     page's one live behaviour — verify by prediction — asks "did the server just see a
+     ping", and kettle-api is the server that saw it: same origin means no CORS surface
+     opened on the API, no coupling to the child app's build or cache contract, and the
+     whole page testable end-to-end in the product suite. Consequences pinned by test:
+     every `/s/*` response is `no-store` (the Q111 posture — a dead link must be dead
+     everywhere); noindex + no-referrer (the App Store link on step zero must not leak
+     the URL as a Referer); CSP `connect-src 'self'`; and the slug appears nowhere in
+     the document — the script derives its state URL from `location.pathname`, so the
+     credential lives in the address bar alone.
+
+120. **The verify check greens on alarm-grade pings only, strictly after the screen
+     opened.** Law #6 applied to setup: the green message names the parent's card, so a
+     charger edge or a daily timer must never be what turns it on (tested by firing a
+     `charger` ping at a waiting check). Two boundary decisions alongside: baselines are
+     the state endpoint's own `now`, so no client clock is consulted; and the comparison
+     is strictly-after because timestamps are second-resolution — a first-run ping in
+     the same second as the screen opening must not pre-green the crossed-pair detector,
+     and the page's ~30 s retry copy ("open it once more") absorbs both that boundary
+     and the ingest dedupe window on the honest side. A parent whose set has no
+     alarm-grade signal gets a sentence, not a check: there is no card such a set may
+     honestly promise. Consent copy is per-method for the same honesty reason: merged
+     says "never which app" (the record is `routine`); per-app says which app opened,
+     because the record does.
+
+121. **Acceptance 2's ≤ 12 taps does not survive an honest count.** The enumeration
+     (`docs/005b-test-script.md` §2) lands at ~37 taps for the merged method with
+     Shortcuts installed — page CTAs 8, add + first-run ~14, automation builder ~16 —
+     and the builder alone exceeds the bound. The ≤ 12 arithmetic fits a world where
+     automations arrive pre-built or the page's CTAs are the only counted interactions;
+     iOS offers no way to ship an automation. Filed rather than met by generous
+     counting: the PM should either re-bound the criterion, scope it ("taps excluding
+     the automation builder"), or treat it as the target that a future
+     builder-elimination (routine discovery, or an Apple API that does not exist yet)
+     would meet.
+
+122. **Two copy-law collisions on the Family screen, resolved inside the law.** The
+     setup card renders on a surface the copy law scans with no allowlist, so (a) the
+     share button does not say "WhatsApp" — the wa.me href says it for us; if the PM
+     wants the channel named, the law needs a scoped channel-name exemption like the
+     `sms` pinning, which is a PM decision, not an implementer one; and (b) the habits
+     question is phrased "what do they reach for on their phone every day without
+     thinking" — the same question with no banned word in it. Also in this pass: the
+     copy-law scanner itself gained word boundaries at element seams, because the
+     plant-and-revert drill proved a banned word flush at the end of one element
+     escaped the `\b`-bounded scan (`textContent` glues adjacent elements —
+     "…WhatsApp" + "Send…" scanned as "whatsappsend"). The scan now joins text nodes
+     with a space; the planted regression fails by name.
+
+123. **`setup_links` carries `parent_id` denormalised, and the write ban is
+     belt-and-braces.** The webapp renders "Amma's setup" from `setup_links` alone, so
+     its read surface never touches `devices` and tokens stay out of every browser
+     (Q101's standing rule extended). The migration's explicit write revokes turned out
+     to be redundant with 0004's default-privilege revocation — discovered when the
+     planted regression (deleting the revoke block) failed to break the write-ban test;
+     the block stays as defence in depth, and the test was re-verified against the real
+     regression class (a future migration granting writes), which it catches.

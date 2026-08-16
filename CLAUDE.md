@@ -74,7 +74,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 118.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 124.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -85,60 +85,64 @@ stated properly — a parent faces ~78 interactions today and delivery is only ~
 cheap experiments that decide spec 005b's shape, and what is owed by whom. Read it before
 `docs/onboarding-runbook.md` and QUESTIONS 92–102.
 
-### State of the build (baton, 2026-08-16 — session handoff)
+### State of the build (baton, 2026-08-16 evening — session handoff)
 
-**`main` is at `c63b3b3`; all three suites green** (`pytest` 305 with Postgres
-up, `webapp` 93, `site` 90 — always confirm the product suite with
-`KETTLE_REQUIRE_POSTGRES=1`, never trust a skip). Specs 001–006 plus amendments
-A/B are built and reviewed; migrations through 0009. The working branch
-`claude/tripwire-health-detail-view-6e1txw` tracks main exactly — develop there
-or on main per the merge-to-main norm above.
+**All three suites green** (`pytest` 336 with Postgres up, `webapp` 100,
+`site` 90 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
+never trust a skip). Specs 001–006 plus amendments A/B built and reviewed;
+**spec 005b is now built** (this session); migrations through **0010**. The
+working branch `claude/family-onboarding-setup-005b-vkqoef` merges to main per
+the norm above.
 
-**`specs/005b-family-onboarding.md` is written, its last fork is resolved, and
-it is the next build target.** §5.1 CLOSED (item 117, five taps on the
-founder's phone): iOS Safari will not hand an HTTPS-served `.shortcut` to the
-Shortcuts app under any content type — every attempt was a download prompt. The
-delivery ruling: **files travel by WhatsApp document attachment** (field-proven
-on Amma's install); the hosted per-parent setup page stands for consent, steps,
-the permission warning and verify-by-prediction, and never serves a
-`.shortcut`; iCloud link generation stays off the table. The `/x/` nginx block
-and `stage_shortcut.py` remain as a harness for future delivery experiments;
-the staged slug is deleted.
+**005b as built** (details in QUESTIONS 118–123): migration 0010
+`setup_links` — per-device slug (144-bit), 7-day expiry, issuance-as-rotation,
+dies with the device token; RLS select-only for the family, `parent_id`
+denormalised so the webapp never reads `devices` [123]. `provision` prints a
+`setup page:` URL per parent; `--setup-link <device_token>` re-issues (the
+Appa case). The parent page is served by **kettle-api** at `/s/<slug>` [119]:
+consent (per-method honesty — merged says "never which app", per-app names the
+app), step zero, add, pre-empted warning naming the real host, automations
+with Run Immediately on every row, verify-by-prediction with a live green
+check. The page never serves a file, never shows a token, and the slug is only
+in the address bar; every `/s/*` response is no-store + noindex + no-referrer
++ CSP. The verify check greens **only on an alarm-grade ping strictly after
+the screen opened** [120] — law #6 at the check; charger can never green it;
+tested by plant. The webapp Family screen gained the Setup card [122]: per
+parent, reporting / ready-to-send / needs-a-fresh-link, with a wa.me share
+intent carrying the link (slug never printed as text — tested). The copy-law
+scanner gained word boundaries at element seams — `textContent` glues
+elements and a banned word flush at a seam escaped `\b` scanning until the
+plant drill caught it [122]. Rehearsal script + honest tap enumeration:
+`docs/005b-test-script.md`.
 
-**This session built** (details in QUESTIONS, numbers in brackets):
-`Kettle — {Signal}` naming, no parent [96a]; measured `WFWorkflowIcon`
-constants, item 69 closed [96b]; the merged end-state signal pair `routine` /
-`charger` in both label maps with `ALARM_GRADE` as vocabulary [107];
-`provision --signals` and `--set-signals <token>` (the Appa migration is a
-printed command; old rows go inactive, not deleted) [94/107]; the §5.1 harness
-[102]; nginx caching — shell `no-cache`, `/assets/` immutable, regex locations
-banned by test, **and there is deliberately no service worker: HTTP caching is
-the whole update story** [112]; staged files 0644 [113]; deploy docs — webapp
-build args live in `fly.toml`, bare `fly deploy` is the command [114]; login
-failures surface as words via `sendMagicLink` (supabase-js *returns* errors —
-the try/catch that looks sufficient is unreachable without the re-throw) and
-`docs/auth-smtp-plan.md` [115/116].
+**Open for the PM in QUESTIONS:** 118 (scope reading: provisioning stays
+terminal until the signing runner exists — wizard = forwarding + status;
+overrulable), 121 (**acceptance 2's ≤ 12 taps fails an honest count: ~37**;
+re-bound or scope it), 122 (want "WhatsApp" named on the share button? Needs a
+scoped channel-name exemption in the copy law — PM call).
 
-**Queued, unchanged:** 93 (forge derives its own out path from the token),
-95 (`--add-device` / `--rotate`), 100 (platform-aware standard set; depends on
-94, now landed), 101 (person prefix on *disk* filenames + never import into the
-founder's own Shortcuts library). **Next QUESTIONS number: 118.**
+**Queued, unchanged:** 93 (forge derives out path from token), 95
+(`--add-device` / `--rotate`), 100 (platform-aware standard set), 101 (person
+prefix on disk filenames). **Next QUESTIONS number: 124.**
 
-**Owed by the founder, not by code:** `fly deploy` of kettle-app (picks up the
-Q112 cache headers — until then every deploy still white-screens returning
-browsers — plus the login words); `--set-signals` for Appa, then forge/sign/
-deliver his two merged files; the SMTP plan's DNS + dashboard steps
-(`docs/auth-smtp-plan.md`) before any non-founder family.
+**Owed by the founder, not by code:** apply migration 0010 and `fly deploy`
+**kettle-api** (the setup page and 0009+0010 ship together; until then every
+printed setup URL 404s in production); `fly deploy` of kettle-app (Q112 cache
+headers — until then deploys white-screen returning browsers — plus login
+words and the Setup card); `--set-signals` for Appa, then forge/sign/deliver
+his two merged files and `--setup-link` him a page; the SMTP plan's DNS +
+dashboard steps (`docs/auth-smtp-plan.md`) before any non-founder family.
 
 **Live state to respect:** Amma is live on the *old per-app* keys — her setup
 is never rebuilt remotely for elegance [107]. Production is at migration 0008
-with 0009 owed, and the waitlist form is CORS-dead until `WAITLIST_ORIGINS`
-includes the serving origin. The live site runs a pre-Amendment-B build until
-redeployed. Amma is physically in Texas while provisioned `Asia/Kolkata` [108,
-backlog] — a shifted-looking routine there is geography, not a bug.
+with 0009 and 0010 owed, and the waitlist form is CORS-dead until
+`WAITLIST_ORIGINS` includes the serving origin. The live site runs a
+pre-Amendment-B build until redeployed. Amma is physically in Texas while
+provisioned `Asia/Kolkata` [108, backlog] — a shifted-looking routine there is
+geography, not a bug.
 
-**Read before building 005b:** `docs/setup-delivery-brief.md`, then
-`docs/onboarding-runbook.md`, then QUESTIONS 92–116. The runbook and consent
+**Read before touching 005b surfaces:** `docs/setup-delivery-brief.md`, then
+`docs/onboarding-runbook.md`, then QUESTIONS 92–123. The runbook and consent
 one-pager carry the item-107 field gotchas (charger trigger defaults to Run
 After Confirmation and must be flipped to Run Immediately; merged automation
 subtitles read "Kettle — Daily routine" and that is correct, not mislabelled).

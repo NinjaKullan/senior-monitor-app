@@ -66,6 +66,8 @@ production.
 | Endpoint | Purpose |
 |---|---|
 | `GET\|POST /p/{device_token}/{signal}` | record a ping; returns `ok` |
+| `GET /s/{slug}` | one parent's setup page (spec 005b), or a plain-language dead end |
+| `GET /s/{slug}/state` | the page's live verify check; `?since=` compares against alarm-grade pings only |
 | `POST /twilio/inbound` | a senior's reply to the check-in; Twilio-signature validated |
 | `GET /healthz` | `{"db": true}`, no auth, for Fly health checks |
 
@@ -318,11 +320,45 @@ iPad*](https://support.apple.com/guide/shortcuts/share-shortcuts-apdf01f8c054/io
 
 ### Scale (not built)
 
-This is a founder tool for the beta. The 005b path is a macOS CI runner that
-signs a family's files at provisioning time and lets the onboarding wizard serve
-them as download links, which removes the founder's laptop from the loop
-entirely. Nothing here needs to change for that — the generation half already
-runs anywhere; only the signing half needs the runner.
+This is a founder tool for the beta. The remaining gap is a macOS CI runner
+that signs a family's files at provisioning time, which removes the founder's
+laptop from the loop entirely. Nothing here needs to change for that — the
+generation half already runs anywhere; only the signing half needs the runner.
+Note the files still travel by WhatsApp document attachment either way:
+QUESTIONS 117 closed the hosted-delivery experiment (iOS Safari downloads a
+served `.shortcut` rather than opening the Add Shortcut sheet), so no server
+of ours serves shortcut files.
+
+## Setup links and the parent setup page (spec 005b)
+
+Provisioning mints one **setup link** per device — a 144-bit url-safe slug,
+seven-day expiry — and prints the page URL beside the token. The page at
+`/s/{slug}` carries what only a page can: consent in plain language, the
+visual steps, the pre-empted Apple permission warning, and the live
+verify-by-prediction check. It never serves a file and never shows a token;
+files travel by WhatsApp document attachment (QUESTIONS 117).
+
+```bash
+# A fresh link for an existing parent (the Appa case). Issuance is rotation:
+# the previous link stops answering, including copies already in a chat.
+python -m scripts.provision --setup-link <DEVICE_TOKEN>
+```
+
+The link lives and dies with its device: `--revoke` kills the page too. An
+expired or replaced link serves a plain-language dead end naming the family's
+owner — never steps, never a file. The child app reads `setup_links` (RLS,
+select-only) to show each parent's link as a forwardable card with a WhatsApp
+share intent; issuance stays service-side because a client that could write
+links could mint indefinite credentials.
+
+The verify check (`/s/{slug}/state?since=…`) greens **only on an alarm-grade
+ping strictly after the screen opened** — law #6 applied to setup: a charger
+edge or a daily timer must never be what turns the named card green, and a
+stale first-run ping must never satisfy the crossed-pair drill. Baselines come
+from the endpoint's own `now`; no client clock is consulted.
+
+The rehearsal script for a full run — including the crossed-URL drill and the
+honest tap count — is `docs/005b-test-script.md`.
 
 ## Waitlist (spec 006)
 

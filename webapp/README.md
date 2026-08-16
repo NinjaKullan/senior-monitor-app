@@ -27,7 +27,7 @@ that on every push.
 | **Today** (Glance) | per parent: a day-part-aware headline, a dual-timezone "last routine seen" subline, a three-segment day arc, and a liveness beacon. The whole card is a tap target — chevron and pressed state — into that parent's detail page |
 | **Tripwire health** | tap a card: that parent's configured tripwires, each with a health chip and a day-granularity recency. This page is the parent's home, and future per-parent views (day detail, that parent's digests) belong here |
 | **Digests** | reverse-chron list of what was actually sent, recomposed from the templates |
-| **Family** | read-only roster of parents and members, and the privacy line |
+| **Family** | roster of parents and members, the per-parent setup card (spec 005b: where each parent's setup stands, with a WhatsApp share intent carrying their setup-page link), and the privacy line |
 
 Two rules govern everything on that screen.
 
