@@ -93,8 +93,12 @@ critical path; not this spec's problem to solve, only to consume.
 
 1. A rehearsal family runs end-to-end from a fresh child account to two green cards with the
    founder's hands off the keyboard after provisioning.
-2. Parent-side interaction count ≤ 12 taps from opening the link to verified (merged method,
-   Shortcuts already installed); every tap enumerated in the spec's test script.
+2. Every parent-side tap enumerated honestly in the test script; ≤ 40 total from opening the
+   link to verified (merged method, Shortcuts already installed). The enumeration is the
+   artifact. The automation builder (~16 taps of Apple UI we cannot remove) is the named
+   reduction target — routine discovery or a future Apple API is what would move it.
+   *(Amended per QUESTIONS 121, 2026-08-16: the original ≤ 12 assumed automations could ship
+   pre-built; iOS offers no such mechanism, and the bound is not met by generous counting.)*
 3. Expired and revoked URLs serve a plain-language dead-end with the child's contact path,
    never a file.
 4. The verify step demonstrably catches a crossed pair (test: swap two rehearsal URLs,

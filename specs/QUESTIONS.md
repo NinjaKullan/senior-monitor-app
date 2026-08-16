@@ -2189,3 +2189,24 @@ programmatic sharing is unsupported.
      planted regression (deleting the revoke block) failed to break the write-ban test;
      the block stays as defence in depth, and the test was re-verified against the real
      regression class (a future migration granting writes), which it catches.
+
+**PM rulings on the 005b build flags, 2026-08-16 (morning). Line-level review of
+`4f4126d..a1c7cac` complete; approved. Items 119, 120 and 123 exceeded the spec — same-origin
+verify with the credential living only in the address bar, law #6 enforced at the green check
+with the server owning the clock, and the denormalisation that keeps tokens out of every
+browser — all three adopted as the standard for future surfaces.**
+
+* **118 — upheld.** Provisioning stays terminal until the signing runner exists; in-app
+  creation would mint links for buttons that cannot exist. The implementer's scope reading is
+  the correct one. Revisit only when Mac-less signing lands.
+* **121 — the criterion moves, not the count.** Acceptance 2 is amended in the spec (same
+  commit): every tap enumerated honestly, ≤ 40 total in v1, the enumeration itself is the
+  artifact, and the automation builder (~16 taps, Apple's UI, not ours) is the named
+  reduction target. The spec's ≤ 12 assumed a world where automations can ship pre-built;
+  iOS offers no such thing. From ~78 at the start of this week to ~37 honest is the record.
+* **122 — scoped exemption granted.** The share CTA may name the channel ("Send on
+  WhatsApp"). Rationale for the law's history: the copy law bans app names where they would
+  *describe a parent's behaviour*; this string describes the child's own next action —
+  navigation, not surveillance vocabulary. Implementation (queued for Claude Code): a
+  channel-name exemption pinned to that single copy key, in the `sms`-pinning style item
+  122 itself pointed at; nothing broader. The seam-joining scanner fix stands as shipped.
