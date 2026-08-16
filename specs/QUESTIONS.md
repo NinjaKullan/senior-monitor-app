@@ -2210,3 +2210,38 @@ browser — all three adopted as the standard for future surfaces.**
   navigation, not surveillance vocabulary. Implementation (queued for Claude Code): a
   channel-name exemption pinned to that single copy key, in the `sms`-pinning style item
   122 itself pointed at; nothing broader. The seam-joining scanner fix stands as shipped.
+
+124. **The app never says which family you are looking at** (founder, 2026-08-16, live in
+     production — backlog). One login can see several families (the runbook's own rehearsal
+     trick relies on `members.auth_user_id` being non-unique), and the Today view renders all
+     parents as one undifferentiated card list — the founder's screen shows Amma, Appa,
+     TestDad and TestMom with nothing marking two of them as a different family. The Family
+     tab discloses it, but only on navigation. Asked for, when picked up: family context made
+     visible where cards live — a family-name header or grouping on Today (collapsed to
+     nothing when the login sees exactly one family, which is the normal case and should stay
+     clean), and the family name titled on the Family tab. Second observation from the same
+     screenshot, same surface: the Family circle lists the founder's contact **twice** —
+     either contact rows are duplicated at provisioning or the render does not de-duplicate;
+     small, but a stranger reads duplication as a bug and trusts the rest of the page less.
+
+125. **Founder rulings, 2026-08-16: the consent *ceremony* is dead, and product surfaces are
+     English-only.** Two rulings, both standing:
+
+     **(a) No signed consent document — ever.** No printable one-pager, no signature block, no
+     sign/scan round-trip, no e-signature (which assumes email, which assumes away the actual
+     customer). A product that requires printing kills itself at checkout. What survives is
+     what the product laws already carry *in the product*: the setup page's plain-language
+     first screen, the always-visible kill switch, and three-fields honesty — item 106's own
+     conclusion ("consent is carried by the product, not the call") taken to its end. Legal
+     language moves to Terms of Use, presented where payment happens. Follow-ups queued:
+     `git rm docs/consent-onepager.md docs/consent-onepager-bilingual.html`; rewrite runbook
+     §7's "read the one-pager together" step to "open the setup link together — the first
+     screen is the consent conversation"; the laws in `docs/setup-delivery-brief.md` §6 are
+     untouched (per-person consent and the kill switch are product mechanics, not paperwork).
+
+     **(b) English-only surfaces.** The child is the installer and the translator; if the
+     family speaks something else, live translation on the call is their natural mode — the
+     remote-eyes pattern already is that. No localized artifacts are produced by default;
+     translation happens case-by-case on explicit founder request, priced against a real
+     family that needs it. This supersedes the bilingual one-pager experiment (2026-08-16,
+     same day it was made — cheap lesson).
