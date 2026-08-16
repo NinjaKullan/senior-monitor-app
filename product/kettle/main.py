@@ -28,6 +28,7 @@ from kettle.digest import DigestState, digest_loop
 from kettle.heartbeat import HeartbeatState, heartbeat_loop
 from kettle.ladder import LadderState, ladder_loop, resolve_by_senior_reply
 from kettle.notify import LogOnlyNotifier, Notifier, NtfyNotifier
+from kettle.setup_page import router as setup_router
 from kettle.timeutil import now_utc
 from kettle.twilio_signature import is_valid
 
@@ -152,6 +153,9 @@ def create_app(
     ) -> PlainTextResponse:
         """Plain-text errors: Shortcuts cope with them and they leak nothing."""
         return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+
+    # The parent setup page (spec 005b): /s/{slug} and its live state check.
+    app.include_router(setup_router)
 
     @app.api_route(
         "/p/{device_token}/{signal}",
