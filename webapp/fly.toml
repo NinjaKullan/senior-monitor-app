@@ -7,6 +7,12 @@ app = 'kettle-app'
 primary_region = 'sin'
 
 [build]
+  # Public values, baked into the static bundle at image build time. A bare
+  # `fly deploy` without these produces a login page that talks to nowhere
+  # (field-discovered 2026-08-16). The service key must NEVER appear here.
+  [build.args]
+    VITE_SUPABASE_URL = "https://azeyrlfscgbqbvzhdtie.supabase.co"
+    VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_rRh6BZQncewqysZYRehXeQ_yjWvQX36"
 [http_service]
   internal_port = 8080
   force_https = true

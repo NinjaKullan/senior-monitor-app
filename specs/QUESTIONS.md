@@ -2013,3 +2013,56 @@ item 102, gated on the §5.1 experiment (HTTPS-served signed `.shortcut` → Add
      transit, per 102's security note — and cache is `no-store` so a deleted file is a dead
      link everywhere. Record the tap result here either way; 005b's delivery section waits
      on it.
+
+---
+
+## Field log — the §5.1 tap test and what it flushed out (founder + PM live-debug, 2026-08-16, ~11pm–1am)
+
+**Item 111 partial result, recorded as it demanded.** With `application/x-shortcut`, tapping the
+staged URL in Safari produced **"Do you want to download 'Kettle — WhatsApp.shortcut'?" → Download
+→ the file lands silently in the Files app's Downloads folder.** Not the Add Shortcut sheet. The
+founder's ruling from trying to find his own download, adopted: **for the floor-tier parent (item
+105), anything short of the sheet opening directly is a failure** — Files is an app they have never
+opened, Downloads is cluttered with years of attachments, and Safari's ⬇ indicator appears
+inconsistently (it materialised only after navigating elsewhere). If download-and-dig is the best
+a hosted link can do, WhatsApp document attachments beat the hosted link for file delivery, and
+the setup page's value narrows to instructions + consent + verify. Two content types remain
+untried before that conclusion is final: `application/octet-stream`, then
+`application/x-apple-shortcut` — each a one-line nginx change and a redeploy. iCloud-link
+generation (fallback (b) of item 102) stays on the table but was never load-bearing, since
+programmatic sharing is unsupported.
+
+112. **Every deploy white-screens returning browsers: `index.html` ships with no Cache-Control
+     header.** nginx sends no caching headers on the SPA shell, so browsers heuristically cache
+     it; deploys rename the hashed assets; a cached shell then 404s its own JavaScript and
+     renders a **blank white page with no error** — which a parent reads as "it broke." Hit
+     three times in one evening during live debugging (login flow, twice, plus a clean-tab
+     reproduction that fetched the stale shell's asset and got nginx's 404). Fix, before the
+     next deploy that matters: `Cache-Control: no-cache` on `/` and `/index.html`;
+     `Cache-Control: public, max-age=31536000, immutable` on `/assets/` (hashed filenames make
+     that safe). The PWA's service-worker/update story should be looked at in the same pass —
+     same failure class, worse persistence.
+
+113. **`stage_shortcut` sets the staged file to mode 0600, and the mode travels into the Docker
+     image — where nginx's worker is not the owner and answers 403.** The founder hit this on
+     the first tap. Fix: `0o644`. Item 111's own reasoning applies: the unguessable URL is the
+     credential; on-disk restrictiveness on a file that exists to be served breaks the serving
+     and protects nothing.
+
+114. **A bare `fly deploy` of the webapp ships a deaf app.** The Dockerfile takes
+     `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` as build args; `fly.toml` had an
+     empty `[build]`; nothing documented the required flags. The founder's evening deploys
+     therefore built a login page pointed at an empty string — it rendered, said "check your
+     email," and sent nothing, while auth logs showed no request arriving. Fixed on the
+     founder's Mac 2026-08-16 (PM): `[build.args]` now carries both values in `fly.toml`
+     (public by design; the service key appears nowhere) — **uncommitted, goes in with the next
+     commit.** Follow-ups: document the deploy in the webapp README; check kettle-site for the
+     same class of gap.
+
+115. **Supabase's built-in mailer is dev-grade and rate-limits at roughly two emails an hour —
+     the third magic-link request of the evening returned `429 over_email_send_rate_limit`.**
+     For the founder this cost an hour; a stranger's family whose second login attempt silently
+     sends nothing will conclude the product is broken and leave. Custom SMTP (Resend/Postmark
+     class) before any family that is not the founder's. Related copy note for the child app:
+     the login screen should say the link can take a minute and to check spam — and rate-limit
+     errors must surface as words, not silence.

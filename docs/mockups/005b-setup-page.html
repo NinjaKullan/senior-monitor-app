@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kettle — Appa's setup (mock)</title>
+<style>
+  :root {
+    --kettle: #FD6631;
+    --kettle-soft: #FFF0EA;
+    --ink: #2B2320;
+    --ink-soft: #6B5F58;
+    --paper: #FAF7F4;
+    --card: #FFFFFF;
+    --green: #2E9E5B;
+    --green-soft: #E8F6EE;
+    --line: #EAE2DC;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #EFEAE5; color: var(--ink);
+    display: flex; justify-content: center; padding: 24px 12px;
+    min-height: 100vh;
+  }
+  .phone {
+    width: 390px; max-width: 100%; background: var(--paper);
+    border-radius: 28px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(43,35,32,.18);
+    display: flex; flex-direction: column; min-height: 780px;
+  }
+  header {
+    padding: 18px 20px 14px; background: var(--card);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .mark {
+    width: 34px; height: 34px; border-radius: 9px; background: var(--kettle);
+    display: grid; place-items: center; color: #fff; font-size: 18px; font-weight: 700;
+  }
+  header .who { font-size: 15px; font-weight: 650; }
+  header .sub { font-size: 12px; color: var(--ink-soft); }
+  .helper {
+    margin-left: auto; font-size: 11px; color: var(--ink-soft);
+    display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;
+  }
+  .helper .pill {
+    width: 34px; height: 20px; border-radius: 10px; background: #D8CFC8; position: relative; transition: background .15s;
+  }
+  .helper .pill::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    border-radius: 50%; background: #fff; transition: left .15s;
+  }
+  .helper.on .pill { background: var(--kettle); }
+  .helper.on .pill::after { left: 16px; }
+  .dots { display: flex; gap: 6px; justify-content: center; padding: 14px 0 4px; }
+  .dots span { width: 7px; height: 7px; border-radius: 50%; background: #D8CFC8; transition: background .15s; }
+  .dots span.done { background: var(--green); }
+  .dots span.now { background: var(--kettle); }
+  main { flex: 1; padding: 10px 22px 20px; display: flex; flex-direction: column; }
+  .screen { display: none; flex: 1; flex-direction: column; }
+  .screen.active { display: flex; }
+  h1 { font-size: 22px; line-height: 1.25; margin: 8px 0 6px; letter-spacing: -.2px; }
+  .say { font-size: 15px; line-height: 1.5; color: var(--ink-soft); margin-bottom: 14px; }
+  .say b { color: var(--ink); }
+
+  .bubble {
+    position: relative; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.45;
+    margin: 10px 0 0 46px; box-shadow: 0 2px 6px rgba(43,35,32,.05);
+  }
+  .bubble::before {
+    content: ""; position: absolute; left: -8px; top: 16px;
+    border: 8px solid transparent; border-right-color: var(--card); border-left: 0;
+  }
+  .bubble.kettle { background: var(--kettle-soft); border-color: #F8CDB9; }
+  .bubble.kettle::before { border-right-color: var(--kettle-soft); }
+  .bubblerow { display: flex; align-items: flex-start; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--kettle);
+    color: #fff; display: grid; place-items: center; font-size: 16px; flex: none; margin-top: 10px;
+  }
+
+  .visual {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 16px; margin: 14px 0; text-align: center;
+  }
+  .visual .cap { font-size: 12px; color: var(--ink-soft); margin-top: 10px; }
+  .appicon {
+    width: 64px; height: 64px; border-radius: 15px; margin: 0 auto;
+    display: grid; place-items: center; font-size: 30px; color: #fff;
+  }
+  .shortcuts-icon { background: linear-gradient(135deg, #4DA8F7, #E85AA0); }
+  .row2 { display: flex; gap: 12px; justify-content: center; }
+  .tile {
+    flex: 1; max-width: 150px; background: var(--kettle); border-radius: 14px;
+    color: #fff; padding: 14px 10px; font-size: 13px; font-weight: 600; text-align: left;
+  }
+  .tile .g { font-size: 20px; display: block; margin-bottom: 14px; }
+
+  .applewarn {
+    text-align: left; background: #F4F4F6; border-radius: 12px; padding: 14px;
+    font-size: 13px; color: #333; border: 1px solid #E2E2E6;
+  }
+  .applewarn .t { font-weight: 650; margin-bottom: 6px; }
+  .applewarn .btns { display: flex; gap: 8px; margin-top: 12px; }
+  .applewarn .b { flex: 1; text-align: center; padding: 8px; border-radius: 8px; background: #fff; color: #0A84FF; font-weight: 600; border: 1px solid #E2E2E6; }
+  .applewarn .b.primary { background: #0A84FF; color: #fff; }
+
+  .checklist { list-style: none; margin: 6px 0; }
+  .checklist li {
+    display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; font-size: 14px; line-height: 1.4;
+  }
+  .checklist .n {
+    flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--kettle-soft);
+    color: var(--kettle); font-size: 12px; font-weight: 700; display: grid; place-items: center; margin-top: 1px;
+  }
+
+  .verify {
+    border-radius: 16px; padding: 18px; text-align: center; margin: 14px 0;
+    background: var(--card); border: 1px solid var(--line); transition: all .3s;
+  }
+  .verify.green { background: var(--green-soft); border-color: #BBE3CB; }
+  .verify .big { font-size: 40px; }
+  .verify .msg { font-size: 14px; margin-top: 8px; color: var(--ink-soft); }
+  .verify.green .msg { color: var(--green); font-weight: 650; }
+
+  .spacer { flex: 1; }
+  .cta {
+    display: block; width: 100%; padding: 15px; border: 0; border-radius: 14px;
+    background: var(--kettle); color: #fff; font-size: 16px; font-weight: 650;
+    cursor: pointer; margin-top: 10px;
+  }
+  .cta.ghost { background: none; color: var(--ink-soft); font-weight: 500; font-size: 13px; padding: 8px; }
+  .cta:disabled { background: #D8CFC8; cursor: default; }
+  .stop {
+    font-size: 12px; color: var(--ink-soft); text-align: center; margin-top: 8px; line-height: 1.4;
+  }
+  .stop a { color: var(--kettle); }
+  .kill {
+    margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--card);
+    border: 1px dashed #D8CFC8; font-size: 12.5px; color: var(--ink-soft); line-height: 1.45;
+  }
+  .consent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  .consent-card { border-radius: 12px; padding: 12px; font-size: 12.5px; line-height: 1.4; }
+  .consent-card.yes { background: var(--green-soft); }
+  .consent-card.no { background: #FBEBEB; }
+  .consent-card .h { font-weight: 700; font-size: 11px; letter-spacing: .4px; margin-bottom: 6px; }
+  .consent-card.yes .h { color: var(--green); }
+  .consent-card.no .h { color: #C0392B; }
+  .helper-note { display: none; background: #FFF8E8; border: 1px solid #F2E2B3; border-radius: 10px; padding: 10px 12px; font-size: 12.5px; color: #7A6420; margin-bottom: 10px; line-height: 1.4; }
+  body.helping .helper-note { display: block; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <header>
+    <div class="mark">◎</div>
+    <div>
+      <div class="who">Appa's setup</div>
+      <div class="sub">From Hema · takes about 10 minutes</div>
+    </div>
+    <div class="helper" id="helperToggle" onclick="toggleHelper()">
+      <span>Helping someone?</span><span class="pill"></span>
+    </div>
+  </header>
+  <div class="dots" id="dots"></div>
+  <main>
+
+    <!-- 0 · Consent -->
+    <section class="screen" data-title="Consent">
+      <h1>Before anything: what this is</h1>
+      <p class="say">A <b>tripwire, not a camera</b>. When you open an app you use every day, your phone tells your family's Kettle page: <b>"a normal thing happened."</b> That's all.</p>
+      <div class="consent-grid">
+        <div class="consent-card yes">
+          <div class="h">SENT — 3 THINGS</div>
+          Who · "routine" · date &amp; time.<br>Never which app. Never what you did in it.
+        </div>
+        <div class="consent-card no">
+          <div class="h">NEVER COLLECTED</div>
+          No messages. No calls. No location. No listening. Ever.
+        </div>
+      </div>
+      <div class="kill">🔴 <b>You are always in charge.</b> Delete the automations in the Shortcuts app any time — everything stops instantly, and nobody has to be asked.</div>
+      <div class="spacer"></div>
+      <button class="cta" onclick="next()">I understand — let's set it up</button>
+      <p class="stop">Not comfortable? <a href="#">Stop here</a> and tell your family. That's a fine answer.</p>
+    </section>
+
+    <!-- 1 · Step zero: Shortcuts app -->
+    <section class="screen" data-title="Shortcuts app">
+      <h1>Do you see this app on your phone?</h1>
+      <div class="visual">
+        <div class="appicon shortcuts-icon">⧉</div>
+        <div class="cap"><b>Shortcuts</b> — it comes with every iPhone, but it may have been removed.</div>
+      </div>
+      <div class="bubblerow"><div class="avatar">◎</div>
+        <div class="bubble kettle">Swipe down on your home screen and type <b>Shortcuts</b>. Found it? Great. Not there? Tap the button below to get it back — it's free and made by Apple.</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="cta ghost" onclick="next()">⬇ Get Shortcuts from the App Store</button>
+      <button class="cta" onclick="next()">I found it</button>
+    </section>
+
+    <!-- 2 · Add shortcuts -->
+    <section class="screen" data-title="Add">
+      <h1>Add your two Kettle buttons</h1>
+      <p class="say">Tap each orange card. Your phone will show <b>"Add Shortcut"</b> — tap it. That's the whole step.</p>
+      <div class="visual">
+        <div class="row2">
+          <div class="tile"><span class="g">◎</span>Kettle — Daily routine</div>
+          <div class="tile"><span class="g">⚡︎</span>Kettle — Charger</div>
+        </div>
+        <div class="cap">These are yours alone — they only work on this phone.</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="cta" onclick="next()">I added both</button>
+    </section>
+
+    <!-- 3 · First run + scary prompt -->
+    <section class="screen" data-title="First run">
+      <div class="helper-note">📷 Helper: have the camera on the phone screen for this step — this is the one where people stop.</div>
+      <h1>Now run each one once — and expect a warning</h1>
+      <p class="say">Open Shortcuts, tap <b>Kettle — Daily routine</b>. Your phone will show something like this. <b>It's expected, and it's safe</b> — it's just asking permission to reach your family's Kettle page.</p>
+      <div class="visual">
+        <div class="applewarn">
+          <div class="t">"Kettle — Daily routine" wants to connect to kettle-api.fly.dev</div>
+          This shortcut will be allowed to send data to this server.
+          <div class="btns"><div class="b">Don't Allow</div><div class="b primary">Allow</div></div>
+        </div>
+        <div class="cap">Tap <b>Allow</b>. Then do the same for <b>Kettle — Charger</b>.</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="cta" onclick="next()">Done — I ran both and tapped Allow</button>
+    </section>
+
+    <!-- 4 · Automations -->
+    <section class="screen" data-title="Automations">
+      <h1>Teach your phone when to use them</h1>
+      <p class="say">Two automations. One paragraph each — the pictures do the work.</p>
+      <ol class="checklist">
+        <li><span class="n">1</span><span>In Shortcuts, tap <b>Automation</b> → <b>+</b> → <b>App</b>. Pick <b>all the apps you open every day</b> (WhatsApp, YouTube…). Choose <b>Is Opened</b> and <b>Run Immediately</b> → pick <b>Kettle — Daily routine</b>.</span></li>
+        <li><span class="n">2</span><span>Again: <b>+</b> → <b>Charger</b>. Tick <b>both</b> "Is Connected" and "Is Disconnected". Choose <b>Run Immediately</b> → pick <b>Kettle — Charger</b>.</span></li>
+      </ol>
+      <div class="bubblerow"><div class="avatar">◎</div>
+        <div class="bubble kettle">Your phone may sometimes say <b>"2 automations ran."</b> That's not an error — it's your phone being honest about what it's doing.</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="cta" onclick="next()">Both automations are built</button>
+    </section>
+
+    <!-- 5 · Verify by prediction -->
+    <section class="screen" data-title="Verify">
+      <h1>The proof: watch it work</h1>
+      <p class="say">Open <b>WhatsApp</b> right now, then come back here.</p>
+      <div class="verify" id="verifyBox">
+        <div class="big" id="verifyIcon">⏳</div>
+        <div class="msg" id="verifyMsg">Waiting for your phone's first signal…</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="cta" id="verifyBtn" onclick="simulateVerify()">I opened WhatsApp</button>
+      <button class="cta" id="verifyNext" onclick="next()" style="display:none">Finish</button>
+    </section>
+
+    <!-- 6 · Done -->
+    <section class="screen" data-title="Done">
+      <h1>That's everything, Appa 🎉</h1>
+      <p class="say">From now on, just <b>live your day</b>. Open your apps like always, charge your phone like always. Your family sees "all's well" — nothing more.</p>
+      <div class="consent-grid">
+        <div class="consent-card yes">
+          <div class="h">WHAT YOUR FAMILY SEES</div>
+          A green card that says your routine happened today.
+        </div>
+        <div class="consent-card no">
+          <div class="h">WHAT THEY DON'T</div>
+          Which apps. What you did. Where you are.
+        </div>
+      </div>
+      <div class="kill">🔴 Change your mind any time: Shortcuts → Automation → delete both. It all stops, instantly.</div>
+      <div class="spacer"></div>
+      <button class="cta" onclick="go(0)">↺ Restart mock</button>
+    </section>
+
+  </main>
+</div>
+<script>
+  const screens = [...document.querySelectorAll('.screen')];
+  const dots = document.getElementById('dots');
+  screens.forEach((s, i) => {
+    const d = document.createElement('span');
+    d.title = s.dataset.title;
+    d.onclick = () => go(i);
+    dots.appendChild(d);
+  });
+  let at = 0;
+  function render() {
+    screens.forEach((s, i) => s.classList.toggle('active', i === at));
+    [...dots.children].forEach((d, i) => {
+      d.className = i < at ? 'done' : i === at ? 'now' : '';
+    });
+  }
+  function go(i) { at = i; if (i === 0) resetVerify(); render(); }
+  function next() { if (at < screens.length - 1) at++; render(); }
+  function toggleHelper() {
+    document.getElementById('helperToggle').classList.toggle('on');
+    document.body.classList.toggle('helping');
+  }
+  function simulateVerify() {
+    const box = document.getElementById('verifyBox');
+    document.getElementById('verifyBtn').disabled = true;
+    document.getElementById('verifyMsg').textContent = 'Checking…';
+    setTimeout(() => {
+      box.classList.add('green');
+      document.getElementById('verifyIcon').textContent = '✅';
+      document.getElementById('verifyMsg').textContent = "Appa's card just turned green. It works.";
+      document.getElementById('verifyBtn').style.display = 'none';
+      document.getElementById('verifyNext').style.display = 'block';
+    }, 1400);
+  }
+  function resetVerify() {
+    const box = document.getElementById('verifyBox');
+    box.classList.remove('green');
+    document.getElementById('verifyIcon').textContent = '⏳';
+    document.getElementById('verifyMsg').textContent = "Waiting for your phone's first signal…";
+    const b = document.getElementById('verifyBtn');
+    b.disabled = false; b.style.display = 'block';
+    document.getElementById('verifyNext').style.display = 'none';
+  }
+  render();
+</script>
+</body>
+</html>
