@@ -74,7 +74,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 117.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 118.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -94,15 +94,16 @@ A/B are built and reviewed; migrations through 0009. The working branch
 `claude/tripwire-health-detail-view-6e1txw` tracks main exactly — develop there
 or on main per the merge-to-main norm above.
 
-**`specs/005b-family-onboarding.md` is written and is the next build target.**
-One fork is open — §5.1, whether iOS opens an HTTPS-served `.shortcut` straight
-into the Add Shortcut sheet — and it changes only the delivery mechanics.
-The experiment is live: `scripts/stage_shortcut.py` stages one signed rehearsal
-file into `webapp/public/x/<slug>/` (gitignored), nginx's `/x/` block isolates
-the content type to one line with the fallback order in the comment
-(`application/x-shortcut` tried; `octet-stream` and `x-apple-shortcut` remain),
-and the founder taps between redeploys. **Record the tap result in QUESTIONS and
-only then build 005b's delivery section.**
+**`specs/005b-family-onboarding.md` is written, its last fork is resolved, and
+it is the next build target.** §5.1 CLOSED (item 117, five taps on the
+founder's phone): iOS Safari will not hand an HTTPS-served `.shortcut` to the
+Shortcuts app under any content type — every attempt was a download prompt. The
+delivery ruling: **files travel by WhatsApp document attachment** (field-proven
+on Amma's install); the hosted per-parent setup page stands for consent, steps,
+the permission warning and verify-by-prediction, and never serves a
+`.shortcut`; iCloud link generation stays off the table. The `/x/` nginx block
+and `stage_shortcut.py` remain as a harness for future delivery experiments;
+the staged slug is deleted.
 
 **This session built** (details in QUESTIONS, numbers in brackets):
 `Kettle — {Signal}` naming, no parent [96a]; measured `WFWorkflowIcon`
@@ -121,13 +122,13 @@ the try/catch that looks sufficient is unreachable without the re-throw) and
 **Queued, unchanged:** 93 (forge derives its own out path from the token),
 95 (`--add-device` / `--rotate`), 100 (platform-aware standard set; depends on
 94, now landed), 101 (person prefix on *disk* filenames + never import into the
-founder's own Shortcuts library). **Next QUESTIONS number: 117.**
+founder's own Shortcuts library). **Next QUESTIONS number: 118.**
 
 **Owed by the founder, not by code:** `fly deploy` of kettle-app (picks up the
 Q112 cache headers — until then every deploy still white-screens returning
 browsers — plus the login words); `--set-signals` for Appa, then forge/sign/
 deliver his two merged files; the SMTP plan's DNS + dashboard steps
-(`docs/auth-smtp-plan.md`) before any non-founder family; §5.1 taps.
+(`docs/auth-smtp-plan.md`) before any non-founder family.
 
 **Live state to respect:** Amma is live on the *old per-app* keys — her setup
 is never rebuilt remotely for elegance [107]. Production is at migration 0008
