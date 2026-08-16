@@ -85,90 +85,59 @@ stated properly — a parent faces ~78 interactions today and delivery is only ~
 cheap experiments that decide spec 005b's shape, and what is owed by whom. Read it before
 `docs/onboarding-runbook.md` and QUESTIONS 92–102.
 
-### State of the build (2026-08-02)
+### State of the build (baton, 2026-08-16 — session handoff)
 
-Specs 001–006 are built: the pilot backend (`app/`, frozen since 002), the
-multi-tenant product backend (`product/`, migrations through **0009**), the
-digest engine, ladder v1, the child PWA (`webapp/`) with its warmth pass and the
-tripwire health detail view, the shortcut forge, and the landing page
-(`site/`). **Three** suites now — `pytest`, `webapp && npm run ci`, and
-`site && npm run ci` — all green on `main`.
+**`main` is at `c63b3b3`; all three suites green** (`pytest` 305 with Postgres
+up, `webapp` 93, `site` 90 — always confirm the product suite with
+`KETTLE_REQUIRE_POSTGRES=1`, never trust a skip). Specs 001–006 plus amendments
+A/B are built and reviewed; migrations through 0009. The working branch
+`claude/tripwire-health-detail-view-6e1txw` tracks main exactly — develop there
+or on main per the merge-to-main norm above.
 
-006 added the first top-level directory since `webapp/` and the first table with
-no family attached. `site/` reuses the webapp's toolchain with two extra CI
-checks: a foreign-origin scan of `dist/` (law #4 made mechanical — a font CDN
-would disclose every visitor's interest in elder monitoring before they had
-decided to trust anything) and a prerender check (the page is rendered to HTML
-at build time so it reads with JavaScript off, and a prerender step that stops
-running looks fine to everyone whose browser runs scripts). `docs/design-language.md`
-is the law of that surface; spec 006 §2 locked its values, and they live in
-`site/src/tokens.css` alone.
+**`specs/005b-family-onboarding.md` is written and is the next build target.**
+One fork is open — §5.1, whether iOS opens an HTTPS-served `.shortcut` straight
+into the Add Shortcut sheet — and it changes only the delivery mechanics.
+The experiment is live: `scripts/stage_shortcut.py` stages one signed rehearsal
+file into `webapp/public/x/<slug>/` (gitignored), nginx's `/x/` block isolates
+the content type to one line with the fallback order in the comment
+(`application/x-shortcut` tried; `octet-stream` and `x-apple-shortcut` remain),
+and the founder taps between redeploys. **Record the tap result in QUESTIONS and
+only then build 005b's delivery section.**
 
-005e's format debt is paid by field test (2026-08-02): a forge-generated,
-signed shortcut **imported on a real iPhone with one tap — no Settings toggle,
-no "Allow Untrusted Shortcuts" prompt**. QUESTIONS 70 is closed (005b's wizard
-needs no "turn this on first" step) and **69 is now closed too** (via 96b: the
-icon values are measured from a real signed shortcut's iCloud record, the last
-open inference). Shortcut names dropped the parent — `Kettle — {Signal}`,
-QUESTIONS 96a — and a bare `--device-token` forges offline with no flag at all
-(97). One small fix owed from the same session:
-**item 77, forge.py must lazy-import psycopg** so `--device-token` mode runs
-dependency-free on a bare Mac — **done**, and it needed more than a lazy import
-(QUESTIONS 78): the token path also queried for the parent's name and signal
-list, so there is now an explicit offline mode, `--device-token TOKEN --name`.
+**This session built** (details in QUESTIONS, numbers in brackets):
+`Kettle — {Signal}` naming, no parent [96a]; measured `WFWorkflowIcon`
+constants, item 69 closed [96b]; the merged end-state signal pair `routine` /
+`charger` in both label maps with `ALARM_GRADE` as vocabulary [107];
+`provision --signals` and `--set-signals <token>` (the Appa migration is a
+printed command; old rows go inactive, not deleted) [94/107]; the §5.1 harness
+[102]; nginx caching — shell `no-cache`, `/assets/` immutable, regex locations
+banned by test, **and there is deliberately no service worker: HTTP caching is
+the whole update story** [112]; staged files 0644 [113]; deploy docs — webapp
+build args live in `fly.toml`, bare `fly deploy` is the command [114]; login
+failures surface as words via `sendMagicLink` (supabase-js *returns* errors —
+the try/catch that looks sufficient is unreachable without the re-throw) and
+`docs/auth-smtp-plan.md` [115/116].
 
-005d's rulings (QUESTIONS 58–64, 2026-08-01): 58 and 61–64 approved, **59
-deferred** — learned cadences wait for the threshold-analysis spec, fixed
-windows stand — and **60 changed**: a signal never heard from reads `Not set up
-yet`, neutral and outside the repair-nudge trigger, because absence of *ever*
-means not-yet-configured rather than broken.
+**Queued, unchanged:** 93 (forge derives its own out path from the token),
+95 (`--add-device` / `--rotate`), 100 (platform-aware standard set; depends on
+94, now landed), 101 (person prefix on *disk* filenames + never import into the
+founder's own Shortcuts library). **Next QUESTIONS number: 117.**
 
-A founder-led UI polish round followed on-device (QUESTIONS 65–68, no spec): tap
-affordance on the parent cards, `Back to today` as a control, taller tripwire
-rows, and `never` deleted from the recency vocabulary. **The parent detail page
-is the parent's future home — day-detail and per-parent digest views are
-expected to live there**, which is why the affordance mattered enough to fix
-before the next spec.
+**Owed by the founder, not by code:** `fly deploy` of kettle-app (picks up the
+Q112 cache headers — until then every deploy still white-screens returning
+browsers — plus the login words); `--set-signals` for Appa, then forge/sign/
+deliver his two merged files; the SMTP plan's DNS + dashboard steps
+(`docs/auth-smtp-plan.md`) before any non-founder family; §5.1 taps.
 
-**Amendment B** (2026-08-02) is built: the kettle-story section sits between the
-scenarios and the three fields — kettle, then phone, then the whole record, which
-is one argument and is asserted as an order — plus the hero's second sub line and
-the item-85 debt (the meta description is now tied to `HERO_BODY` in the
-prerender check rather than duplicated by hand). Notes are QUESTIONS 88–91.
+**Live state to respect:** Amma is live on the *old per-app* keys — her setup
+is never rebuilt remotely for elegance [107]. Production is at migration 0008
+with 0009 owed, and the waitlist form is CORS-dead until `WAITLIST_ORIGINS`
+includes the serving origin. The live site runs a pre-Amendment-B build until
+redeployed. Amma is physically in Texas while provisioned `Asia/Kolkata` [108,
+backlog] — a shifted-looking routine there is geography, not a bug.
 
-**Amendment A** (founder site review, 2026-08-02) is built: marketing copy is
-universal English — no romanized kinship terms, no culture-coded vocabulary —
-and the page shows both parents (hero plural, sample digest names Dad, scenarios
-still follow one). `CULTURE_CODED` in `site/src/tests/copyLaw.test.tsx` is the
-first ban here scanned against *unmasked* text, so it cannot be allowlisted past;
-notes are QUESTIONS 84–87.
-
-006's own notes are QUESTIONS 78–83. Two are worth a reader's time before
-touching `site/`: **80**, where §3.2 and AC5 disagree about whether the
-notification breaks panel structure (read as "the `off` panel must not be
-escalated", tested that way, and **ruled that way** — AC5 amended to match,
-nothing owed); and **82**, where a source-text scan of Tailwind classes was
-found to miss any class built from a template literal — the motion guard now
-walks the rendered DOM, and *any* future source-text class scan in this repo
-should be assumed blind until proved otherwise.
-
-**No unbuilt spec is in `specs/`** — 005b (onboarding wizard, family codes,
-billing, TestFlight) is what the roadmap points at next; the tripwire view's
-repair nudge hands off to its guided repair, and 005e's generation half is
-already the piece 005b's macOS CI signer would reuse. The PM has not written
-that spec yet.
-
-**The site is LIVE at kettle-site.fly.dev** (founder deploy, 2026-08-02): Fly
-static app, `site/Dockerfile` serves `dist/` via gostatic on 8080 — the
-Dockerfile must copy `dist/`, never the source tree (a `COPY .` served the dev
-`index.html` as a blank page), and `.dockerignore` must exclude `node_modules`
-but never `dist/`. Deploy workflow: `cd site && VITE_API_BASE_URL=
-"https://kettle-api.fly.dev" npm run ci && fly deploy`.
-
-Production (`kettle-prod`) is at migration 0008 and **0009 is owed** — the
-waitlist table, which the form needs before it can collect anything. **The form
-is also CORS-dead until `WAITLIST_ORIGINS` on kettle-api includes the serving
-origin** (`https://kettle-site.fly.dev` now; the getkettle.* domains after
-DNS). The founder applies migrations and runs deploys, so a spec being "done"
-here means green locally and pushed, never shipped — the live site is running
-the pre-Amendment-B build until the next deploy.
+**Read before building 005b:** `docs/setup-delivery-brief.md`, then
+`docs/onboarding-runbook.md`, then QUESTIONS 92–116. The runbook and consent
+one-pager carry the item-107 field gotchas (charger trigger defaults to Run
+After Confirmation and must be flipped to Run Immediately; merged automation
+subtitles read "Kettle — Daily routine" and that is correct, not mislabelled).
