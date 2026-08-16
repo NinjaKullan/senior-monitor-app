@@ -1761,3 +1761,217 @@ backend, form, or dependency change.
     parents in one sitting. Tested with psycopg genuinely absent, as before.
     If the PM would rather offline stay opt-in-by-flag even now, that is a
     two-line revert of the trigger condition.
+
+---
+
+## Field log — rehearsal on the founder's and his wife's phones (2026-08-13)
+
+98. **AirDrop delivers shortcuts one at a time, not as a batch.** Selecting all five signed files
+    and AirDropping them together did not produce one transfer: each file arrives and immediately
+    opens in Shortcuts for its Add Shortcut sheet, so the founder worked through them individually.
+    Not a fault — but it means "send the set" is five interactions per person, and any wizard copy
+    that says "send them all at once" would be wrong. Whether WhatsApp delivery behaves the same
+    is untested and matters more, since that is the Chennai path.
+
+99. **The first manual run raises a permission prompt phrased as a security warning**, along the
+    lines of allowing a potentially harmful program to run. The founder tapped Allow and the
+    shortcut then worked. This is the item-92 grant, confirmed on a second device and now with its
+    real wording: it is not a quiet "may this connect to a server" dialog, it reads as a warning,
+    and a parent alone with it will hesitate or decline. Two consequences. The consent
+    conversation must pre-empt it in the family's own words — *your phone will ask if this is safe;
+    it is, and here is why* — rather than letting Apple's phrasing be the first framing a parent
+    hears. And 005b's wizard needs a screen showing this exact prompt before it appears, since a
+    warning a family expects is a formality and the same warning unexpected is a reason to stop.
+
+100. **Replace `news` in the standard set, and make the set platform-aware** (founder, after the
+     rehearsal, 2026-08-13 — noted for later, not for now). Two observations that belong together.
+
+     `news` was seeded because a news app is a plausible daily habit, but it is a *category*
+     rather than an app: which one a parent uses varies, and the automation trigger needs a
+     specific app. The founder's replacement for iOS is **Safari** — near-universal, opened by
+     habit, and present on every iPhone without installing anything. Android will need a different
+     third signal again, because the seeded set is currently written as though every device were
+     an iPhone while `devices.platform` already distinguishes `ios_shortcuts` from `android`.
+
+     Three things to settle when this is picked up, not before:
+
+     * **A browser needs its own consent sentence.** People hear "browsing" even though the signal
+       is only that an app opened; the one-pager must say so plainly rather than leaving the
+       parent to infer it. This is a copy requirement, not a technical one.
+     * **`STANDARD_SIGNALS` should be a function of platform**, not a single tuple — otherwise the
+       Android wave inherits an iPhone's habits by accident.
+     * **The real answer may be neither.** The parked routine-discovery design says the first
+       week's data should tell a family which apps that parent actually opens, and a seeded third
+       signal is a guess standing in for that. If routine discovery ships, this item mostly
+       dissolves; if it does not, Safari is the better guess than News.
+
+     Depends on QUESTIONS 94 (`provision --signals`) landing first, and on the "adding a signal"
+     procedure being written down — a new key needs both label maps and survives the drift test.
+
+101. **Item 96a removed the parent's name from the *filename* as well as the shortcut name, and the
+     founder's Mac is where that hurts.** The 96a reasoning claimed every reader of the string is
+     on that parent's phone, where their own name is redundant. That missed one reader: the
+     founder, on a machine that holds every family's files at once. In practice six identically
+     named shortcuts appeared in the macOS Shortcuts library with no way to tell whose they were —
+     Amma's or a rehearsal device's — one WhatsApp send away from a silent crossed-files failure.
+
+     **Fix: decouple the two strings, because they are two strings.** The `.shortcut` file's name
+     on disk is not the name the plist carries; the forge writes both. Asked for:
+
+     * on disk — `<person> — Kettle — <Signal>.shortcut`, or the person prefix in some form, so a
+       file is self-identifying wherever it ends up;
+     * inside the plist — `Kettle — <Signal>`, unchanged, since 96a's argument holds perfectly for
+       the phone;
+     * and the provisioning/forge output should print the token it embedded, so a founder can
+       verify a file against the printout rather than trusting a directory name.
+
+     **Standing rule adopted meanwhile: signed shortcuts are never imported into the founder's own
+     Shortcuts library.** The library is a flat namespace with no family scoping, it syncs across
+     the founder's devices via iCloud, and a stray run there posts a ping as somebody else's
+     parent. Files stay in the filesystem until they land on the parent's phone. Verification is
+     `plutil -p <unsigned copy> | grep WFURL`, which shows the embedded token.
+
+     Related, and the reason this matters beyond one bad afternoon: the founder cannot AirDrop to
+     a parent 8,000 miles away, and pasting a `.shortcut` into WhatsApp fails. Delivery today is
+     WhatsApp's *document* attachment from the correct folder. The durable answer is that a family
+     never receives files at all — provisioning returns tappable iCloud shortcut links, generated
+     by a signing service rather than by the founder's local Shortcuts app. That is 005b's
+     delivery step, and this session moved it from "after ten families" to "before the first
+     stranger."
+
+102. **Delivery for families that are not the founder's own: the child is the courier, and that is
+     the problem** (founder, 2026-08-13, asking how recruitment families receive their shortcuts).
+
+     The founder never speaks to a stranger's parent — the child buys, the child runs the setup
+     call, so files go founder → child → parent. For the next two or three families that is
+     workable: email the six signed files to the address on the account and let them forward.
+
+     It fails sooner than founder-time does, and for a different reason than expected. **A
+     two-parent family becomes twelve identically-named files in a stranger's inbox** (item 96a
+     removed the person from the name; item 101 proposes putting it back on disk, which helps but
+     does not fix this), and the person choosing which six go to which parent has never heard of a
+     device token. The founder at least has folders and `plutil … | grep WFURL`. The child has an
+     attachment list. Crossed files in someone else's family is a failure nobody would ever
+     notice: the system looks perfect and reports the wrong parent's routine forever.
+
+     **Proposed shape, for 005b to spec properly: the child never handles files.** Provisioning
+     emits one **per-parent setup URL** on our own domain — unguessable, expiring — carrying that
+     parent's six shortcuts as tappable links plus the plain-English steps (add, unlocked first
+     run, Allow, build automations). The child app shows two labelled links, "Mom's setup" and
+     "Dad's setup"; the child forwards the right one to the right parent. One link, one parent,
+     nothing to cross, no attachment that a mail provider may strip.
+
+     Two unknowns to settle before committing, both cheap:
+
+     * **Does iOS open a `.shortcut` served over HTTPS directly into the Add Shortcut sheet?**
+       With the right content type it plausibly does. If yes, Apple's iCloud sharing is
+       unnecessary and the whole delivery problem becomes a URL. Ten minutes to test with a
+       rehearsal file on any host.
+     * **Can signing run without a Mac in the loop?** `shortcuts sign` is macOS-only, so either a
+       macOS runner signs at provisioning time, or signed files are generated in batches ahead of
+       demand. The hosted-link design does not remove this constraint, it just moves it off the
+       critical path of a call.
+
+     Security note for whoever specs it: that URL hands out a device token, so it must be
+     unguessable, expiring, and revocable — the same posture as the token itself, since it *is*
+     the token in transit.
+
+---
+
+## Field log — Amma's install, Chennai (2026-08-15)
+
+*Live at end of call: `whatsapp`, `youtube`, `charge_on` — three of five. Delivery was WhatsApp
+document attachments per the runbook. Filed by PM from the founder's account of the call.*
+
+103. **The Shortcuts app was not on the phone.** Setup could not begin until Amma downloaded it
+     from the App Store — a search-and-install task performed by the least capable person in the
+     transaction, before anything in the runbook even starts. Nobody had counted this step.
+     Consequences for 005b: the setup page needs a **step zero** — "check for the Shortcuts app,
+     and here is the App Store link" — and the wizard may never assume the app exists. An
+     installed-by-default app is not a present app: parents delete what they do not recognise.
+
+104. **A remote helper with a camera collapsed the call from a projected two hours to ten
+     minutes.** Founder-over-voice alone was going nowhere and would have been abandoned. The
+     founder's sister FaceTimed from the same house, pointed her camera at Amma's phone, and the
+     founder — now able to *see* the screen — walked the steps in 5–10 minutes. Founder's
+     estimate: the sister alone, without him narrating, would have taken ~30 minutes. The finding
+     is that the bottleneck was never hands on the phone; it was **sight of the screen**. "Remote
+     eyes" — anyone pointing a camera — is a far weaker dependency than the competent-helper-in-
+     the-room the brief ruled out, and 005b should offer it as an explicit assist path ("on a
+     video call? point the camera at the phone") without weakening the no-helper design goal for
+     the median parent.
+
+105. **There is a capability floor below which no document helps.** Amma did not know how to
+     search, or how to leave one app and open another. At this tier, anything short of one-tap
+     install requires a second person, and no wizard copy bridges the gap. Consequence: setup
+     cost must be measured in *taps by the parent*, and every removed tap is worth most at the
+     floor — the multi-app merge and hosted one-tap delivery exist for exactly this parent.
+
+106. **Nobody reads.** Founder's requirement, from watching it happen: no onboarding step may
+     carry more than one short paragraph; visuals with speech bubbles beat prose everywhere. The
+     runbook's careful pre-empting of the scary first-run prompt (item 99) turned out not to
+     matter *in this configuration* — trusted family drove the phone and tapped through every
+     warning unread. PM note, law-bound: that cuts both ways. When a helper drives, Apple's
+     warnings **and our consent script** get skipped together, so consent has to be carried by
+     the product — per-person, revocable, kill switch always visible — not by the quality of the
+     call. The one-pager still gets read *to* the parent; it just cannot be the only place
+     consent lives.
+
+**PM rulings, 2026-08-15, from this log.** (a) Multi-app automation firing one shortcut is
+adopted as 005b's default — consequences as stated in `docs/setup-delivery-brief.md` §3.2, with
+the `routine` signal key added to the vocabulary as prerequisite. (b) Delivery goes hosted per
+item 102, gated on the §5.1 experiment (HTTPS-served signed `.shortcut` → Add Shortcut sheet).
+(c) 005b's onboarding surface is visual-first per item 106.
+
+107. **Experiment §5.2 confirmed on-device, and the end-state signal set is ruled** (founder
+     screenshots + PM, 2026-08-15). The "App is opened" automation accepts multiple apps — the
+     trigger reads **"Any of 3 Apps"** — firing one shortcut, with Run Immediately available.
+     The Charger trigger likewise accepts **Is Connected and Is Disconnected in a single
+     automation**. Both confirmed in the Shortcuts UI on the founder's phone; a live end-to-end
+     fire (automation → ping → card) has not been exercised yet and should be, with a
+     Rehearsal-token shortcut only, per the item-101 standing rule.
+
+     **Ruling — the per-parent end state is two shortcuts, two automations:**
+
+     * `routine` — one multi-app automation over the parent's habit apps, firing one shortcut;
+     * `charger` — one automation, Connected + Disconnected both checked, firing one shortcut.
+       Coarsening on/off into a single charger event is accepted: the pair was corroborating-only
+       (law #6), and session semantics were never load-bearing.
+     * `device_alive` leaves the Shortcuts surface entirely: the intended home is a daily
+       heartbeat from a future parent-side native app. Not 005b-blocking. Caveat recorded now so
+       it is not rediscovered later: iOS background execution (BGTaskScheduler) does not
+       guarantee a daily wake, so "app sends a signal once a day" needs its own design pass —
+       until then the time-of-day automation remains the fallback, or the signal is skipped.
+
+     Setup arithmetic at the floor (item 105): 2 files, 2 unlocked first-runs, 2 automations —
+     roughly a third of Amma's install, on the surface where every tap costs most.
+
+     **Two field gotchas from the screenshots, for 005b's copy and the runbook:** the Charger
+     automation defaults to **Run After Confirmation**, which on a parent's phone means a prompt
+     at every plug-in that never gets tapped — it must be flipped to Run Immediately, same as the
+     App trigger; and the automation list's subtitle shows only the shortcut name, so a merged
+     automation reading "Kettle — YouTube" under "When any of 3 apps are opened" is the
+     mislabeling the `routine` key exists to remove. Amma's live per-app setup is untouched until
+     `routine`/`charger` shortcuts exist, are signed, and are delivered; nothing is rebuilt
+     remotely for elegance.
+
+108. **Parents travel: the child needs a way to change a parent's timezone** (founder,
+     2026-08-15 — backlog, not blocking). The live case exists already: Amma is provisioned
+     `Asia/Kolkata` and is currently in Texas visiting family. Pings and cards keep working —
+     nothing breaks — but per-parent timezone drives digest windows and daily-check expectations,
+     so a travelling parent reads as a shifted routine until someone edits a database row.
+     Asked for, when picked up: a child-app control to edit a member's timezone. Worth
+     considering at the same time: the phone already knows its own timezone, so a ping (or the
+     future parent-side app of item 107) could carry it and the server could notice drift and
+     prompt the child — detection over data entry, consistent with the item-93 principle. Law
+     check: timezone is member configuration, not a fourth stored field on pings.
+
+109. **Onboarding should branch on parent tech-savviness** (founder, 2026-08-15 — backlog).
+     The Amma install (items 103–105) says the floor needs the merged method: one automation
+     watching multiple apps, one `routine` shortcut. A tech-savvy parent can carry per-app
+     signals and gets finer tripwire granularity for it. Proposal for 005b when it is written:
+     **merged is the default**; per-app is the opt-in path the wizard offers when the child says
+     the parent is comfortable with their phone. One question to the child, not a quiz for the
+     parent. This also gives routine-discovery (parked) a cleaner target: discovery can later
+     upgrade a merged parent to per-app if the family wants it, rather than being needed on day
+     one.
