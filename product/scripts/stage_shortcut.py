@@ -62,7 +62,12 @@ def stage(signed: Path, dest: Path, base_url: str) -> tuple[Path, str]:
     target = dest / slug / signed.name
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(signed, target)
-    target.chmod(0o600)
+    # 0644, not the forge's 0600 (QUESTIONS 113): the mode travels into the
+    # Docker image, where nginx's worker is not the owner and answered 403 on
+    # the founder's first tap. This file exists to be served — the unguessable
+    # URL is the credential, and on-disk restrictiveness here breaks the serving
+    # while protecting nothing.
+    target.chmod(0o644)
     url = f"{base_url.rstrip('/')}/x/{slug}/{quote(signed.name)}"
     return target, url
 
