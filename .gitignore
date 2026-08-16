@@ -30,3 +30,9 @@ site/dist-ssr/
 # `git check-ignore`, including that the assertion can fail.
 out/
 *.shortcut
+
+# Experiment §5.1 (QUESTIONS 102): staged signed shortcuts served by kettle-app.
+# Each carries a live device token; the slug directory must never reach git.
+# (*.shortcut is already ignored tree-wide; this covers notes or unsigned
+# copies dropped beside one.)
+webapp/public/x/
