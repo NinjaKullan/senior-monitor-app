@@ -106,6 +106,18 @@ export const RECENCY_TODAY = "today";
 export const RECENCY_YESTERDAY = "yesterday";
 export const RECENCY_DAYS = "{days} days ago";
 
+/**
+ * Login (QUESTIONS 115). The mailer is equipment, so its failures are worded
+ * like equipment — calm, specific, and with the next step in the sentence. A
+ * rate limit surfacing as silence was the founder's lost hour: the screen said
+ * "check your email" over a link that was never sent.
+ */
+export const LOGIN_SENT =
+  "Check your email for a sign-in link. It can take a minute — look in spam if it hasn't arrived.";
+export const LOGIN_RATE_LIMITED =
+  "That's a few links in a row, and the mailer needs a short break. Wait a few minutes, then try once more.";
+export const LOGIN_FAILED = "That didn't go through. Check the address and try again.";
+
 export const DIGESTS_EMPTY = "Your daily digests will appear here.";
 export const NO_FAMILY_TITLE = "No family yet";
 export const NO_FAMILY_BODY =

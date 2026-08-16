@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { claimMembership, loadSnapshot, type FamilySnapshot } from "@/lib/data";
+import {
+  claimMembership,
+  loadSnapshot,
+  sendMagicLink,
+  type FamilySnapshot,
+} from "@/lib/data";
 import { buildDigestEntries } from "@/lib/digests";
 import { computeGlance } from "@/lib/glance";
 import { supabase } from "@/lib/supabase";
@@ -69,11 +74,7 @@ export default function App() {
   if (!session) {
     return (
       <Shell>
-        <Login
-          onSend={async (email) => {
-            await supabase.auth.signInWithOtp({ email });
-          }}
-        />
+        <Login onSend={sendMagicLink} />
       </Shell>
     );
   }

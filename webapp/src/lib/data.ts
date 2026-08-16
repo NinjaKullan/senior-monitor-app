@@ -25,6 +25,19 @@ export interface FamilySnapshot {
   digests: DigestSend[];
 }
 
+/**
+ * Request a magic link, and make failures visible (QUESTIONS 115).
+ *
+ * supabase-js returns errors rather than throwing them. The founder's lost hour
+ * was exactly this line swallowing a 429: the screen said "check your email"
+ * over a link the rate-limited mailer had refused to send. Throwing is what
+ * lets the Login screen put the failure into words.
+ */
+export async function sendMagicLink(email: string): Promise<void> {
+  const { error } = await supabase.auth.signInWithOtp({ email });
+  if (error) throw error;
+}
+
 export async function claimMembership(): Promise<void> {
   const { error } = await supabase.rpc("app_claim_membership");
   if (error) throw error;
