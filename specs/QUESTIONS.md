@@ -2066,3 +2066,29 @@ programmatic sharing is unsupported.
      class) before any family that is not the founder's. Related copy note for the child app:
      the login screen should say the link can take a minute and to check spam — and rate-limit
      errors must surface as words, not silence.
+
+---
+
+## Items 112–115 build notes (implementer, 2026-08-16)
+
+116. **The Q115 bug had two layers, and the visible one was innocent.** The Login screen
+     already had a try/catch; it caught nothing because `supabase.auth.signInWithOtp`
+     *returns* its errors rather than throwing them, and the call site discarded the return
+     value. The fix is a named `sendMagicLink` in `lib/data.ts` that re-throws, so the
+     translation from returned-error to thrown-error is a tested seam rather than an inline
+     lambda — the plant for it is the exact field bug (drop the re-throw) and it fails one
+     test by name. Three judgement calls alongside, recorded so they can be overruled
+     cheaply: login failures render in plain foreground with `role="alert"`, not red (the
+     webapp has no red, and a mailer hiccup is not going to be the first thing that earns
+     one) and not amber (005d confined amber to the tripwire surface); the rate-limit copy
+     names the wait as the fix and keeps the form on screen rather than pretending a link is
+     coming; and a copy test bans "error"/"fail"/alarm vocabulary from all three login
+     strings, so the calm is load-bearing rather than habitual. The webapp caching contract
+     (Q112) is asserted from the product suite as nginx-config structure — including a ban on
+     regex locations outright, since a future extension-matching block would outrank both
+     cache rules silently — and the no-service-worker fact is now a test with its reasoning
+     attached: HTTP caching is the entire update story, so adding a SW means designing its
+     update flow first. The SMTP plan is `docs/auth-smtp-plan.md`: Postmark-class provider,
+     `auth.` subdomain for reputation isolation, tracking OFF (a rewritten magic-link URL is
+     law #4 *and* a broken link), and the founder's three-links-in-ten-minutes repro as the
+     acceptance test.
