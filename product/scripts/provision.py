@@ -24,9 +24,11 @@ import sys
 
 from kettle import db
 from kettle.provisioning import (
+    issue_setup_link_by_token,
     provision_demo_family,
     provision_family,
     render_revocation,
+    render_setup_link,
     render_summary,
     revoke_by_token,
     set_parent_signals,
@@ -89,6 +91,13 @@ def main(argv: list[str] | None = None) -> int:
         help="revoke one lost/replaced device; leaves every other device working",
     )
     parser.add_argument(
+        "--setup-link",
+        metavar="DEVICE_TOKEN",
+        default=None,
+        help="issue a fresh setup-page link for an existing parent's device; "
+        "any earlier link for that device stops answering (spec 005b)",
+    )
+    parser.add_argument(
         "--base-url",
         default=os.environ.get("PUBLIC_BASE_URL", "https://kettle-api.fly.dev"),
     )
@@ -107,11 +116,20 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--set-signals takes only --signals and a device token")
     if args.set_signals and not args.signals:
         parser.error("--set-signals needs --signals to say what the new set is")
-    if not args.revoke and not args.set_signals and not args.demo and not (
-        args.family and args.parent
+    if args.setup_link and (
+        args.demo or args.family or args.parent or args.revoke or args.set_signals
+    ):
+        parser.error("--setup-link takes only a device token")
+    if (
+        not args.revoke
+        and not args.set_signals
+        and not args.setup_link
+        and not args.demo
+        and not (args.family and args.parent)
     ):
         parser.error(
-            "--family and at least one --parent are required (or --demo, --revoke, --set-signals)"
+            "--family and at least one --parent are required "
+            "(or --demo, --revoke, --set-signals, --setup-link)"
         )
 
     chosen = (
@@ -134,6 +152,22 @@ def main(argv: list[str] | None = None) -> int:
         for signal in active:
             print(f"  {base}/p/{args.set_signals}/{signal}")
         print("Everything else is inactive (kept, not deleted). Re-forge before delivering.")
+        return 0
+
+    if args.setup_link:
+        with db.connect(args.database_url) as conn:
+            issued = issue_setup_link_by_token(
+                conn, args.setup_link, args.base_url, now_utc()
+            )
+        if issued is None:
+            print(
+                "No active device matches that token — no link issued. "
+                "A revoked device gets no new doors (QUESTIONS 95: re-issue "
+                "for a replacement phone is still an open tooling gap).",
+                file=sys.stderr,
+            )
+            return 1
+        print(render_setup_link(issued, args.setup_link))
         return 0
 
     if args.revoke:

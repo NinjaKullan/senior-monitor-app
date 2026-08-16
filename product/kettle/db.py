@@ -115,6 +115,64 @@ def revoke_device(conn: psycopg.Connection, device_id: Any, when: datetime) -> N
     )
 
 
+# --- setup page lookups (spec 005b) -----------------------------------------
+
+
+def setup_link_by_slug(conn: psycopg.Connection, slug: str) -> Row | None:
+    """Resolve a setup slug to its link, device, parent and family in one hop.
+
+    The device columns ride along because the link lives and dies with its
+    device: a revoked token must kill the URL (spec 005b §4.2), and that rule
+    is enforced by whoever reads this row, not by a second bookkeeping write.
+    """
+    return conn.execute(
+        """
+        select l.id as link_id, l.created_utc, l.expires_utc, l.revoked_utc,
+               d.active as device_active, d.revoked_utc as device_revoked_utc,
+               d.platform,
+               p.id as parent_id, p.display_name as parent_name, p.tz as parent_tz,
+               f.id as family_id, f.name as family_name, f.tz as family_tz
+        from setup_links l
+        join devices d on d.id = l.device_id
+        join parents p on p.id = l.parent_id
+        join families f on f.id = p.family_id
+        where l.slug = %s
+        """,
+        (slug,),
+    ).fetchone()
+
+
+def family_owner_name(conn: psycopg.Connection, family_id: Any) -> str | None:
+    """The family's owner, by display name — the setup page's "From {name}"."""
+    row = conn.execute(
+        """
+        select display_name from members
+        where family_id = %s and role = 'owner'
+        order by created_utc, id limit 1
+        """,
+        (family_id,),
+    ).fetchone()
+    return row["display_name"] if row else None
+
+
+def parent_active_signals(conn: psycopg.Connection, parent_id: Any) -> list[Row]:
+    """One parent's active allowlist, alarm-grade first.
+
+    This is what the setup page renders steps from: the database stays
+    authoritative about which signals a parent has, exactly as the forge's
+    token path does (QUESTIONS 97).
+    """
+    return conn.execute(
+        """
+        select signal, alarm_grade
+        from parent_signals
+        where parent_id = %s and active
+        order by alarm_grade desc, signal
+        """,
+        (parent_id,),
+    ).fetchall()
+
+
 # --- heartbeat queries ------------------------------------------------------
 
 

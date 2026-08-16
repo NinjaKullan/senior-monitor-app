@@ -21,3 +21,15 @@ TOKEN_BYTES = 18
 def new_device_token() -> str:
     """Generate a fresh url-safe device token."""
     return secrets.token_urlsafe(TOKEN_BYTES)
+
+
+def new_setup_slug() -> str:
+    """Generate a fresh setup-link slug (spec 005b §4.2).
+
+    Same entropy as a device token (144 bits, spec floor is 128) because the
+    setup URL is the token in transit and inherits its rules. A distinct
+    function, not an alias: the slug is a *different* secret with a shorter
+    life, and the two must never be minted from one code path that could be
+    "simplified" into reusing a value.
+    """
+    return secrets.token_urlsafe(TOKEN_BYTES)

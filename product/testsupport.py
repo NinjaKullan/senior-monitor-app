@@ -17,6 +17,7 @@ TABLES = (
     "parents",
     "devices",
     "parent_signals",
+    "setup_links",
     "pings",
     "ops_alerts",
     "digest_sends",

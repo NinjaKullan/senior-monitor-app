@@ -9,7 +9,7 @@ shortcut names those URLs belong in.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 import psycopg
@@ -17,7 +17,12 @@ import psycopg
 from kettle import db
 from kettle.signals import ALARM_GRADE, STANDARD_SIGNALS, shortcut_name
 from kettle.timeutil import now_utc
-from kettle.tokens import new_device_token
+from kettle.tokens import new_device_token, new_setup_slug
+
+#: How long a freshly issued setup link answers (spec 005b §4.2). Seven days
+#: covers "I'll call Amma on the weekend" without leaving a live credential
+#: parked in a WhatsApp thread for a month. Re-issuing is one command.
+SETUP_LINK_TTL_DAYS = 7
 
 DEMO_FAMILY_NAME = "Kettle Demo Family"
 DEMO_TZ = "Asia/Kolkata"
@@ -65,6 +70,8 @@ class ProvisionedParent:
     device_id: Any
     device_token: str
     signals: list[ProvisionedSignal]
+    setup_url: str
+    setup_expires_utc: datetime
 
 
 @dataclass(frozen=True)
@@ -75,6 +82,69 @@ class ProvisionedFamily:
     name: str
     tz: str
     parents: list[ProvisionedParent]
+
+
+def setup_url_for(base_url: str, slug: str) -> str:
+    """The public address of one parent's setup page."""
+    return f"{base_url.rstrip('/')}/s/{slug}"
+
+
+def issue_setup_link(
+    conn: psycopg.Connection, device_id: Any, parent_id: Any, when: datetime
+) -> tuple[str, datetime]:
+    """Mint the one live setup link for a device, retiring any predecessor.
+
+    Issuance is rotation: a device has at most one answering link, so a
+    re-issued URL quietly kills the copy still sitting in last week's WhatsApp
+    thread. Returns (slug, expires_utc).
+    """
+    conn.execute(
+        "update setup_links set revoked_utc = %s "
+        "where device_id = %s and revoked_utc is null",
+        (when, device_id),
+    )
+    slug = new_setup_slug()
+    expires = when + timedelta(days=SETUP_LINK_TTL_DAYS)
+    conn.execute(
+        """
+        insert into setup_links (device_id, parent_id, slug, created_utc, expires_utc)
+        values (%s, %s, %s, %s, %s)
+        """,
+        (device_id, parent_id, slug, when, expires),
+    )
+    return slug, expires
+
+
+@dataclass(frozen=True)
+class IssuedSetupLink:
+    """A re-issued setup link, with the context the operator reads back."""
+
+    parent_name: str
+    family_name: str
+    url: str
+    expires_utc: datetime
+
+
+def issue_setup_link_by_token(
+    conn: psycopg.Connection, device_token: str, base_url: str, when: datetime
+) -> IssuedSetupLink | None:
+    """Issue (or rotate) the setup link for an existing parent's device.
+
+    The Appa case: provisioned weeks ago, setup happening now — the original
+    link has expired and nothing should have to be re-provisioned to get a
+    fresh one. None when the token is unknown or the device is revoked; a dead
+    device gets no new doors (QUESTIONS 95's one-way door, unchanged).
+    """
+    device = db.device_by_token(conn, device_token)
+    if device is None or not device["active"] or device["revoked_utc"]:
+        return None
+    slug, expires = issue_setup_link(conn, device["device_id"], device["parent_id"], when)
+    return IssuedSetupLink(
+        parent_name=device["parent_name"],
+        family_name=device["family_name"],
+        url=setup_url_for(base_url, slug),
+        expires_utc=expires,
+    )
 
 
 def provision_family(
@@ -154,6 +224,8 @@ def provision_family(
                 )
             )
 
+        slug, link_expires = issue_setup_link(conn, device["id"], parent_id, created)
+
         provisioned.append(
             ProvisionedParent(
                 parent_id=parent_id,
@@ -162,6 +234,8 @@ def provision_family(
                 device_id=device["id"],
                 device_token=token,
                 signals=signals,
+                setup_url=setup_url_for(base_url, slug),
+                setup_expires_utc=link_expires,
             )
         )
 
@@ -291,6 +365,10 @@ def render_summary(family: ProvisionedFamily) -> str:
         tz_note = f" [tz {parent.tz}]" if parent.tz else ""
         lines.append(f"  {parent.display_name}{tz_note}")
         lines.append(f"    device token: {parent.device_token}")
+        lines.append(
+            f"    setup page:   {parent.setup_url}"
+            f"  (expires {parent.setup_expires_utc.date().isoformat()})"
+        )
         for sig in parent.signals:
             grade = "alarm" if sig.alarm_grade else "corroborating"
             lines.append(f"    - {sig.shortcut}  ({grade})")
@@ -300,4 +378,23 @@ def render_summary(family: ProvisionedFamily) -> str:
         "Tokens are per device: revoking one phone leaves the rest working. "
         "Nobody types these URLs — they ship inside pre-built shortcuts."
     )
+    lines.append(
+        "The setup page is the one link a family forwards. It shows steps and "
+        "the live check, never a file and never a token."
+    )
     return "\n".join(lines)
+
+
+def render_setup_link(issued: IssuedSetupLink, device_token: str) -> str:
+    """The operator-facing printout for a re-issued setup link."""
+    return "\n".join(
+        [
+            f"Setup link for {issued.parent_name} ({issued.family_name}), "
+            f"device {mask_token(device_token)}:",
+            f"  {issued.url}",
+            f"  expires {issued.expires_utc.date().isoformat()}",
+            "",
+            "Any earlier link for this device is now dead, including copies "
+            "already sitting in a chat.",
+        ]
+    )
