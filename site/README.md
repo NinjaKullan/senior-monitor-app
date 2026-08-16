@@ -80,6 +80,12 @@ npm run ci           # all four, in the order CI runs them
 `https://kettle-api.fly.dev`. It is a public URL and the only value this page
 reads from its environment — there is no key here to leak.
 
+This surface deliberately does not have the webapp's QUESTIONS-114 gap: the
+site is built *locally* (`npm run ci`) before `fly deploy` ships `dist/`, and
+the default above is baked into the code, so a build with no env var still
+points at the production API rather than at an empty string. There is no
+`[build.args]` to forget because the Fly image never builds the bundle.
+
 ## Deploy
 
 `dist/` is a folder of static files. Point any static host at it: no server, no

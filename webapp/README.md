@@ -143,19 +143,25 @@ npm run ci           # all four, in the order CI runs them
 
 ```bash
 cd webapp
-fly launch --no-deploy          # sets `app` in fly.toml; keep the rest
-
-fly deploy \
-  --build-arg VITE_SUPABASE_URL="https://<project>.supabase.co" \
-  --build-arg VITE_SUPABASE_PUBLISHABLE_KEY="<publishable key>"
-
+fly deploy                                     # build args come from fly.toml
 curl -s https://kettle-app.fly.dev/healthz     # {"ok":true}
 ```
 
-Build args rather than Fly secrets on purpose: these values are compiled into
-the bundle and are public anyway, and `fly secrets` would imply otherwise. The
-build fails if `check-build-secrets.mjs` finds anything else in the output, so a
-service key pasted into the wrong variable cannot ship.
+**The build args live in `fly.toml`'s `[build.args]` and a bare `fly deploy` is
+the whole command** (QUESTIONS 114). They used to be `--build-arg` flags, and a
+deploy without them built a login page pointed at an empty string — it rendered,
+said "check your email," and sent nothing, while the auth logs showed no request
+arriving. A config a human must remember to retype is a config that will be
+forgotten on the deploy that matters, so the values are committed: they are
+public by design (compiled into a world-downloadable bundle either way), and the
+service key appears nowhere. `check-build-secrets.mjs` still fails the build if
+anything secret-shaped lands in the output, so pasting the wrong key into
+`fly.toml` cannot ship. If the Supabase project ever changes, `fly.toml` is the
+one place to edit.
+
+The symptom to remember: a deploy that "worked" but where login goes silent
+means the bundle was built with empty Supabase values — check
+`fly.toml → [build.args]` before anything else.
 
 Supabase Auth needs the deployed origin in **Authentication → URL Configuration
 → Redirect URLs**, or the magic link will bounce.
