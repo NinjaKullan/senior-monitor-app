@@ -2245,3 +2245,39 @@ browser — all three adopted as the standard for future surfaces.**
      translation happens case-by-case on explicit founder request, priced against a real
      family that needs it. This supersedes the bilingual one-pager experiment (2026-08-16,
      same day it was made — cheap lesson).
+
+---
+
+## Field log — Appa's install, the first merged-method setup (founder, 2026-08-16)
+
+126. **Appa is live — routine (Safari + WhatsApp) and charger — and the install produced the
+     sharpest onboarding findings yet.** Both parents are now reporting in production; Appa's
+     is the first field run of the merged two-shortcut method and of the setup page. What the
+     call taught:
+
+     * **The real pain is app-jumping, not any single step.** The actual path on Appa's phone
+       was: WhatsApp → download the file → share icon → Apple share sheet → find Shortcuts →
+       Add → open Shortcuts → test → *back to WhatsApp* → repeat everything for file two.
+       Every arrow is a context switch, and **one wrong tap lands on a different screen and
+       the flow breaks** — with the helper eight thousand miles away and unable to point.
+       An educated, capable parent struggled; the distance multiplies every stumble.
+     * **The WhatsApp install path is not uniform.** Amma's install (two days earlier, per-app
+       files) was "tap the file → Add Shortcut" directly; Appa's needed the share-sheet hop
+       through the Apple share options. Same product, different iOS/WhatsApp behaviour — any
+       instruction that promises one exact path will be wrong for someone.
+     * **A parent's natural tap finds the shortcut editor.** Mid-call, Appa tapped into the
+       edit view — raw URL, token, "Get contents of" staring back at him — instead of running
+       the shortcut. Nothing broke (back arrow exits), but the page's first-run step should
+       say: "if you ever see a screen full of code, just tap the back arrow."
+     * **Founder ruling — onboarding investment is PAUSED.** The setup page needs to be better
+       and the founder knows it, but for the beta group the answer is handholding — there is
+       no way around it, and "the onboarding is a mini-product by itself" must not distract
+       from the product. Do what is needed manually for beta. The page stays as shipped;
+       improvements queue behind real beta-family evidence.
+     * **Next cheap artifact, logged not scheduled:** a stitched-screenshot walkthrough video
+       (YouTube), so a parent can watch on the TV while doing the steps on the phone — the
+       remote-eyes pattern inverted: instead of the helper seeing the parent's screen, the
+       parent sees the steps at television size.
+     * Minor, verify within 48h: Appa's charger automation may have only "Is Connected"
+       ticked (charger-on fired in testing). Corroborating-only either way; tidy on the next
+       touch, not worth a call.
