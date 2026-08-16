@@ -177,8 +177,24 @@ function assertCopyLaw(text: string, allow: (string | RegExp)[] = []) {
   expect(strayDigits(scanned), `stray digits in: ${text}`).toBe("");
 }
 
+/**
+ * The DOM's visible text with a space at every element seam.
+ *
+ * `document.body.textContent` glues adjacent elements — a status label ending
+ * "…WhatsApp" followed by a link starting "Send…" scans as "whatsappsend",
+ * which no word-bounded ban can match. Found by planting exactly that
+ * regression (005b build): the law passed with a banned word on screen. Text
+ * nodes joined with a separator make element boundaries word boundaries, so
+ * a banned word is caught wherever the markup puts it.
+ */
 function renderedText(): string {
-  return document.body.textContent ?? "";
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const parts: string[] = [];
+  while (walker.nextNode()) {
+    const value = walker.currentNode.nodeValue?.trim();
+    if (value) parts.push(value);
+  }
+  return parts.join(" ");
 }
 
 describe("rendered copy law", () => {
