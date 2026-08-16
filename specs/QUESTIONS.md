@@ -2092,3 +2092,23 @@ programmatic sharing is unsupported.
      `auth.` subdomain for reputation isolation, tracking OFF (a rewritten magic-link URL is
      law #4 *and* a broken link), and the founder's three-links-in-ten-minutes repro as the
      acceptance test.
+
+117. **§5.1 is closed: iOS Safari will not hand an HTTPS-served signed `.shortcut` to the
+     Shortcuts app.** All three content types — `application/x-shortcut`,
+     `application/octet-stream`, `application/x-apple-shortcut` — were deployed and tapped on
+     the founder's phone in one sitting (2026-08-16, 1:17–1:22am EDT) and every one produced
+     the same "Do you want to download?" prompt, with the file landing in Files/Downloads.
+     Combined with the Files-app verdict earlier in this log, the **delivery ruling for 005b**:
+
+     * **Files travel by WhatsApp document attachment.** Field-proven on Amma's install, and
+       the child already talks to the parent on WhatsApp — the setup page's "send Dad his
+       buttons" step opens a WhatsApp share rather than serving files.
+     * **The hosted per-parent setup page stands**, carrying what only it can: consent in
+       plain language, the visual one-paragraph steps, the pre-empted permission warning, and
+       the live verify-by-prediction check. The page never serves a `.shortcut`.
+     * iCloud link generation stays off the table (programmatic sharing unsupported, item 102).
+
+     Spec 005b §3's fork is resolved accordingly in the same commit. Cleanup done: the staged
+     slug directory is deleted; the `/x/` nginx block and `stage_shortcut.py` stay as a
+     harness for future delivery experiments. The experiment cost three deploys and five taps,
+     and settled the last open question in the product's delivery story.
