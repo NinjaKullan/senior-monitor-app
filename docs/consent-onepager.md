@@ -17,6 +17,8 @@ A tripwire, not a camera. Your phone tells my server one thing: **"a normal thin
 
 Three fields per event: who, which routine, when. Every row above is exactly that — no exceptions. Nothing else is transmitted, and the server is built to discard anything beyond those fields.
 
+**If we set it up the simpler way — one "Daily routine" signal instead of one per app** — your phone sends even less: the record just says `dad, routine, <date & time>` when you open *any* of the apps you chose. It never says which app, and never what you did inside it.
+
 ## What is never collected — not "not stored," never collected
 
 - No message content, contacts, or who you talk to

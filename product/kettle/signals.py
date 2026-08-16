@@ -29,6 +29,27 @@ SIGNAL_LABELS: dict[str, str] = {
     "charge_on": "Charger On",
     "charge_off": "Charger Off",
     "device_alive": "Daily Check",
+    # The merged end-state pair (QUESTIONS 107): one multi-app automation firing
+    # `routine`, one charger automation with Connected and Disconnected both
+    # checked firing `charger`. These replace the per-app and per-edge keys for
+    # new setups; the old keys stay valid — Amma is live on them, and nothing is
+    # rebuilt remotely for elegance.
+    "routine": "Daily routine",
+    "charger": "Charger",
+}
+
+#: Alarm-grade for the whole vocabulary, seed set and merged pair alike, so a
+#: caller choosing signals by name (provision --signals, QUESTIONS 94) cannot
+#: invent a grade. `routine` is alarm-grade — a human deliberately opened one of
+#: their habit apps; *which* app never leaves the phone, the automation fires one
+#: shortcut for any of them. `charger` stays corroborating: the on/off pair it
+#: merges was household plumbing under law #6, and coarsening the two edges into
+#: one event changes nothing about who it may speak for (QUESTIONS 107 accepted
+#: exactly that — session semantics were never load-bearing).
+ALARM_GRADE: dict[str, bool] = {
+    **dict(STANDARD_SIGNALS),
+    "routine": True,
+    "charger": False,
 }
 
 

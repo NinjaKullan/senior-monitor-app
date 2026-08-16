@@ -96,10 +96,21 @@ than guesswork, and record their answers either way. Two constraints: a browser 
 sentence in the consent conversation, because people hear "browsing" even though we only see that an
 app opened; and financial apps are excluded at every tier, permanently.
 
-Provisioning still seeds the standard six. To skip a signal, do not build its automation — it reads
-`Not set up yet`, which is neutral, with no amber and no repair nudge; tidy it later with a one-line
-`parent_signals` update, or wait for `--signals` (QUESTIONS 94). **Adding a new app to the vocabulary
-is a two-file code change with a drift test, not a database row** — ask before the call, not during.
+**The merged end state exists now (QUESTIONS 107): `routine` and `charger`.** One multi-app
+automation ("Any of N Apps") fires the `routine` shortcut; one charger automation with **Connected
+and Disconnected both checked** fires `charger`. Two files, two unlocked first-runs, two automations
+— roughly a third of the per-app install, on the surface where every tap costs most. The record says
+`routine`, never which app, and the consent one-pager now has the sentence that says so aloud.
+`routine` is alarm-grade; `charger` stays corroborating-only (law #6 — coarsening the two plug edges
+into one event changes nothing about who it may speak for). A live parent's per-app setup is
+untouched until merged shortcuts are signed and delivered; nothing is rebuilt remotely for elegance.
+
+Provisioning seeds the standard set unless told otherwise — `--signals routine,charger,device_alive`
+chooses at provisioning time, and `--set-signals <device_token> --signals routine,charger` re-points
+an existing parent's allowlist without hand-written SQL (both from QUESTIONS 94/107). To skip a
+signal, do not build its automation — it reads `Not set up yet`, which is neutral, with no amber and
+no repair nudge. **Adding a new key to the vocabulary is still a two-file code change with a drift
+test, not a database row** — ask before the call, not during.
 
 ## 5 Forge the shortcuts (unsigned)
 
@@ -170,8 +181,17 @@ prompt on a locked phone. Skip it and the automations fail with *"requires priva
 cannot be granted while your device is locked"* — silently, from the family's point of view
 (QUESTIONS 92).
 
-**Build the five automations.** Shortcuts → Automation → + → App → *(WhatsApp / YouTube / …)* → Is
-Opened → **Run Immediately** → Next → pick the pre-made shortcut by name.
+**Build the automations.** Shortcuts → Automation → + → App → *(WhatsApp / YouTube / …, or all the
+habit apps at once for a merged `routine` setup — the trigger reads "Any of N Apps")* → Is Opened →
+**Run Immediately** → Next → pick the pre-made shortcut by name.
+
+**The Charger trigger has the same trap with a different default (QUESTIONS 107):** it comes up as
+**Run After Confirmation**, which on a parent's phone means a prompt at every plug-in that never gets
+tapped. Flip it to **Run Immediately**, exactly like the App trigger. And check **Is Connected and Is
+Disconnected in the same automation** — one automation, one `charger` shortcut, both edges. Know the
+cosmetic gotcha too: the automation list's subtitle shows only the shortcut name, so a merged
+automation reads "Kettle — Daily routine" under "When any of 3 apps are opened" — that is correct,
+not mislabelled.
 
 Warn them here about Apple's periodic "N automations ran" notice: it cannot be turned off, it is not
 an error, and it is the phone being honest about what it is doing.

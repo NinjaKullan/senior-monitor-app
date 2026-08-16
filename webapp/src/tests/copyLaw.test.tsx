@@ -104,6 +104,10 @@ const TRIPWIRE_NAME_EXEMPTION = [
   "Charger On",
   "Charger Off",
   "Daily Check",
+  // The merged end-state pair (QUESTIONS 107). "Charger" sits after the two
+  // per-edge names so the longer strings mask first.
+  "Daily routine",
+  "Charger",
   // §2: day-granularity recency is words plus one digit. Scoped like the names
   // are — the digest and glance surfaces get no such allowance.
   /\d+ days ago/g,
