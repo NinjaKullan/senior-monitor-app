@@ -15,7 +15,7 @@ from typing import Any
 import psycopg
 
 from kettle import db
-from kettle.signals import STANDARD_SIGNALS, shortcut_name
+from kettle.signals import ALARM_GRADE, STANDARD_SIGNALS, shortcut_name
 from kettle.timeutil import now_utc
 from kettle.tokens import new_device_token
 
@@ -25,6 +25,24 @@ DEMO_PARENTS: tuple[tuple[str, str | None], ...] = (
     ("Demo Amma", None),
     ("Demo Appa", None),
 )
+
+
+def select_signals(keys: list[str] | None) -> tuple[tuple[str, bool], ...]:
+    """The (signal, alarm_grade) rows a chosen key list provisions.
+
+    None means the standard seed, unchanged. A key outside the vocabulary is a
+    loud error before anything is written: a typo here would otherwise provision
+    a signal no shortcut will ever ping and no label map can render.
+    """
+    if keys is None:
+        return STANDARD_SIGNALS
+    unknown = [k for k in keys if k not in ALARM_GRADE]
+    if unknown:
+        known = ", ".join(sorted(ALARM_GRADE))
+        raise ValueError(f"unknown signal(s) {unknown!r} — the vocabulary is: {known}")
+    if not keys:
+        raise ValueError("--signals given but empty; a parent with no signals has no tripwires")
+    return tuple((k, ALARM_GRADE[k]) for k in dict.fromkeys(keys))
 
 
 @dataclass(frozen=True)
@@ -68,6 +86,7 @@ def provision_family(
     platform: str = "ios_shortcuts",
     owner_email: str | None = None,
     owner_name: str | None = None,
+    signals: list[str] | None = None,
 ) -> ProvisionedFamily:
     """Create a family, its people, their devices and their signal allowlists.
 
@@ -75,7 +94,14 @@ def provision_family(
     the family tz. An owner member is created only when an email is supplied —
     the row's `auth_user_id` stays null until that person actually signs up
     through Supabase Auth.
+
+    `signals` chooses the allowlist at provisioning time (QUESTIONS 94) instead
+    of seeding the standard set and editing afterwards. Keys must be in the
+    vocabulary — alarm grade comes from `kettle.signals.ALARM_GRADE`, never from
+    the caller, so a merged `routine` cannot arrive corroborating or a `charger`
+    alarm-grade by typo. The set applies to every parent in this invocation.
     """
+    chosen = select_signals(signals)
     created = now_utc()
     family = conn.execute(
         "insert into families (name, tz, created_utc) values (%s, %s, %s) "
@@ -113,7 +139,7 @@ def provision_family(
         ).fetchone()
 
         signals: list[ProvisionedSignal] = []
-        for signal, alarm_grade in STANDARD_SIGNALS:
+        for signal, alarm_grade in chosen:
             conn.execute(
                 "insert into parent_signals (parent_id, signal, alarm_grade) "
                 "values (%s, %s, %s)",
@@ -166,6 +192,47 @@ class RevokedDevice:
     parent_name: str
     family_name: str
     already_revoked: bool
+
+
+def set_parent_signals(
+    conn: psycopg.Connection, device_token: str, keys: list[str]
+) -> tuple[str, list[str]] | None:
+    """Re-point an existing parent's allowlist at a chosen signal set.
+
+    The Appa case (QUESTIONS 107): a live parent moving from per-app keys to the
+    merged pair, without hand-written SQL. Chosen keys are upserted active with
+    the vocabulary's alarm grade; everything else the parent had goes inactive
+    rather than away, so history keeps its rows and `Not set up yet` never lies.
+    Returns (display_name, active_signals) or None when no device matches.
+    """
+    chosen = select_signals(keys)
+    row = conn.execute(
+        """
+        select p.id as parent_id, p.display_name
+        from devices d join parents p on p.id = d.parent_id
+        where d.device_token = %s and d.revoked_utc is null
+        """,
+        (device_token,),
+    ).fetchone()
+    if row is None:
+        return None
+
+    for signal, alarm_grade in chosen:
+        conn.execute(
+            """
+            insert into parent_signals (parent_id, signal, alarm_grade, active)
+            values (%s, %s, %s, true)
+            on conflict (parent_id, signal)
+            do update set active = true, alarm_grade = excluded.alarm_grade
+            """,
+            (row["parent_id"], signal, alarm_grade),
+        )
+    conn.execute(
+        "update parent_signals set active = false where parent_id = %s "
+        "and signal != all(%s)",
+        (row["parent_id"], [signal for signal, _ in chosen]),
+    )
+    return row["display_name"], [signal for signal, _ in chosen]
 
 
 def revoke_by_token(

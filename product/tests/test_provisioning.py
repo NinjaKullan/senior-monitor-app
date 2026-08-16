@@ -12,6 +12,7 @@ from kettle.provisioning import (
     provision_demo_family,
     provision_family,
     render_summary,
+    set_parent_signals,
 )
 from kettle.signals import STANDARD_SIGNALS
 from scripts.provision import _parse_parent
@@ -210,3 +211,73 @@ def test_cli_named_family(conn: psycopg.Connection, database_url: str, capsys):
         {"display_name": "Ammachi", "tz": None},
         {"display_name": "Appachan", "tz": "America/Chicago"},
     ]
+
+
+def test_signals_flag_chooses_the_allowlist_at_provisioning(conn: psycopg.Connection):
+    """QUESTIONS 94: chosen at creation, not seeded-then-edited."""
+    family = provision_family(
+        conn, "Chosen", "Asia/Kolkata", [("Appa", None)],
+        base_url=BASE_URL, signals=["routine", "charger", "device_alive"],
+    )
+    rows = conn.execute(
+        "select signal, alarm_grade, active from parent_signals where parent_id = %s "
+        "order by signal",
+        (family.parents[0].parent_id,),
+    ).fetchall()
+    assert [(r["signal"], r["alarm_grade"], r["active"]) for r in rows] == [
+        ("charger", False, True),
+        ("device_alive", False, True),
+        ("routine", True, True),
+    ]
+
+
+def test_an_unknown_signal_key_fails_before_anything_is_written(conn: psycopg.Connection):
+    with pytest.raises(ValueError, match="routnie"):
+        provision_family(
+            conn, "Typo", "Asia/Kolkata", [("Appa", None)],
+            base_url=BASE_URL, signals=["routnie"],
+        )
+    assert conn.execute("select count(*) as n from families").fetchone()["n"] == 0
+
+
+def test_set_signals_repoints_a_live_parent_without_sql(conn: psycopg.Connection):
+    """QUESTIONS 107's migration path: Appa moves from per-app keys to the pair.
+
+    The old rows go inactive rather than away — history keeps its rows, and the
+    app's `Not set up yet` never lies about a signal that really did report.
+    """
+    family = provision_family(
+        conn, "Live", "Asia/Kolkata", [("Appa", None)], base_url=BASE_URL
+    )
+    token = family.parents[0].device_token
+
+    result = set_parent_signals(conn, token, ["routine", "charger"])
+    assert result == ("Appa", ["routine", "charger"])
+
+    rows = conn.execute(
+        "select signal, alarm_grade, active from parent_signals where parent_id = %s "
+        "order by signal",
+        (family.parents[0].parent_id,),
+    ).fetchall()
+    state = {r["signal"]: (r["alarm_grade"], r["active"]) for r in rows}
+    assert state["routine"] == (True, True)
+    assert state["charger"] == (False, True)
+    # Every seeded signal survives, inactive.
+    for old in ("whatsapp", "youtube", "news", "charge_on", "charge_off", "device_alive"):
+        assert state[old][1] is False, old
+
+
+def test_set_signals_on_a_revoked_or_unknown_token_changes_nothing(conn: psycopg.Connection):
+    family = provision_family(
+        conn, "Gone", "Asia/Kolkata", [("Appa", None)], base_url=BASE_URL
+    )
+    token = family.parents[0].device_token
+    conn.execute("update devices set revoked_utc = now() where device_token = %s", (token,))
+
+    assert set_parent_signals(conn, token, ["routine"]) is None
+    assert set_parent_signals(conn, "no-such-token-anywhere1234", ["routine"]) is None
+    active = conn.execute(
+        "select count(*) as n from parent_signals where parent_id = %s and active",
+        (family.parents[0].parent_id,),
+    ).fetchone()["n"]
+    assert active == len(STANDARD_SIGNALS)

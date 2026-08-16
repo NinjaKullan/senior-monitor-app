@@ -546,6 +546,39 @@ def test_an_unknown_parent_is_an_error_not_an_empty_directory(
         forge.lookup_by_parent(conn, "Nobody")
 
 
+def test_a_merged_set_parent_forges_exactly_two_shortcuts(conn: psycopg.Connection):
+    """QUESTIONS 107: routine + charger in parent_signals emit two files, no more.
+
+    This is the end-state a new setup gets — one multi-app automation, one
+    charger automation — and the forge must follow the allowlist rather than the
+    standard seed, or a merged parent receives per-app files nobody will wire.
+    """
+    family = provision_family(
+        conn,
+        "Merged",
+        "Asia/Kolkata",
+        [("Appa", None)],
+        base_url=BASE_URL,
+        signals=["routine", "charger"],
+    )
+    parent = family.parents[0]
+
+    name, token, signals = forge.lookup_by_token(conn, parent.device_token)
+    assert sorted(signals) == ["charger", "routine"]
+
+    files = forge.generate(token, signals, BASE_URL)
+    assert sorted(files) == ["Kettle — Charger.shortcut", "Kettle — Daily routine.shortcut"]
+    for filename, raw in files.items():
+        assert forge.validate(raw, expected_signal=forge.signal_from_name(filename)) == []
+    assert f"{BASE_URL}/p/{token}/routine".encode() in files["Kettle — Daily routine.shortcut"]
+    assert f"{BASE_URL}/p/{token}/charger".encode() in files["Kettle — Charger.shortcut"]
+
+    # Alarm grade came from the vocabulary, not the caller: the multi-app
+    # routine speaks for a person, the merged charger never does (law #6).
+    grades = {s.signal: s.alarm_grade for s in parent.signals}
+    assert grades == {"routine": True, "charger": False}
+
+
 def test_every_standard_signal_has_a_human_name_to_forge_under():
     """A signal with no label would emit `Kettle — charge_on.shortcut`."""
     assert {s for s, _ in STANDARD_SIGNALS} <= set(SIGNAL_LABELS)

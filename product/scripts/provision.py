@@ -29,6 +29,7 @@ from kettle.provisioning import (
     render_revocation,
     render_summary,
     revoke_by_token,
+    set_parent_signals,
 )
 from kettle.timeutil import now_utc
 
@@ -69,6 +70,19 @@ def main(argv: list[str] | None = None) -> int:
         "--demo", action="store_true", help="provision the standard demo family"
     )
     parser.add_argument(
+        "--signals",
+        default=None,
+        metavar="KEY,KEY",
+        help="signal set for every parent in this run (default: the standard seed); "
+        "e.g. routine,charger,device_alive",
+    )
+    parser.add_argument(
+        "--set-signals",
+        metavar="DEVICE_TOKEN",
+        default=None,
+        help="re-point an existing parent's allowlist to --signals (QUESTIONS 107)",
+    )
+    parser.add_argument(
         "--revoke",
         metavar="DEVICE_TOKEN",
         default=None,
@@ -89,10 +103,38 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("DATABASE_URL is not set and --database-url was not given")
     if args.revoke and (args.demo or args.family or args.parent):
         parser.error("--revoke cannot be combined with provisioning arguments")
-    if not args.revoke and not args.demo and not (args.family and args.parent):
+    if args.set_signals and (args.demo or args.family or args.parent or args.revoke):
+        parser.error("--set-signals takes only --signals and a device token")
+    if args.set_signals and not args.signals:
+        parser.error("--set-signals needs --signals to say what the new set is")
+    if not args.revoke and not args.set_signals and not args.demo and not (
+        args.family and args.parent
+    ):
         parser.error(
-            "--family and at least one --parent are required (or --demo, or --revoke)"
+            "--family and at least one --parent are required (or --demo, --revoke, --set-signals)"
         )
+
+    chosen = (
+        [k.strip() for k in args.signals.split(",") if k.strip()] if args.signals else None
+    )
+
+    if args.set_signals:
+        with db.connect(args.database_url) as conn:
+            try:
+                result = set_parent_signals(conn, args.set_signals, chosen or [])
+            except ValueError as exc:
+                print(str(exc), file=sys.stderr)
+                return 1
+        if result is None:
+            print("No active device matches that token — nothing changed.", file=sys.stderr)
+            return 1
+        display_name, active = result
+        print(f"{display_name} now has exactly: {', '.join(active)}")
+        base = args.base_url.rstrip("/")
+        for signal in active:
+            print(f"  {base}/p/{args.set_signals}/{signal}")
+        print("Everything else is inactive (kept, not deleted). Re-forge before delivering.")
+        return 0
 
     if args.revoke:
         with db.connect(args.database_url) as conn:
@@ -118,6 +160,7 @@ def main(argv: list[str] | None = None) -> int:
                 tz=args.tz,
                 parents=[_parse_parent(p) for p in args.parent],
                 base_url=args.base_url,
+                signals=chosen,
                 platform=args.platform,
                 owner_email=args.owner_email,
                 owner_name=args.owner_name,
