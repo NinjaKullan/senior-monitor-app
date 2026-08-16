@@ -78,3 +78,18 @@ Oura's register adopted for landing page + app polish: warm gradient palettes, e
 3. **Support load at 100+ families on a solo founder** → heartbeat-driven proactive support (we detect their broken Shortcut before they do) is both the product and the support strategy.
 4. **"Private server" promise vs multi-tenant reality** → the pilot one-pager's wording was pilot-specific; the product privacy policy says the true thing (isolated per-family data, RLS-enforced, we can't read content because none exists). Never reuse the pilot one-pager verbatim for customers.
 5. **Trademark collision on Kettle** → check before buying brand assets.
+
+## Founder ruling, 2026-08-13 — who the beachhead is
+
+**We build for families who want this, not for everyone.** Parent resistance is a qualification
+signal, not a design requirement: a household where the parent refuses is not a household to
+redesign the product around. The adult child is buyer, champion and persuader, and that is
+assumed rather than apologised for. Kettle's privacy posture — three fields, no content, no
+location, senior-first ask, the parent's own kill switch — is already stronger than anything else
+in the category, and the founder's position is that this discharges the obligation.
+
+Recorded with the PM's one dissent, because it is cheap to keep and may matter later: in this
+category churn does not look like a cancellation, it looks like a parent who agrees to be kind and
+goes quiet. `docs/imstillokay-postmortem.md` documents a competitor that died exactly that way.
+Nothing follows from this for the roadmap today — only that when a **real** parent objects, the
+words get written down, so the consent conversation improves for the families who do say yes.

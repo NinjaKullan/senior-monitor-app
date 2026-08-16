@@ -78,6 +78,13 @@ specs, product law, conventions — is written down already; read it there.
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
+### Start here after a session break
+
+**`docs/setup-delivery-brief.md` (2026-08-13).** State of the world, the setup/delivery problem
+stated properly — a parent faces ~78 interactions today and delivery is only ~15% of them — the two
+cheap experiments that decide spec 005b's shape, and what is owed by whom. Read it before
+`docs/onboarding-runbook.md` and QUESTIONS 92–102.
+
 ### State of the build (2026-08-02)
 
 Specs 001–006 are built: the pilot backend (`app/`, frozen since 002), the

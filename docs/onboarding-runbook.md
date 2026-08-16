@@ -122,18 +122,27 @@ two folders — `<person>-shortcuts` from this step, `<person>-signed` from §6.
 Same terminal as §2, so the exports are still live. One line at a time, once per parent:
 
 ```bash
-FAM=~/Projects/kettle-files/suryaprakasam
+FAM=~/Projects/kettle-files/<family-slug>
 mkdir -p "$FAM"
-python -m scripts.forge --device-token <AMMA_TOKEN> --base-url https://kettle-api.fly.dev --out "$FAM/amma-shortcuts"
+python -m scripts.forge --device-token <TOKEN_FROM_§3> --base-url https://kettle-api.fly.dev --out "$FAM/<person>-shortcuts"
 ```
 
-Then the same for Appa, with his token and `appa-shortcuts`.
+Then the same for the second parent, with their token and their own folder. The tokens come from the
+provisioning printout in §3 — copy them one at a time, and forge each person completely before
+starting the next, so there is never a moment when two tokens are on your clipboard.
 
-**Use plain `--device-token`, with no `--name`.** In that mode the forge queries the database for
-this parent's real display name and their actual signal list, so what you generate cannot disagree
-with what the server believes. `--name` is the *offline* mode for a laptop with no database access,
-and it silently falls back to the standard **six** — which is how unwanted News shortcuts got
-generated once already. If you must work offline, `--signals` is not optional:
+**Always `--device-token`, pasted from the §3 printout. Never `--parent`.** Both work, but
+`--parent` looks a device up by display name, and real families call their parents "Mom" and "Dad" —
+the second family to do so makes that lookup ambiguous, and an ambiguous lookup either errors or
+picks the wrong device. A token identifies exactly one phone, always. Two copy-pastes per family is
+the whole cost.
+
+With `DATABASE_URL` set and no `--name`, the forge still reads that parent's display name and real
+signal list from the server, so what you generate cannot disagree with what the system believes.
+
+`--name` is the *offline* mode for a laptop with no database access. It falls back to the standard
+**six** signals, which is how unwanted News shortcuts got generated once. If you must work offline,
+`--signals` is not optional:
 
 ```bash
 python -m scripts.forge --device-token <AMMA_TOKEN> --name "Amma" --signals whatsapp,youtube,charge_on,charge_off,device_alive --base-url https://kettle-api.fly.dev --out "$FAM/amma-shortcuts"
@@ -151,6 +160,10 @@ validation, and it is what makes them install with a single tap on a parent's ph
 ./scripts/forge-sign.sh "$FAM/amma-shortcuts" "$FAM/amma-signed"
 ./scripts/forge-sign.sh "$FAM/appa-shortcuts" "$FAM/appa-signed"
 ```
+
+**Filenames are identical across people** — `Kettle — WhatsApp.shortcut` in every folder, since
+QUESTIONS 96a removed the parent's name. The folder is the only thing distinguishing them, so send
+one person's set at a time, in its own message, and never let two people's files sit in one place.
 
 **Only `-signed` gets sent.** The tell is file size: unsigned is roughly 1 KB per file, signed
 roughly 22 KB. An unsigned file makes the phone demand *Allow Untrusted Shortcuts* in Settings —
