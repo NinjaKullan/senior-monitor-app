@@ -41,8 +41,16 @@ export const HERO_BODY =
  *  is raised: nothing arrives, nothing is worn, nothing new has to be learned. */
 export const HERO_NO_DEVICE_BODY = "No new devices. Only the phone they already have.";
 export const HERO_CTA = "Join waitlist";
-export const HERO_ALT =
-  "A mother tending an unruly balcony garden while her son, in another city, exhales at a simple notification.";
+/*
+ * The hero diptych (docs/hero-diptych-brief.md): parent left, adult child
+ * right, profiles facing inward, each in their own light and their own city.
+ * The photographs carry the distance; the alt text describes agency, never
+ * waiting or worry.
+ */
+export const HERO_MORNING_ALT =
+  "An older man at his kitchen window in first light, coffee in hand, a kettle on the counter.";
+export const HERO_EVENING_ALT =
+  "A woman at her apartment window in another city, tea in hand, the evening lights coming on.";
 
 /* ---------------------------------------------------------------------- */
 /* Scenario tabs                                                            */
@@ -64,7 +72,7 @@ export const MORNING_LEAD =
 export const MORNING_SERIF = "lost an argument with the crossword.";
 export const MORNING_BODY = "Her phone did its ordinary things. That's all Kettle ever needs.";
 export const MORNING_ALT =
-  "Grandmother mid-laugh on a slightly crooked video call, a steaming cup beside her phone, crossword and reading glasses in frame.";
+  "A kitchen table in morning sun, a half-finished crossword, reading glasses, and a cup of coffee.";
 
 export const AFTERNOON_TAB = "Her afternoon";
 export const AFTERNOON_EYEBROW = "Her afternoon";
@@ -72,7 +80,7 @@ export const AFTERNOON_LEAD = "Kettle knows the shape of her whole day, so ";
 export const AFTERNOON_SERIF = "a quiet afternoon reads as exactly that.";
 export const AFTERNOON_BODY = "A nap is not a signal.";
 export const AFTERNOON_ALT =
-  "A father back from the market, bags in one hand, his daughter's voice note playing from the phone in the other.";
+  "An armchair by a sunlit curtain, a paperback resting open on its arm, tea on the side table.";
 
 export const OFF_TAB = "When something's off";
 export const OFF_EYEBROW = "When something's off";
@@ -80,7 +88,7 @@ export const OFF_LEAD = "When the morning doesn't look like her morning, ";
 export const OFF_SERIF = "Kettle asks her first, quietly.";
 export const OFF_BODY = "Only if she doesn't answer does anyone else hear a thing.";
 export const OFF_ALT =
-  "An older woman at dance rehearsal, phone resting on the piano, her daughter watching from another city.";
+  "A kettle steaming on the counter, a mug of tea beside it, a phone lit with one quiet line.";
 /** Addressed *to* her, and a question rather than a claim — the one reason this
  *  string is on the pinned allowlist rather than banned. */
 export const OFF_NOTIF = "Everything okay today? Reply whenever suits.";
@@ -91,7 +99,7 @@ export const SEEN_LEAD = "Two short messages a day, and ";
 export const SEEN_SERIF = "a phrase when there's something worth saying.";
 export const SEEN_BODY = "Never a feed, never a score, never a graph.";
 export const SEEN_ALT =
-  "Grandparents teaching a granddaughter a family recipe over a propped-up tablet, flour on the counter.";
+  "A desk at the end of the day, laptop closed, keys set down, a child's drawing on the wall.";
 export const SEEN_NOTIF = "Dad's day started normally.";
 
 /* ---------------------------------------------------------------------- */
@@ -191,4 +199,3 @@ export const PRIVACY_PLACEHOLDER_BODY =
 export const PAGE_TITLE_LABEL = "Kettle. Know the day started normally.";
 export const NOTIF_TIMESTAMP_LABEL = "Today";
 export const NOTIF_APP_LABEL = "Kettle";
-export const IMAGE_PLACEHOLDER_LABEL = "Photography in commission";

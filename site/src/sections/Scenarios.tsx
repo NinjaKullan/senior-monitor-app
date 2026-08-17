@@ -1,6 +1,5 @@
 import { useId, useState } from "react";
 import { Eyebrow } from "@/components/Eyebrow";
-import { ImageSlot } from "@/components/ImageSlot";
 import { NotificationCard } from "@/components/NotificationCard";
 import { SerifPhrase } from "@/components/SerifPhrase";
 import {
@@ -43,6 +42,8 @@ interface Scenario {
   /** Its closing phrase, and the only serif on the panel. */
   serif: string;
   body: string;
+  /** The commissioned photograph, from site/public/. */
+  image: string;
   alt: string;
   notification: string | null;
 }
@@ -64,6 +65,7 @@ export const SCENARIOS: readonly Scenario[] = [
     lead: MORNING_LEAD,
     serif: MORNING_SERIF,
     body: MORNING_BODY,
+    image: "/section-her-morning.webp",
     alt: MORNING_ALT,
     notification: null,
   },
@@ -74,6 +76,7 @@ export const SCENARIOS: readonly Scenario[] = [
     lead: AFTERNOON_LEAD,
     serif: AFTERNOON_SERIF,
     body: AFTERNOON_BODY,
+    image: "/section-her-afternoon.webp",
     alt: AFTERNOON_ALT,
     notification: null,
   },
@@ -84,6 +87,7 @@ export const SCENARIOS: readonly Scenario[] = [
     lead: OFF_LEAD,
     serif: OFF_SERIF,
     body: OFF_BODY,
+    image: "/section-somethings-off.webp",
     alt: OFF_ALT,
     // Rendered on *her* phone: a question addressed to her, not a claim about
     // her, and the reason this string is allowlisted rather than banned.
@@ -96,6 +100,7 @@ export const SCENARIOS: readonly Scenario[] = [
     lead: SEEN_LEAD,
     serif: SEEN_SERIF,
     body: SEEN_BODY,
+    image: "/section-what-you-see.webp",
     alt: SEEN_ALT,
     notification: SEEN_NOTIF,
   },
@@ -174,7 +179,15 @@ export function Scenarios() {
               <SerifPhrase>{scenario.serif}</SerifPhrase>
             </p>
             <p className="max-w-xl text-body text-secondary">{scenario.body}</p>
-            <ImageSlot alt={scenario.alt} />
+            {/* Below the hero, so it lazy-loads; sized by class so the
+                digit walk over perceivable attributes stays clean. */}
+            <img
+              src={scenario.image}
+              alt={scenario.alt}
+              loading="lazy"
+              decoding="async"
+              className="aspect-[3/2] w-full rounded-card object-cover"
+            />
             {scenario.notification !== null && (
               <NotificationCard body={scenario.notification} />
             )}

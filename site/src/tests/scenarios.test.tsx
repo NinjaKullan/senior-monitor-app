@@ -146,6 +146,34 @@ describe("AC6 — the measured tab grammar", () => {
   });
 });
 
+describe("the scenario photographs", () => {
+  it("gives every panel its own photograph, above the message card", () => {
+    render(<Scenarios />);
+    for (const panel of panels()) {
+      const image = panel.querySelector("img")!;
+      expect(image, "a panel lost its photograph").not.toBeNull();
+      // Above the message card: the photograph sets the scene the card lands
+      // in, so a panel that carries a notification renders it after the image.
+      const card = panel.querySelector('[data-testid="notification"]');
+      if (card) {
+        expect(
+          image.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING,
+          "the message card rose above its photograph",
+        ).toBeTruthy();
+      }
+    }
+  });
+
+  it("lazy-loads them all — everything below the hero waits its turn", () => {
+    render(<Scenarios />);
+    for (const panel of panels()) {
+      const image = panel.querySelector("img")!;
+      expect(image.getAttribute("loading")).toBe("lazy");
+      expect(image.getAttribute("src")).toMatch(/^\/section-.+\.webp$/);
+    }
+  });
+});
+
 describe("the two notifications, and whose phone each is on", () => {
   it("shows the senior-first question on her phone and the digest naming Dad on yours", () => {
     // Amendment A's persona balance, asserted at the panel. The `off` panel is a

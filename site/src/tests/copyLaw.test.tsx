@@ -288,6 +288,16 @@ describe("AC3 — the rendered page obeys them too", () => {
     for (const node of Array.from(document.querySelectorAll("[aria-label]"))) {
       assertCopyLaw(node.getAttribute("aria-label") ?? "", ALLOW);
     }
+    // Photographs arrived with the 2026-08-17 build, so the page now has alt
+    // attributes — text that is neither textContent nor aria-label, and that
+    // the scans above would walk straight past. An inline alt written beside
+    // the markup gets the same law as one from copy.ts.
+    const images = Array.from(document.querySelectorAll("img"));
+    expect(images.length).toBeGreaterThan(0);
+    for (const image of images) {
+      expect(image.hasAttribute("alt"), "an image with no alt text").toBe(true);
+      assertCopyLaw(image.getAttribute("alt") ?? "", ALLOW);
+    }
   });
 
   it("keeps the three-fields claim identical to the schema", () => {

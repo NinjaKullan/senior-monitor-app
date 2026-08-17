@@ -1,12 +1,12 @@
 import { Eyebrow } from "@/components/Eyebrow";
-import { ImageSlot } from "@/components/ImageSlot";
 import { PillLink } from "@/components/Pill";
 import {
-  HERO_ALT,
   HERO_BODY,
   HERO_CTA,
+  HERO_EVENING_ALT,
   HERO_EYEBROW,
   HERO_H1,
+  HERO_MORNING_ALT,
   HERO_NO_DEVICE_BODY,
 } from "@/copy";
 import { washBackground } from "@/lib/wash";
@@ -16,6 +16,14 @@ import { washBackground } from "@/lib/wash";
  * the moment the whole product is about. One CTA, no second path — the only
  * thing to do here is join, and a page that offers three next steps is a page
  * that has not decided what it is for.
+ *
+ * The diptych below the headline is the brief's "two lives, one frame"
+ * (docs/hero-diptych-brief.md): parent left in his morning, adult child right
+ * in her evening, profiles facing inward, the gap between the frames doing the
+ * work no drawn connection line is allowed to. Side by side on desktop,
+ * stacked on mobile. The headline block keeps priority: text first in source
+ * and on screen, never overlaid on the photograph. Both images load eagerly —
+ * they are the hero; everything below it lazy-loads.
  */
 export function Hero() {
   return (
@@ -38,7 +46,20 @@ export function Hero() {
         <div>
           <PillLink href="#waitlist">{HERO_CTA}</PillLink>
         </div>
-        <ImageSlot alt={HERO_ALT} className="mt-8" />
+        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2" data-testid="hero-diptych">
+          <img
+            src="/hero-morning.webp"
+            alt={HERO_MORNING_ALT}
+            decoding="async"
+            className="aspect-[4/5] w-full rounded-card object-cover"
+          />
+          <img
+            src="/hero-evening.webp"
+            alt={HERO_EVENING_ALT}
+            decoding="async"
+            className="aspect-[4/5] w-full rounded-card object-cover"
+          />
+        </div>
       </div>
     </section>
   );

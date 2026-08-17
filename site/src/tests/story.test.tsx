@@ -120,3 +120,32 @@ describe("the hero sub, now two sentences", () => {
     );
   });
 });
+
+describe("the hero diptych", () => {
+  it("keeps the headline block first, then two eager photographs in day order", () => {
+    render(<App />);
+    const diptych = screen.getByTestId("hero-diptych");
+
+    // The headline block keeps priority: text before photographs, in source
+    // and therefore on screen, per the brief's no-overlay law.
+    const sub = screen.getByTestId("hero-sub");
+    expect(
+      sub.compareDocumentPosition(diptych) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    // Parent's morning left, child's evening right (profiles face inward,
+    // docs/hero-diptych-brief.md: parent left is decided, not relitigable).
+    const images = Array.from(diptych.querySelectorAll("img"));
+    expect(images.map((i) => i.getAttribute("src"))).toEqual([
+      "/hero-morning.webp",
+      "/hero-evening.webp",
+    ]);
+
+    // The hero pair is the page's visual identity: never lazy. Everything
+    // below the hero lazy-loads (asserted where those sections are tested).
+    for (const image of images) {
+      expect(image.getAttribute("loading")).not.toBe("lazy");
+      expect(image.hasAttribute("alt")).toBe(true);
+    }
+  });
+});
