@@ -158,9 +158,13 @@ export function Scenarios() {
           ))}
         </div>
 
-        {/* Every panel is rendered. JavaScript hides the three that are not
-            active; without it all four stack in order and the page still reads
-            (AC9). `hidden` rather than unmounting is what makes that true. */}
+        {/* Every panel is rendered and stays in the document: the prerender
+            contract (AC9) reads every panel's copy out of the static HTML, and
+            reader modes get all four in day order. On screen, `hidden` marks
+            the three inactive panels — backed by the stylesheet's [hidden]
+            override, because the display utility would otherwise beat the
+            attribute and stack all four (QUESTIONS 128). `hidden` rather than
+            unmounting is what keeps the copy in the markup. */}
         {SCENARIOS.map((scenario, index) => (
           <div
             key={scenario.set}

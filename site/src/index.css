@@ -20,6 +20,17 @@
     scroll-behavior: smooth;
   }
 
+  /* The hidden attribute must always win (QUESTIONS 128). The scenario panels
+     carry `hidden` plus a `flex` display utility, and author classes beat the
+     preflight's plain `[hidden]` rule — which left all four panels stacked and
+     the tabs decorative. `!important` is the documented Tailwind answer here,
+     not a shortcut: base-layer styles emit before utilities, so nothing softer
+     restores the attribute's meaning. jsdom cannot compute this cascade, so
+     the rule is also pinned as text by the scenarios test. */
+  [hidden] {
+    display: none !important;
+  }
+
   /* A viewer who asked for no motion gets none, including from the anchor
      scroll — the one piece of movement Tailwind's motion-safe: cannot gate. */
   @media (prefers-reduced-motion: reduce) {

@@ -8,11 +8,16 @@
  * be in the static HTML, because a reader with no JavaScript is not a reader
  * this product gets to skip.
  */
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SCENARIOS, Scenarios } from "@/sections/Scenarios";
 import { OFF_NOTIF, OFF_TAB, SEEN_NOTIF, SEEN_TAB } from "@/copy";
+
+const SRC = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const tabs = () => screen.getAllByTestId("scenario-tab");
 const panels = () => screen.getAllByTestId("scenario-panel");
@@ -72,6 +77,42 @@ describe("AC5 — panels differ by tint and content, never by structure", () => 
     expect(off).not.toBe(morning);
     expect(off).toContain("--tint-off-1");
     expect(new Set(panels().map((p) => p.className)).size).toBe(1);
+  });
+});
+
+describe("the tabs actually toggle (QUESTIONS 128)", () => {
+  const visiblePanels = () => panels().filter((p) => !p.hasAttribute("hidden"));
+
+  it("shows exactly one panel, and moves it on click", () => {
+    // The field bug: every panel carried `hidden` correctly and every panel
+    // rendered anyway, because the display utility beat the attribute. The
+    // attribute half is asserted here; the cascade half is pinned below.
+    render(<Scenarios />);
+    expect(visiblePanels().map((p) => p.dataset.scenario)).toEqual(["morning"]);
+
+    fireEvent.click(screen.getByRole("tab", { name: OFF_TAB }));
+    expect(visiblePanels().map((p) => p.dataset.scenario)).toEqual(["off"]);
+
+    fireEvent.click(screen.getByRole("tab", { name: SEEN_TAB }));
+    expect(visiblePanels().map((p) => p.dataset.scenario)).toEqual(["seen"]);
+  });
+
+  it("moves the one visible panel with the arrow keys too", () => {
+    render(<Scenarios />);
+    fireEvent.keyDown(tabs()[0], { key: "ArrowRight" });
+    expect(visiblePanels().map((p) => p.dataset.scenario)).toEqual(["afternoon"]);
+  });
+
+  it("pins the stylesheet rule that lets hidden beat the display utility", () => {
+    // jsdom does not compute the cascade, so a behavioural assertion alone
+    // would have passed while every real browser stacked all four panels —
+    // author utilities (.flex) outrank the preflight's plain [hidden] rule.
+    // The override that restores the attribute's meaning is pinned as text:
+    // remove the !important and this fails before a browser has to.
+    const css = readFileSync(join(SRC, "index.css"), "utf8");
+    const rule = css.match(/\[hidden\]\s*\{[^}]*\}/s);
+    expect(rule, "index.css lost its [hidden] override").not.toBeNull();
+    expect(rule![0].replace(/\s+/g, " ")).toContain("display: none !important");
   });
 });
 
