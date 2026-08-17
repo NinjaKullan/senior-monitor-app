@@ -2381,6 +2381,46 @@ browser — all three adopted as the standard for future surfaces.**
      only") gains its first scripted exception, which belongs in the design language's
      text, not just in code.
 
+     **RESOLVED same session:** the founder pushed the mock while this pass was being
+     merged (`5bb4180`). The field is built — item 131.
+
+131. **The Rhythm Field, as built** (implementer, 2026-08-17, same pass — the mock
+     landed mid-merge and unblocked item 129's first half). The engine is a faithful
+     Canvas 2D port of the mock: constants verbatim (90 motes, the pulse cadence, the
+     messenger's ease, the resolve geometry), palette verbatim but moved into
+     `tokens.css` as `--field-*` channel triplets so the colour law keeps holding —
+     the engine may compose `rgba()` but a numeric channel inside it fails the scan,
+     and the token read is positively asserted. Both placements per the ruling: hero
+     (field behind and between the photographs; quiet morning once after ~6 s in
+     view, messenger to the parent's frame located at flight time from the real
+     `<img>`, sage resolve, back to ordinary) and the three-fields resolve (dust into
+     three orbits labelled from `FIELDS_CHIPS` itself, so the canvas cannot drift
+     from the chips' claim; 19px cream on the dark glow, per the mock).
+
+     Judgement calls, each cheap to overrule:
+
+     * **The messenger departs ~1.5 s after the pulses stop** rather than at the same
+       instant (the mock's button does both at once). The founder's narration orders
+       it stop → ghost → travel; the delay makes that read at the approved pace.
+     * **The DOM keeps the words.** The mock itself renders `who · signal · when` in
+       HTML *and* draws the orbit labels; production mirrors that — the chips remain
+       the structural truth (prerender contract, copy law, screen readers), the
+       canvas draws the labels above the dust. With the canvas gone or motion
+       reduced, the section says everything it ever said.
+     * **Reduced motion is a designed still, not a blank**: hero motes mid-breath
+       with one soft ring; fields fully resolved with labels. "Static composition"
+       read as composition, not absence.
+     * **Guards amended in the open**: the refused-components canvas ban is scoped to
+       exactly two aria-hidden, pointer-inert, `data-rhythm-field` backdrops (charts
+       and scores stay dead; a third canvas fails by count); the colour law's
+       refinement is above. The design-language text amendment for the motion law
+       (its first scripted exception) is PM-owed prose — flagged in 130, still true.
+     * **Hard requirements are pinned as behaviour**: fillText count zero in the hero
+       (content honesty), inert on missing context, park-before-paint off screen,
+       half density on phones, dynamic-import-only loading (a static import fails a
+       source test). The engine ships as its own hashed chunk under `/assets/`, so
+       the caching contract serves it immutably.
+
 128. **The scenario tabs were decorative, and the fix is one loud CSS rule; gostatic
      retires for the Q112 contract** (implementer, from the founder's fix list,
      2026-08-17). Two findings from the same pass:
