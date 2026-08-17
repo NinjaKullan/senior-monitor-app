@@ -41,6 +41,12 @@ _EMAIL = re.compile(r"^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$")
 #: storage primitive for someone with a script.
 MAX_EMAIL_LENGTH = 254
 
+#: The optional "what would you most like Kettle to help with?" answer
+#: (QUESTIONS 129). A thousand characters is several honest paragraphs; the
+#: column's CHECK repeats the number so the cap holds even against code that
+#: forgets to call the normaliser.
+MAX_HELP_WITH_LENGTH = 1000
+
 
 def normalise_email(raw: str) -> str | None:
     """Lowercase and strip, or None if it is not an address at all."""
@@ -56,20 +62,44 @@ def normalise_choice(raw: str) -> str | None:
     return choice if choice in PARENT_PHONE_CHOICES else None
 
 
-def record(conn: psycopg.Connection, email: str, parent_phone: str) -> None:
+def normalise_help_with(raw: str) -> str | None:
+    """The optional note: stripped, capped, absent when empty.
+
+    Truncation rather than rejection, on purpose: this field is a kindness,
+    not a gate, and a signup must never be lost because someone's answer ran
+    long. The cap is the storage bound; the sentence survives to its limit.
+    """
+    text = raw.strip()
+    if not text:
+        return None
+    return text[:MAX_HELP_WITH_LENGTH].rstrip()
+
+
+def record(
+    conn: psycopg.Connection,
+    email: str,
+    parent_phone: str,
+    help_with: str | None = None,
+) -> None:
     """Insert, or quietly update the answer if this address signed up before.
 
     `on conflict do update` rather than `do nothing`: someone who signs up twice
     has usually corrected something, and the later answer is the one they meant.
     Either way the caller cannot tell which branch ran — that is the point.
+
+    The note upserts through `coalesce`: a later signup that says something new
+    replaces the old note, and one that leaves the box empty keeps what was
+    already said — silence is not an erasure request, retyping is a correction.
     """
     conn.execute(
         """
-        insert into waitlist (email, parent_phone)
-        values (%s, %s)
-        on conflict (email) do update set parent_phone = excluded.parent_phone
+        insert into waitlist (email, parent_phone, help_with)
+        values (%s, %s, %s)
+        on conflict (email) do update
+            set parent_phone = excluded.parent_phone,
+                help_with = coalesce(excluded.help_with, waitlist.help_with)
         """,
-        (email, parent_phone),
+        (email, parent_phone, help_with),
     )
 
 

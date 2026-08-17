@@ -53,6 +53,66 @@ def test_the_form_degrades_to_a_plain_post(client: TestClient, conn: psycopg.Con
     assert len(rows(conn)) == 1
 
 
+def test_the_optional_note_is_stored_and_capped(client: TestClient, conn: psycopg.Connection):
+    """QUESTIONS 129: one free-text kindness, bounded, never a reason to fail."""
+    noted = {**SIGNUP, "help_with": "  Mostly the mornings, when nobody has heard yet.  "}
+    assert client.post("/waitlist", json=noted).status_code == 200
+    stored = conn.execute("select help_with from waitlist").fetchone()["help_with"]
+    assert stored == "Mostly the mornings, when nobody has heard yet."
+
+    # Overlong answers are trimmed to the cap, not rejected: this field is a
+    # kindness, not a gate, and a signup must never be lost to a long story.
+    conn.execute("delete from waitlist")
+    long = {**SIGNUP, "help_with": "a" * 5000}
+    assert client.post("/waitlist", json=long).status_code == 200
+    stored = conn.execute("select help_with from waitlist").fetchone()["help_with"]
+    assert len(stored) == waitlist.MAX_HELP_WITH_LENGTH
+
+
+def test_an_empty_note_is_stored_as_absence(client: TestClient, conn: psycopg.Connection):
+    assert client.post("/waitlist", json={**SIGNUP, "help_with": "   "}).status_code == 200
+    assert conn.execute("select help_with from waitlist").fetchone()["help_with"] is None
+    # And the field is genuinely optional: the pre-0011 payload still works.
+    conn.execute("delete from waitlist")
+    assert client.post("/waitlist", json=SIGNUP).status_code == 200
+    assert conn.execute("select help_with from waitlist").fetchone()["help_with"] is None
+
+
+def test_a_silent_resignup_keeps_the_note_and_a_retyped_one_replaces_it(
+    client: TestClient, conn: psycopg.Connection
+):
+    """Silence is not an erasure request; retyping is a correction."""
+    client.post("/waitlist", json={**SIGNUP, "help_with": "The mornings."})
+    client.post("/waitlist", json={"email": SIGNUP["email"], "parent_phone": "android"})
+    assert conn.execute("select help_with from waitlist").fetchone()["help_with"] == (
+        "The mornings."
+    )
+
+    client.post("/waitlist", json={**SIGNUP, "help_with": "Actually the evenings."})
+    assert conn.execute("select help_with from waitlist").fetchone()["help_with"] == (
+        "Actually the evenings."
+    )
+
+
+def test_the_note_survives_the_no_javascript_form_post(
+    client: TestClient, conn: psycopg.Connection
+):
+    """AC9 reaches the new field too: url-encoded and JSON must store alike."""
+    response = client.post("/waitlist", data={**SIGNUP, "help_with": "Weekends."})
+    assert response.status_code == 200
+    assert conn.execute("select help_with from waitlist").fetchone()["help_with"] == "Weekends."
+
+
+def test_the_column_wall_holds_even_past_the_normaliser(conn: psycopg.Connection):
+    """The CHECK is the wall: an unbounded blob is unrepresentable, so a future
+    code path that forgets the trim gets a loud integrity error, not storage."""
+    with pytest.raises(psycopg.errors.CheckViolation):
+        conn.execute(
+            "insert into waitlist (email, parent_phone, help_with) values (%s, %s, %s)",
+            ("wall@example.com", "iphone", "a" * 1001),
+        )
+
+
 def test_a_duplicate_signup_is_indistinguishable_from_a_first_one(
     client: TestClient, conn: psycopg.Connection
 ):
@@ -121,7 +181,9 @@ def test_the_endpoint_stores_only_what_was_typed(client: TestClient, conn: psyco
 
     The page carries no tracking, and the endpoint behind it does not get to
     become the tracking by the back door — so the columns are asserted, not the
-    intention.
+    intention. `help_with` joined in 0011 (QUESTIONS 129) and honours the same
+    rule from the other side: it holds only what the person themselves typed
+    into a labelled, optional box, and nothing arrives in it any other way.
     """
     client.post(
         "/waitlist",
@@ -136,7 +198,10 @@ def test_the_endpoint_stores_only_what_was_typed(client: TestClient, conn: psyco
             "where table_schema = 'public' and table_name = 'waitlist'"
         ).fetchall()
     }
-    assert columns == {"id", "email", "parent_phone", "created_at"}
+    assert columns == {"id", "email", "parent_phone", "created_at", "help_with"}
+    # And the headers the request carried really did vanish at the door.
+    row = conn.execute("select help_with from waitlist").fetchone()
+    assert row["help_with"] is None
 
 
 def test_cors_is_locked_to_the_landing_page(client: TestClient):
