@@ -88,8 +88,14 @@ points at the production API rather than at an empty string. There is no
 
 ## Deploy
 
-`dist/` is a folder of static files. Point any static host at it: no server, no
-runtime, no environment beyond the build arg above.
+`dist/` is a folder of static files, built and verified locally (`npm run ci`)
+before `fly deploy` ships it. The image serves it with nginx under the
+QUESTIONS 112 caching contract (`nginx.conf`, asserted by
+`product/tests/test_site_caching.py`): the shell, the photographs and
+privacy.html revalidate on every visit (`no-cache` — unchanged files are
+304s), hashed `/assets/` are immutable for a year. Any other static host works
+too, but it must honour that split — the photographs live at stable names, so
+a host that invents a cache lifetime pins old imagery to returning visitors.
 
 ```bash
 cd site

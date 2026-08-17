@@ -78,7 +78,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 128.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 129.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -91,8 +91,8 @@ cheap experiments that decide spec 005b's shape, and what is owed by whom. Read 
 
 ### State of the build (baton, 2026-08-17 — session handoff)
 
-**All three suites green** (`pytest` 336 with Postgres up, `webapp` 100,
-`site` 93 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
+**All three suites green** (`pytest` 342 with Postgres up, `webapp` 100,
+`site` 96 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
 never trust a skip). Specs 001–006 plus amendments A/B built and reviewed;
 **spec 005b built and PM-approved** (rulings follow item 123: 118 upheld —
 provisioning stays terminal until the signing runner; 121 amended in the spec
@@ -110,8 +110,11 @@ by test), four section stills with rewritten honest alt text — and every em
 dash in customer-facing site copy is rewritten with periods/commas, including
 the founder's two hero lines ("ordinary routine", "No new devices. Only the
 phone they already have."). The copy-law scan grew an `img[alt]` walk; all
-seven planted regressions fail by name. **Founder deploys kettle-site after
-review.**
+seven planted regressions fail by name. The fix pass (item 128) made the
+scenario tabs actually toggle (`[hidden]` now beats the display utility,
+pinned twice) and moved the site off gostatic onto nginx with the Q112
+caching contract (`test_site_caching.py`). **Founder deploys kettle-site
+after review.**
 
 **Both parents are live in production** (Q126: Appa on merged
 routine+charger, first field run of the setup page) and the founder has
@@ -147,7 +150,7 @@ WhatsApp" on the setup card's share CTA, pinned to that single copy key); the
 runbook §7 consent-step rewrite (Q125a); 93 (forge derives out path from
 token), 95 (`--add-device` / `--rotate`), 100 (platform-aware standard set),
 101 (person prefix on disk filenames); 124 (family-context header on Today +
-the duplicated Family-circle row). **Next QUESTIONS number: 128.**
+the duplicated Family-circle row). **Next QUESTIONS number: 129.**
 
 **Owed by the founder, not by code:** review + `fly deploy` **kettle-site**
 (this session's images and copy); `fly deploy` of kettle-app (Q112 cache

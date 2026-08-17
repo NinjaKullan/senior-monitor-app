@@ -2316,3 +2316,33 @@ browser — all three adopted as the standard for future surfaces.**
        escaped the rendered-page law until the plant drill proved it. Same class as the
        webapp's element-seam fix in item 122; all seven planted regressions for this
        pass fail by name.
+
+128. **The scenario tabs were decorative, and the fix is one loud CSS rule; gostatic
+     retires for the Q112 contract** (implementer, from the founder's fix list,
+     2026-08-17). Two findings from the same pass:
+
+     **(a) `hidden` lost to the display utility.** Every tab click set the `hidden`
+     attribute correctly and changed nothing visible: the panels' `flex` class is an
+     author rule and beats the preflight's plain `[hidden]`, so all four scenarios
+     rendered stacked in every browser — while jsdom, which computes no cascade, showed
+     the tests a working tab strip. Fix: `[hidden] { display: none !important; }` in the
+     base layer. Conditional classes were refused (the AC5 identical-classes guard
+     exists so panels cannot diverge) and unmounting was refused (the prerender contract
+     reads every panel's copy from the static HTML). Pinned twice — behaviourally
+     (exactly one unhidden panel through clicks and arrow keys) and as a text pin on the
+     stylesheet rule, since jsdom cannot verify the cascade half. Consequence accepted
+     and stated: the no-JS view now shows the morning panel alone rather than all four
+     stacked; the copy stays in the document, which is what AC9 asserts. Keyboard and
+     ARIA re-verified while in there (tablist role, roving tabindex, arrow-wrap all
+     pre-existing and green).
+
+     **(b) The site served header-less from gostatic.** No cache headers at all — the
+     landing page's version of Q112, quieter: stable-named photographs and a prerendered
+     shell mean a heuristic lifetime pins old imagery and copy to returning visitors.
+     The Dockerfile moves to the webapp's nginx pattern; `site/nginx.conf` carries the
+     ported contract (unhashed → no-cache with 304s, `/assets/` → immutable year, regex
+     locations banned, unknown paths 404 — a document has no routes to fall back for);
+     `test_site_caching.py` asserts it in the webapp test's shape plus the wiring the
+     webapp never needed: the Dockerfile actually loads this conf, the listen port
+     matches fly.toml, and the six photographs really are unhashed stable names. All
+     five planted regressions fail by name.
