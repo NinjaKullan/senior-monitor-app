@@ -37,11 +37,15 @@ specs, product law, conventions — is written down already; read it there.
 
 ### Container quirks
 
-- **Postgres stops between sessions.** `service postgresql start`, then
-  `pg_isready`. Without it the product suite *skips* rather than fails, and the
-  run reports "N passed" while proving nothing. The skip banner says so
-  explicitly ("this is NOT a green run of spec 002") — believe it. This has bitten
-  three times; it is the single most likely way to report a false green.
+- **Postgres stops between sessions — and can die mid-session too.**
+  `service postgresql start`, then `pg_isready`. Without it the product suite
+  *skips* rather than fails, and the run reports "N passed" while proving
+  nothing. The skip banner says so explicitly ("this is NOT a green run of
+  spec 002") — believe it. This has bitten four times now, once in the middle
+  of a session (2026-08-17: a background re-run reported "133 passed, 203
+  errors" while the pipeline exit code stayed 0 — `pytest | tail` returns
+  tail's status, so read the summary counts, never the chain's exit). It is
+  the single most likely way to report a false green.
 - **`KETTLE_REQUIRE_POSTGRES=1` turns that skip into a failure.** CI sets it
   (`.github/workflows/ci.yml`, with a Postgres service container). Set it locally
   when you want a missing database to be loud.
@@ -74,7 +78,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 124.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 128.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -85,14 +89,37 @@ stated properly — a parent faces ~78 interactions today and delivery is only ~
 cheap experiments that decide spec 005b's shape, and what is owed by whom. Read it before
 `docs/onboarding-runbook.md` and QUESTIONS 92–102.
 
-### State of the build (baton, 2026-08-16 evening — session handoff)
+### State of the build (baton, 2026-08-17 — session handoff)
 
 **All three suites green** (`pytest` 336 with Postgres up, `webapp` 100,
-`site` 90 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
+`site` 93 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
 never trust a skip). Specs 001–006 plus amendments A/B built and reviewed;
-**spec 005b is now built** (this session); migrations through **0010**. The
-working branch `claude/family-onboarding-setup-005b-vkqoef` merges to main per
-the norm above.
+**spec 005b built and PM-approved** (rulings follow item 123: 118 upheld —
+provisioning stays terminal until the signing runner; 121 amended in the spec
+— honest enumeration ≤ 40, the automation builder is the named reduction
+target; 122 exemption granted — the share CTA may say "Send on WhatsApp",
+**implementation queued**: a channel-name exemption pinned to that one copy
+key, sms-pinning style). Migrations through **0010**. The working branch
+`claude/family-onboarding-setup-005b-vkqoef` merges to main per the norm
+above.
+
+**The site image + copy pass is built (this session, item 127):** the six
+commissioned webp photographs are wired — hero diptych (parent's morning left,
+child's evening right, profiles inward per the photos' actual facing; pinned
+by test), four section stills with rewritten honest alt text — and every em
+dash in customer-facing site copy is rewritten with periods/commas, including
+the founder's two hero lines ("ordinary routine", "No new devices. Only the
+phone they already have."). The copy-law scan grew an `img[alt]` walk; all
+seven planted regressions fail by name. **Founder deploys kettle-site after
+review.**
+
+**Both parents are live in production** (Q126: Appa on merged
+routine+charger, first field run of the setup page) and the founder has
+**PAUSED onboarding-surface investment** — beta families get handholding; page
+improvements queue behind real beta evidence. Do not build onboarding polish
+unprompted. Q125 killed the consent *ceremony* (one-pagers deleted; consent
+lives in the product) and ruled surfaces English-only; the runbook §7 rewrite
+("open the setup link together") is still owed.
 
 **005b as built** (details in QUESTIONS 118–123): migration 0010
 `setup_links` — per-device slug (144-bit), 7-day expiry, issuance-as-rotation,
@@ -115,34 +142,32 @@ elements and a banned word flush at a seam escaped `\b` scanning until the
 plant drill caught it [122]. Rehearsal script + honest tap enumeration:
 `docs/005b-test-script.md`.
 
-**Open for the PM in QUESTIONS:** 118 (scope reading: provisioning stays
-terminal until the signing runner exists — wizard = forwarding + status;
-overrulable), 121 (**acceptance 2's ≤ 12 taps fails an honest count: ~37**;
-re-bound or scope it), 122 (want "WhatsApp" named on the share button? Needs a
-scoped channel-name exemption in the copy law — PM call).
+**Queued for Claude Code:** the item-122 channel-name exemption ("Send on
+WhatsApp" on the setup card's share CTA, pinned to that single copy key); the
+runbook §7 consent-step rewrite (Q125a); 93 (forge derives out path from
+token), 95 (`--add-device` / `--rotate`), 100 (platform-aware standard set),
+101 (person prefix on disk filenames); 124 (family-context header on Today +
+the duplicated Family-circle row). **Next QUESTIONS number: 128.**
 
-**Queued, unchanged:** 93 (forge derives out path from token), 95
-(`--add-device` / `--rotate`), 100 (platform-aware standard set), 101 (person
-prefix on disk filenames). **Next QUESTIONS number: 124.**
-
-**Owed by the founder, not by code:** apply migration 0010 and `fly deploy`
-**kettle-api** (the setup page and 0009+0010 ship together; until then every
-printed setup URL 404s in production); `fly deploy` of kettle-app (Q112 cache
+**Owed by the founder, not by code:** review + `fly deploy` **kettle-site**
+(this session's images and copy); `fly deploy` of kettle-app (Q112 cache
 headers — until then deploys white-screen returning browsers — plus login
-words and the Setup card); `--set-signals` for Appa, then forge/sign/deliver
-his two merged files and `--setup-link` him a page; the SMTP plan's DNS +
-dashboard steps (`docs/auth-smtp-plan.md`) before any non-founder family.
+words and the Setup card); the SMTP plan's DNS + dashboard steps
+(`docs/auth-smtp-plan.md`) before any non-founder family; Q126's 48-hour
+check that Appa's charger automation has both edges ticked.
 
-**Live state to respect:** Amma is live on the *old per-app* keys — her setup
-is never rebuilt remotely for elegance [107]. Production is at migration 0008
-with 0009 and 0010 owed, and the waitlist form is CORS-dead until
-`WAITLIST_ORIGINS` includes the serving origin. The live site runs a
-pre-Amendment-B build until redeployed. Amma is physically in Texas while
-provisioned `Asia/Kolkata` [108, backlog] — a shifted-looking routine there is
-geography, not a bug.
+**Live state to respect:** both parents are live — Amma on the old per-app
+keys (never rebuilt remotely for elegance [107]), Appa on merged
+routine+charger [126]. Onboarding-surface investment is founder-PAUSED [126].
+The waitlist form is CORS-dead until `WAITLIST_ORIGINS` includes the serving
+origin. The live site runs a pre-images build until redeployed. Amma is
+physically in Texas while provisioned `Asia/Kolkata` [108, backlog] — a
+shifted-looking routine there is geography, not a bug.
 
 **Read before touching 005b surfaces:** `docs/setup-delivery-brief.md`, then
-`docs/onboarding-runbook.md`, then QUESTIONS 92–123. The runbook and consent
-one-pager carry the item-107 field gotchas (charger trigger defaults to Run
-After Confirmation and must be flipped to Run Immediately; merged automation
-subtitles read "Kettle — Daily routine" and that is correct, not mislabelled).
+`docs/onboarding-runbook.md`, then QUESTIONS 92–127 (the 2026-08-16 rulings
+and the Appa field log especially). The runbook carries the item-107 field
+gotchas (charger trigger defaults to Run After Confirmation and must be
+flipped to Run Immediately; merged automation subtitles read "Kettle — Daily
+routine" and that is correct, not mislabelled); the consent one-pager is gone
+per Q125 — the setup page's first screen is the consent conversation now.

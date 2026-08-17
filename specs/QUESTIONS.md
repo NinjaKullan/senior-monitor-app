@@ -2281,3 +2281,38 @@ browser — all three adopted as the standard for future surfaces.**
      * Minor, verify within 48h: Appa's charger automation may have only "Is Connected"
        ticked (charger-on fired in testing). Corroborating-only either way; tidy on the next
        touch, not worth a call.
+
+---
+
+## Site image + copy pass build notes (implementer, 2026-08-17)
+
+127. **The photography wired, the em dash retired — and the four execution calls a
+     reviewer should see.** The six webp files replaced every placeholder; ImageSlot and
+     its label are deleted rather than parked. Calls made in the founder's absence,
+     each cheap to overrule:
+
+     * **Diptych order is derived from the photographs, not assumed.** The morning frame
+       faces right, the evening frame faces left, so parent-left/child-right satisfies
+       both "profiles face inward" and the brief's non-relitigable parent-left ruling in
+       one arrangement. Pinned by test with the brief cited, so a future re-crop that
+       flips a profile fails loudly instead of quietly facing the frames apart.
+     * **Alt text now describes the actual stills** — the six shipped photographs are
+       still lifes and prior alts described people who are not in frame. Register per
+       the founder's example: descriptive, calm, digit-free (the digit walk reads `alt`
+       as a perceivable attribute). Sizing is class-only for the same reason: a
+       `width="1536"` would be the digit walk's first legitimate kill.
+     * **Two serif seams were rewritten, not just de-dashed**, because the dash WAS the
+       element boundary: "Two short messages a day, and | a phrase when there's
+       something worth saying." and "The gentle idea was to | notice the ordinary, and
+       say so." Both keep design-language §3's only permitted serif shape (an italic
+       phrase inside a sans sentence — a period there would have stranded the serif as
+       its own sentence). Founder may prefer different words; the seams are one-line
+       swaps.
+     * **Page titles took periods**: "Kettle. Know the day started normally." and
+       "Kettle. Privacy." — the instruction said periods or commas, and a comma after a
+       brand name in a browser tab reads as a typo.
+     * **The copy-law scan grew an `img[alt]` walk** (with a has-alt assertion): alt is
+       neither textContent nor `[aria-label]`, so an inline literal beside the markup
+       escaped the rendered-page law until the plant drill proved it. Same class as the
+       webapp's element-seam fix in item 122; all seven planted regressions for this
+       pass fail by name.
