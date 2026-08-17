@@ -2317,6 +2317,70 @@ browser — all three adopted as the standard for future surfaces.**
        webapp's element-seam fix in item 122; all seven planted regressions for this
        pass fail by name.
 
+---
+
+## Rhythm Field + beta conversion pass (implementer, 2026-08-17)
+
+129. **Founder decision, recorded: the Rhythm Field and the beta conversion.** The
+     approved scope, verbatim in intent: (1) the Rhythm Field in two placements — hero
+     (drifting motes between the photographs; the quiet-morning sequence playing the
+     ladder once, parent-first, after ~6 s in view; content-honesty rule: signals and
+     the parent-first ask, nothing implying learning, scoring or inference) and the
+     three-fields section (dust resolving into the three labelled orbits) — Canvas 2D
+     preferred, reduced-motion static, canvas-failure safe, off-screen paused, mobile
+     density simpler, lazy module with no LCP regression, photographs framed and never
+     replaced; (2) the beta conversion — hero second line, conversational CTAs with
+     reassurance microcopy, the founding-families section with the founder note, the
+     optional `help_with` form field (migration 0011), scenario kickers replaced by
+     one-line headlines; (3) the mobile hero tightened; (4) the copy law extended to ban
+     learns / learning / intelligence / AI on the site surface.
+
+     **Built this pass: everything except item (1)** — see 130 for why. Execution calls
+     a reviewer should see, each cheap to overrule:
+
+     * **The AC12 CTA cap moved from two flat words to six** to fit "Apply for the
+       family beta" and "See if Kettle fits my family". The flatness the old cap
+       enforced survives in the urgency bans, which are untouched: longer may be
+       warmer, never louder.
+     * **The zero-free-text pin was amended, not deleted**: email required, one
+       optional note, nothing else typed. The old test's filter never inspected
+       textareas, so it would have kept passing with the new field present — it now
+       pins the new truth instead of the old one by accident. The note upserts through
+       coalesce: silence keeps an earlier answer, retyping replaces it — silence is
+       not an erasure request. Truncation over rejection at a thousand characters (a
+       kindness, not a gate), with the column CHECK as the wall behind forgetful code.
+     * **"Only promises we keep" was read as instruction, not copy** — the founding
+       section renders the four promises and nothing else; no closing line was
+       invented. The founder-note paragraph ships as a loud bracketed stub under a
+       constant named FOUNDER_WHY_STUB_BODY; it must be replaced before deploy, and
+       the name keeps the gap visible in every review surface.
+     * **Panel headlines** joined as a new `_H3` role (≤ 7 words) rather than reusing
+       a looser suffix; the retired `_EYEBROW` constants were deleted outright so the
+       prerender contract tracks only what renders.
+     * **The inference ban is exactly the four ruled words.** A dotted "a.i." entry
+       was planted and dropped: unescaped dots turned the word-bounded scan into a
+       wildcard that banned "amid" and "axis". "learn" in the plain sense stays free —
+       "nothing to learn" is a promise about the parent's effort, not a model.
+     * **Mobile hero**: side by side at every width, 3:4 crop under md (165 × 220 per
+       frame at 390 px, CTA inside the first viewport height); jsdom cannot measure,
+       so the producing classes are pinned with the arithmetic beside them.
+
+130. **BLOCKED, awaiting the founder: the approved motion mock is not in the
+     repository.** The pass names `docs/mockups/rhythm-field-mock.html` as the spec for
+     the Rhythm Field's feel, pace, density and palette, and says to open it first. It
+     is not on `origin/main` (which ends at this session's own last commit) nor on any
+     remote branch; `docs/mockups/` holds only the 005b setup-page mock. Item (1) is
+     therefore **unstarted by design**: matching "the approved mock's motion character"
+     to a file that is not there would mean inventing the thing that was approved, and
+     the motion carries a non-negotiable content-honesty rule that only the real
+     reference can anchor. Everything mock-independent shipped (item 129). When the
+     mock lands: note the two structural guards that will need conscious amendment —
+     the refused-components test bans `<canvas>` outright (it was written against
+     charts and scores; a decorative aria-hidden field mount is a different animal and
+     the exemption should be scoped to it), and the motion law ("entry fade + rise
+     only") gains its first scripted exception, which belongs in the design language's
+     text, not just in code.
+
 128. **The scenario tabs were decorative, and the fix is one loud CSS rule; gostatic
      retires for the Q112 contract** (implementer, from the founder's fix list,
      2026-08-17). Two findings from the same pass:

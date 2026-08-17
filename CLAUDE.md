@@ -78,7 +78,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 129.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 131.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -91,15 +91,15 @@ cheap experiments that decide spec 005b's shape, and what is owed by whom. Read 
 
 ### State of the build (baton, 2026-08-17 — session handoff)
 
-**All three suites green** (`pytest` 342 with Postgres up, `webapp` 100,
-`site` 96 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
+**All three suites green** (`pytest` 347 with Postgres up, `webapp` 100,
+`site` 99 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
 never trust a skip). Specs 001–006 plus amendments A/B built and reviewed;
 **spec 005b built and PM-approved** (rulings follow item 123: 118 upheld —
 provisioning stays terminal until the signing runner; 121 amended in the spec
 — honest enumeration ≤ 40, the automation builder is the named reduction
 target; 122 exemption granted — the share CTA may say "Send on WhatsApp",
 **implementation queued**: a channel-name exemption pinned to that one copy
-key, sms-pinning style). Migrations through **0010**. The working branch
+key, sms-pinning style). Migrations through **0011** (0011: waitlist help_with). The working branch
 `claude/family-onboarding-setup-005b-vkqoef` merges to main per the norm
 above.
 
@@ -150,10 +150,19 @@ WhatsApp" on the setup card's share CTA, pinned to that single copy key); the
 runbook §7 consent-step rewrite (Q125a); 93 (forge derives out path from
 token), 95 (`--add-device` / `--rotate`), 100 (platform-aware standard set),
 101 (person prefix on disk filenames); 124 (family-context header on Today +
-the duplicated Family-circle row). **Next QUESTIONS number: 129.**
+the duplicated Family-circle row). **Next QUESTIONS number: 131.**
 
-**Owed by the founder, not by code:** review + `fly deploy` **kettle-site**
-(this session's images and copy); `fly deploy` of kettle-app (Q112 cache
+**BLOCKED on the founder: the Rhythm Field (Q129 item 1) waits for
+`docs/mockups/rhythm-field-mock.html`, which is not in the repository —
+push it and the field gets built against it (Q130 lists the two structural
+guards that will need conscious amendment). The beta conversion, mobile
+hero and inference ban are built (Q129); the founder-note paragraph is a
+loud stub (FOUNDER_WHY_STUB_BODY) that Hema replaces before deploy.**
+
+**Owed by the founder, not by code:** the rhythm-field mock (above); the
+founder-note paragraph; apply migration 0011 + `fly deploy` kettle-api
+(the help_with column ships before the form field can store anything);
+review + `fly deploy` **kettle-site** (images, copy, beta conversion); `fly deploy` of kettle-app (Q112 cache
 headers — until then deploys white-screen returning browsers — plus login
 words and the Setup card); the SMTP plan's DNS + dashboard steps
 (`docs/auth-smtp-plan.md`) before any non-founder family; Q126's 48-hour
