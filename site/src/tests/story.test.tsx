@@ -158,4 +158,20 @@ describe("the hero diptych", () => {
       expect(image.hasAttribute("alt")).toBe(true);
     }
   });
+
+  it("stays side by side on a phone, with the shorter crop", () => {
+    // QUESTIONS 129: stacked portraits made the mobile hero two photographs
+    // tall and pushed the CTA a full screen down. jsdom cannot measure, so
+    // the classes that produce the tight layout are pinned with the
+    // arithmetic in the component beside them: two columns at every width,
+    // 3:4 on phones, the taller 4:5 only from md up.
+    render(<App />);
+    const diptych = screen.getByTestId("hero-diptych");
+    expect(diptych.className).toContain("grid-cols-2");
+    expect(diptych.className).not.toContain("grid-cols-1");
+    for (const image of Array.from(diptych.querySelectorAll("img"))) {
+      expect(image.className).toContain("aspect-[3/4]");
+      expect(image.className).toContain("md:aspect-[4/5]");
+    }
+  });
 });

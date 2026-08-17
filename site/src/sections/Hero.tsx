@@ -46,18 +46,24 @@ export function Hero() {
         <div>
           <PillLink href="#waitlist">{HERO_CTA}</PillLink>
         </div>
-        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2" data-testid="hero-diptych">
+        {/* Side by side at every width (QUESTIONS 129): stacking both
+            portraits made the mobile hero two photographs tall. At 390px the
+            arithmetic is 342px of content, two columns and a 12px gap, so
+            each frame is 165px wide and, at 3:4, 220px tall — headline, sub
+            and CTA all land in the first viewport height, and the diptych
+            stays a diptych instead of a scroll. Desktop keeps the 4:5 crop. */}
+        <div className="mt-8 grid grid-cols-2 gap-3 md:gap-4" data-testid="hero-diptych">
           <img
             src="/hero-morning.webp"
             alt={HERO_MORNING_ALT}
             decoding="async"
-            className="aspect-[4/5] w-full rounded-card object-cover"
+            className="aspect-[3/4] w-full rounded-card object-cover md:aspect-[4/5]"
           />
           <img
             src="/hero-evening.webp"
             alt={HERO_EVENING_ALT}
             decoding="async"
-            className="aspect-[4/5] w-full rounded-card object-cover"
+            className="aspect-[3/4] w-full rounded-card object-cover md:aspect-[4/5]"
           />
         </div>
       </div>

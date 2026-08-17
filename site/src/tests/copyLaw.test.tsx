@@ -56,6 +56,18 @@ const SURVEILLANCE = ["track", "tracking", "tracked", "surveillance", "monitor h
 const VERDICTS = ["she's fine", "she is fine", "is safe", "doing well", "she's okay", "she is okay"];
 
 /**
+ * Inference vocabulary (founder decision, QUESTIONS 129). Law #1 rules out
+ * decline detection; this bans the site from *sounding* like it does it.
+ * Kettle notices absence against a fixed expectation — it does not learn, and
+ * a page that says "learns her routine" has promised a model that product law
+ * forbids building. "learn" in the plain sense stays free ("nothing to
+ * learn"); the machine-flavoured forms do not. Exactly these four words — a
+ * dotted "a.i." entry was tried and dropped: the unescaped dots turned the
+ * word-bounded scan into a wildcard that banned "amid" and "axis".
+ */
+const INFERENCE = ["learns", "learning", "intelligence", "ai"];
+
+/**
  * Romanized kinship terms and culture-coded vocabulary (Amendment A).
  *
  * The audience is English-fluent and broader than any one culture, so a word a
@@ -72,7 +84,15 @@ const CULTURE_CODED = ["amma", "appa", "chai", "paati", "thatha", "nani", "dadi"
 /** App and platform names. Permitted in §3.4's mechanism copy and nowhere else. */
 const APP_NAMES = ["whatsapp", "facetime", "shortcuts", "youtube", "instagram"];
 
-const BANNED = [...URGENCY, ...DIAGNOSIS, ...MEDICAL, ...ALARM, ...SURVEILLANCE, ...VERDICTS];
+const BANNED = [
+  ...URGENCY,
+  ...DIAGNOSIS,
+  ...MEDICAL,
+  ...ALARM,
+  ...SURVEILLANCE,
+  ...VERDICTS,
+  ...INFERENCE,
+];
 
 /**
  * The pinned allowlist. Every entry is a literal, written out here rather than
@@ -179,14 +199,20 @@ describe("AC3 — the copy module obeys the marketing bans", () => {
     }
   });
 
-  it("would catch each of the six planted regressions", () => {
-    // AC3 names these exactly. Each is a sentence someone could plausibly write.
+  it("would catch each of the planted regressions", () => {
+    // AC3 names the first six exactly; the inference pair joined with
+    // QUESTIONS 129. Each is a sentence someone could plausibly write.
     expect(() => assertCopyLaw("Join now — limited places")).toThrow();
     expect(() => assertCopyLaw("Know she's fine today")).toThrow();
     expect(() => assertCopyLaw("Kettle sends an alert when something is wrong")).toThrow();
     expect(() => assertCopyLaw("Track her daily routine")).toThrow();
     expect(() => assertCopyLaw("Request invite!")).toThrow();
     expect(() => assertCopyLaw("Spot the early symptoms of decline")).toThrow();
+    expect(() => assertCopyLaw("Kettle learns her routine over time")).toThrow();
+    expect(() => assertCopyLaw("Built with AI, tuned for families")).toThrow();
+    // The plain sense stays free: the story's "nothing to learn" is a promise
+    // about the parent's effort, not a claim about a model.
+    expect(() => assertCopyLaw("Nothing to wear, nothing to learn.")).not.toThrow();
   });
 
   it("carries no romanized kinship term or culture-coded word", () => {
