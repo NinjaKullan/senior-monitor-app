@@ -1,6 +1,9 @@
+import { useCallback } from "react";
 import { Section } from "@/components/Section";
 import { SerifPhrase } from "@/components/SerifPhrase";
 import { FIELDS_BODY, FIELDS_CHIPS, FIELDS_H2, FIELDS_SERIF } from "@/copy";
+import type { FieldHandle } from "@/lib/rhythmField";
+import { useLazyField } from "@/lib/useLazyField";
 
 /**
  * The privacy centrepiece, and the one section whose claims must be literally
@@ -14,10 +17,39 @@ import { FIELDS_BODY, FIELDS_CHIPS, FIELDS_H2, FIELDS_SERIF } from "@/copy";
  *
  * Dark section: `inverted` swaps the tokens, so the ground becomes ink and the
  * text becomes canvas with no second palette anywhere.
+ *
+ * Behind the content, the rhythm field's second placement (QUESTIONS 129/131):
+ * cream dust resolves into three labelled orbits as the section scrolls into
+ * view — the labels the canvas draws are the chips' own words, taken from
+ * FIELDS_CHIPS, so the animation cannot drift from the claim. The DOM chips
+ * above stay the structural truth: with the canvas gone or motion reduced to
+ * a still, the section says everything it ever said.
  */
 export function ThreeFields() {
+  const start = useCallback(
+    (module: typeof import("@/lib/rhythmField"), canvas: HTMLCanvasElement): FieldHandle =>
+      module.startFieldsResolve(canvas, {
+        reducedMotion: module.prefersReducedMotion(),
+        mobile: module.isMobileViewport(),
+        labels: FIELDS_CHIPS,
+      }),
+    [],
+  );
+  const fieldRef = useLazyField(start);
+
   return (
-    <Section inverted>
+    <Section
+      inverted
+      className="min-h-[80vh]"
+      backdrop={
+        <canvas
+          ref={fieldRef}
+          data-rhythm-field
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full"
+        />
+      }
+    >
       <h2 className="text-display font-light" data-testid="section-heading">
         {FIELDS_H2}
       </h2>

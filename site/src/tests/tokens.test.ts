@@ -65,16 +65,43 @@ describe("AC1 — one file holds every colour", () => {
   });
 
   it("keeps every colour literal out of every other file", () => {
+    // One scoped refinement (QUESTIONS 131): the rhythm-field engine paints a
+    // canvas, which has no CSS, so it may *compose* rgba() strings — but only
+    // from channels interpolated out of tokens.css. In that one file the ban
+    // moves from the function name to the values: any rgba( followed by a
+    // digit, or any #hex, still fails, and a positive assertion below keeps
+    // the engine actually reading the --field- tokens.
     const offenders: string[] = [];
     for (const file of sourceFiles(SRC)) {
       if (file.endsWith("tokens.css")) continue;
       if (file.includes("/tests/")) continue;
       const source = readFileSync(file, "utf8");
-      for (const [literal] of source.matchAll(/#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(/g)) {
+      const scan = file.endsWith("lib/rhythmField.ts")
+        ? /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(\s*\d/g
+        : /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(/g;
+      for (const [literal] of source.matchAll(scan)) {
         offenders.push(`${file.slice(SRC.length + 1)}: ${literal}`);
       }
     }
     expect(offenders, "colour outside tokens.css").toEqual([]);
+
+    const engine = readFileSync(join(SRC, "lib", "rhythmField.ts"), "utf8");
+    expect(engine).toMatch(/--field-signal/);
+    expect(engine).toMatch(/getPropertyValue/);
+  });
+
+  it("declares the field palette the approved mock specified", () => {
+    // The mock's channel values, held where every colour lives (QUESTIONS
+    // 129/131). --field-signal is the kettle orange: the brand mark's hue,
+    // depicting an ordinary signal arriving — not an alarm state, and no
+    // utility class can reach it.
+    const t = tokens();
+    expect(t["--field-signal"]).toBe("253, 102, 49");
+    expect(t["--field-sage"]).toBe("138, 152, 130");
+    expect(t["--field-graphite"]).toBe("90, 82, 74");
+    expect(t["--field-dust"]).toBe("244, 237, 228");
+    expect(t["--field-label"]).toBe("250, 244, 236");
+    expect(t["--field-glow"]).toBe("43, 35, 32");
   });
 
   it("clears the contrast the design language requires", () => {

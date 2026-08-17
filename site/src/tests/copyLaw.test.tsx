@@ -444,9 +444,26 @@ describe("the refused components stay refused", () => {
   it("renders no chart, ring, sparkline, countdown or score", () => {
     const { container } = render(<App />);
     expect(container.querySelector("svg")).toBeNull();
-    expect(container.querySelector("canvas")).toBeNull();
     expect(container.querySelector("progress")).toBeNull();
     expect(container.querySelector("meter")).toBeNull();
+  });
+
+  it("permits canvas only as the two aria-hidden rhythm-field backdrops", () => {
+    // The blanket canvas ban was written against charts and scores. The
+    // rhythm field (founder decision, QUESTIONS 129/131) is a decorative
+    // backdrop with a content-honesty rule of its own — signals and the
+    // parent-first ask, never inference — so the exemption is scoped to
+    // exactly that shape: marked, hidden from assistive tech, inert to the
+    // pointer, and never more than the two approved placements. A third
+    // canvas, or one that speaks to a screen reader, fails here.
+    const { container } = render(<App />);
+    const canvases = Array.from(container.querySelectorAll("canvas"));
+    expect(canvases.length).toBeLessThanOrEqual(2);
+    for (const canvas of canvases) {
+      expect(canvas.hasAttribute("data-rhythm-field")).toBe(true);
+      expect(canvas.getAttribute("aria-hidden")).toBe("true");
+      expect(canvas.className).toContain("pointer-events-none");
+    }
   });
 
   it("names none of them in the source either", () => {

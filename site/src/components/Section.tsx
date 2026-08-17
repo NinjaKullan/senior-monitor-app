@@ -15,11 +15,16 @@ export function Section({
   children,
   className = "",
   inverted = false,
+  backdrop,
 }: {
   id?: string;
   children: ReactNode;
   className?: string;
   inverted?: boolean;
+  /** A decorative layer behind the content — the rhythm-field canvas
+   *  (QUESTIONS 131). Rendered as the section's first child so the content
+   *  stacks above it; it must never carry content of its own. */
+  backdrop?: ReactNode;
 }) {
   return (
     <section
@@ -28,11 +33,14 @@ export function Section({
       className={
         // `inverted` swaps the tokens themselves, so every colour below it
         // inverts exactly — ink ground, canvas text, no third scheme.
-        `${inverted ? "inverted " : ""}bg-canvas text-ink motion-safe:animate-rise ` +
+        `${inverted ? "inverted " : ""}relative bg-canvas text-ink motion-safe:animate-rise ` +
         `px-6 py-24 md:py-32 ${className}`
       }
     >
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">{children}</div>
+      {backdrop}
+      <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col gap-8">
+        {children}
+      </div>
     </section>
   );
 }

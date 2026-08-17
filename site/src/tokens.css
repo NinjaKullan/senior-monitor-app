@@ -29,6 +29,20 @@
      alert states, so the colour to style one with does not exist. AC2 asserts
      the absence. */
 
+  /* The rhythm field's palette (QUESTIONS 129/131), as channel triplets the
+     canvas engine composes into paint — canvas has no CSS, but its colours
+     still live here and nowhere else (AC1). --field-signal is the kettle
+     orange from the approved mock: an ordinary signal arriving, the same hue
+     as the brand mark. It is not an alarm colour and no utility can reach it;
+     the quiet sequence resolves in sage, and the glow is the dark ground
+     behind the resolve labels. */
+  --field-signal: 253, 102, 49;
+  --field-sage: 138, 152, 130;
+  --field-graphite: 90, 82, 74;
+  --field-dust: 244, 237, 228;
+  --field-label: 250, 244, 236;
+  --field-glow: 43, 35, 32;
+
   /* Corner-wash tints — four sets on one geometry template (spec 006 §2).
      Panels differ by tint alone, never by structure. Invariants: anchored at
      edges and corners, never centred on content; alpha 0.3–0.7; always fading
