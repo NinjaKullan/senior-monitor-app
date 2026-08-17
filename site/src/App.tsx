@@ -3,6 +3,7 @@ import { Scenarios } from "@/sections/Scenarios";
 import { KettleStory } from "@/sections/KettleStory";
 import { ThreeFields } from "@/sections/ThreeFields";
 import { HowItWorks } from "@/sections/HowItWorks";
+import { FoundingFamilies } from "@/sections/FoundingFamilies";
 import { Waitlist } from "@/sections/Waitlist";
 import { Footer } from "@/sections/Footer";
 
@@ -21,6 +22,7 @@ export default function App() {
       <KettleStory />
       <ThreeFields />
       <HowItWorks />
+      <FoundingFamilies />
       <Waitlist />
       <Footer />
     </main>

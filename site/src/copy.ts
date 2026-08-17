@@ -39,8 +39,9 @@ export const HERO_BODY =
   "Kettle notices when your parents' ordinary routine doesn't happen, and asks them first, before anyone worries.";
 /** The second half of the sub block. The objection this page answers before it
  *  is raised: nothing arrives, nothing is worn, nothing new has to be learned. */
-export const HERO_NO_DEVICE_BODY = "No new devices. Only the phone they already have.";
-export const HERO_CTA = "Join waitlist";
+export const HERO_NO_DEVICE_BODY =
+  "Nothing new to wear, charge, or install in their home.";
+export const HERO_CTA = "Apply for the family beta";
 /*
  * The hero diptych (docs/hero-diptych-brief.md): parent left, adult child
  * right, profiles facing inward, each in their own light and their own city.
@@ -66,7 +67,7 @@ export const SCENARIOS_H2 = "An ordinary day.";
  */
 
 export const MORNING_TAB = "Her morning";
-export const MORNING_EYEBROW = "Her morning";
+export const MORNING_H3 = "A morning like any other.";
 export const MORNING_LEAD =
   "By the time her coffee went cold she'd called her sister, read the news, and ";
 export const MORNING_SERIF = "lost an argument with the crossword.";
@@ -75,7 +76,7 @@ export const MORNING_ALT =
   "A kitchen table in morning sun, a half-finished crossword, reading glasses, and a cup of coffee.";
 
 export const AFTERNOON_TAB = "Her afternoon";
-export const AFTERNOON_EYEBROW = "Her afternoon";
+export const AFTERNOON_H3 = "Quiet is allowed.";
 export const AFTERNOON_LEAD = "Kettle knows the shape of her whole day, so ";
 export const AFTERNOON_SERIF = "a quiet afternoon reads as exactly that.";
 export const AFTERNOON_BODY = "A nap is not a signal.";
@@ -83,7 +84,7 @@ export const AFTERNOON_ALT =
   "An armchair by a sunlit curtain, a paperback resting open on its arm, tea on the side table.";
 
 export const OFF_TAB = "When something's off";
-export const OFF_EYEBROW = "When something's off";
+export const OFF_H3 = "She hears from Kettle first.";
 export const OFF_LEAD = "When the morning doesn't look like her morning, ";
 export const OFF_SERIF = "Kettle asks her first, quietly.";
 export const OFF_BODY = "Only if she doesn't answer does anyone else hear a thing.";
@@ -94,7 +95,7 @@ export const OFF_ALT =
 export const OFF_NOTIF = "Everything okay today? Reply whenever suits.";
 
 export const SEEN_TAB = "What you see";
-export const SEEN_EYEBROW = "What you see";
+export const SEEN_H3 = "Reassurance, twice a day.";
 export const SEEN_LEAD = "Two short messages a day, and ";
 export const SEEN_SERIF = "a phrase when there's something worth saying.";
 export const SEEN_BODY = "Never a feed, never a score, never a graph.";
@@ -155,6 +156,34 @@ export const STEP_THREE_BODY =
   "Quiet reassurance, morning and evening. If the day looks unusual, the first message goes to her, not about her.";
 
 /* ---------------------------------------------------------------------- */
+/* Founding families (beta conversion, QUESTIONS 129)                       */
+/* ---------------------------------------------------------------------- */
+
+/*
+ * Four promises, and only promises that will be kept: personal setup, direct
+ * support, the founding price, a few short conversations. Nothing here about
+ * outcomes, timelines, or features — a beta pitch that promises the roadmap
+ * is borrowing from families it has not met yet.
+ */
+export const FOUNDING_H2 = "What founding families get.";
+export const FOUNDING_SETUP_BODY =
+  "Personal setup with the founder, together on one call.";
+export const FOUNDING_SUPPORT_BODY =
+  "Direct support during the beta, from a person you have already met.";
+export const FOUNDING_PRICE_BODY =
+  "The founding price, honoured for as long as you stay subscribed.";
+export const FOUNDING_FEEDBACK_BODY =
+  "A few short feedback conversations, so Kettle grows around real families.";
+
+/** The founder's note. The paragraph is a stub on purpose: Hema writes it in
+ *  her own words, and the constant's name keeps the gap loud until she has. */
+export const FOUNDER_NAME_LABEL = "Hema, founder";
+export const FOUNDER_WHY_STUB_BODY =
+  "[Founder's note goes here. Hema writes this paragraph in her own words, and "
+  + "the page ships only once she has.]";
+export const FOUNDER_CONTACT_LABEL = "Write to Hema";
+
+/* ---------------------------------------------------------------------- */
 /* Waitlist                                                                 */
 /* ---------------------------------------------------------------------- */
 
@@ -166,7 +195,11 @@ export const WAITLIST_PHONE_LABEL = "What phone does your parent use?";
 export const WAITLIST_IPHONE_LABEL = "iPhone";
 export const WAITLIST_ANDROID_LABEL = "Android";
 export const WAITLIST_UNSURE_LABEL = "Not sure";
-export const WAITLIST_CTA = "Request invite";
+export const WAITLIST_CTA = "See if Kettle fits my family";
+/** Under the button, answering the hesitation the button creates. */
+export const WAITLIST_REASSURE_BODY = "A short conversation. No commitment.";
+/** The one optional free-text field (QUESTIONS 129): a kindness, not a gate. */
+export const WAITLIST_HELP_LABEL = "What would you most like Kettle to help with?";
 /** Mirrored in `kettle/waitlist.py`: with JavaScript off the browser shows the
  *  API's response directly, and both paths must say the same words (item 47). */
 export const WAITLIST_SUCCESS = "You're on the list.";

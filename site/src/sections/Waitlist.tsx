@@ -8,8 +8,10 @@ import {
   WAITLIST_EMAIL_LABEL,
   WAITLIST_ERROR,
   WAITLIST_H2,
+  WAITLIST_HELP_LABEL,
   WAITLIST_IPHONE_LABEL,
   WAITLIST_PHONE_LABEL,
+  WAITLIST_REASSURE_BODY,
   WAITLIST_SUCCESS,
   WAITLIST_UNSURE_LABEL,
 } from "@/copy";
@@ -52,6 +54,7 @@ export function Waitlist() {
         body: JSON.stringify({
           email: form.get("email"),
           parent_phone: form.get("parent_phone"),
+          help_with: form.get("help_with"),
           [HONEYPOT]: form.get(HONEYPOT),
         }),
       });
@@ -112,6 +115,23 @@ export function Waitlist() {
             </div>
           </fieldset>
 
+          {/* The one free-text field, optional on purpose (QUESTIONS 129): a
+              kindness, not a gate. The server strips, caps and stores absence
+              for an empty answer; no maxLength attribute here because the
+              digit walk reads perceivable attributes, and the cap is the
+              API's job either way. */}
+          <label className="flex flex-col gap-2 text-body">
+            {WAITLIST_HELP_LABEL}
+            {/* Height by class, not a rows attribute: the digit walk reads
+                every perceivable attribute, and a numeral has no business
+                being the reason one passes. */}
+            <textarea
+              name="help_with"
+              className="min-h-24 rounded-card border border-ink/30 bg-transparent px-5 py-3
+                text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+            />
+          </label>
+
           {/* Silently accepted and discarded server-side. Hidden from people and
               from screen readers; only a form-filler ever finds it. */}
           <input
@@ -126,6 +146,9 @@ export function Waitlist() {
 
           <div>
             <PillButton>{WAITLIST_CTA}</PillButton>
+            <p className="mt-3 text-body text-secondary" data-testid="waitlist-reassure">
+              {WAITLIST_REASSURE_BODY}
+            </p>
           </div>
 
           {state === "failed" && (

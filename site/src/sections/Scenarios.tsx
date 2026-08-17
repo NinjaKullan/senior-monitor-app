@@ -1,23 +1,22 @@
 import { useId, useState } from "react";
-import { Eyebrow } from "@/components/Eyebrow";
 import { NotificationCard } from "@/components/NotificationCard";
 import { SerifPhrase } from "@/components/SerifPhrase";
 import {
   AFTERNOON_ALT,
   AFTERNOON_BODY,
-  AFTERNOON_EYEBROW,
+  AFTERNOON_H3,
   AFTERNOON_LEAD,
   AFTERNOON_SERIF,
   AFTERNOON_TAB,
   MORNING_ALT,
   MORNING_BODY,
-  MORNING_EYEBROW,
+  MORNING_H3,
   MORNING_LEAD,
   MORNING_SERIF,
   MORNING_TAB,
   OFF_ALT,
   OFF_BODY,
-  OFF_EYEBROW,
+  OFF_H3,
   OFF_LEAD,
   OFF_NOTIF,
   OFF_SERIF,
@@ -25,7 +24,7 @@ import {
   SCENARIOS_H2,
   SEEN_ALT,
   SEEN_BODY,
-  SEEN_EYEBROW,
+  SEEN_H3,
   SEEN_LEAD,
   SEEN_NOTIF,
   SEEN_SERIF,
@@ -36,7 +35,8 @@ import { type WashSet, washBackground } from "@/lib/wash";
 interface Scenario {
   set: WashSet;
   tab: string;
-  eyebrow: string;
+  /** The panel's one-line headline (beta conversion: the kickers retired). */
+  headline: string;
   /** The sans opening of the lead sentence. */
   lead: string;
   /** Its closing phrase, and the only serif on the panel. */
@@ -61,7 +61,7 @@ export const SCENARIOS: readonly Scenario[] = [
   {
     set: "morning",
     tab: MORNING_TAB,
-    eyebrow: MORNING_EYEBROW,
+    headline: MORNING_H3,
     lead: MORNING_LEAD,
     serif: MORNING_SERIF,
     body: MORNING_BODY,
@@ -72,7 +72,7 @@ export const SCENARIOS: readonly Scenario[] = [
   {
     set: "afternoon",
     tab: AFTERNOON_TAB,
-    eyebrow: AFTERNOON_EYEBROW,
+    headline: AFTERNOON_H3,
     lead: AFTERNOON_LEAD,
     serif: AFTERNOON_SERIF,
     body: AFTERNOON_BODY,
@@ -83,7 +83,7 @@ export const SCENARIOS: readonly Scenario[] = [
   {
     set: "off",
     tab: OFF_TAB,
-    eyebrow: OFF_EYEBROW,
+    headline: OFF_H3,
     lead: OFF_LEAD,
     serif: OFF_SERIF,
     body: OFF_BODY,
@@ -96,7 +96,7 @@ export const SCENARIOS: readonly Scenario[] = [
   {
     set: "seen",
     tab: SEEN_TAB,
-    eyebrow: SEEN_EYEBROW,
+    headline: SEEN_H3,
     lead: SEEN_LEAD,
     serif: SEEN_SERIF,
     body: SEEN_BODY,
@@ -177,7 +177,9 @@ export function Scenarios() {
             hidden={index !== active}
             className="flex flex-col gap-6"
           >
-            <Eyebrow>{scenario.eyebrow}</Eyebrow>
+            <h3 className="text-feature font-normal" data-testid="scenario-headline">
+              {scenario.headline}
+            </h3>
             <p className="text-card font-light">
               {scenario.lead}
               <SerifPhrase>{scenario.serif}</SerifPhrase>

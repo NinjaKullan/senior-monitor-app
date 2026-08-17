@@ -146,9 +146,10 @@ const STRINGS = Object.entries(copy).flatMap(([name, value]) =>
   typeof value === "string" ? [[name, value] as const] : [],
 );
 
-/** Roles, and the shape rule each carries (AC12). */
+/** Roles, and the shape rule each carries (AC12). H3 joined with the scenario
+ *  panel headlines (beta conversion, QUESTIONS 129). */
 const ROLE =
-  /_(H1|H2|BODY|LEAD|SERIF|TAB|EYEBROW|CTA|LABEL|ALT|NOTIF|CHIP|HREF|SUCCESS|ERROR|WORDMARK|LINE)$/;
+  /_(H1|H2|H3|BODY|LEAD|SERIF|TAB|EYEBROW|CTA|LABEL|ALT|NOTIF|CHIP|HREF|SUCCESS|ERROR|WORDMARK|LINE)$/;
 
 const words = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
 
@@ -251,6 +252,8 @@ describe("AC12 — copy shape", () => {
         expect(words(value), name).toBeGreaterThanOrEqual(3);
         expect(words(value), name).toBeLessThanOrEqual(5);
       }
+      // Panel headlines: one line, no more room than the H1 gets.
+      if (name.endsWith("_H3")) expect(words(value), name).toBeLessThanOrEqual(7);
     }
   });
 
@@ -262,9 +265,14 @@ describe("AC12 — copy shape", () => {
     }
   });
 
-  it("keeps CTA labels to one or two flat words", () => {
+  it("keeps CTA labels to six plain words at most", () => {
+    // Was two flat words ("Join waitlist"). The beta conversion's approved
+    // CTAs are sentences a person would say — "See if Kettle fits my family"
+    // — so the cap moves to fit them (founder decision, QUESTIONS 129). The
+    // flatness the old cap protected lives on in the urgency bans above: a
+    // longer label may be warmer, never louder.
     for (const [name, value] of STRINGS) {
-      if (name.endsWith("_CTA")) expect(words(value), name).toBeLessThanOrEqual(2);
+      if (name.endsWith("_CTA")) expect(words(value), name).toBeLessThanOrEqual(6);
     }
   });
 });

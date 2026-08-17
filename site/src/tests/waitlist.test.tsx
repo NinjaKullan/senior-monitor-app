@@ -24,15 +24,36 @@ function fill() {
 }
 
 describe("the form's shape", () => {
-  it("types nothing but the email", () => {
+  it("types the email, one optional note, and nothing else", () => {
+    // The zero-free-text principle held until the beta conversion added one
+    // deliberate exception (QUESTIONS 129): "what would you most like Kettle
+    // to help with?" — optional, never required, capped server-side. The
+    // email stays the only *required* typing, and this pin keeps the form
+    // from growing a third field quietly.
     render(<Waitlist />);
     const typed = Array.from(
       screen.getByTestId("waitlist-form").querySelectorAll("input, textarea"),
-    ).filter((el) => ["text", "email", "search", "url"].includes((el as HTMLInputElement).type));
+    ).filter((el) =>
+      ["text", "email", "search", "url", "textarea"].includes((el as HTMLInputElement).type),
+    );
 
-    // The email, and the honeypot no person ever sees.
-    expect(typed.map((el) => (el as HTMLInputElement).name)).toEqual(["email", "company"]);
+    expect(typed.map((el) => (el as HTMLInputElement).name)).toEqual([
+      "email",
+      "help_with",
+      "company",
+    ]);
+    const note = typed[1] as HTMLTextAreaElement;
+    expect(note.tagName).toBe("TEXTAREA");
+    expect(note.required).toBe(false);
+    expect((typed[0] as HTMLInputElement).required).toBe(true);
     expect(screen.queryByRole("textbox", { name: /phone/i })).toBeNull();
+  });
+
+  it("reassures under the button, in the approved words", () => {
+    render(<Waitlist />);
+    expect(screen.getByTestId("waitlist-reassure").textContent).toBe(
+      "A short conversation. No commitment.",
+    );
   });
 
   it("asks the platform question as three fixed choices", () => {
@@ -80,8 +101,22 @@ describe("submitting", () => {
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
-    expect(Object.keys(body).sort()).toEqual(["company", "email", "parent_phone"]);
+    expect(Object.keys(body).sort()).toEqual(["company", "email", "help_with", "parent_phone"]);
     expect(body.email).toBe("child@example.com");
+  });
+
+  it("carries the optional note when one was written", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+    render(<Waitlist />);
+    fill();
+    fireEvent.change(screen.getByLabelText(/most like Kettle to help with/i), {
+      target: { value: "The mornings, mostly." },
+    });
+    fireEvent.submit(screen.getByTestId("waitlist-form"));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).help_with).toBe("The mornings, mostly.");
   });
 
   it("shows the page's only red, inline, when the request fails", async () => {

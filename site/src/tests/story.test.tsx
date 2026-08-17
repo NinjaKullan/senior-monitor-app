@@ -15,6 +15,7 @@ import App from "@/App";
 import { KettleStory } from "@/sections/KettleStory";
 import {
   FIELDS_H2,
+  FOUNDING_H2,
   HERO_BODY,
   HERO_NO_DEVICE_BODY,
   HOW_H2,
@@ -32,10 +33,19 @@ describe("the section order", () => {
   it("puts the story between the scenarios and the three fields", () => {
     // kettle → phone → three fields, in that order, is the argument. The
     // amendment places it deliberately, so the placement is pinned rather than
-    // left to whoever next adds a section to App.tsx.
+    // left to whoever next adds a section to App.tsx. The founding-families
+    // section (beta conversion, QUESTIONS 129) sits directly before the form:
+    // what the beta is, then the ask.
     render(<App />);
     const headings = screen.getAllByTestId("section-heading").map((n) => n.textContent);
-    expect(headings).toEqual([SCENARIOS_H2, STORY_H2, FIELDS_H2, HOW_H2, WAITLIST_H2]);
+    expect(headings).toEqual([
+      SCENARIOS_H2,
+      STORY_H2,
+      FIELDS_H2,
+      HOW_H2,
+      FOUNDING_H2,
+      WAITLIST_H2,
+    ]);
   });
 
   it("holds that order in the static HTML too", () => {
