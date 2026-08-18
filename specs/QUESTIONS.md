@@ -2450,3 +2450,47 @@ browser — all three adopted as the standard for future surfaces.**
      webapp never needed: the Dockerfile actually loads this conf, the listen port
      matches fly.toml, and the six photographs really are unhashed stable names. All
      five planted regressions fail by name.
+
+132. **PM review of `e815276`, the founder texts that unblock deploy, and the PM-owed
+     motion-law prose** (PM, 2026-08-17).
+
+     **Review verdict: approved, no overrules.** The Rhythm Field engine is a faithful
+     port of the approved mock (constants, palette-as-tokens, parent-first messenger
+     located from the real hero `<img>` at flight time, designed stills under reduced
+     motion, dynamic-import-only chunk, zero hero fillText); migration 0011 is correctly
+     shaped (nullable, CHECK-capped, RLS posture untouched); every execution call filed
+     in 129 and 131 stands as made, including the CTA cap at six words, the coalesce
+     upsert semantics, the scoped two-canvas exemption, and the four-word inference ban.
+     The one deploy gate was the founder-note stub, now closed by the rulings below.
+
+     **Founder rulings from the same review, binding on the finishing pass:**
+
+     * **The founder note is final, in the founder's own words** (six paragraphs,
+       delivered 2026-08-17), with exactly one PM substitution accepted for the copy
+       law: "Every now and then" → "Once in a while" — the page-wide urgency scan owns
+       the word "now" and the note is on the page. The card renders it as paragraphs,
+       not one `<p>`; `FOUNDER_WHY_STUB_BODY` retires with the stub (the STUB name was
+       the gap's alarm, and the gap is closed).
+     * **Privacy policy: what, never how.** Founder IP ruling, standing: public
+       surfaces describe what is collected and never the mechanism. No Shortcuts, no
+       automations, no "no app installed" (a Kettle mobile app is coming, so it is also
+       just false), no named infrastructure — providers are "established cloud
+       infrastructure providers in the United States," named on request. Mechanism
+       transparency for joined families lives on the setup surface behind expiring
+       links, which is where the obscurity strategy wants it. Deletion window: 45 days,
+       founder-set. The policy text is founder-final (2026-08-17) and replaces the
+       placeholder page wholesale, which also retires the placeholder's
+       "being written with counsel" sentence; a counsel pass remains PM-recommended
+       before payment launches, alongside the ToU where consent language lives.
+
+     **The motion law's first scripted exception — design-language text (owed since
+     130):** Motion on the page is entry fade and rise, once, and nothing else — with
+     one scripted exception, the Rhythm Field. The field earns motion no other element
+     gets because it depicts the product's one story and nothing beyond it: signals
+     arriving, and a quiet morning asked about, parent first. The exception is
+     conditional and the conditions are the law: it draws no words where it decorates
+     the hero, implies no learning and no verdicts, hides itself from assistive
+     technology, pauses when unseen, stands down to a designed still when the visitor
+     asks for reduced motion, and the page must remain whole without it. A second
+     animated element is not covered by this exception; it is a new argument, to be made
+     here first.
