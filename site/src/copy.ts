@@ -144,8 +144,10 @@ export const FIELDS_BODY =
 export const HOW_H2 = "How Kettle works.";
 
 export const STEP_ONE_LABEL = "Set up together on one video call.";
+/** What, never how (QUESTIONS 132): public surfaces describe what is
+ *  collected, never the mechanism — so this sentence names no tooling. */
 export const STEP_ONE_BODY =
-  "Pre-built shortcuts note her phone's ordinary moments. She approves every one, and can switch any of it off herself.";
+  "Kettle notices her phone's ordinary moments. She approves every part of the setup, and can switch any of it off herself.";
 
 export const STEP_TWO_LABEL = "Kettle watches for the absence of normal.";
 export const STEP_TWO_BODY =
@@ -175,12 +177,37 @@ export const FOUNDING_PRICE_BODY =
 export const FOUNDING_FEEDBACK_BODY =
   "A few short feedback conversations, so Kettle grows around real families.";
 
-/** The founder's note. The paragraph is a stub on purpose: Hema writes it in
- *  her own words, and the constant's name keeps the gap loud until she has. */
+/** The founder's note, final and verbatim (QUESTIONS 132; the STUB name
+ *  retired with the stub). Six paragraphs in the founder's own words, with
+ *  the one PM substitution the copy law required already applied ("Once in a
+ *  while" — the page-wide urgency scan owns the word it replaced). It renders
+ *  as paragraphs; the copy-law ban scan and the prerender contract both walk
+ *  this array element by element, so the letter is covered like any sentence,
+ *  while the AC12 shape rules stay what they are: rules for layout copy, not
+ *  letters. */
 export const FOUNDER_NAME_LABEL = "Hema, founder";
-export const FOUNDER_WHY_STUB_BODY =
-  "[Founder's note goes here. Hema writes this paragraph in her own words, and "
-  + "the page ships only once she has.]";
+export const FOUNDER_WHY_BODY = [
+  "I moved away from my parents two years ago. Somewhere between time zones, kids, and "
+    + "work, my check-ins with them went from frequent to occasional. The calls that did "
+    + "happen became tactical: How are you? How's work? How are the kids? Okay, good. "
+    + "Talk soon.",
+  "What was left was a kind of guilt that wasn't dramatic, just a quiet thought in the "
+    + "back of my mind that never really went away. Once in a while, something small "
+    + "would bring it to the surface: a movie, a story, a moment that made me think "
+    + "about my parents getting older. And underneath it was a simple worry: how do I "
+    + "know they're okay without making them feel watched?",
+  "I built Kettle because I wanted something smaller and kinder than a worried phone "
+    + "call. Something that didn't ask my parents to wear anything, charge anything, "
+    + "press a button, or change how they live.",
+  "Kettle simply notices that their ordinary day happened, and asks them first when it "
+    + "doesn't.",
+  "My mother and father were the first two people on it, and they are on it still. My "
+    + "mother will happily use almost anything I set up for her. My father is a "
+    + "privacy-minded attorney who questions every permission. Designing something that "
+    + "felt right to both of them became the standard for Kettle.",
+  "If your family joins the beta, I'll set you up personally, the same way I set up "
+    + "mine.",
+] as const;
 export const FOUNDER_CONTACT_LABEL = "Write to Hema";
 
 /* ---------------------------------------------------------------------- */
@@ -216,14 +243,19 @@ export const FOOTER_CONTACT_LABEL = "Say hello";
 export const FOOTER_CONTACT_HREF = "mailto:hello@getkettle.com";
 
 /* ---------------------------------------------------------------------- */
-/* Privacy placeholder                                                      */
+/* Privacy                                                                  */
 /* ---------------------------------------------------------------------- */
 
+/*
+ * The real policy shipped (QUESTIONS 132), so the placeholder's "being
+ * written with counsel" sentence retired with the placeholder. These two
+ * constants tie this module to the standalone page: check-prerender requires
+ * both to appear verbatim in privacy.html, so the page and the promise it
+ * summarises cannot drift apart.
+ */
 export const PRIVACY_H1 = "Privacy";
 export const PRIVACY_BODY =
-  "Kettle stores three things: who, which routine, when. Nothing else exists to show you.";
-export const PRIVACY_PLACEHOLDER_BODY =
-  "The full policy is being written with counsel and will appear here before the first family joins.";
+  "Kettle stores three things about your parent: who, which routine, when.";
 
 /* ---------------------------------------------------------------------- */
 /* Chrome                                                                   */

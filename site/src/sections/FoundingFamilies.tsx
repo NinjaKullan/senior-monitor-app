@@ -3,7 +3,7 @@ import {
   FOOTER_CONTACT_HREF,
   FOUNDER_CONTACT_LABEL,
   FOUNDER_NAME_LABEL,
-  FOUNDER_WHY_STUB_BODY,
+  FOUNDER_WHY_BODY,
   FOUNDING_FEEDBACK_BODY,
   FOUNDING_H2,
   FOUNDING_PRICE_BODY,
@@ -24,8 +24,9 @@ const PROMISES = [
  * (beta conversion, QUESTIONS 129). Only promises that will be kept: setup,
  * support, the price, a few conversations — no outcomes, no roadmap. The
  * founder's note sits under them because a beta this small is a relationship
- * with a person, and the person should be on the page; its paragraph ships as
- * a loud stub until Hema writes it in her own words.
+ * with a person, and the person should be on the page. The note is the
+ * founder's final text, verbatim (QUESTIONS 132), rendered as the paragraphs
+ * it was written in.
  */
 export function FoundingFamilies() {
   return (
@@ -49,7 +50,13 @@ export function FoundingFamilies() {
         data-testid="founder-note"
       >
         <p className="text-body">{FOUNDER_NAME_LABEL}</p>
-        <p className="mt-2 text-body text-secondary">{FOUNDER_WHY_STUB_BODY}</p>
+        <div className="mt-2 space-y-3">
+          {FOUNDER_WHY_BODY.map((paragraph) => (
+            <p key={paragraph} className="text-body text-secondary">
+              {paragraph}
+            </p>
+          ))}
+        </div>
         <a
           className="mt-4 inline-block text-body underline underline-offset-4"
           href={FOOTER_CONTACT_HREF}

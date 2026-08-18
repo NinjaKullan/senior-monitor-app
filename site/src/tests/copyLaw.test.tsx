@@ -68,6 +68,20 @@ const VERDICTS = ["she's fine", "she is fine", "is safe", "doing well", "she's o
 const INFERENCE = ["learns", "learning", "intelligence", "ai"];
 
 /**
+ * Mechanism vocabulary (founder IP ruling, QUESTIONS 132, standing): public
+ * surfaces describe what is collected, never how. No tooling names, no
+ * automation vocabulary, no named infrastructure — providers are "established
+ * cloud infrastructure providers", named on request. Mechanism transparency
+ * for joined families lives on the setup surface behind expiring links.
+ * Dots in entries are escaped by the scan (the "a.i." lesson).
+ */
+const MECHANISM = [
+  "shortcut", "shortcuts", "automation", "automations", "supabase", "postgres",
+  "postgresql", "fly.io", "fly.dev", "aws", "vercel", "netlify", "postmark",
+  "resend", "twilio", "ntfy",
+];
+
+/**
  * Romanized kinship terms and culture-coded vocabulary (Amendment A).
  *
  * The audience is English-fluent and broader than any one culture, so a word a
@@ -92,6 +106,7 @@ const BANNED = [
   ...SURVEILLANCE,
   ...VERDICTS,
   ...INFERENCE,
+  ...MECHANISM,
 ];
 
 /**
@@ -138,7 +153,7 @@ function assertCopyLaw(text: string, allow: (string | RegExp)[] = []) {
   const scanned = mask(text, allow).toLowerCase();
   for (const word of BANNED) {
     expect(
-      new RegExp(`\\b${word.replace(/'/g, "['’]")}\\b`).test(scanned),
+      new RegExp(`\\b${word.replace(/\./g, "\\.").replace(/'/g, "['’]")}\\b`).test(scanned),
       `"${word}" appeared in: ${text}`,
     ).toBe(false);
   }
@@ -166,10 +181,22 @@ const STRINGS = Object.entries(copy).flatMap(([name, value]) =>
   typeof value === "string" ? [[name, value] as const] : [],
 );
 
+/**
+ * Everything a person can read, including array copy (the founder note's
+ * paragraphs, the chips): the ban scans walk this; the AC12 shape rules stay
+ * on STRINGS, because they are rules for layout copy, not for a letter.
+ */
+const ARRAYS = Object.entries(copy).flatMap(([name, value]) =>
+  Array.isArray(value) && value.every((v) => typeof v === "string")
+    ? value.map((v) => [name, v] as const)
+    : [],
+);
+const PROSE = [...STRINGS, ...ARRAYS];
+
 /** Roles, and the shape rule each carries (AC12). H3 joined with the scenario
  *  panel headlines (beta conversion, QUESTIONS 129). */
 const ROLE =
-  /_(H1|H2|H3|BODY|LEAD|SERIF|TAB|EYEBROW|CTA|LABEL|ALT|NOTIF|CHIP|HREF|SUCCESS|ERROR|WORDMARK|LINE)$/;
+  /_(H1|H2|H3|BODY|LEAD|SERIF|TAB|EYEBROW|CTA|LABEL|ALT|NOTIF|CHIP|CHIPS|HREF|SUCCESS|ERROR|WORDMARK|LINE)$/;
 
 const words = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
 
@@ -178,18 +205,17 @@ describe("AC3 — the copy module obeys the marketing bans", () => {
     expect(STRINGS.length).toBeGreaterThan(30);
   });
 
-  it("bans urgency, diagnosis, alarm, surveillance and verdicts", () => {
-    for (const [name, value] of STRINGS) {
-      // The mechanism section may name the mechanism; a sentence about her day
-      // may not. That split is asserted separately below.
-      const allow = name.startsWith("STEP_") ? [...ALLOW, /Shortcuts/] : ALLOW;
-      expect(() => assertCopyLaw(value, allow), name).not.toThrow();
+  it("bans urgency, diagnosis, alarm, surveillance, verdicts and mechanism", () => {
+    // The STEP_ mechanism exemption retired with QUESTIONS 132's what-never-
+    // how ruling: the setup steps describe what Kettle notices, not the
+    // tooling that notices it, so no string on this surface names either.
+    for (const [name, value] of PROSE) {
+      expect(() => assertCopyLaw(value, ALLOW), name).not.toThrow();
     }
   });
 
-  it("names an app only in the mechanism steps", () => {
-    for (const [name, value] of STRINGS) {
-      if (name.startsWith("STEP_")) continue;
+  it("names no app anywhere on this surface", () => {
+    for (const [name, value] of PROSE) {
       for (const app of APP_NAMES) {
         expect(
           new RegExp(`\\b${app}\\b`).test(value.toLowerCase()),
@@ -213,13 +239,20 @@ describe("AC3 — the copy module obeys the marketing bans", () => {
     // The plain sense stays free: the story's "nothing to learn" is a promise
     // about the parent's effort, not a claim about a model.
     expect(() => assertCopyLaw("Nothing to wear, nothing to learn.")).not.toThrow();
+    // What, never how (QUESTIONS 132): tooling and infrastructure names fail.
+    expect(() => assertCopyLaw("Pre-built shortcuts note her phone's moments")).toThrow();
+    expect(() => assertCopyLaw("One automation watches her morning")).toThrow();
+    expect(() => assertCopyLaw("Hosted on AWS and Supabase")).toThrow();
+    expect(() => assertCopyLaw("Deployed to fly.io")).toThrow();
+    // And the plain word survives the dotted entries: escaping, not wildcards.
+    expect(() => assertCopyLaw("Days fly by between visits.")).not.toThrow();
   });
 
   it("carries no romanized kinship term or culture-coded word", () => {
     // The sweep, done by the test rather than by memory — Amendment A says so
     // in those words, because a hand sweep is exactly what misses the one in an
     // alt text nobody rereads.
-    for (const [name, value] of STRINGS) {
+    for (const [name, value] of PROSE) {
       for (const word of CULTURE_CODED) {
         expect(
           new RegExp(`\\b${word}\\b`).test(value.toLowerCase()),
@@ -266,9 +299,10 @@ describe("AC3 — the copy module obeys the marketing bans", () => {
 describe("AC12 — copy shape", () => {
   it("classifies every exported string, or fails", () => {
     // The floor-rot guard from item 57: a constant that escapes the scan is how
-    // a rule quietly stops applying.
-    const unclassified = STRINGS.filter(([name]) => !ROLE.test(name)).map(([name]) => name);
-    expect(unclassified, "give these a role suffix").toEqual([]);
+    // a rule quietly stops applying. Array exports carry a role on the array's
+    // own name (…_BODY for the founder note's paragraphs, …_CHIPS).
+    const unclassified = PROSE.filter(([name]) => !ROLE.test(name)).map(([name]) => name);
+    expect([...new Set(unclassified)], "give these a role suffix").toEqual([]);
   });
 
   it("keeps H1 to seven words and H2s to three-to-five", () => {
@@ -362,6 +396,58 @@ describe("AC3 — the rendered page obeys them too", () => {
     expect(() => assertEyebrow("STRESSFUL DAY")).toThrow();
     expect(() => assertEyebrow("SHE MAY BE UNWELL")).toThrow();
     expect(() => assertEyebrow("HER MORNING")).not.toThrow();
+  });
+});
+
+/* --------------------------------------------------------------------- */
+/* The privacy page (QUESTIONS 132)                                        */
+/* --------------------------------------------------------------------- */
+
+describe("the privacy page obeys the same law", () => {
+  const PRIVACY = join(SRC, "..", "public", "privacy.html");
+
+  function privacyText(): string {
+    return readFileSync(PRIVACY, "utf8")
+      .replace(/<style>[\s\S]*?<\/style>/g, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&ldquo;|&rdquo;/g, '"')
+      .replace(/&rsquo;|&lsquo;|&#x27;|&#39;/g, "'")
+      .replace(/&amp;/g, "&")
+      .replace(/\s+/g, " ");
+  }
+
+  it("is the founder's policy, and the placeholder is gone", () => {
+    const text = privacyText();
+    expect(text).toContain(copy.PRIVACY_H1);
+    expect(text).toContain(copy.PRIVACY_BODY);
+    expect(text).toContain("Last updated:");
+    expect(text).toContain("Back to Kettle");
+    expect(text).not.toContain("being written with counsel");
+  });
+
+  it("describes what is collected, never how — the full law, one pinned line", () => {
+    // The standing IP ruling at its sharpest point: the page a privacy-minded
+    // reader studies hardest names no tooling, no automation vocabulary, no
+    // infrastructure. It also carries none of the vocabulary banned anywhere
+    // else — a policy that says "alert" or "track" has already broken the
+    // promise it documents. Two literal exemptions, in the QUESTIONS-62 shape
+    // (the exemption may never derive itself), and both are the same move:
+    // a founder guarantee that uses a banned word to promise its *absence* —
+    // deletion is immediate, delivery tracking is off. The words the bans
+    // exist to stop are selling and surveilling; these sentences do the
+    // opposite, and they are pinned whole so nothing else rides in on them.
+    const PRIVACY_ALLOW = [
+      "Turning off a parent's setup stops collection immediately.",
+      "with delivery tracking turned off.",
+    ];
+    expect(() => assertCopyLaw(privacyText(), PRIVACY_ALLOW)).not.toThrow();
+  });
+
+  it("stands alone: no outbound requests, no scripts", () => {
+    const html = readFileSync(PRIVACY, "utf8");
+    expect(html).not.toMatch(/<script/i);
+    expect(html).not.toMatch(/<link/i);
+    expect(html).not.toMatch(/https?:\/\//i);
   });
 });
 

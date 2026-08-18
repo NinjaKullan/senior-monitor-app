@@ -28,6 +28,18 @@ for (const match of copy.matchAll(/export const ([A-Z0-9_]+)\s*=\s*((?:"[^"]*"\s
   constants.set(match[1], [...match[2].matchAll(/"([^"]*)"/g)].map((m) => m[1]).join(""));
 }
 
+// Array copy — the founder note's paragraphs (QUESTIONS 132). Each element is
+// required in the prerendered HTML under the array's own role suffix, so a
+// letter is covered exactly like a sentence; a paragraph dropped from the
+// render fails here by name.
+const arrayElements = [];
+for (const match of copy.matchAll(/export const ([A-Z0-9_]+)\s*=\s*\[([\s\S]*?)\]\s*as const;/g)) {
+  for (const run of match[2].matchAll(/(?:"[^"]*"\s*\+?\s*)+/g)) {
+    const value = [...run[0].matchAll(/"([^"]*)"/g)].map((m) => m[1]).join("");
+    if (value) arrayElements.push([match[1], value]);
+  }
+}
+
 /** The roles that must be legible with no JavaScript at all. */
 const MUST_RENDER = /_(H1|H2|BODY|LEAD|SERIF|TAB|EYEBROW|CTA|LABEL|ALT|NOTIF)$/;
 
@@ -46,6 +58,10 @@ for (const [name, value] of constants) {
   // are the only copy legitimately absent from the static HTML.
   if (name === "WAITLIST_SUCCESS" || name === "WAITLIST_ERROR") continue;
   if (!decoded.includes(value)) missing.push(name);
+}
+for (const [name, value] of arrayElements) {
+  if (!MUST_RENDER.test(name)) continue;
+  if (!decoded.includes(value)) missing.push(`${name}: ${value.slice(0, 40)}…`);
 }
 
 if (constants.size === 0) {
@@ -92,4 +108,7 @@ if (order.some((index) => index < 0) || order.some((index, i) => i > 0 && index 
   process.exit(1);
 }
 
-console.log(`Prerendered HTML carries all ${constants.size} copy strings and four panels in order.`);
+console.log(
+  `Prerendered HTML carries all ${constants.size + arrayElements.length} copy strings ` +
+    "and four panels in order.",
+);
