@@ -7,12 +7,16 @@
  * the parent's side first and comes back to ordinary — and the hero field
  * never draws a word (the content-honesty rule, counted at fillText).
  */
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   FIELDS_DUST,
   FIELDS_DUST_MOBILE,
   HERO_MOTES,
   HERO_MOTES_MOBILE,
+  PRESENCE,
   startFieldsResolve,
   startHeroField,
 } from "@/lib/rhythmField";
@@ -276,5 +280,85 @@ describe("the page never waits for the field", () => {
       // The type-only import is fine; it vanishes at build time.
       expect(source).toMatch(/import type \{ FieldHandle \}/);
     }
+  });
+});
+
+/**
+ * QUESTIONS 134 — the mock stays the spec.
+ *
+ * The presence pass was a founder ruling about how the field *looks*, and the
+ * one thing jsdom can check about it is that the two files still agree: the
+ * approved mock is where the character of the motion is decided, and an engine
+ * that has quietly drifted away from it is a spec nobody can review. Each row
+ * below reads the number back out of the mock's own source and compares it to
+ * the constant the site ships.
+ */
+describe("the presence constants match the approved mock", () => {
+  const MOCK = join(
+    dirname(fileURLToPath(import.meta.url)),
+    "..","..","..","docs","mockups","rhythm-field-mock.html",
+  );
+  const mockSource = () => readFileSync(MOCK, "utf8");
+
+  /** Pull one or more numbers out of the mock by the expression around them. */
+  const read = (source: string, pattern: RegExp): number[] => {
+    const match = source.match(pattern);
+    expect(match, `the mock no longer contains ${pattern}`).not.toBeNull();
+    return match!.slice(1).map(Number);
+  };
+
+  it("finds the mock at all, with its canvas code intact", () => {
+    const source = mockSource();
+    expect(source).toContain("Rhythm Field mock");
+    expect(source).toContain("requestAnimationFrame");
+  });
+
+  it("carries the same motes, pulses and dust as the engine", () => {
+    const source = mockSource();
+    const P = PRESENCE;
+    const rows: [string, RegExp, number[]][] = [
+      ["mote radius", /r: ([\d.]+) \+ Math\.random\(\) \* ([\d.]+),/, [P.moteRadiusMin, P.moteRadiusSpread]],
+      [
+        "mote drift",
+        /dx: drift\(([\d.]+), ([\d.]+)\), dy: drift\(([\d.]+), ([\d.]+)\)/,
+        [P.driftXMin, P.driftXSpread, P.driftYMin, P.driftYSpread],
+      ],
+      [
+        "colour shares",
+        /Math\.random\(\) < ([\d.]+) \? AMBER : \(Math\.random\(\) < ([\d.]+) \? SAGE/,
+        [P.amberShare, P.sageShare],
+      ],
+      ["twinkle", /const tw = ([\d.]+) \+ ([\d.]+) \* Math\.sin/, [P.twinkleBase, P.twinkleSwing]],
+      ["pulse cadence", /this\.mode === 'ordinary' && this\.t % (\d+) === 0/, [P.pulseCadence]],
+      ["ghost cadence", /this\.missedAt\) % (\d+) === 0/, [P.pulseCadence]],
+      ["pulse alpha", /r: 0, a: ([\d.]+) \}\);/, [P.pulseAlpha]],
+      ["ghost alpha", /a: ([\d.]+), ghost: true/, [P.ghostAlpha]],
+      ["pulse growth and fade", /p\.r \+= ([\d.]+); p\.a \*= ([\d.]+);/, [P.pulseGrowth, P.pulseDecay]],
+      [
+        "pulse width",
+        /hctx\.lineWidth = ([\d.]+); hctx\.stroke\(\); hctx\.setLineDash/,
+        [P.pulseWidth],
+      ],
+      ["messenger", /hctx\.arc\(g\.x, g\.y, ([\d.]+), 0, 7\)/, [P.messengerRadius]],
+      [
+        "messenger halo",
+        /rgba\(\$\{AMBER\},(\.[\d]+)\)`; hctx\.lineWidth = ([\d.]+); hctx\.stroke/,
+        [P.messengerHaloAlpha, P.messengerHaloWidth],
+      ],
+      ["dust radius", /tctx\.arc\(x, y, ([\d.]+), 0, 7\)/, [P.dustRadius]],
+      ["dust alpha", /rgba\(244,237,228,\$\{([\d.]+) \+ ([\d.]+) \* k\}\)/, [P.dustAlphaFloor, P.dustAlphaRange]],
+      ["dust ring width", /tctx\.lineWidth = ([\d.]+); tctx\.stroke\(\)/, [P.dustRingWidth]],
+    ];
+    for (const [name, pattern, expected] of rows) {
+      expect(read(source, pattern), `${name} drifted from the mock`).toEqual(expected);
+    }
+  });
+
+  it("keeps the density the ruling did not touch", () => {
+    // More presence, not more motes: the founder raised size, brightness,
+    // colour share and pace, and said nothing about how many there are.
+    const source = mockSource();
+    expect(read(source, /for \(let i = 0; i < (\d+); i\+\+\) \{\n\s+this\.motes/)).toEqual([HERO_MOTES]);
+    expect(read(source, /for \(let i = 0; i < (\d+); i\+\+\) \{\n\s+dust\.push/)).toEqual([FIELDS_DUST]);
   });
 });

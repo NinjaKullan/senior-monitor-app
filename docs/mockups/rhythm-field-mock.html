@@ -42,7 +42,7 @@
 </style>
 </head>
 <body>
-<div class="note"><b>Motion mock — not production.</b> Canvas 2D stand-in for the Three.js build. Watch the hero field: soft pulses are ordinary signals arriving. Press "simulate a quiet morning" to see one pulse go missing and the quiet question travel to the parent's side first. Scroll down for the "Three fields" resolve.</div>
+<div class="note"><b>Motion mock — not production.</b> Canvas 2D stand-in for the Three.js build. Watch the hero field: soft pulses are ordinary signals arriving. Press "simulate a quiet morning" to see one pulse go missing and the quiet question travel to the parent's side first. Scroll down for the "Three fields" resolve.<br><b>Presence pass (QUESTIONS 134):</b> motes larger and brighter, a larger amber share taken from graphite, drift with a floor under it, and pulse rings that breathe — the field was invisible over cream at the original values. These constants are the ones the site ships.</div>
 
 <section class="hero">
   <canvas id="field"></canvas>
@@ -71,6 +71,10 @@
 <script>
 // ---------- HERO FIELD ----------
 const AMBER = '253,102,49', SAGE = '138,152,130', GRAPHITE = '90,82,74';
+// A drift component: a direction, and a speed that is never nearly zero. A
+// symmetric spread around zero left half the motes standing still, which is
+// half of why the field read as specks.
+const drift = (min, spread) => (Math.random() < .5 ? -1 : 1) * (min + Math.random() * spread);
 function sizeCanvas(c) {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr;
@@ -88,9 +92,9 @@ const world = {
     for (let i = 0; i < 90; i++) {
       this.motes.push({
         x: Math.random() * W, y: Math.random() * H,
-        r: 1 + Math.random() * 2.2,
-        dx: (Math.random() - .5) * .18, dy: (Math.random() - .5) * .12,
-        c: Math.random() < .12 ? AMBER : (Math.random() < .4 ? SAGE : GRAPHITE),
+        r: 1.5 + Math.random() * 3.3,
+        dx: drift(.06, .12), dy: drift(.04, .08),
+        c: Math.random() < .30 ? AMBER : (Math.random() < .5 ? SAGE : GRAPHITE),
         ph: Math.random() * Math.PI * 2
       });
     }
@@ -109,34 +113,34 @@ const world = {
     // drifting motes
     for (const m of this.motes) {
       m.x = (m.x + m.dx + W) % W; m.y = (m.y + m.dy + H) % H;
-      const tw = .35 + .3 * Math.sin(this.t / 60 + m.ph);
+      const tw = .62 + .26 * Math.sin(this.t / 60 + m.ph);
       hctx.beginPath(); hctx.arc(m.x, m.y, m.r, 0, 7);
       hctx.fillStyle = `rgba(${m.c},${tw})`; hctx.fill();
     }
-    // ordinary pulses: every ~2.4s a soft ring blooms somewhere in the middle band
-    if (this.mode === 'ordinary' && this.t % 150 === 0) {
-      this.pulses.push({ x: W * (0.25 + Math.random() * 0.5), y: H * (0.25 + Math.random() * 0.35), r: 0, a: .5 });
+    // ordinary pulses: every ~1.8s a soft ring blooms somewhere in the middle band
+    if (this.mode === 'ordinary' && this.t % 110 === 0) {
+      this.pulses.push({ x: W * (0.25 + Math.random() * 0.5), y: H * (0.25 + Math.random() * 0.35), r: 0, a: .72 });
     }
     // in quiet mode, pulses stop (the absence) — one ghost ring marks where one should have been
-    if (this.mode === 'quiet' && (this.t - this.missedAt) % 150 === 0) {
-      this.pulses.push({ x: W * .5, y: H * .33, r: 0, a: .28, ghost: true });
+    if (this.mode === 'quiet' && (this.t - this.missedAt) % 110 === 0) {
+      this.pulses.push({ x: W * .5, y: H * .33, r: 0, a: .40, ghost: true });
     }
     this.pulses = this.pulses.filter(p => p.a > 0.01);
     for (const p of this.pulses) {
-      p.r += .8; p.a *= .975;
+      p.r += .8; p.a *= .982;
       hctx.beginPath(); hctx.arc(p.x, p.y, p.r, 0, 7);
       hctx.strokeStyle = p.ghost ? `rgba(${GRAPHITE},${p.a})` : `rgba(${AMBER},${p.a})`;
       hctx.setLineDash(p.ghost ? [4, 6] : []);
-      hctx.lineWidth = 1.4; hctx.stroke(); hctx.setLineDash([]);
+      hctx.lineWidth = 2.4; hctx.stroke(); hctx.setLineDash([]);
     }
     // the messenger: one quiet mote traveling to the parent's side first
     if (this.messenger && !this.messenger.done) {
       const g = this.messenger, k = .012;
       g.x += (g.tx - g.x) * k; g.y += (g.ty - g.y) * k;
-      hctx.beginPath(); hctx.arc(g.x, g.y, 3.2, 0, 7);
+      hctx.beginPath(); hctx.arc(g.x, g.y, 4.2, 0, 7);
       hctx.fillStyle = `rgba(${AMBER},.9)`; hctx.fill();
       hctx.beginPath(); hctx.arc(g.x, g.y, 8 + 3 * Math.sin(this.t / 12), 0, 7);
-      hctx.strokeStyle = `rgba(${AMBER},.35)`; hctx.stroke();
+      hctx.strokeStyle = `rgba(${AMBER},.5)`; hctx.lineWidth = 1.6; hctx.stroke();
       if (Math.abs(g.x - g.tx) < 6 && Math.abs(g.y - g.ty) < 6) {
         g.done = true; g.doneAt = this.t;
       }
@@ -185,14 +189,14 @@ function threeTick() {
     const freex = d.x * tw(), freey = d.y * th();
     const k = Math.min(1, Math.max(0, (resolveAmt - d.resolve * .35) * 1.6));
     const x = freex + (homex - freex) * k, y = freey + (homey - freey) * k;
-    tctx.beginPath(); tctx.arc(x, y, 1.6, 0, 7);
-    tctx.fillStyle = `rgba(244,237,228,${.14 + .34 * k})`; tctx.fill();
+    tctx.beginPath(); tctx.arc(x, y, 2.2, 0, 7);
+    tctx.fillStyle = `rgba(244,237,228,${.24 + .40 * k})`; tctx.fill();
   }
   if (resolveAmt > .5) {
     const a = Math.min(1, (resolveAmt - .5) * 2.2);
     for (const t0 of T) {
       tctx.beginPath(); tctx.arc(t0.x, t0.y, 56, 0, 7);
-      tctx.strokeStyle = `rgba(${AMBER},${a * .8})`; tctx.lineWidth = 1.4; tctx.stroke();
+      tctx.strokeStyle = `rgba(${AMBER},${a * .8})`; tctx.lineWidth = 2; tctx.stroke();
       tctx.save();
       tctx.shadowColor = 'rgba(43,35,32,.9)'; tctx.shadowBlur = 10;
       tctx.fillStyle = `rgba(250,244,236,${a})`;
