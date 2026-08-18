@@ -2494,3 +2494,40 @@ browser — all three adopted as the standard for future surfaces.**
      asks for reduced motion, and the page must remain whole without it. A second
      animated element is not covered by this exception; it is a new argument, to be made
      here first.
+
+---
+
+## Finishing pass build notes (implementer, 2026-08-18)
+
+133. **The founder texts landed verbatim; the calls around them, filed.** Item 132's
+     three deliverables are in: the note (six paragraphs, rendered as paragraphs, the
+     STUB name retired), the privacy policy (wholesale, placeholder and its "counsel"
+     sentence retired and pinned retired), and the motion-law prose placed in
+     design-language §6. Judgement calls a reviewer should see:
+
+     * **Two pinned literals on the privacy page's law scan**, both the same move: the
+       founder's guarantees "stops collection immediately" and "with delivery tracking
+       turned off" use banned words to promise their *absence* — the opposite of the
+       selling and surveilling the bans exist to stop. Pinned whole, QUESTIONS-62
+       shape, so nothing else rides in on the words.
+     * **The what-never-how ruling became a MECHANISM ban list** (tooling, automation
+       vocabulary, named infrastructure) across the copy module, the rendered page,
+       and the privacy page — which forced the pass's one copy change: STEP_ONE_BODY
+       now reads "Kettle notices her phone's ordinary moments. She approves every part
+       of the setup, and can switch any of it off herself." — and the old STEP_
+       mechanism exemption retired with it. Founder may prefer different words; the
+       what-not-how is the fixed part. Dotted ban entries are escaped now (the a.i.
+       lesson applied); "Days fly by" stays legal beside a banned "fly.io".
+     * **The scans grew to array copy**: the note ships as a readonly array, the ban
+       scans walk its elements, check-prerender requires each paragraph in the static
+       HTML by name (a dropped paragraph fails citing its own first words), and the
+       AC12 shape rules deliberately stay on layout strings — they are rules for
+       sentences, not letters. Arrays classify by the array's own suffix (…_BODY,
+       …_CHIPS — CHIPS joined the role set).
+     * **"Last updated: 2026-08-18"** — the pass date, on the founder's instruction to
+       stamp the deploy date. If the deploy slips past the date, it is a one-line edit
+       at deploy time; the founder owns the line.
+
+     All six planted regressions fail by name (mechanism word in copy, banned word
+     inside a note paragraph, named infrastructure in the policy, the counsel sentence
+     returning, a script tag on the standalone page, a silently dropped paragraph).

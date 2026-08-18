@@ -78,7 +78,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 132.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 134.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -89,10 +89,10 @@ stated properly — a parent faces ~78 interactions today and delivery is only ~
 cheap experiments that decide spec 005b's shape, and what is owed by whom. Read it before
 `docs/onboarding-runbook.md` and QUESTIONS 92–102.
 
-### State of the build (baton, 2026-08-17 — session handoff)
+### State of the build (baton, 2026-08-18 — session handoff)
 
 **All three suites green** (`pytest` 347 with Postgres up, `webapp` 100,
-`site` 112 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
+`site` 115 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
 never trust a skip). Specs 001–006 plus amendments A/B built and reviewed;
 **spec 005b built and PM-approved** (rulings follow item 123: 118 upheld —
 provisioning stays terminal until the signing runner; 121 amended in the spec
@@ -150,7 +150,7 @@ WhatsApp" on the setup card's share CTA, pinned to that single copy key); the
 runbook §7 consent-step rewrite (Q125a); 93 (forge derives out path from
 token), 95 (`--add-device` / `--rotate`), 100 (platform-aware standard set),
 101 (person prefix on disk filenames); 124 (family-context header on Today +
-the duplicated Family-circle row). **Next QUESTIONS number: 132.**
+the duplicated Family-circle row). **Next QUESTIONS number: 134.**
 
 **The Rhythm Field is BUILT (Q131 — the mock landed mid-pass and resolved
 Q130): Canvas 2D port of the approved mock, both placements, hard
@@ -158,11 +158,13 @@ requirements pinned as tests (reduced-motion still, inert without context,
 off-screen park, half density on phones, dynamic-import-only, zero
 fillText in the hero). The canvas ban and colour law were amended in the
 open, scoped tight. The beta conversion, mobile hero and inference ban are
-built (Q129); the founder-note paragraph is a loud stub
-(FOUNDER_WHY_STUB_BODY) that Hema replaces before deploy. PM still owes
-the design-language prose for the motion law's first scripted exception.**
+built (Q129). **The finishing pass is in (Q132 rulings, Q133 notes): the
+founder note and privacy policy are live text, verbatim; the what-never-how
+ruling is a MECHANISM ban across site copy and the privacy page; the
+motion-law prose sits in design-language §6. PM review of e815276: approved,
+no overrules.**
 
-**Owed by the founder, not by code:** the founder-note paragraph; apply migration 0011 + `fly deploy` kettle-api
+**Owed by the founder, not by code:** apply migration 0011 + `fly deploy` kettle-api
 (the help_with column ships before the form field can store anything);
 review + `fly deploy` **kettle-site** (images, copy, beta conversion); `fly deploy` of kettle-app (Q112 cache
 headers — until then deploys white-screen returning browsers — plus login
