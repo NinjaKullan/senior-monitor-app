@@ -2531,3 +2531,64 @@ browser — all three adopted as the standard for future surfaces.**
      All six planted regressions fail by name (mechanism word in copy, banned word
      inside a note paragraph, named infrastructure in the policy, the counsel sentence
      returning, a script tag on the standalone page, a silently dropped paragraph).
+
+---
+
+## Presence pass build notes (implementer, 2026-08-18)
+
+134. **The field was invisible, and now it is not — plus the founder's twenty-five
+     years.** Two founder items off a live-browser review. The note correction is
+     literal and unremarkable ("two years ago" → "twenty-five years ago", spelled out
+     and hyphenated because AC4's digit scan walks the letter like any other sentence
+     and "25" would fail it). The Rhythm Field ruling is the substantive one, and it
+     supersedes the approved mock's constants. What a reviewer should see:
+
+     * **It was measured, not eyeballed.** Before touching anything, a throwaway
+       Playwright probe read each canvas' own pixels in a real browser and composited
+       them over the ground actually behind them. The hero carried paint on **0.14%**
+       of its pixels, of which **0.108%** cleared a luminance delta of 8 against
+       `--canvas` — roughly one legible pixel in a thousand. "Invisible" was the
+       correct word. After: **0.274%** legible (2.5×), mean luminance delta 34 → 51,
+       and **0.56%** of the frame changing each second against 0.23%. These numbers
+       chose the values; they are not an acceptance test and are not pinned anywhere.
+       The acceptance test is the PM's eyes on the live site after deploy, as ruled.
+     * **Density was deliberately left alone.** The ruling asked for larger, brighter,
+       amber-er, faster and breathing — not *more*. 90 motes and 140 dust stand, and
+       the parity test pins that they stand.
+     * **One change is not just a bigger number: the drift floor.** The mock spread
+       drift symmetrically around zero (`(random - .5) * .18`), which left a crowd of
+       motes travelling at almost no speed at all — half of why the field read as
+       static specks, and something doubling the spread would not have fixed. Drift is
+       now a direction plus a magnitude with a floor under it: peak doubled as asked,
+       and nothing frozen.
+     * **The three-fields dust was lifted proportionally, not identically.** The
+       ruling made that treatment conditional on it suffering the same washout, and it
+       does not: cream over ink measured **1.04%** painted against the hero's 0.14%.
+       So it gets a wider grain (1.6 → 2.2) and a floor under its free-drift alpha
+       (0.14 → 0.24), not the hero's multiple. **PM: worth a second look on the live
+       site** — this is the one number in the pass chosen against a threshold rather
+       than against a complaint.
+     * **The ruling's stated reason is revised, and it changes nothing.** The mock was
+       said to have been tuned against a warmer, darker composition than the page has.
+       Its hero ground is `#f6efe7`, within a hair of the site's `#f6f2ec` — the mock
+       was showing the *same* washout all along. That is why the values looked right
+       when approved and wrong the moment someone looked at the page, and it is an
+       argument for the parity test below rather than against the ruling.
+     * **The mock is enforced as the spec, not asked to be.** Every presence number is
+       ported back into `docs/mockups/rhythm-field-mock.html`, and the field's test now
+       reads each number back out of the mock's source and compares it to the shipped
+       constant. Five planted regressions fail by name — a changed mock radius, a
+       changed mock cadence, a changed mock density, a changed *engine* constant, and
+       a mock expression renamed out of existence.
+     * **Two engine values the parity test cannot reach**, because the mock has no such
+       state: the reduced-motion still's ring alpha (0.3 → 0.45, so the still is a
+       still and not a faint one) and the messenger halo's line width, which used to
+       *inherit* whatever the pulse loop last set and is now stated explicitly — the
+       pulses got thicker, and an inherited width would have dragged the messenger
+       along with them silently.
+     * **Nothing in the honesty set moved**, and the pass was scoped to make that
+       checkable: no text in the hero, no learning or inference implied, parent asked
+       first, reduced motion still a single still frame, lazy chunk still lazy. The
+       existing tests for all five still pass untouched.
+
+     **Next number: 135.**

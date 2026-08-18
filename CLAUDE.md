@@ -78,7 +78,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 134.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 135.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -92,7 +92,7 @@ cheap experiments that decide spec 005b's shape, and what is owed by whom. Read 
 ### State of the build (baton, 2026-08-18 — session handoff)
 
 **All three suites green** (`pytest` 347 with Postgres up, `webapp` 100,
-`site` 115 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
+`site` 118 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
 never trust a skip). Specs 001–006 plus amendments A/B built and reviewed;
 **spec 005b built and PM-approved** (rulings follow item 123: 118 upheld —
 provisioning stays terminal until the signing runner; 121 amended in the spec
@@ -155,7 +155,7 @@ the duplicated Family-circle row); reconciling the built setup page's
 `kettle/setup_copy.py` against the PM's keyed deck `specs/005b-copy.md`
 (landed with item 132, written 2026-08-16 — the page was built from the mock
 before the deck was in the repo; queues behind the same pause).
-**Next QUESTIONS number: 134.**
+**Next QUESTIONS number: 135.**
 
 **The Rhythm Field is BUILT (Q131 — the mock landed mid-pass and resolved
 Q130): Canvas 2D port of the approved mock, both placements, hard
@@ -169,19 +169,42 @@ ruling is a MECHANISM ban across site copy and the privacy page; the
 motion-law prose sits in design-language §6. PM review of e815276: approved,
 no overrules.**
 
-**Owed by the founder, not by code:** apply migration 0011 + `fly deploy` kettle-api
-(the help_with column ships before the form field can store anything);
-review + `fly deploy` **kettle-site** (images, copy, beta conversion); `fly deploy` of kettle-app (Q112 cache
-headers — until then deploys white-screen returning browsers — plus login
-words and the Setup card); the SMTP plan's DNS + dashboard steps
-(`docs/auth-smtp-plan.md`) before any non-founder family; Q126's 48-hour
+**The presence pass is in (Q134, this session).** The founder's note now reads
+"twenty-five years ago" (spelled out — AC4's digit scan walks the letter), and
+the Rhythm Field was ruled UP: on the live cream ground it painted 0.14% of the
+hero's pixels and read as static specks. Every presence number now lives in one
+`PRESENCE` block in `site/src/lib/rhythmField.ts` — bigger, brighter motes, amber
+taking its share from graphite, a floor under the drift magnitude (the mock's
+symmetric spread left half the motes frozen, which doubling alone would not have
+fixed), and rings that arrive sooner and fade slowly enough to be caught
+mid-breath. Density was deliberately NOT raised. The numbers are ported back into
+`docs/mockups/rhythm-field-mock.html` and a parity test now reads each one out of
+the mock and compares it to the shipped constant, both directions, five plants.
+**Visibility itself is not testable here — the PM verifies it on the live site
+after deploy, by ruling.** How the values were chosen: a throwaway Playwright
+probe read the canvas' own pixels over the real ground (0.108% → 0.274% legible;
+motion 0.23% → 0.56% of the frame per second).
+
+**Owed by the founder, not by code:** review + `fly deploy` **kettle-site**
+again — this pass (the note correction and the field's visibility) is unshipped,
+and its acceptance test is the PM looking at the live site; `fly deploy` of
+kettle-app (Q112 cache headers — until then deploys white-screen returning
+browsers — plus login words and the Setup card); the SMTP plan's DNS + dashboard
+steps (`docs/auth-smtp-plan.md`) before any non-founder family; Q126's 48-hour
 check that Appa's charger automation has both edges ticked.
+
+**Deployed as of 2026-08-18 (founder-reported):** migration 0011 applied and the
+`help_with` column verified in the live database; kettle-api out and healthy
+(`/healthz` → `{"db":true}`); kettle-site shipped at 2f1f2f5 — founder note,
+privacy policy and the Rhythm Field are live. The site therefore runs the
+*pre-presence-pass* build until the next deploy.
 
 **Live state to respect:** both parents are live — Amma on the old per-app
 keys (never rebuilt remotely for elegance [107]), Appa on merged
 routine+charger [126]. Onboarding-surface investment is founder-PAUSED [126].
 The waitlist form is CORS-dead until `WAITLIST_ORIGINS` includes the serving
-origin. The live site runs a pre-images build until redeployed. Amma is
+origin — kettle-api is deployed now, but whether that env var was set with it is
+unconfirmed here, so check before believing the form works. Amma is
 physically in Texas while provisioned `Asia/Kolkata` [108, backlog] — a
 shifted-looking routine there is geography, not a bug.
 
