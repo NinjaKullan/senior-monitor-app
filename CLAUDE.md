@@ -145,12 +145,17 @@ elements and a banned word flush at a seam escaped `\b` scanning until the
 plant drill caught it [122]. Rehearsal script + honest tap enumeration:
 `docs/005b-test-script.md`.
 
-**Queued for Claude Code:** the item-122 channel-name exemption ("Send on
+**Queued for Claude Code (build only when asked — onboarding polish is
+founder-PAUSED per Q126):** the item-122 channel-name exemption ("Send on
 WhatsApp" on the setup card's share CTA, pinned to that single copy key); the
 runbook §7 consent-step rewrite (Q125a); 93 (forge derives out path from
 token), 95 (`--add-device` / `--rotate`), 100 (platform-aware standard set),
 101 (person prefix on disk filenames); 124 (family-context header on Today +
-the duplicated Family-circle row). **Next QUESTIONS number: 134.**
+the duplicated Family-circle row); reconciling the built setup page's
+`kettle/setup_copy.py` against the PM's keyed deck `specs/005b-copy.md`
+(landed with item 132, written 2026-08-16 — the page was built from the mock
+before the deck was in the repo; queues behind the same pause).
+**Next QUESTIONS number: 134.**
 
 **The Rhythm Field is BUILT (Q131 — the mock landed mid-pass and resolved
 Q130): Canvas 2D port of the approved mock, both placements, hard
