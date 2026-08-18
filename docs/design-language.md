@@ -103,6 +103,15 @@ alone, never by structure.
 **v1 refuses scroll-scrubbed pinning.** Oura's sticky-pane choreography is the one thing the fetch
 could not see, it is expensive to tune, and plain fades are cheaper and calmer.
 
+**The first scripted exception (PM, 2026-08-17 — QUESTIONS 132).** Motion on the page is entry fade
+and rise, once, and nothing else — with one scripted exception, the Rhythm Field. The field earns
+motion no other element gets because it depicts the product's one story and nothing beyond it:
+signals arriving, and a quiet morning asked about, parent first. The exception is conditional and
+the conditions are the law: it draws no words where it decorates the hero, implies no learning and
+no verdicts, hides itself from assistive technology, pauses when unseen, stands down to a designed
+still when the visitor asks for reduced motion, and the page must remain whole without it. A second
+animated element is not covered by this exception; it is a new argument, to be made here first.
+
 ## 7 Component grammar
 
 - **CTAs are full pills**, 12/24 padding, sans at **true semibold**; hover is a colour shift only. No
