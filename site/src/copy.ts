@@ -187,7 +187,7 @@ export const FOUNDING_FEEDBACK_BODY =
  *  letters. */
 export const FOUNDER_NAME_LABEL = "Hema, founder";
 export const FOUNDER_WHY_BODY = [
-  "I moved away from my parents two years ago. Somewhere between time zones, kids, and "
+  "I moved away from my parents twenty-five years ago. Somewhere between time zones, kids, and "
     + "work, my check-ins with them went from frequent to occasional. The calls that did "
     + "happen became tactical: How are you? How's work? How are the kids? Okay, good. "
     + "Talk soon.",
