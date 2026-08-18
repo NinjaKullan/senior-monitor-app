@@ -51,12 +51,69 @@ export const HERO_MOTES_MOBILE = 45;
 export const FIELDS_DUST = 140;
 export const FIELDS_DUST_MOBILE = 70;
 
+/* Presence (QUESTIONS 134). The mock's own numbers were tuned against a
+ * warmer, darker composition than the page turned out to have; over the live
+ * cream ground the hero field painted 0.14% of its pixels and read as static
+ * specks, with the amber pulses barely registering. The founder ruled the
+ * field up: bigger, brighter, more amber than graphite, drift you can see
+ * inside a second or two, and rings that visibly breathe. Density is
+ * deliberately NOT among them — 90 motes is still 90 motes.
+ *
+ * These are presentation only. Every honesty rule is untouched: no text in
+ * the hero, no trend or inference anywhere, the parent is asked first, a
+ * reduced-motion viewer gets one still frame, and the engine is still a lazy
+ * chunk. The same values are ported back into docs/mockups/rhythm-field-mock.html,
+ * which remains the spec — a test asserts the two files agree. */
+export const PRESENCE = {
+  /* Half again the mock's radius range: [1, 3.2] -> [1.5, 4.8]. */
+  moteRadiusMin: 1.5,
+  moteRadiusSpread: 3.3,
+  /* Signed magnitude, not a symmetric spread around zero. The mock's
+   * `(random - .5) * .18` left a crowd of motes drifting at nearly no speed
+   * at all, which is half of why the field read as specks; a floor under the
+   * magnitude means every mote is going somewhere, and the peak is double. */
+  driftXMin: 0.06,
+  driftXSpread: 0.12,
+  driftYMin: 0.04,
+  driftYSpread: 0.08,
+  /* Twinkle alpha [0.05, 0.65] -> [0.36, 0.88]: the floor was the problem,
+   * since a mote spends half its cycle below the middle of its own range. */
+  twinkleBase: 0.62,
+  twinkleSwing: 0.26,
+  /* Amber takes its share from graphite, not from sage: 12/35/53 -> 30/35/35. */
+  amberShare: 0.3,
+  sageShare: 0.5,
+  /* An ordinary signal arriving, made legible: sooner, brighter, thicker, and
+   * fading slowly enough that a visitor who glances at the hero sees a ring
+   * mid-breath rather than the gap between two. */
+  pulseCadence: 110,
+  pulseAlpha: 0.72,
+  pulseDecay: 0.982,
+  pulseWidth: 2.4,
+  pulseGrowth: 0.8,
+  /* The absent signal stays quieter than a present one, in the same ratio. */
+  ghostAlpha: 0.4,
+  /* The messenger keeps reading as one of the motes, travelling. */
+  messengerRadius: 4.2,
+  messengerHaloAlpha: 0.5,
+  messengerHaloWidth: 1.6,
+  /* The reduced-motion still is a still, not a faint one. */
+  stillRingAlpha: 0.45,
+  /* Cream dust over ink was never as washed out as the hero over cream
+   * (it measured 1.04% painted against the hero's 0.14%), so it is lifted
+   * proportionally rather than by the same multiple. */
+  dustRadius: 2.2,
+  dustAlphaFloor: 0.24,
+  dustAlphaRange: 0.4,
+  dustRingWidth: 2,
+} as const;
+
 /* The quiet-morning sequence, in frames (~60/s): trigger after ~6 s in view,
- * ghost rings on the mock's pulse cadence, the messenger leaving one beat
+ * ghost rings on the pulse cadence, the messenger leaving one beat
  * after the pulses stop, and a short grace after the sage ring fades before
  * the field returns to ordinary. Played once per page load. */
 const QUIET_TRIGGER_FRAMES = 360;
-const PULSE_CADENCE = 150;
+const PULSE_CADENCE = PRESENCE.pulseCadence;
 const MESSENGER_DELAY = 90;
 const RESOLVE_FRAMES = 160;
 const RESOLVE_GRACE = 60;
@@ -112,16 +169,26 @@ function sizeCanvas(c: HTMLCanvasElement): void {
   c.getContext("2d")?.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
+/** A drift component: a direction, and a speed that is never nearly zero. */
+function drift(min: number, spread: number): number {
+  return (Math.random() < 0.5 ? -1 : 1) * (min + Math.random() * spread);
+}
+
 function makeMotes(count: number, W: number, H: number, palette: FieldPalette): Mote[] {
   const motes: Mote[] = [];
   for (let i = 0; i < count; i++) {
     motes.push({
       x: Math.random() * W,
       y: Math.random() * H,
-      r: 1 + Math.random() * 2.2,
-      dx: (Math.random() - 0.5) * 0.18,
-      dy: (Math.random() - 0.5) * 0.12,
-      c: Math.random() < 0.12 ? palette.signal : Math.random() < 0.4 ? palette.sage : palette.graphite,
+      r: PRESENCE.moteRadiusMin + Math.random() * PRESENCE.moteRadiusSpread,
+      dx: drift(PRESENCE.driftXMin, PRESENCE.driftXSpread),
+      dy: drift(PRESENCE.driftYMin, PRESENCE.driftYSpread),
+      c:
+        Math.random() < PRESENCE.amberShare
+          ? palette.signal
+          : Math.random() < PRESENCE.sageShare
+            ? palette.sage
+            : palette.graphite,
       ph: Math.random() * Math.PI * 2,
     });
   }
@@ -141,7 +208,7 @@ function drawMotes(
       m.x = (m.x + m.dx + W) % W;
       m.y = (m.y + m.dy + H) % H;
     }
-    const tw = 0.35 + 0.3 * Math.sin(t / 60 + m.ph);
+    const tw = PRESENCE.twinkleBase + PRESENCE.twinkleSwing * Math.sin(t / 60 + m.ph);
     ctx.beginPath();
     ctx.arc(m.x, m.y, m.r, 0, 7);
     ctx.fillStyle = `rgba(${m.c},${tw})`;
@@ -188,8 +255,8 @@ export function startHeroField(
     drawMotes(ctx, motes, W, H, 30, false);
     ctx.beginPath();
     ctx.arc(W * 0.45, H * 0.38, 34, 0, 7);
-    ctx.strokeStyle = `rgba(${palette.signal},0.3)`;
-    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = `rgba(${palette.signal},${PRESENCE.stillRingAlpha})`;
+    ctx.lineWidth = PRESENCE.pulseWidth;
     ctx.stroke();
     return {
       stop() {},
@@ -241,7 +308,7 @@ export function startHeroField(
         x: W * (0.25 + Math.random() * 0.5),
         y: H * (0.25 + Math.random() * 0.35),
         r: 0,
-        a: 0.5,
+        a: PRESENCE.pulseAlpha,
       });
     }
 
@@ -252,7 +319,7 @@ export function startHeroField(
     if (mode === "quiet") {
       // The absence: pulses stop; a dashed ghost marks where one belonged.
       if ((t - quietAt) % PULSE_CADENCE === 0) {
-        pulses.push({ x: W * 0.5, y: H * 0.33, r: 0, a: 0.28, ghost: true });
+        pulses.push({ x: W * 0.5, y: H * 0.33, r: 0, a: PRESENCE.ghostAlpha, ghost: true });
       }
       // One beat later, the messenger leaves for the parent's side first.
       if (!messenger && t - quietAt >= MESSENGER_DELAY) {
@@ -270,13 +337,13 @@ export function startHeroField(
 
     pulses = pulses.filter((p) => p.a > 0.01);
     for (const p of pulses) {
-      p.r += 0.8;
-      p.a *= 0.975;
+      p.r += PRESENCE.pulseGrowth;
+      p.a *= PRESENCE.pulseDecay;
       ctx!.beginPath();
       ctx!.arc(p.x, p.y, p.r, 0, 7);
       ctx!.strokeStyle = p.ghost ? `rgba(${palette.graphite},${p.a})` : `rgba(${palette.signal},${p.a})`;
       ctx!.setLineDash(p.ghost ? [4, 6] : []);
-      ctx!.lineWidth = 1.4;
+      ctx!.lineWidth = PRESENCE.pulseWidth;
       ctx!.stroke();
       ctx!.setLineDash([]);
     }
@@ -287,12 +354,14 @@ export function startHeroField(
       g.x += (g.tx - g.x) * k;
       g.y += (g.ty - g.y) * k;
       ctx!.beginPath();
-      ctx!.arc(g.x, g.y, 3.2, 0, 7);
+      ctx!.arc(g.x, g.y, PRESENCE.messengerRadius, 0, 7);
       ctx!.fillStyle = `rgba(${palette.signal},0.9)`;
       ctx!.fill();
       ctx!.beginPath();
       ctx!.arc(g.x, g.y, 8 + 3 * Math.sin(t / 12), 0, 7);
-      ctx!.strokeStyle = `rgba(${palette.signal},0.35)`;
+      ctx!.strokeStyle = `rgba(${palette.signal},${PRESENCE.messengerHaloAlpha})`;
+      // Set, not inherited: the pulse loop above owns lineWidth otherwise.
+      ctx!.lineWidth = PRESENCE.messengerHaloWidth;
       ctx!.stroke();
       if (Math.abs(g.x - g.tx) < 6 && Math.abs(g.y - g.ty) < 6) {
         g.done = true;
@@ -408,8 +477,8 @@ export function startFieldsResolve(
       const x = freex + (homex - freex) * k;
       const y = freey + (homey - freey) * k;
       ctx!.beginPath();
-      ctx!.arc(x, y, 1.6, 0, 7);
-      ctx!.fillStyle = `rgba(${palette.dust},${0.14 + 0.34 * k})`;
+      ctx!.arc(x, y, PRESENCE.dustRadius, 0, 7);
+      ctx!.fillStyle = `rgba(${palette.dust},${PRESENCE.dustAlphaFloor + PRESENCE.dustAlphaRange * k})`;
       ctx!.fill();
     }
     if (resolveAmt > 0.5) {
@@ -418,7 +487,7 @@ export function startFieldsResolve(
         ctx!.beginPath();
         ctx!.arc(t0.x, t0.y, 56, 0, 7);
         ctx!.strokeStyle = `rgba(${palette.signal},${a * 0.8})`;
-        ctx!.lineWidth = 1.4;
+        ctx!.lineWidth = PRESENCE.dustRingWidth;
         ctx!.stroke();
         ctx!.save();
         ctx!.shadowColor = `rgba(${palette.glow},0.9)`;
