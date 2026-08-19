@@ -2771,3 +2771,73 @@ browser — all three adopted as the standard for future surfaces.**
      `public/`, and the emphasis line dropped from the prerender.
 
      **Next number: 137.**
+
+---
+
+## Floating CTA build notes (implementer, 2026-08-19)
+
+137. **The ask stays reachable without the page acquiring an overlay.** Built as
+     ruled. What a reviewer should see, and one finding about the design that is
+     worth knowing before it is trusted:
+
+     * **It yields by not existing.** While the hero, the waitlist or the footer is
+       on screen the component renders `null` — not a hidden element, not an
+       `aria-hidden` one, nothing. So there is no invisible layer over the page, no
+       pointer target, no screen-reader stop, and no focus landing in the middle of
+       the footer. Every "absent" case in the tests checks absence from the DOM
+       rather than a class that happens to hide it.
+     * **The frame does the centring, not a transform.** A full-width
+       `pointer-events-none` strip with `justify-center` / `md:justify-end` puts the
+       pill bottom-centre on a phone and bottom-right on a desktop. The obvious
+       alternative, `-translate-x-1/2`, would have slipped past AC7's motion scan on
+       a technicality — the pattern is `^translate-` and the class starts with a
+       minus — and a static transform that dodges the scan is exactly the kind of
+       thing that makes the scan stop meaning anything.
+     * **`pb-safe` is `calc(1.5rem + env(safe-area-inset-bottom))`**, so one class
+       clears the iPhone home indicator and is a plain 24px everywhere else.
+     * **No observer, no button.** jsdom has none, and neither do some old browsers.
+       A CTA that cannot tell whether it is sitting on the form is the permanent
+       overlay the ruling refuses, so the answer to not knowing is silence. A missing
+       selector is treated the same way.
+     * **Measured at 360/390/428/768/1440:** 48px tall (the ruling asks 44), centred
+       with equal margins on phones, 24px from the right on desktop, inside the
+       viewport, absent at the hero, the form and the footer, and never overlapping
+       another link, button or field.
+
+     **The finding: the footer entry is currently redundant, and the unit test is
+     what holds it.** At every viewport height measured — 844, 600 and 420 — the
+     waitlist section is *still on screen* whenever the footer is, because the footer
+     is only 232px tall and sits at the end of a much taller section. So "hide at the
+     footer" can never fire on its own as the page stands: removing the footer from
+     the yield list and re-running the browser probe changes nothing, while the unit
+     test fails immediately. It is kept because it makes "never covers the privacy
+     link" true by construction rather than by an arithmetic that a longer footer or
+     a shorter form would quietly break — but a reviewer should know it is belt to
+     the positioning's braces rather than a rule doing visible work today.
+
+     **Two calls worth the PM's eye:**
+
+     * **The button waits for the hero to clear completely.** Centring the scenarios
+       section still leaves ~17px of hero on screen, and the button stays away for
+       those 17px. That is the ruling read literally ("hidden while the hero section
+       is in view"), and it means the CTA appears slightly later than "once you start
+       reading the scenarios". If it should appear sooner, the fix is a threshold on
+       the observer, not a change to the rule.
+     * **It is last in `<main>`**, so a keyboard user reaches it after the footer
+       links rather than in the middle of the page. That keeps the reading and tab
+       order of everything above it exactly as it was, which seemed the more
+       conservative of the two.
+
+     **The probe learned two things about itself**, both found by running it rather
+     than reasoning about it: it was scrolling *smoothly* (the stylesheet asks for
+     it) and reading 400ms later while the page was still in flight, which reported
+     the button "present at the form" when it is not; and its mid-page stop was the
+     scenarios section, where the button is correctly absent. Scrolls are instant now
+     and the stop moved to the story section, with the reason written beside it.
+
+     Nine plants, all failing by name: the footer dropped from the yield list, the
+     guard removed so it never hides, `aria-hidden` added, the frame's
+     `pointer-events-none` removed, the entry animation ungated, its own words, its
+     own target, and showing up with no observer at all.
+
+     **Next number: 138.**
