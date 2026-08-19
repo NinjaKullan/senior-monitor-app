@@ -43,15 +43,18 @@ export const HERO_NO_DEVICE_BODY =
   "Nothing new to wear, charge, or install in their home.";
 export const HERO_CTA = "Apply for the family beta";
 /*
- * The hero diptych (docs/hero-diptych-brief.md): parent left, adult child
- * right, profiles facing inward, each in their own light and their own city.
- * The photographs carry the distance; the alt text describes agency, never
- * waiting or worry.
+ * The hero image. The diptych's two photographs are one drawing now (founder
+ * decision, QUESTIONS 136): the artwork carries both rooms *and* the gap
+ * between them, so the frame that used to be a two-column grid is a single
+ * wide illustration. The brief's law survives the change of medium — parent
+ * on the left, profiles facing inward, the distance doing the work no drawn
+ * connection line is allowed to do — and the alt text still describes agency,
+ * never waiting or worry. PM-drafted, verbatim.
  */
-export const HERO_MORNING_ALT =
-  "An older man at his kitchen window in first light, coffee in hand, a kettle on the counter.";
-export const HERO_EVENING_ALT =
-  "A woman at her apartment window in another city, tea in hand, the evening lights coming on.";
+export const HERO_ALT =
+  "Two rooms in one drawing: a mother at her suburban kitchen window in morning light, her "
+  + "daughter at a city window at dusk, each holding a mug, facing each other across the space "
+  + "between.";
 
 /* ---------------------------------------------------------------------- */
 /* Scenario tabs                                                            */
@@ -74,7 +77,8 @@ export const MORNING_LEAD =
   + "an argument with the crossword.";
 export const MORNING_BODY = "Her phone did its ordinary things. That's all Kettle ever needs.";
 export const MORNING_ALT =
-  "A kitchen table in morning sun, a half-finished crossword, reading glasses, and a cup of coffee.";
+  "A silver-haired woman does the crossword at a sunny kitchen table, coffee in hand, her phone "
+  + "lying ignored at the table's edge.";
 
 export const AFTERNOON_TAB = "Her afternoon";
 export const AFTERNOON_H3 = "Quiet is allowed.";
@@ -82,7 +86,8 @@ export const AFTERNOON_LEAD =
   "Kettle knows the shape of her whole day, so a quiet afternoon reads as exactly that.";
 export const AFTERNOON_BODY = "A nap is not a signal.";
 export const AFTERNOON_ALT =
-  "An armchair by a sunlit curtain, a paperback resting open on its arm, tea on the side table.";
+  "The same woman asleep in an armchair in soft afternoon light, a paperback open on the chair's "
+  + "arm, tea cooling on the side table.";
 
 export const OFF_TAB = "When something's off";
 export const OFF_H3 = "She hears from Kettle first.";
@@ -90,7 +95,8 @@ export const OFF_LEAD =
   "When the morning doesn't look like her morning, Kettle asks her first, quietly.";
 export const OFF_BODY = "Only if she doesn't answer does anyone else hear a thing.";
 export const OFF_ALT =
-  "A kettle steaming on the counter, a mug of tea beside it, a phone lit with one quiet line.";
+  "The same kitchen, bright and tidy but empty: the crossword untouched, the chair pushed back, "
+  + "her phone on the table showing one small amber glow.";
 /** Addressed *to* her, and a question rather than a claim — the one reason this
  *  string is on the pinned allowlist rather than banned. */
 export const OFF_NOTIF = "Everything okay today? Reply whenever suits.";
@@ -101,7 +107,8 @@ export const SEEN_LEAD =
   "Two short messages a day, and a phrase when there's something worth saying.";
 export const SEEN_BODY = "Never a feed, never a score, never a graph.";
 export const SEEN_ALT =
-  "A desk at the end of the day, laptop closed, keys set down, a child's drawing on the wall.";
+  "Her daughter curled on a city sofa in lamplight, glancing at her phone with a quiet, relieved "
+  + "smile.";
 export const SEEN_NOTIF = "Dad's day started normally.";
 
 /* ---------------------------------------------------------------------- */
@@ -145,6 +152,13 @@ export const FIELDS_BODY =
 /* ---------------------------------------------------------------------- */
 
 export const HOW_H2 = "How Kettle works.";
+/** The narrative strip that opens the section (QUESTIONS 136). It is
+ *  decorative — it restates the ladder in pictures and adds no claim the steps
+ *  below do not already make — so it carries no copy of its own beyond this
+ *  alt text. PM-drafted, verbatim. */
+export const HOW_STRIP_ALT =
+  "Four drawn panels: her ordinary morning, her daughter at ease in the city, a morning that has "
+  + "not started marked by an amber glow on her phone, and the mother replying as the day resumes.";
 
 export const STEP_ONE_LABEL = "Set up together on one video call.";
 /** What, never how (QUESTIONS 132): public surfaces describe what is
