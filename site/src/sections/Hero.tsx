@@ -2,12 +2,11 @@ import { useCallback, useRef } from "react";
 import { Eyebrow } from "@/components/Eyebrow";
 import { PillLink } from "@/components/Pill";
 import {
+  HERO_ALT,
   HERO_BODY,
   HERO_CTA,
-  HERO_EVENING_ALT,
   HERO_EYEBROW,
   HERO_H1,
-  HERO_MORNING_ALT,
   HERO_NO_DEVICE_BODY,
 } from "@/copy";
 import type { FieldHandle } from "@/lib/rhythmField";
@@ -20,13 +19,15 @@ import { washBackground } from "@/lib/wash";
  * thing to do here is join, and a page that offers three next steps is a page
  * that has not decided what it is for.
  *
- * The diptych below the headline is the brief's "two lives, one frame"
- * (docs/hero-diptych-brief.md): parent left in his morning, adult child right
- * in her evening, profiles facing inward, the gap between the frames doing the
- * work no drawn connection line is allowed to. Side by side on desktop,
- * stacked on mobile. The headline block keeps priority: text first in source
- * and on screen, never overlaid on the photograph. Both images load eagerly —
- * they are the hero; everything below it lazy-loads.
+ * Below the headline is the brief's "two lives, one frame", now drawn rather
+ * than photographed (founder decision, QUESTIONS 136): one wide illustration
+ * holding both rooms — parent's morning on the left, her daughter's dusk on
+ * the right — and the space between them, which is the part no drawn
+ * connection line is allowed to do for it. It replaces the two-frame grid
+ * outright: the artwork already contains the gap the grid used to stage. The
+ * headline block keeps priority: text first in source and on screen, never
+ * overlaid on the image. It loads eagerly — it is the hero; everything below
+ * it lazy-loads.
  *
  * Behind and between them, the rhythm field (QUESTIONS 129/131): drifting
  * motes, soft amber rings for ordinary signals, and — once, slowly, after the
@@ -36,22 +37,31 @@ import { washBackground } from "@/lib/wash";
  * and no labels in the field. The canvas is decoration: aria-hidden, behind
  * the content, loaded lazily, and the page is whole without it.
  */
+/** Where the parent is inside the hero artwork, as a fraction of its width.
+ *  The drawing puts her room in the left half, so the messenger aims at the
+ *  middle of that half rather than at the middle of a frame that no longer
+ *  exists (QUESTIONS 136). */
+export const PARENT_X_FRACTION = 0.25;
+
 export function Hero() {
-  const parentFrameRef = useRef<HTMLImageElement | null>(null);
+  const heroImageRef = useRef<HTMLImageElement | null>(null);
 
   const start = useCallback(
     (module: typeof import("@/lib/rhythmField"), canvas: HTMLCanvasElement): FieldHandle =>
       module.startHeroField(canvas, {
         reducedMotion: module.prefersReducedMotion(),
         mobile: module.isMobileViewport(),
-        // The messenger goes to the parent's side first — the left frame,
-        // located at flight time so a resize cannot strand it.
+        // The messenger goes to the parent's side first — her half of the
+        // drawing, located at flight time so a resize cannot strand it.
         parentTarget: () => {
-          const frame = parentFrameRef.current;
-          if (!frame) return null;
+          const image = heroImageRef.current;
+          if (!image) return null;
           const c = canvas.getBoundingClientRect();
-          const r = frame.getBoundingClientRect();
-          return { x: r.left - c.left + r.width / 2, y: r.top - c.top + r.height / 2 };
+          const r = image.getBoundingClientRect();
+          return {
+            x: r.left - c.left + r.width * PARENT_X_FRACTION,
+            y: r.top - c.top + r.height / 2,
+          };
         },
       }),
     [],
@@ -84,27 +94,20 @@ export function Hero() {
         <div>
           <PillLink href="#waitlist">{HERO_CTA}</PillLink>
         </div>
-        {/* Side by side at every width (QUESTIONS 129): stacking both
-            portraits made the mobile hero two photographs tall. At 390px the
-            arithmetic is 342px of content, two columns and a 12px gap, so
-            each frame is 165px wide and, at 3:4, 220px tall — headline, sub
-            and CTA all land in the first viewport height, and the diptych
-            stays a diptych instead of a scroll. Desktop keeps the 4:5 crop. */}
-        <div className="mt-8 grid grid-cols-2 gap-3 md:gap-4" data-testid="hero-diptych">
-          <img
-            ref={parentFrameRef}
-            src="/hero-morning.webp"
-            alt={HERO_MORNING_ALT}
-            decoding="async"
-            className="aspect-[3/4] w-full rounded-card object-cover md:aspect-[4/5]"
-          />
-          <img
-            src="/hero-evening.webp"
-            alt={HERO_EVENING_ALT}
-            decoding="async"
-            className="aspect-[3/4] w-full rounded-card object-cover md:aspect-[4/5]"
-          />
-        </div>
+        {/* One frame at every width, and the mobile arithmetic is simpler for
+            it (QUESTIONS 136): at 390px the content column is 342px, so a
+            single 16:9 frame is 192px tall — shorter than either half of the
+            old two-column diptych, which means headline, sub and CTA still
+            land in the first viewport height with room to spare. No breakpoint
+            changes the crop, because the drawing is composed for this one. */}
+        <img
+          ref={heroImageRef}
+          src="/hero-two-cities.webp"
+          alt={HERO_ALT}
+          decoding="async"
+          data-testid="hero-image"
+          className="mt-8 aspect-[16/9] w-full rounded-card object-cover"
+        />
       </div>
     </section>
   );
