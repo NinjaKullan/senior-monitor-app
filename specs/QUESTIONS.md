@@ -2678,3 +2678,96 @@ browser — all three adopted as the standard for future surfaces.**
      failed first time.
 
      **Next number: 136.**
+
+---
+
+## Illustration set + mobile tab row build notes (implementer, 2026-08-19)
+
+136. **The drawings are in, the tabs stay a row, and mobile verification is now a
+     rule with a script behind it.** Everything in the ruling is built. What a
+     reviewer should see, the calls made inside it, and two things found on the way
+     that are not mine to decide:
+
+     **Imagery.** The hero's two-frame grid is *gone* rather than collapsed — it
+     existed to stage the gap between two rooms with a column gap, and the drawing
+     contains that gap, so keeping the grid would have staged it twice. The
+     messenger's target moved with it: `PARENT_X_FRACTION = 0.25` is exported from
+     `Hero.tsx` and pinned inside the left half by a test, because law #6 is at
+     stake in that flight and a fraction at or past the middle would put the
+     parent's question on her daughter's side of the page. Scenario containers are
+     4:3 and the strip is `aspect-[1600/686]` — the artwork's own ratios rather than
+     the nearest nice fraction, so nothing is cropped by a frame that disagrees with
+     the drawing. Mobile arithmetic improved: at 390px one 16:9 hero frame is 192px
+     tall against the old diptych's 220px.
+
+     * **The strip sits after the "How Kettle works" heading, not above it.** Every
+       section on this page starts with its heading, and an image that outranked one
+       would be the first exception to that. "The section's opening image" reads
+       both ways; this is the reading that keeps the page's structure. **One line to
+       flip if the PM meant the other.**
+     * **All six alt strings passed the copy law unmodified** — the ban scans, the
+       culture-coded scan and the digit walk all run over alt text. "amber glow" is
+       legal here: what this site refuses is an amber *token* and alarm vocabulary,
+       not the word for a colour in a description of a drawing.
+
+     **The tab row.** Below md the row stops wrapping and scrolls sideways; from md
+     it is the wrapping row it always was. Three decisions worth naming:
+
+     * **The fade is a mask**, so it is alpha only — no colour is involved and it
+       cannot quietly become a second palette (AC1) — and it is applied only while
+       the row is *measured* to be clipped. The desktop row therefore needs no
+       breakpoint rule to stay unfaded: it is never clipped, so it is never faded.
+     * **`scrollLeft` on the strip, never `scrollIntoView`**, which scrolls every
+       ancestor and would have taken the page with it — a worse bug than the one
+       being fixed, and an easy one to ship.
+     * **`EDGE_FADE` and the CSS `calc(100% - 2.5rem)` are asserted to be the same
+       number.** If they drift, the active tab is scrolled to a position underneath
+       its own fade, which relocates the bug rather than fixing it.
+
+     **The standing rule** is in CLAUDE.md's working norms and the site README's own
+     table, with `scripts/probe-responsive.mjs` behind it: at 360/390/428/768 it
+     checks page overflow, that the tab row is one line, that every tab clears 40px,
+     that the fade matches the clipping, and then clicks every tab and requires it
+     to end up wholly inside the strip. Current reading: no wrap, no overflow, 43px
+     tabs, every tab in view. Planting the wrapping row back reproduces the founder's
+     report exactly — two lines at 360, 390 and 428, one at 768.
+
+     **Housekeeping, with one correction and one absence.**
+
+     * **`check-prerender.mjs` was checking nothing, and that was mine.** Its
+       MUST_RENDER list still required the retired `_SERIF` role, and `_EMPHASIS` —
+       the role that replaced it in 135 — was not in the list at all. So the page's
+       one emphasis line has not been required in the static HTML since that pass.
+       Fixed and planted: dropping the line now fails the check by name.
+     * **`site/public/illustrations/` does not exist.** The founder's commit b4da2c2
+       shipped only the six optimized webps, so there was nothing to delete.
+     * `@fontsource/fraunces` and `site/Pill.tsx` are gone as ruled. The caching
+       test's manifest is the new six, and a retired photograph left behind in
+       `public/` now fails it — which is what keeps that list a manifest.
+     * **`docs/hero-diptych-brief.md` now describes a retired form.** Left alone:
+       rewriting a brief is the PM's call, not a housekeeping item.
+
+     **Two traps worth recording, both found by drilling rather than by thinking.**
+
+     * **A failed build leaves `dist/` stale, so a verify run after one proves
+       nothing.** The first attempt at the prerender plant removed the emphasis line
+       but left its import, `tsc` failed, `vite build` never ran, and
+       `check-prerender` cheerfully passed against the *previous* build. Same family
+       as the Postgres false green: read what the step before you actually did.
+     * **`--revoke <token>` fails on roughly one device token in sixty-four.**
+       `test_provisioning.py` failed once in a full run and passed eight times on
+       re-run: `secrets.token_urlsafe` draws from `A-Za-z0-9-_`, so a token
+       beginning with `-` is read by argparse as a flag ("expected one argument").
+       This is live founder tooling for revoking a *lost phone*, and it is not
+       something this pass touched — reported rather than fixed. The two candidate
+       fixes: document and use the `--revoke=<token>` form, which argparse always
+       accepts, or give the option `nargs=1` handling that tolerates a leading dash.
+       **`--setup-link` has the same shape and the same exposure.** PM/founder call.
+
+     Eleven plants, all failing by name: a retired photograph path, an eager strip,
+     the strip above the heading, the wrapping row (in jsdom and in the browser), the
+     fade and the margin drifting apart, `scrollIntoView` creeping back, the tap
+     target shrinking, the messenger aimed at the daughter, a retired webp left in
+     `public/`, and the emphasis line dropped from the prerender.
+
+     **Next number: 137.**

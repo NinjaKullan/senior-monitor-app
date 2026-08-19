@@ -91,7 +91,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 136.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 137.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -105,8 +105,9 @@ cheap experiments that decide spec 005b's shape, and what is owed by whom. Read 
 ### State of the build (baton, 2026-08-18 — session handoff)
 
 **All three suites green** (`pytest` 347 with Postgres up, `webapp` 100,
-`site` 140 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
-never trust a skip). Specs 001–006 plus amendments A/B built and reviewed;
+`site` 157 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
+never trust a skip; `test_provisioning.py::--revoke` is a genuine ~1-in-64 flake,
+not a wobble — see Q136). Specs 001–006 plus amendments A/B built and reviewed;
 **spec 005b built and PM-approved** (rulings follow item 123: 118 upheld —
 provisioning stays terminal until the signing runner; 121 amended in the spec
 — honest enumeration ≤ 40, the automation builder is the named reduction
@@ -168,7 +169,7 @@ the duplicated Family-circle row); reconciling the built setup page's
 `kettle/setup_copy.py` against the PM's keyed deck `specs/005b-copy.md`
 (landed with item 132, written 2026-08-16 — the page was built from the mock
 before the deck was in the repo; queues behind the same pause).
-**Next QUESTIONS number: 136.**
+**Next QUESTIONS number: 137.**
 
 **The Rhythm Field is BUILT (Q131 — the mock landed mid-pass and resolved
 Q130): Canvas 2D port of the approved mock, both placements, hard
@@ -182,7 +183,22 @@ ruling is a MECHANISM ban across site copy and the privacy page; the
 motion-law prose sits in design-language §6. PM review of e815276: approved,
 no overrules.**
 
-**The one-voice pass is in (Q135, this session).** The site speaks in one
+**The illustration pass is in (Q136, this session).** The site's imagery is one
+drawn set: the hero is a single wide illustration (the two-frame grid deleted, not
+collapsed — the artwork holds the gap), the four scenario panels and a new narrative
+strip above the how-it-works steps carry the rest, and all six alt strings are the
+PM's words, which passed the copy law unmodified. The scenario tab row no longer
+folds into two ragged lines on a phone: below md it is one sideways-scrolling row
+with a measured mask fade and 40px targets, kept in view by `scrollLeft` (never
+`scrollIntoView`, which would take the page with it). Retired photographs, the dead
+Fraunces dependency and `site/Pill.tsx` are gone, and the caching test's manifest is
+the new six. **Mobile verification is now a standing norm** (see the working norms
+above) with `site/scripts/probe-responsive.mjs` behind it. Two things found on the
+way and left for the PM: `--revoke <token>` fails on ~1 device token in 64 (argparse
+reads a leading `-` as a flag; `--setup-link` has the same exposure), and
+`docs/hero-diptych-brief.md` now describes a retired form.
+
+**The one-voice pass is in (Q135, previous session).** The site speaks in one
 typeface: the serif emphasis role is retired (Fraunces out of the bundle,
 `font-serif` out of the Tailwind theme, the five fragments merged back into
 their sentences), the scale is five roles with one job each — display 48 for
@@ -216,10 +232,11 @@ probe read the canvas' own pixels over the real ground (0.108% → 0.274% legibl
 motion 0.23% → 0.56% of the frame per second).
 
 **Owed by the founder, not by code:** review + `fly deploy` **kettle-site**
-again — two passes are now unshipped (Q134's note correction and field
-visibility, Q135's one-voice typography, the field band and the stir), and both
-have acceptance tests that are the PM looking at the live site — the h2 size
-drop and the 390px band fit especially; `fly deploy` of
+again — three passes are now unshipped (Q134's note correction and field
+visibility, Q135's one-voice typography plus the field band and the stir, Q136's
+illustration set and mobile tab row), and their acceptance tests are the PM and the
+founder looking at the live site — the h2 size drop, the 390px band fit and the
+strip's placement under the how-it-works heading especially; `fly deploy` of
 kettle-app (Q112 cache headers — until then deploys white-screen returning
 browsers — plus login words and the Setup card); the SMTP plan's DNS + dashboard
 steps (`docs/auth-smtp-plan.md`) before any non-founder family; Q126's 48-hour
