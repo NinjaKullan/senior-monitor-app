@@ -17,6 +17,7 @@ import {
   HERO_MOTES,
   HERO_MOTES_MOBILE,
   PRESENCE,
+  fieldsGeometry,
   startFieldsResolve,
   startHeroField,
 } from "@/lib/rhythmField";
@@ -30,18 +31,25 @@ function fakeContext() {
   const ctx = {
     calls,
     fillTexts: [] as string[],
+    /** Where paint actually landed — the only way to see the dust move. */
+    arcs: [] as { x: number; y: number; r: number }[],
+    textAt: [] as { text: string; x: number; y: number }[],
     setTransform: () => count("setTransform"),
     clearRect: () => count("clearRect"),
     beginPath: () => count("beginPath"),
-    arc: () => count("arc"),
+    arc(x: number, y: number, r: number) {
+      count("arc");
+      ctx.arcs.push({ x, y, r });
+    },
     fill: () => count("fill"),
     stroke: () => count("stroke"),
     setLineDash: () => count("setLineDash"),
     save: () => count("save"),
     restore: () => count("restore"),
-    fillText(text: string) {
+    fillText(text: string, x: number, y: number) {
       count("fillText");
       ctx.fillTexts.push(text);
+      ctx.textAt.push({ text, x, y });
     },
     fillStyle: "",
     strokeStyle: "",
@@ -54,19 +62,32 @@ function fakeContext() {
   return ctx;
 }
 
-/** A canvas whose context and geometry the test controls. */
+/**
+ * A canvas whose context and geometry the test controls, in the shape the page
+ * actually renders: section > band > canvas. The band is what the resolve
+ * watches and what the reserved-band fix created; the section is what the
+ * pointer listener attaches to.
+ */
 function fakeCanvas(ctx: ReturnType<typeof fakeContext> | null, w = 1000, h = 600) {
   const section = document.createElement("section");
+  const band = document.createElement("div");
   const canvas = document.createElement("canvas");
-  section.appendChild(canvas);
+  band.appendChild(canvas);
+  section.appendChild(band);
   document.body.appendChild(section);
   Object.defineProperty(canvas, "clientWidth", { value: w });
   Object.defineProperty(canvas, "clientHeight", { value: h });
   canvas.getContext = (() => ctx) as never;
-  section.getBoundingClientRect = () =>
+  const rect = () =>
     ({ top: 0, left: 0, width: w, height: h, bottom: h, right: w }) as DOMRect;
+  band.getBoundingClientRect = rect;
+  section.getBoundingClientRect = rect;
+  canvas.getBoundingClientRect = rect;
   return canvas;
 }
+
+/** The section a fakeCanvas hangs under — the pointer listener's host. */
+const sectionOf = (canvas: HTMLCanvasElement) => canvas.closest("section")!;
 
 /** Frame-stepped requestAnimationFrame: the test drives time. */
 let frameQueue: FrameRequestCallback[] = [];
@@ -345,7 +366,22 @@ describe("the presence constants match the approved mock", () => {
         /rgba\(\$\{AMBER\},(\.[\d]+)\)`; hctx\.lineWidth = ([\d.]+); hctx\.stroke/,
         [P.messengerHaloAlpha, P.messengerHaloWidth],
       ],
-      ["dust radius", /tctx\.arc\(x, y, ([\d.]+), 0, 7\)/, [P.dustRadius]],
+      ["dust radius", /tctx\.arc\(x \+ d\.ox, y \+ d\.oy, ([\d.]+), 0, 7\)/, [P.dustRadius]],
+      [
+        "dust orbit",
+        /dr: (\.[\d]+) \+ Math\.random\(\) \* (\.[\d]+),/,
+        [P.dustOrbitMin, P.dustOrbitSpread],
+      ],
+      ["ring size", /const ring = Math\.min\((\d+), W \/ (\d+)\);/, [P.fieldsRingMax, P.fieldsRingDivisor]],
+      [
+        "outer orbit centres",
+        /\{ x: W \* \(0\.5 - (\.[\d]+)\), y: H \* (\.[\d]+) \}/,
+        [P.fieldsSpread, P.fieldsRowY],
+      ],
+      ["middle orbit centre", /\{ x: W \* 0\.5,\s+y: H \* (\.[\d]+) \}/, [P.fieldsRowYMid]],
+      ["stir reach", /dist < (\d+)\) \{/, [PRESENCE.cursorRadius]],
+      ["stir push", /push = (\d+) \* falloff \* falloff/, [PRESENCE.cursorPush]],
+      ["stir ease", /d\.ox \+= \(tox - d\.ox\) \* (\.[\d]+);/, [PRESENCE.cursorEase]],
       ["dust alpha", /rgba\(244,237,228,\$\{([\d.]+) \+ ([\d.]+) \* k\}\)/, [P.dustAlphaFloor, P.dustAlphaRange]],
       ["dust ring width", /tctx\.lineWidth = ([\d.]+); tctx\.stroke\(\)/, [P.dustRingWidth]],
     ];
@@ -360,5 +396,225 @@ describe("the presence constants match the approved mock", () => {
     const source = mockSource();
     expect(read(source, /for \(let i = 0; i < (\d+); i\+\+\) \{\n\s+this\.motes/)).toEqual([HERO_MOTES]);
     expect(read(source, /for \(let i = 0; i < (\d+); i\+\+\) \{\n\s+dust\.push/)).toEqual([FIELDS_DUST]);
+  });
+});
+
+/**
+ * QUESTIONS 135 — the band, and what may happen inside it.
+ *
+ * The collision the reviewers saw was geometry: three fixed-radius rings on a
+ * canvas that shared its box with flowing text. The rings now size themselves
+ * to a band of their own, so the arithmetic is testable without a browser —
+ * these are the four widths the ruling named, run through the real function the
+ * engine draws with.
+ */
+describe("the three orbits fit their band", () => {
+  /** Viewport width -> the canvas it produces: the content column is
+   *  max-w-3xl (768px) inside px-6 (24px a side). */
+  const CANVAS_WIDTH = (viewport: number) => Math.min(768, viewport - 48);
+  /** h-64 below the md breakpoint, md:h-80 at and above it. */
+  const CANVAS_HEIGHT = (viewport: number) => (viewport >= 768 ? 320 : 256);
+  /** A deliberately fat estimate of the widest label, at the canvas' 19px. */
+  const LABEL_HALF_WIDTH = ("signal".length * 19 * 0.6) / 2;
+  const MARGIN = 16;
+
+  for (const viewport of [360, 390, 768, 1440]) {
+    it(`fits three rings and their words at ${viewport}px`, () => {
+      const W = CANVAS_WIDTH(viewport);
+      const H = CANVAS_HEIGHT(viewport);
+      const { ring, centres } = fieldsGeometry(W, H);
+
+      expect(ring).toBeGreaterThan(LABEL_HALF_WIDTH + 4);
+      for (const [i, c] of centres.entries()) {
+        expect(c.x - ring, `ring ${i} runs off the left at ${viewport}`).toBeGreaterThanOrEqual(MARGIN);
+        expect(c.x + ring, `ring ${i} runs off the right at ${viewport}`).toBeLessThanOrEqual(W - MARGIN);
+        expect(c.y - ring, `ring ${i} runs off the top at ${viewport}`).toBeGreaterThanOrEqual(MARGIN);
+        expect(c.y + ring, `ring ${i} runs off the bottom at ${viewport}`).toBeLessThanOrEqual(H - MARGIN);
+      }
+      // And they do not touch each other: three overlapping rings read as one
+      // smear, which is what the fixed 56px did below ~600px of canvas.
+      for (let i = 1; i < centres.length; i++) {
+        expect(centres[i].x - centres[i - 1].x, `rings ${i - 1} and ${i} overlap`).toBeGreaterThan(
+          2 * ring + 12,
+        );
+      }
+    });
+  }
+
+  it("would catch the fixed radius coming back", () => {
+    // The regression this exists for: a ring that ignores the band. At the
+    // narrowest canvas the mock's old 56px overlaps its neighbour.
+    const W = CANVAS_WIDTH(360);
+    const { centres } = fieldsGeometry(W, CANVAS_HEIGHT(360));
+    expect(centres[1].x - centres[0].x).toBeLessThan(2 * PRESENCE.fieldsRingMax + 12);
+  });
+
+  it("keeps every grain of dust inside its own ring", () => {
+    // Orbits are fractions of the ring, not pixels, so the widest orbit at the
+    // narrowest band is still an orbit rather than an escape.
+    const widest = PRESENCE.dustOrbitMin + PRESENCE.dustOrbitSpread;
+    expect(widest).toBeLessThan(1);
+  });
+});
+
+describe("stirring the dust", () => {
+  const LABELS = ["who", "signal", "when"] as const;
+
+  /** One frame's worth of paint, with the dust made identical so two runs are
+   *  comparable. */
+  function frameAfter(steps: number, pointer: boolean, cursor?: { x: number; y: number; type: string }) {
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.4);
+    frameQueue = [];
+    const ctx = fakeContext();
+    const canvas = fakeCanvas(ctx);
+    const handle = startFieldsResolve(canvas, {
+      reducedMotion: false,
+      mobile: false,
+      pointer,
+      labels: LABELS,
+    });
+    if (cursor) {
+      const event = new MouseEvent("pointermove", {
+        clientX: cursor.x,
+        clientY: cursor.y,
+        bubbles: true,
+      });
+      Object.defineProperty(event, "pointerType", { value: cursor.type });
+      sectionOf(canvas).dispatchEvent(event);
+    }
+    step(steps);
+    ctx.arcs.length = 0;
+    ctx.textAt.length = 0;
+    step(1);
+    handle.stop();
+    random.mockRestore();
+    return { arcs: [...ctx.arcs], textAt: [...ctx.textAt] };
+  }
+
+  const MOUSE = { x: 500, y: 324, type: "mouse" };
+  type Arc = { x: number; y: number; r: number };
+  const dustOnly = (arcs: Arc[]) => arcs.filter((a) => a.r === PRESENCE.dustRadius);
+  const ringsOnly = (arcs: Arc[]) => arcs.filter((a) => a.r !== PRESENCE.dustRadius);
+
+  it("attaches nothing at all without a fine pointer", () => {
+    frameQueue = [];
+    const canvas = fakeCanvas(fakeContext());
+    const spy = vi.spyOn(sectionOf(canvas), "addEventListener");
+    const handle = startFieldsResolve(canvas, {
+      reducedMotion: false,
+      mobile: false,
+      pointer: false,
+      labels: LABELS,
+    });
+    expect(spy.mock.calls.map(([type]) => type)).toEqual([]);
+    handle.stop();
+    spy.mockRestore();
+  });
+
+  it("attaches nothing under reduced motion, even with a pointer", () => {
+    // The designed still stays still: the section returns before any listener
+    // exists, so there is nothing to disturb it.
+    frameQueue = [];
+    const canvas = fakeCanvas(fakeContext());
+    const spy = vi.spyOn(sectionOf(canvas), "addEventListener");
+    const handle = startFieldsResolve(canvas, {
+      reducedMotion: true,
+      mobile: false,
+      pointer: true,
+      labels: LABELS,
+    });
+    expect(handle.debug.kind).toBe("static");
+    expect(spy.mock.calls.map(([type]) => type)).toEqual([]);
+    spy.mockRestore();
+  });
+
+  it("listens passively, and gives the listeners back on stop", () => {
+    frameQueue = [];
+    const canvas = fakeCanvas(fakeContext());
+    const section = sectionOf(canvas);
+    const added = vi.spyOn(section, "addEventListener");
+    const removed = vi.spyOn(section, "removeEventListener");
+    const handle = startFieldsResolve(canvas, {
+      reducedMotion: false,
+      mobile: false,
+      pointer: true,
+      labels: LABELS,
+    });
+    expect(added.mock.calls.map(([type]) => type)).toEqual(["pointermove", "pointerleave"]);
+    // Passive, so the browser never waits on us before scrolling — and no
+    // listener anywhere calls preventDefault.
+    for (const [, , options] of added.mock.calls) {
+      expect(options).toEqual({ passive: true });
+    }
+    handle.stop();
+    expect(removed.mock.calls.map(([type]) => type)).toEqual(["pointermove", "pointerleave"]);
+    added.mockRestore();
+    removed.mockRestore();
+  });
+
+  it("pushes the dust away from the cursor, and nothing else", () => {
+    const still = frameAfter(400, false);
+    const stirred = frameAfter(400, true, MOUSE);
+
+    const near = (a: { x: number; y: number }) => Math.hypot(a.x - MOUSE.x, a.y - MOUSE.y);
+    const stillDust = dustOnly(still.arcs);
+    const stirredDust = dustOnly(stirred.arcs);
+    expect(stillDust.length).toBe(stirredDust.length);
+    expect(stillDust.length).toBeGreaterThan(0);
+
+    const moved = stirredDust.filter((d, i) => d.x !== stillDust[i].x || d.y !== stillDust[i].y);
+    expect(moved.length, "no dust reacted to the cursor").toBeGreaterThan(0);
+    for (const [i, d] of stirredDust.entries()) {
+      if (d.x === stillDust[i].x && d.y === stillDust[i].y) continue;
+      expect(near(d), "dust moved toward the cursor").toBeGreaterThan(near(stillDust[i]));
+    }
+    // Only dust. The orbit rings and the three words are exactly where they
+    // were: the schema does not wobble when the mouse goes past.
+    expect(ringsOnly(stirred.arcs)).toEqual(ringsOnly(still.arcs));
+    expect(stirred.textAt).toEqual(still.textAt);
+    expect(stirred.textAt.map((t) => t.text)).toEqual([...LABELS]);
+  });
+
+  it("ignores a pointer that is not a mouse", () => {
+    // A touchscreen that manages to send us a pointermove still changes
+    // nothing — the gate is belt and braces with the listener never attaching.
+    const still = frameAfter(400, false);
+    const touched = frameAfter(400, true, { ...MOUSE, type: "touch" });
+    expect(dustOnly(touched.arcs)).toEqual(dustOnly(still.arcs));
+  });
+
+  it("lets the dust go home when the cursor leaves", () => {
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.4);
+    frameQueue = [];
+    const ctx = fakeContext();
+    const canvas = fakeCanvas(ctx);
+    const handle = startFieldsResolve(canvas, {
+      reducedMotion: false,
+      mobile: false,
+      pointer: true,
+      labels: LABELS,
+    });
+    const move = new MouseEvent("pointermove", { clientX: MOUSE.x, clientY: MOUSE.y });
+    Object.defineProperty(move, "pointerType", { value: "mouse" });
+    sectionOf(canvas).dispatchEvent(move);
+    step(400);
+    ctx.arcs.length = 0;
+    step(1);
+    const displaced = dustOnly([...ctx.arcs]);
+
+    sectionOf(canvas).dispatchEvent(new MouseEvent("pointerleave"));
+    step(400);
+    ctx.arcs.length = 0;
+    step(1);
+    const recovered = dustOnly([...ctx.arcs]);
+    handle.stop();
+    random.mockRestore();
+
+    // Recovery is toward the orbit, not merely different: after the cursor
+    // leaves, the same grain sits closer to where the cursor used to be than
+    // it did while being pushed.
+    const near = (a: { x: number; y: number }) => Math.hypot(a.x - MOUSE.x, a.y - MOUSE.y);
+    const closer = recovered.filter((d, i) => near(d) < near(displaced[i]));
+    expect(closer.length).toBeGreaterThan(0);
   });
 });
