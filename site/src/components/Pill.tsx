@@ -6,13 +6,14 @@ import type { ReactNode } from "react";
  * Hover is a **colour shift only**, ~150ms: no elevation, no transform, no
  * scale. The reference's own buttons faux-bold a 400-weight file; ours renders a
  * true semibold from a real 600 file, which is the one place this site is
- * deliberately better than what it learned from.
+ * deliberately better than what it learned from. The label sits at body
+ * size: with five type roles a button is not its own size (QUESTIONS 135).
  *
  * `hover:scale` is planted in the motion test and must fail. A page whose job is
  * calm cannot have controls that jump.
  */
 const PILL =
-  "inline-flex items-center justify-center rounded-full px-6 py-3 text-feature " +
+  "inline-flex items-center justify-center rounded-full px-6 py-3 text-body " +
   "font-semibold transition-colors duration-150 focus-visible:outline-none " +
   "focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 " +
   "focus-visible:ring-offset-canvas bg-ink text-canvas hover:bg-calm";

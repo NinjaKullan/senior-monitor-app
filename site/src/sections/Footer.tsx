@@ -17,7 +17,7 @@ export function Footer() {
   return (
     <footer className="bg-canvas px-6 py-16 text-ink" data-testid="footer">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-        <p className="text-feature font-semibold">{FOOTER_WORDMARK}</p>
+        <p className="text-body font-semibold">{FOOTER_WORDMARK}</p>
         <p className="text-body text-secondary">{FOOTER_LINE}</p>
         <nav className="flex gap-6 text-body">
           <a className="underline underline-offset-4" href="/privacy.html">

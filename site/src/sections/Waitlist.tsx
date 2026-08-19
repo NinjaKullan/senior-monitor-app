@@ -66,7 +66,7 @@ export function Waitlist() {
 
   return (
     <Section id="waitlist">
-      <h2 className="text-display font-light" data-testid="section-heading">
+      <h2 className="text-heading" data-testid="section-heading">
         {WAITLIST_H2}
       </h2>
       {/* Stated flat. No countdown, no "limited", no urgency vocabulary of any

@@ -72,7 +72,7 @@ export function Hero() {
       />
       <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col gap-8">
         <Eyebrow>{HERO_EYEBROW}</Eyebrow>
-        <h1 className="max-w-2xl text-display font-light" data-testid="page-heading">
+        <h1 className="max-w-2xl text-display" data-testid="page-heading">
           {HERO_H1}
         </h1>
         {/* One sub block, two sentences: what Kettle notices, and the objection

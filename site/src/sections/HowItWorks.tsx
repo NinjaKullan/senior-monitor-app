@@ -29,7 +29,7 @@ const STEPS = [
 export function HowItWorks() {
   return (
     <Section>
-      <h2 className="text-display font-light" data-testid="section-heading">
+      <h2 className="text-heading" data-testid="section-heading">
         {HOW_H2}
       </h2>
       <ol className="flex flex-col gap-10">
@@ -38,12 +38,12 @@ export function HowItWorks() {
             <span
               aria-hidden="true"
               data-testid="step-number"
-              className="shrink-0 text-feature text-secondary"
+              className="shrink-0 text-lead text-secondary"
             >
               {index + 1}
             </span>
             <div className="flex flex-col gap-2">
-              <p className="text-feature font-semibold">{step.label}</p>
+              <p className="text-body font-semibold">{step.label}</p>
               <p className="max-w-xl text-body text-secondary">{step.body}</p>
             </div>
           </li>

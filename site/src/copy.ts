@@ -60,33 +60,34 @@ export const HERO_EVENING_ALT =
 export const SCENARIOS_H2 = "An ordinary day.";
 
 /*
- * Each scenario is a sans lead sentence with the serif carrying its last phrase
- * — design-language §3's "italic phrase inside a sans sentence", which is the
- * only shape the serif is permitted in. The spec's drafted sentences are intact
- * word for word; only the element boundary falls inside them (QUESTIONS 79).
+ * Each scenario is one lead sentence, whole. It used to be split at the last
+ * phrase so the serif could carry the ending; QUESTIONS 135 retired that role
+ * and the two halves are one string again. The spec's drafted sentences are
+ * still intact word for word — the element boundary that used to fall inside
+ * them (QUESTIONS 79) is simply gone.
  */
 
 export const MORNING_TAB = "Her morning";
 export const MORNING_H3 = "A morning like any other.";
 export const MORNING_LEAD =
-  "By the time her coffee went cold she'd called her sister, read the news, and ";
-export const MORNING_SERIF = "lost an argument with the crossword.";
+  "By the time her coffee went cold she'd called her sister, read the news, and lost "
+  + "an argument with the crossword.";
 export const MORNING_BODY = "Her phone did its ordinary things. That's all Kettle ever needs.";
 export const MORNING_ALT =
   "A kitchen table in morning sun, a half-finished crossword, reading glasses, and a cup of coffee.";
 
 export const AFTERNOON_TAB = "Her afternoon";
 export const AFTERNOON_H3 = "Quiet is allowed.";
-export const AFTERNOON_LEAD = "Kettle knows the shape of her whole day, so ";
-export const AFTERNOON_SERIF = "a quiet afternoon reads as exactly that.";
+export const AFTERNOON_LEAD =
+  "Kettle knows the shape of her whole day, so a quiet afternoon reads as exactly that.";
 export const AFTERNOON_BODY = "A nap is not a signal.";
 export const AFTERNOON_ALT =
   "An armchair by a sunlit curtain, a paperback resting open on its arm, tea on the side table.";
 
 export const OFF_TAB = "When something's off";
 export const OFF_H3 = "She hears from Kettle first.";
-export const OFF_LEAD = "When the morning doesn't look like her morning, ";
-export const OFF_SERIF = "Kettle asks her first, quietly.";
+export const OFF_LEAD =
+  "When the morning doesn't look like her morning, Kettle asks her first, quietly.";
 export const OFF_BODY = "Only if she doesn't answer does anyone else hear a thing.";
 export const OFF_ALT =
   "A kettle steaming on the counter, a mug of tea beside it, a phone lit with one quiet line.";
@@ -96,8 +97,8 @@ export const OFF_NOTIF = "Everything okay today? Reply whenever suits.";
 
 export const SEEN_TAB = "What you see";
 export const SEEN_H3 = "Reassurance, twice a day.";
-export const SEEN_LEAD = "Two short messages a day, and ";
-export const SEEN_SERIF = "a phrase when there's something worth saying.";
+export const SEEN_LEAD =
+  "Two short messages a day, and a phrase when there's something worth saying.";
 export const SEEN_BODY = "Never a feed, never a score, never a graph.";
 export const SEEN_ALT =
   "A desk at the end of the day, laptop closed, keys set down, a child's drawing on the wall.";
@@ -120,8 +121,7 @@ export const STORY_EYEBROW = "Why the name";
 export const STORY_H2 = "Named after a kettle.";
 export const STORY_ONE_BODY =
   "In Japan, a tea kettle once told faraway families that their parents had started the day as usual.";
-export const STORY_TWO_LEAD = "The gentle idea was to ";
-export const STORY_TWO_SERIF = "notice the ordinary, and say so.";
+export const STORY_TWO_LEAD = "The gentle idea was to notice the ordinary, and say so.";
 export const STORY_TWO_BODY = "Kettle does the same with the phone your parents already own.";
 export const STORY_THREE_BODY =
   "Nothing to install in their home. Nothing to wear, nothing to charge, nothing to learn.";
@@ -133,7 +133,10 @@ export const STORY_THREE_BODY =
 export const FIELDS_H2 = "Three fields. Nothing else.";
 /** The chips, and the literal truth of the schema. AC3 plants a drifted claim. */
 export const FIELDS_CHIPS = ["who", "signal", "when"] as const;
-export const FIELDS_SERIF = "What isn't collected can't leak.";
+/** The page's one emphasis line, and the shape the law now allows: a whole
+ *  sentence, carried by weight in the body face — never an italic fragment
+ *  inside someone else's sentence (QUESTIONS 135). */
+export const FIELDS_EMPHASIS = "What isn't collected can't leak.";
 export const FIELDS_BODY =
   "This is the whole record Kettle keeps. Not what she typed. Not who she called. Not where she went.";
 

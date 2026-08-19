@@ -2,12 +2,20 @@
    there is no runtime request to a font CDN and no third-party origin anywhere
    in `dist/` (law #4, asserted by scripts/check-foreign-origins.mjs).
 
-   The 600 weight is a real file, not a faux-bold. The reference declares only
-   300 and 400 and then applies `font-bold` to every CTA, which synthesises the
-   weight in the browser; that is a bug worth not copying. */
+   Every weight the page uses is a real file, not a synthesised one. The
+   reference declares only 300 and 400 and then applies `font-bold` to every
+   CTA, which fakes the weight in the browser; that is a bug worth not copying.
+   The same trap ran the other way here until QUESTIONS 135: `font-light` was
+   written across every heading while Instrument Sans has no 300 file at all —
+   its range starts at 400 — so the browser served 400 and the type law's
+   "display gets lighter as it grows" was decoration. The class is gone and the
+   law now names weights this face actually has: 400 regular, 500 for the one
+   emphasis role, 600 for buttons and labels.
+
+   The serif is gone with the emphasis role it existed for (QUESTIONS 135). */
 @import "@fontsource/instrument-sans/400.css";
+@import "@fontsource/instrument-sans/500.css";
 @import "@fontsource/instrument-sans/600.css";
-@import "@fontsource/fraunces/300-italic.css";
 
 @import "./tokens.css";
 

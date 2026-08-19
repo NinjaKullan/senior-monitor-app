@@ -1,25 +1,21 @@
 import { useId, useState } from "react";
 import { NotificationCard } from "@/components/NotificationCard";
-import { SerifPhrase } from "@/components/SerifPhrase";
 import {
   AFTERNOON_ALT,
   AFTERNOON_BODY,
   AFTERNOON_H3,
   AFTERNOON_LEAD,
-  AFTERNOON_SERIF,
   AFTERNOON_TAB,
   MORNING_ALT,
   MORNING_BODY,
   MORNING_H3,
   MORNING_LEAD,
-  MORNING_SERIF,
   MORNING_TAB,
   OFF_ALT,
   OFF_BODY,
   OFF_H3,
   OFF_LEAD,
   OFF_NOTIF,
-  OFF_SERIF,
   OFF_TAB,
   SCENARIOS_H2,
   SEEN_ALT,
@@ -27,7 +23,6 @@ import {
   SEEN_H3,
   SEEN_LEAD,
   SEEN_NOTIF,
-  SEEN_SERIF,
   SEEN_TAB,
 } from "@/copy";
 import { type WashSet, washBackground } from "@/lib/wash";
@@ -37,10 +32,9 @@ interface Scenario {
   tab: string;
   /** The panel's one-line headline (beta conversion: the kickers retired). */
   headline: string;
-  /** The sans opening of the lead sentence. */
+  /** The lead sentence, whole — it used to be split so the serif could carry
+   *  its ending (QUESTIONS 135). */
   lead: string;
-  /** Its closing phrase, and the only serif on the panel. */
-  serif: string;
   body: string;
   /** The commissioned photograph, from site/public/. */
   image: string;
@@ -63,7 +57,6 @@ export const SCENARIOS: readonly Scenario[] = [
     tab: MORNING_TAB,
     headline: MORNING_H3,
     lead: MORNING_LEAD,
-    serif: MORNING_SERIF,
     body: MORNING_BODY,
     image: "/section-her-morning.webp",
     alt: MORNING_ALT,
@@ -74,7 +67,6 @@ export const SCENARIOS: readonly Scenario[] = [
     tab: AFTERNOON_TAB,
     headline: AFTERNOON_H3,
     lead: AFTERNOON_LEAD,
-    serif: AFTERNOON_SERIF,
     body: AFTERNOON_BODY,
     image: "/section-her-afternoon.webp",
     alt: AFTERNOON_ALT,
@@ -85,7 +77,6 @@ export const SCENARIOS: readonly Scenario[] = [
     tab: OFF_TAB,
     headline: OFF_H3,
     lead: OFF_LEAD,
-    serif: OFF_SERIF,
     body: OFF_BODY,
     image: "/section-somethings-off.webp",
     alt: OFF_ALT,
@@ -98,7 +89,6 @@ export const SCENARIOS: readonly Scenario[] = [
     tab: SEEN_TAB,
     headline: SEEN_H3,
     lead: SEEN_LEAD,
-    serif: SEEN_SERIF,
     body: SEEN_BODY,
     image: "/section-what-you-see.webp",
     alt: SEEN_ALT,
@@ -118,7 +108,7 @@ export function Scenarios() {
       style={{ backgroundImage: washBackground(SCENARIOS[active].set) }}
     >
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
-        <h2 className="text-display font-light" data-testid="section-heading">
+        <h2 className="text-heading" data-testid="section-heading">
           {SCENARIOS_H2}
         </h2>
 
@@ -146,7 +136,7 @@ export function Scenarios() {
                 setActive((current) => (current + step + SCENARIOS.length) % SCENARIOS.length);
               }}
               className={
-                "border-b-[3px] pb-2 text-feature font-normal transition-opacity duration-300 " +
+                "border-b-[3px] pb-2 text-body transition-opacity duration-300 " +
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink " +
                 (index === active
                   ? "border-ink opacity-100"
@@ -177,13 +167,10 @@ export function Scenarios() {
             hidden={index !== active}
             className="flex flex-col gap-6"
           >
-            <h3 className="text-feature font-normal" data-testid="scenario-headline">
+            <h3 className="text-lead font-medium" data-testid="scenario-headline">
               {scenario.headline}
             </h3>
-            <p className="text-card font-light">
-              {scenario.lead}
-              <SerifPhrase>{scenario.serif}</SerifPhrase>
-            </p>
+            <p className="text-lead">{scenario.lead}</p>
             <p className="max-w-xl text-body text-secondary">{scenario.body}</p>
             {/* Below the hero, so it lazy-loads; sized by class so the
                 digit walk over perceivable attributes stays clean. */}

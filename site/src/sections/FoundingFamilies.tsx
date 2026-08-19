@@ -31,7 +31,7 @@ const PROMISES = [
 export function FoundingFamilies() {
   return (
     <Section>
-      <h2 className="text-display font-light" data-testid="section-heading">
+      <h2 className="text-heading" data-testid="section-heading">
         {FOUNDING_H2}
       </h2>
       <ul className="flex max-w-xl flex-col gap-4" data-testid="founding-promises">

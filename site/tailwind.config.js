@@ -14,20 +14,22 @@ export default {
         secondary: "var(--text-secondary)",
         error: "var(--error)",
       },
+      // One typeface, everywhere (QUESTIONS 135). The serif family is gone,
+      // not merely unused: a face that is still reachable is a face that comes
+      // back.
       fontFamily: {
         sans: ["Instrument Sans", "system-ui", "sans-serif"],
-        serif: ["Fraunces", "Georgia", "serif"],
       },
-      // Design-language §3: display gets lighter as it grows, tracking tightens
-      // with size, body never varies.
+      // Design-language §3: five roles, each with one job — display, heading,
+      // lead, body, eyebrow. Hierarchy comes from size and weight only, warmth
+      // from colour. A sixth size is not a design decision to be made in a
+      // className; it is an amendment to the type law.
       fontSize: {
         eyebrow: ["13px", { lineHeight: "1.5", letterSpacing: "0.05em" }],
         body: ["16px", { lineHeight: "1.5" }],
         lead: ["20px", { lineHeight: "1.5" }],
-        feature: ["18px", { lineHeight: "1.5" }],
-        card: ["28px", { lineHeight: "1.05" }],
-        quote: ["30px", { lineHeight: "1.5" }],
-        display: ["48px", { lineHeight: "1.25", letterSpacing: "-0.03em" }],
+        heading: ["32px", { lineHeight: "1.2", letterSpacing: "-0.02em" }],
+        display: ["48px", { lineHeight: "1.15", letterSpacing: "-0.03em" }],
       },
       borderRadius: { card: "8px", tile: "24px", panel: "40px" },
       keyframes: {
