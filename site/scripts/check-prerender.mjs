@@ -41,7 +41,7 @@ for (const match of copy.matchAll(/export const ([A-Z0-9_]+)\s*=\s*\[([\s\S]*?)\
 }
 
 /** The roles that must be legible with no JavaScript at all. */
-const MUST_RENDER = /_(H1|H2|BODY|LEAD|SERIF|TAB|EYEBROW|CTA|LABEL|ALT|NOTIF)$/;
+const MUST_RENDER = /_(H1|H2|BODY|LEAD|EMPHASIS|TAB|EYEBROW|CTA|LABEL|ALT|NOTIF)$/;
 
 const decoded = (html + privacy)
   .replace(/&#x27;|&#39;/g, "'")

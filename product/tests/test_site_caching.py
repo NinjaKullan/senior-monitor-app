@@ -27,8 +27,8 @@ def block(prefix: str) -> str:
 def test_the_shell_always_revalidates():
     """The prerendered index names the hashed assets; a stale one mismatches."""
     assert 'add_header Cache-Control "no-cache"' in block("= /index.html")
-    # The photographs and privacy.html are unhashed too — the whole catch-all
-    # revalidates. no-cache, not no-store: an unchanged photograph is a 304.
+    # The illustrations and privacy.html are unhashed too — the whole catch-all
+    # revalidates. no-cache, not no-store: an unchanged illustration is a 304.
     assert 'add_header Cache-Control "no-cache"' in block("/ {")
 
 
@@ -46,21 +46,24 @@ def test_no_other_block_reintroduces_a_lifetime_on_unhashed_files():
     assert not re.search(r"location\s+~", CONFIG), "a regex location outranks the cache rules"
 
 
-def test_the_photographs_really_are_unhashed_stable_names():
+def test_the_illustrations_really_are_unhashed_stable_names():
     """The premise the catch-all rule rests on, checked against the tree.
 
     If imagery ever moves into the hashed pipeline this starts failing, which
     is the right moment to notice the contract's split no longer matches the
-    files it was written for.
+    files it was written for. The names are the illustration set that replaced
+    the photographs wholesale (QUESTIONS 136); a retired photograph left behind
+    in public/ fails here, which is how this list stays a manifest rather than
+    a comment.
     """
     webps = sorted(p.name for p in (SITE / "public").glob("*.webp"))
     assert webps == [
-        "hero-evening.webp",
-        "hero-morning.webp",
-        "section-her-afternoon.webp",
-        "section-her-morning.webp",
-        "section-somethings-off.webp",
-        "section-what-you-see.webp",
+        "hero-two-cities.webp",
+        "ill-her-afternoon.webp",
+        "ill-her-morning.webp",
+        "ill-somethings-off.webp",
+        "ill-story-strip.webp",
+        "ill-what-you-see.webp",
     ]
     for name in webps:
         assert not re.search(r"[.-][0-9a-f]{8,}\.webp$", name), f"{name} looks hashed"
