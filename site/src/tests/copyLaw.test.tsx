@@ -194,9 +194,12 @@ const ARRAYS = Object.entries(copy).flatMap(([name, value]) =>
 const PROSE = [...STRINGS, ...ARRAYS];
 
 /** Roles, and the shape rule each carries (AC12). H3 joined with the scenario
- *  panel headlines (beta conversion, QUESTIONS 129). */
+ *  panel headlines (beta conversion, QUESTIONS 129). SERIF retired and
+ *  EMPHASIS replaced it (QUESTIONS 135): the page's emphasis is a whole
+ *  sentence carried by weight, never an italic fragment, so the role that
+ *  named a sentence-fragment no longer exists. */
 const ROLE =
-  /_(H1|H2|H3|BODY|LEAD|SERIF|TAB|EYEBROW|CTA|LABEL|ALT|NOTIF|CHIP|CHIPS|HREF|SUCCESS|ERROR|WORDMARK|LINE)$/;
+  /_(H1|H2|H3|BODY|LEAD|EMPHASIS|TAB|EYEBROW|CTA|LABEL|ALT|NOTIF|CHIP|CHIPS|HREF|SUCCESS|ERROR|WORDMARK|LINE)$/;
 
 const words = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
 
@@ -319,7 +322,7 @@ describe("AC12 — copy shape", () => {
 
   it("keeps every paragraph under twenty-three words", () => {
     for (const [name, value] of STRINGS) {
-      if (/_(BODY|LEAD|SERIF)$/.test(name)) {
+      if (/_(BODY|LEAD|EMPHASIS)$/.test(name)) {
         expect(words(value), `${name} runs long: ${value}`).toBeLessThanOrEqual(23);
       }
     }

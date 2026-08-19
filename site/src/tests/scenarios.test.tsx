@@ -56,8 +56,12 @@ describe("AC5 — panels differ by tint and content, never by structure", () => 
     expect(shapes[0]).toBe(shapes[1]);
     expect(shapes[2]).toBe(shapes[3]);
     // And the escalation risk: `off` must not have acquired anything `morning`
-    // lacks beyond that notification.
-    expect(shapes[2].split("\n").slice(0, 6)).toEqual(shapes[0].split("\n").slice(0, 6));
+    // lacks beyond that notification. The prefix is morning's own length rather
+    // than a hard-coded count — the panel lost an element when the serif was
+    // retired (QUESTIONS 135), and a literal 6 here quietly stopped comparing
+    // the whole of morning against the start of off.
+    const morning = shapes[0].split("\n");
+    expect(shapes[2].split("\n").slice(0, morning.length)).toEqual(morning);
   });
 
   it("gives every panel identical classes", () => {
@@ -146,7 +150,10 @@ describe("AC6 — the measured tab grammar", () => {
         .join(" ");
     const [active, ...rest] = tabs();
     for (const tab of rest) expect(strip(tab.className)).toBe(strip(active.className));
-    expect(active.className).toContain("font-normal");
+    // Neither state names a weight at all now: the tabs sit at the body role's
+    // own 400, so "no weight change between states" is true by construction
+    // rather than by both sides carrying the same override.
+    for (const tab of tabs()) expect(tab.className).not.toMatch(/font-(light|medium|semibold|bold)/);
   });
 
   it("eases the tab over 300ms and never transitions the panel", () => {
@@ -247,7 +254,7 @@ describe("AC9 — the panels read with no JavaScript", () => {
       .replace(/&amp;/g, "&");
     for (const scenario of SCENARIOS) {
       expect(html, `${scenario.set} is missing from the static HTML`).toContain(scenario.body);
-      expect(html).toContain(scenario.serif);
+      expect(html).toContain(scenario.lead);
     }
   });
 });

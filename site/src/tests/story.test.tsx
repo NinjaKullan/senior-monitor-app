@@ -3,8 +3,8 @@
  *
  * A section whose whole job is a name could carry very little and still look
  * finished, which is why the assertions here are mostly about restraint: it
- * spends the serif once, it carries no wash (a tint would imply a fifth
- * scenario), and it names nobody. Its position is asserted too — the story is an
+ * says its idea in one whole sentence, it carries no wash (a tint would imply a
+ * fifth scenario), and it names nobody. Its position is asserted too — the story is an
  * argument that hands off to the privacy centrepiece, and a section that drifts
  * below the three fields stops being an argument and becomes a footnote.
  */
@@ -25,7 +25,6 @@ import {
   STORY_THREE_BODY,
   STORY_TWO_BODY,
   STORY_TWO_LEAD,
-  STORY_TWO_SERIF,
   WAITLIST_H2,
 } from "@/copy";
 
@@ -57,24 +56,24 @@ describe("the section order", () => {
 });
 
 describe("the story section itself", () => {
-  it("renders its three paragraphs, with the middle one carrying the serif", () => {
+  it("renders its three paragraphs", () => {
     render(<KettleStory />);
     const text = document.body.textContent ?? "";
     expect(text).toContain(STORY_ONE_BODY);
-    expect(text).toContain(`${STORY_TWO_LEAD}${STORY_TWO_SERIF} ${STORY_TWO_BODY}`);
+    expect(text).toContain(`${STORY_TWO_LEAD} ${STORY_TWO_BODY}`);
     expect(text).toContain(STORY_THREE_BODY);
   });
 
-  it("spends the serif exactly once, on the phrase that is the idea", () => {
+  it("says the idea in one unbroken sentence, in the page's one face", () => {
+    // The phrase used to be an italic serif fragment spliced into this
+    // sentence. QUESTIONS 135 retired that role; the sentence is whole, and
+    // nothing inside the paragraph changes face or slope.
     const { container } = render(<KettleStory />);
-    const serifs = Array.from(container.querySelectorAll(".font-serif"));
-    expect(serifs).toHaveLength(1);
-    expect(serifs[0].textContent).toBe(STORY_TWO_SERIF);
-    // Inside a sans sentence, not standing alone as one — design-language §3's
-    // only permitted shape for it.
-    const sentence = serifs[0].closest("p")!;
-    expect(sentence.textContent).toContain(STORY_TWO_LEAD.trim());
-    expect(sentence.textContent).toContain(STORY_TWO_BODY);
+    const sentence = Array.from(container.querySelectorAll("p")).find((node) =>
+      (node.textContent ?? "").includes(STORY_TWO_LEAD),
+    )!;
+    expect(sentence.textContent).toBe(`${STORY_TWO_LEAD} ${STORY_TWO_BODY}`);
+    expect(sentence.querySelectorAll("em, i, .font-serif, .italic")).toHaveLength(0);
   });
 
   it("carries no corner wash", () => {

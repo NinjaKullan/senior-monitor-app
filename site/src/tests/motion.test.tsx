@@ -1,10 +1,12 @@
 /**
- * AC7 / AC10 / AC11 — motion, the serif, and the notification component.
+ * AC7 / AC10 / AC11 — motion, the type scale, and the notification component.
  *
  * The three rules here are all about restraint, and all three are the kind that
- * decay quietly. Motion arrives one hover at a time. The serif spreads because
- * it looks good in the one place it already is. And the notification mockup
- * drifts toward a screenshot the moment a proportion is nudged by hand.
+ * decay quietly. Motion arrives one hover at a time. A type scale grows one
+ * className at a time, and a second face comes back one emphasis at a time —
+ * which is how the page ended up mix-and-matched enough for two reviewers to
+ * say so (QUESTIONS 135). And the notification mockup drifts toward a
+ * screenshot the moment a proportion is nudged by hand.
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -113,42 +115,132 @@ describe("AC7 — every animation sits behind motion-safe", () => {
   });
 });
 
-describe("AC10 — the serif is scarce, and only in its permitted slots", () => {
-  it("renders the serif only through the one component that may", () => {
+describe("AC10 — one typeface, five sizes, and no inline emphasis", () => {
+  /** The whole type scale, and the only sizes a className may name. */
+  const SIZES = new Set(["text-display", "text-heading", "text-lead", "text-body", "text-eyebrow"]);
+  /** `text-` utilities that are not sizes. Anything outside both sets is a
+   *  size nobody declared, which is how a scale grows back to seven. */
+  const NOT_SIZES = new Set([
+    "text-ink",
+    "text-canvas",
+    "text-secondary",
+    "text-error",
+    "text-center",
+    "text-left",
+  ]);
+  /** The three real weights: 400, 500, 600. `font-light` is the trap — the
+   *  class was written across every heading while Instrument Sans has no 300
+   *  file, so the browser served 400 and the law was decoration. */
+  const WEIGHTS = new Set(["font-normal", "font-medium", "font-semibold"]);
+
+  it("renders no second face and no italics anywhere on the page", () => {
     const { container } = render(<App />);
-    const serifs = Array.from(container.querySelectorAll(".font-serif"));
-    expect(serifs.length).toBeGreaterThan(0);
-    for (const node of serifs) {
-      expect(node.getAttribute("data-testid"), node.outerHTML).toBe("serif");
-    }
+    expect(container.querySelectorAll(".font-serif")).toHaveLength(0);
+    expect(container.querySelectorAll(".italic")).toHaveLength(0);
   });
 
-  it("never puts the serif on two consecutive elements", () => {
+  it("carries no inline emphasis inside any sentence", () => {
+    // The retired role, structurally: emphasis is a whole sentence carried by
+    // weight, never a fragment spliced into someone else's. An <em>, <i>, <b>
+    // or <strong> anywhere is that fragment coming back.
     const { container } = render(<App />);
-    for (const node of Array.from(container.querySelectorAll(".font-serif"))) {
-      const next = node.nextElementSibling;
-      expect(next?.classList.contains("font-serif") ?? false, node.outerHTML).toBe(false);
-      const previous = node.previousElementSibling;
-      expect(previous?.classList.contains("font-serif") ?? false, node.outerHTML).toBe(false);
-    }
+    const inline = Array.from(container.querySelectorAll("em, i, b, strong"));
+    expect(inline.map((n) => n.outerHTML)).toEqual([]);
   });
 
-  it("keeps the serif out of body, buttons and chrome", () => {
+  it("spends its emphasis on one whole sentence, by weight", () => {
     render(<App />);
-    for (const cta of screen.getAllByTestId("cta")) {
-      expect(cta.className).not.toContain("font-serif");
-    }
-    for (const eyebrow of screen.getAllByTestId("eyebrow")) {
-      expect(eyebrow.className).not.toContain("font-serif");
-    }
-    expect(screen.getByTestId("footer").className).not.toContain("font-serif");
+    const emphasis = screen.getAllByTestId("emphasis");
+    expect(emphasis).toHaveLength(1);
+    const text = emphasis[0].textContent ?? "";
+    expect(text[0]).toBe(text[0].toUpperCase());
+    expect(text.trimEnd().endsWith(".")).toBe(true);
+    expect(emphasis[0].className).toContain("font-medium");
+    expect(emphasis[0].tagName).toBe("P");
   });
 
-  it("names font-serif in exactly one component file", () => {
-    const users = sourceFiles(SRC).filter((file) =>
-      /font-serif/.test(readFileSync(file, "utf8")),
+  it("writes no retired face, slope or weight in any className", () => {
+    // Off the same token scan AC7 uses, not off raw source: the words "serif"
+    // and "italic" appear in the comments that explain why they are gone, and
+    // a source-text scan would fail on its own documentation.
+    const retired = classTokens().filter(({ token }) =>
+      /^(font-serif|italic|not-italic|font-light|font-bold|font-black)$/.test(token),
     );
-    expect(users.map((f) => f.slice(SRC.length + 1))).toEqual(["components/SerifPhrase.tsx"]);
+    expect(retired.map((t) => `${t.file}: ${t.token}`)).toEqual([]);
+  });
+
+  it("loads one family, and only weights that exist as files", () => {
+    const css = readFileSync(join(SRC, "index.css"), "utf8");
+    const families = [...css.matchAll(/@fontsource\/([a-z-]+)\//g)].map((m) => m[1]);
+    expect([...new Set(families)]).toEqual(["instrument-sans"]);
+    const config = readFileSync(join(SRC, "..", "tailwind.config.js"), "utf8");
+    expect(config).not.toMatch(/serif:/);
+  });
+
+  it("uses only the five declared sizes, in the rendered page", () => {
+    const { container } = render(<App />);
+    const strays: string[] = [];
+    const used = new Set<string>();
+    for (const node of [container, ...Array.from(container.querySelectorAll("*"))]) {
+      for (const token of Array.from(node.classList ?? [])) {
+        if (!token.startsWith("text-")) continue;
+        if (SIZES.has(token)) used.add(token);
+        else if (!NOT_SIZES.has(token)) strays.push(`${node.tagName}: ${token}`);
+      }
+    }
+    expect(strays, "a size role nobody declared").toEqual([]);
+    // Not passing on a page that stopped rendering: every role is in use, and
+    // a role only one element uses would have been merged into its neighbour.
+    expect([...used].sort()).toEqual([...SIZES].sort());
+  });
+
+  it("uses only weights the stylesheet actually loads", () => {
+    const { container } = render(<App />);
+    const strays: string[] = [];
+    for (const node of [container, ...Array.from(container.querySelectorAll("*"))]) {
+      for (const token of Array.from(node.classList ?? [])) {
+        if (!token.startsWith("font-") || token === "font-sans") continue;
+        if (!WEIGHTS.has(token)) strays.push(`${node.tagName}: ${token}`);
+      }
+    }
+    expect(strays).toEqual([]);
+  });
+
+  it("gives display exactly one job: the page's single h1", () => {
+    const { container } = render(<App />);
+    const display = Array.from(container.querySelectorAll(".text-display"));
+    expect(display.map((n) => n.tagName)).toEqual(["H1"]);
+    // And every section heading takes the role below it, so the two are never
+    // the same size again.
+    for (const heading of screen.getAllByTestId("section-heading")) {
+      expect(heading.className, heading.textContent ?? "").toContain("text-heading");
+    }
+  });
+
+  it("would catch the retired role returning", () => {
+    // Planted, not asserted in the abstract: each of these is a way the serif
+    // or the seven-size scale comes back.
+    const scan = (html: string) => {
+      const node = document.createElement("div");
+      node.innerHTML = html;
+      const strays: string[] = [];
+      for (const el of Array.from(node.querySelectorAll("*"))) {
+        for (const token of Array.from(el.classList)) {
+          if (token.startsWith("text-") && !SIZES.has(token) && !NOT_SIZES.has(token)) {
+            strays.push(token);
+          }
+          if (token.startsWith("font-") && token !== "font-sans" && !WEIGHTS.has(token)) {
+            strays.push(token);
+          }
+        }
+      }
+      return { strays, inline: node.querySelectorAll("em, i, b, strong").length };
+    };
+    expect(scan('<p>and <em class="font-serif italic">a phrase</em></p>').inline).toBe(1);
+    expect(scan('<p class="text-card">a lead</p>').strays).toEqual(["text-card"]);
+    expect(scan('<p class="text-quote">a pull quote</p>').strays).toEqual(["text-quote"]);
+    expect(scan('<h2 class="text-display font-light">a heading</h2>').strays).toEqual(["font-light"]);
+    expect(scan('<p class="text-body font-medium">legal</p>').strays).toEqual([]);
   });
 });
 
