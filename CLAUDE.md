@@ -41,11 +41,14 @@ specs, product law, conventions — is written down already; read it there.
   `service postgresql start`, then `pg_isready`. Without it the product suite
   *skips* rather than fails, and the run reports "N passed" while proving
   nothing. The skip banner says so explicitly ("this is NOT a green run of
-  spec 002") — believe it. This has bitten four times now, once in the middle
+  spec 002") — believe it. This has bitten five times now, twice in the middle
   of a session (2026-08-17: a background re-run reported "133 passed, 203
   errors" while the pipeline exit code stayed 0 — `pytest | tail` returns
-  tail's status, so read the summary counts, never the chain's exit). It is
-  the single most likely way to report a false green.
+  tail's status, so read the summary counts, never the chain's exit;
+  2026-08-19: "139 passed, 208 errors" ten minutes after a clean 347). It is
+  the single most likely way to report a false green. Re-run `pg_isready`
+  immediately before believing any product-suite result, and redirect the run
+  to a file rather than piping it.
 - **`KETTLE_REQUIRE_POSTGRES=1` turns that skip into a failure.** CI sets it
   (`.github/workflows/ci.yml`, with a Postgres service container). Set it locally
   when you want a missing database to be loud.
@@ -78,7 +81,7 @@ specs, product law, conventions — is written down already; read it there.
   plant-and-revert cost an entire uncommitted rewrite here.
 - **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
-  number is 135.** Ambiguity goes there rather than into a guess. Rulings that
+  number is 136.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
   and enforced by a test, not just recorded (see items 35, 39, 48, 51).
 
@@ -92,7 +95,7 @@ cheap experiments that decide spec 005b's shape, and what is owed by whom. Read 
 ### State of the build (baton, 2026-08-18 — session handoff)
 
 **All three suites green** (`pytest` 347 with Postgres up, `webapp` 100,
-`site` 118 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
+`site` 140 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
 never trust a skip). Specs 001–006 plus amendments A/B built and reviewed;
 **spec 005b built and PM-approved** (rulings follow item 123: 118 upheld —
 provisioning stays terminal until the signing runner; 121 amended in the spec
@@ -155,7 +158,7 @@ the duplicated Family-circle row); reconciling the built setup page's
 `kettle/setup_copy.py` against the PM's keyed deck `specs/005b-copy.md`
 (landed with item 132, written 2026-08-16 — the page was built from the mock
 before the deck was in the repo; queues behind the same pause).
-**Next QUESTIONS number: 135.**
+**Next QUESTIONS number: 136.**
 
 **The Rhythm Field is BUILT (Q131 — the mock landed mid-pass and resolved
 Q130): Canvas 2D port of the approved mock, both placements, hard
@@ -169,7 +172,24 @@ ruling is a MECHANISM ban across site copy and the privacy page; the
 motion-law prose sits in design-language §6. PM review of e815276: approved,
 no overrules.**
 
-**The presence pass is in (Q134, this session).** The founder's note now reads
+**The one-voice pass is in (Q135, this session).** The site speaks in one
+typeface: the serif emphasis role is retired (Fraunces out of the bundle,
+`font-serif` out of the Tailwind theme, the five fragments merged back into
+their sentences), the scale is five roles with one job each — display 48 for
+the single `h1`, heading 32 for every `h2`, lead 20, body 16, eyebrow 13 — and
+the weights are three that exist as files (400/500/600). `font-light` was
+written on every heading while Instrument Sans has no 300 file, so it never
+rendered; it is gone. The three-fields canvas has a **reserved band** below the
+words (`Section`'s backdrop slot is deleted, not merely unused) with ring size
+derived from the band, and its dust can be **stirred by a desktop pointer** —
+passive listener, nothing on touch, still still under reduced motion, rings and
+labels never displaced. `site/scripts/probe-field.mjs` is committed: it reads
+canvas pixels against laid-out text boxes at 360/390/768/1440 and currently
+reports zero overlap; planting the old backdrop reproduces the reviewers'
+report at every width. Eleven plants, one of which passed for the wrong reason
+until it was re-aimed (see Q135).
+
+**The presence pass is in (Q134, previous session).** The founder's note now reads
 "twenty-five years ago" (spelled out — AC4's digit scan walks the letter), and
 the Rhythm Field was ruled UP: on the live cream ground it painted 0.14% of the
 hero's pixels and read as static specks. Every presence number now lives in one
@@ -186,8 +206,10 @@ probe read the canvas' own pixels over the real ground (0.108% → 0.274% legibl
 motion 0.23% → 0.56% of the frame per second).
 
 **Owed by the founder, not by code:** review + `fly deploy` **kettle-site**
-again — this pass (the note correction and the field's visibility) is unshipped,
-and its acceptance test is the PM looking at the live site; `fly deploy` of
+again — two passes are now unshipped (Q134's note correction and field
+visibility, Q135's one-voice typography, the field band and the stir), and both
+have acceptance tests that are the PM looking at the live site — the h2 size
+drop and the 390px band fit especially; `fly deploy` of
 kettle-app (Q112 cache headers — until then deploys white-screen returning
 browsers — plus login words and the Setup card); the SMTP plan's DNS + dashboard
 steps (`docs/auth-smtp-plan.md`) before any non-founder family; Q126's 48-hour

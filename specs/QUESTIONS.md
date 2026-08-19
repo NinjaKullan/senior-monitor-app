@@ -2592,3 +2592,89 @@ browser — all three adopted as the standard for future surfaces.**
        existing tests for all five still pass untouched.
 
      **Next number: 135.**
+
+---
+
+## One-voice pass build notes (implementer, 2026-08-19)
+
+135. **One typeface, a band of its own, and dust you can stir.** Three founder items
+     off two independent reviews of the live site. All three are built; what a reviewer
+     should see, and the calls made inside them:
+
+     **1 — Typography.** The serif role is retired: Fraunces is out of the bundle,
+     `font-serif` is out of the Tailwind theme so the class cannot be reached, and the
+     five phrases it carried are back inside the sentences they were cut out of. The
+     words are unchanged; only the element boundary is gone. The scale went seven sizes
+     to five — display (48, the page's single `h1`), heading (32, every section `h2`),
+     lead (20), body (16), eyebrow (13). The three that went each had exactly one user:
+     `feature` was a button size, `card` was one paragraph, `quote` was the pull-quote
+     that no longer exists.
+
+     * **Section headings are visibly smaller.** `h2` used to be the display size, which
+       is why "display" meant nothing. It is now 32 against the `h1`'s 48. This is the
+       most visible change in the pass and it is on every section — **PM, look at this
+       first on the live site.**
+     * **`font-light` never rendered, on any heading, ever.** Instrument Sans has no 300
+       file; its range starts at 400. The class was written across every heading and the
+       browser served 400, so the old type law's "display gets lighter as it grows" was
+       describing something no visitor has seen. The class is gone and the law now names
+       three weights that exist as files: 400, 500 (the one emphasis role and the panel
+       headlines), 600 (buttons and labels). 500 was added; the three Fraunces faces
+       left. Net bundle change is a wash.
+     * **FIELDS_SERIF became FIELDS_EMPHASIS, and AC12 gained the role.** The ruling
+       allows emphasis on a whole sentence by weight or accent colour, and that line
+       ("What isn't collected can't leak.") is exactly that, so it stayed a line of its
+       own rather than being merged into the paragraph above it. The four scenario
+       fragments and the story fragment had no such standing and were merged.
+     * **`site/SerifPhrase.tsx` deleted** — a byte-identical duplicate of the retired
+       component, outside the build's `src/**` glob since it was committed by accident
+       in 9a5bfb3. **`site/Pill.tsx` is the same kind of stray** (a stale copy of the
+       real component, also dead) but has nothing to do with this ruling, so it was left
+       alone. It should go; say the word.
+
+     **2 — The collision.** The cause was structural: the canvas was a backdrop spanning
+     the section, so at some width its orbits were always going to be under a paragraph.
+     The field now has a reserved band — a flow sibling below the words, `h-64` /
+     `md:h-80`, which text cannot enter at any width — and `Section`'s backdrop slot is
+     **deleted rather than left unused**, since a section that can take a layer behind
+     its text will be given one again. The section also lost its `min-h-[80vh]`: the band
+     gives it real height, and an artificial minimum on top of that is just empty ground.
+
+     * **Geometry now answers to the band.** The mock's fixed 56px ring overlapped its
+       own neighbours below roughly 600px of canvas. Ring is `min(56, W/8)`, centres sit
+       at 0.2 / 0.5 / 0.8 with rows at 0.46 / 0.54, and dust orbits are fractions of
+       their ring rather than pixel radii, so nothing escapes a ring that shrank.
+     * **Verified in a browser, as ruled.** `site/scripts/probe-field.mjs` reads the
+       canvas' pixels and intersects them with every readable element's laid-out box at
+       360, 390, 768 and 1440: **zero intersecting boxes, zero painted pixels**, against
+       the production build. Planting the old backdrop back reproduces the reviewers'
+       report exactly — 6 of 6 elements intersecting at every width, "who" and "signal"
+       and "when" and the body paragraph each named with a pixel count — and the probe
+       exits non-zero. Unlike the presence pass's throwaway, this one is committed; it
+       is **not** in `npm run ci`, because Playwright is not a dependency of the package.
+     * **At 390px the fit is real but not generous**: outer rings clear the band edge by
+       ~26px and "signal" nearly fills its ring. The test asserts 16px of edge margin and
+       12px between rings, so it will fail before it collides — but it is worth the PM's
+       eye on a phone.
+
+     **3 — Stirring the dust.** Reach 120px, maximum displacement 26px, ease 0.09, with a
+     squared falloff so the edge of the reach is a suggestion rather than a wall.
+     Displacement is measured from where each grain *belongs*, never from where the last
+     frame pushed it, so a mote cannot chase its own escape. Every constraint is a
+     condition and each is tested: passive listener on the section, canvas still
+     `pointer-events: none`, no `preventDefault` anywhere, no listener at all without a
+     fine pointer, a non-mouse `pointerType` ignored even if one arrives, and a
+     reduced-motion viewer returning before any of it exists. The rings and the three
+     words are never displaced — asserted byte-for-byte between a stirred run and a still
+     one. The motion law's own rule ("a second animated element is a new argument, to be
+     made here first") is honoured: design-language §6 now carries the extension, scoped
+     to the dust alone.
+
+     **The plant drill caught one of its own tests.** "The rings are never stirred" was
+     first planted by displacing a ring with `dust[0].ox` — and it passed, because with
+     `Math.random` pinned, dust[0] orbits the *left* ring and was never inside the
+     cursor's reach. Re-planted with `dust[1]`, which is the grain the cursor actually
+     touches, it fails by name. Eleven plants in total across the pass; the other ten
+     failed first time.
+
+     **Next number: 136.**
