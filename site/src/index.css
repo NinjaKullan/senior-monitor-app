@@ -51,3 +51,27 @@
     @apply bg-canvas text-ink antialiased;
   }
 }
+
+@layer utilities {
+  /* The scenario tab row on a phone (QUESTIONS 136). A row the finger scrolls
+     and no bar interrupts: the scrollbar would sit under the tabs on the one
+     surface where vertical space is scarcest, and it says nothing a reader
+     needs. Discoverability is the fade's job, not the bar's. */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* And the fade itself: the row dissolves at its clipped edge so it reads as
+     "more to the right" rather than as a row that simply stops. A mask, so it
+     is alpha only — no colour is involved and this cannot quietly become a
+     second palette (AC1). Applied only while the row is actually clipped, so a
+     row that fits is never faded. */
+  .fade-edge-x {
+    mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
+  }
+}

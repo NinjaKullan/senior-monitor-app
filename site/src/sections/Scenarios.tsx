@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { NotificationCard } from "@/components/NotificationCard";
 import {
   AFTERNOON_ALT,
@@ -25,6 +25,7 @@ import {
   SEEN_NOTIF,
   SEEN_TAB,
 } from "@/copy";
+import { isOverflowing, scrollLeftFor } from "@/lib/tabStrip";
 import { type WashSet, washBackground } from "@/lib/wash";
 
 interface Scenario {
@@ -36,7 +37,8 @@ interface Scenario {
    *  its ending (QUESTIONS 135). */
   lead: string;
   body: string;
-  /** The commissioned photograph, from site/public/. */
+  /** The commissioned illustration, from site/public/ (QUESTIONS 136 — the
+   *  set replaced the photographs wholesale). */
   image: string;
   alt: string;
   notification: string | null;
@@ -58,7 +60,7 @@ export const SCENARIOS: readonly Scenario[] = [
     headline: MORNING_H3,
     lead: MORNING_LEAD,
     body: MORNING_BODY,
-    image: "/section-her-morning.webp",
+    image: "/ill-her-morning.webp",
     alt: MORNING_ALT,
     notification: null,
   },
@@ -68,7 +70,7 @@ export const SCENARIOS: readonly Scenario[] = [
     headline: AFTERNOON_H3,
     lead: AFTERNOON_LEAD,
     body: AFTERNOON_BODY,
-    image: "/section-her-afternoon.webp",
+    image: "/ill-her-afternoon.webp",
     alt: AFTERNOON_ALT,
     notification: null,
   },
@@ -78,7 +80,7 @@ export const SCENARIOS: readonly Scenario[] = [
     headline: OFF_H3,
     lead: OFF_LEAD,
     body: OFF_BODY,
-    image: "/section-somethings-off.webp",
+    image: "/ill-somethings-off.webp",
     alt: OFF_ALT,
     // Rendered on *her* phone: a question addressed to her, not a claim about
     // her, and the reason this string is allowlisted rather than banned.
@@ -90,7 +92,7 @@ export const SCENARIOS: readonly Scenario[] = [
     headline: SEEN_H3,
     lead: SEEN_LEAD,
     body: SEEN_BODY,
-    image: "/section-what-you-see.webp",
+    image: "/ill-what-you-see.webp",
     alt: SEEN_ALT,
     notification: SEEN_NOTIF,
   },
@@ -98,7 +100,31 @@ export const SCENARIOS: readonly Scenario[] = [
 
 export function Scenarios() {
   const [active, setActive] = useState(0);
+  const [clipped, setClipped] = useState(false);
+  const stripRef = useRef<HTMLDivElement | null>(null);
   const base = useId();
+
+  // Is the row actually clipped? Measured rather than assumed from the
+  // breakpoint, so a row that happens to fit is never faded (QUESTIONS 136).
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const measure = () => setClipped(isOverflowing(strip.scrollWidth, strip.clientWidth));
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  // Keep the active tab wholly in view, including when the arrow keys move it
+  // past the clipped edge. Setting scrollLeft on the strip itself — never
+  // scrollIntoView, which would scroll every ancestor and take the page with
+  // it — and instantly, because this is a position, not an animation.
+  useEffect(() => {
+    const strip = stripRef.current;
+    const tab = strip?.children[active];
+    if (!strip || !(tab instanceof HTMLElement)) return;
+    strip.scrollLeft = scrollLeftFor(strip, tab);
+  }, [active]);
 
   return (
     <section
@@ -116,7 +142,21 @@ export function Scenarios() {
             3px ink bottom border; inactive is 0.7 opacity and a transparent
             border. No fill, no colour change, no weight change between states —
             the difference is presence, not emphasis. */}
-        <div role="tablist" aria-label={SCENARIOS_H2} className="flex flex-wrap gap-6">
+        {/* On a phone the four tabs need about 540px and have 312–380, so a
+            wrapping row folds into a ragged two-line block (founder, on a real
+            handset). Below md the row stops wrapping and scrolls sideways
+            instead; from md it is the wrapping row it always was, where four
+            tabs have never come close to needing a second line. */}
+        <div
+          ref={stripRef}
+          role="tablist"
+          aria-label={SCENARIOS_H2}
+          data-testid="scenario-tablist"
+          className={
+            "flex gap-6 overflow-x-auto scrollbar-none md:flex-wrap md:overflow-x-visible " +
+            (clipped ? "fade-edge-x md:[mask-image:none] " : "")
+          }
+        >
           {SCENARIOS.map((scenario, index) => (
             <button
               key={scenario.set}
@@ -136,7 +176,12 @@ export function Scenarios() {
                 setActive((current) => (current + step + SCENARIOS.length) % SCENARIOS.length);
               }}
               className={
-                "border-b-[3px] pb-2 text-body transition-opacity duration-300 " +
+                // `shrink-0` and `whitespace-nowrap` are what make the row a
+                // row: without them flex compresses the tabs and the longest
+                // label breaks across two lines inside its own tab. `py-2`
+                // rather than `pb-2` gives a 40px tap target at body size.
+                "shrink-0 whitespace-nowrap border-b-[3px] py-2 text-body " +
+                "transition-opacity duration-300 " +
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink " +
                 (index === active
                   ? "border-ink opacity-100"
@@ -173,13 +218,15 @@ export function Scenarios() {
             <p className="text-lead">{scenario.lead}</p>
             <p className="max-w-xl text-body text-secondary">{scenario.body}</p>
             {/* Below the hero, so it lazy-loads; sized by class so the
-                digit walk over perceivable attributes stays clean. */}
+                digit walk over perceivable attributes stays clean. 4:3 is the
+                set's own crop — the container matches the artwork rather than
+                cropping it (QUESTIONS 136). */}
             <img
               src={scenario.image}
               alt={scenario.alt}
               loading="lazy"
               decoding="async"
-              className="aspect-[3/2] w-full rounded-card object-cover"
+              className="aspect-[4/3] w-full rounded-card object-cover"
             />
             {scenario.notification !== null && (
               <NotificationCard body={scenario.notification} />
