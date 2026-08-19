@@ -37,12 +37,21 @@
     position: relative; min-height: 80vh; background: #3b352f; color: #f4ede4; overflow: hidden;
     display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
   }
-  .fields h2 { position: relative; z-index: 2; font-size: clamp(28px, 4vw, 44px); font-weight: 600; }
-  .fields p { position: relative; z-index: 2; margin-top: 12px; color: #c9bdb0; font-size: 16px; max-width: 480px; }
+  .fields h2 { font-size: clamp(28px, 4vw, 44px); font-weight: 600; }
+  .fields p { margin-top: 12px; color: #c9bdb0; font-size: 16px; max-width: 480px; }
+  .fields .emphasis { color: #f4ede4; font-size: 20px; font-weight: 500; }
+  /* The field's reserved band: a flow sibling below the words, never a layer
+     behind them. Text cannot enter it at any width, which is the whole point —
+     the orbits used to land on the copy (QUESTIONS 135). */
+  .field-band { position: relative; width: 100%; max-width: 768px; height: 256px; margin-top: 28px; }
+  .field-band canvas { pointer-events: none; }
+  @media (min-width: 768px) { .field-band { height: 320px; } }
 </style>
 </head>
 <body>
-<div class="note"><b>Motion mock — not production.</b> Canvas 2D stand-in for the Three.js build. Watch the hero field: soft pulses are ordinary signals arriving. Press "simulate a quiet morning" to see one pulse go missing and the quiet question travel to the parent's side first. Scroll down for the "Three fields" resolve.<br><b>Presence pass (QUESTIONS 134):</b> motes larger and brighter, a larger amber share taken from graphite, drift with a floor under it, and pulse rings that breathe — the field was invisible over cream at the original values. These constants are the ones the site ships.</div>
+<div class="note"><b>Motion mock — not production.</b> Canvas 2D stand-in for the Three.js build. Watch the hero field: soft pulses are ordinary signals arriving. Press "simulate a quiet morning" to see one pulse go missing and the quiet question travel to the parent's side first. Scroll down for the "Three fields" resolve.<br><b>Presence pass (QUESTIONS 134):</b> motes larger and brighter, a larger amber share taken from graphite, drift with a floor under it, and pulse rings that breathe — the field was invisible over cream at the original values. These constants are the ones the site ships.<br><b>Band + stir (QUESTIONS 135):</b> the
+three-fields canvas has a reserved band below the words instead of a layer behind them, its rings
+size themselves to that band, and with a desktop pointer the dust is displaced and eases home.</div>
 
 <section class="hero">
   <canvas id="field"></canvas>
@@ -63,9 +72,10 @@
 </section>
 
 <section class="fields">
-  <canvas id="threecanvas"></canvas>
   <h2>Three fields. Nothing else.</h2>
   <p>who &nbsp;·&nbsp; signal &nbsp;·&nbsp; when — this is the whole record Kettle keeps.</p>
+  <p class="emphasis">What isn't collected can't leak.</p>
+  <div class="field-band"><canvas id="threecanvas"></canvas></div>
 </section>
 
 <script>
@@ -163,45 +173,76 @@ const threeC = document.getElementById('threecanvas');
 sizeCanvas(threeC);
 const tctx = threeC.getContext('2d');
 const tw = () => threeC.clientWidth, th = () => threeC.clientHeight;
-const targets = () => [
-  { x: tw() * .30, y: th() * .62, label: 'who' },
-  { x: tw() * .50, y: th() * .68, label: 'signal' },
-  { x: tw() * .70, y: th() * .62, label: 'when' },
-];
+// Ring and orbit sizes answer to the band, not to fixed pixels: three rings
+// plus their margins have to fit at 360 as well as at 1440 (QUESTIONS 135).
+const geometry = (W, H) => {
+  const ring = Math.min(56, W / 8);
+  return { ring, centres: [
+    { x: W * (0.5 - .3), y: H * .46 },
+    { x: W * 0.5,        y: H * .54 },
+    { x: W * (0.5 + .3), y: H * .46 },
+  ] };
+};
+const LABELS = ['who', 'signal', 'when'];
 const dust = [];
 for (let i = 0; i < 140; i++) {
-  dust.push({ x: Math.random(), y: Math.random(), home: i % 3, dr: 30 + Math.random() * 22, ph: Math.random() * 7, resolve: Math.random() });
+  dust.push({ x: Math.random(), y: Math.random(), home: i % 3, dr: .535 + Math.random() * .395, ph: Math.random() * 7, resolve: Math.random(), ox: 0, oy: 0 });
 }
 let resolveAmt = 0, tt = 0;
-const fieldsEl = document.querySelector('.fields');
+const fieldsEl = document.querySelector('.field-band');
+// Stirring the dust: a passive listener on the section, a canvas that stays
+// pointer-events:none, and nothing at all on a device without a fine pointer.
+let cursor = null;
+const fieldsSection = document.querySelector('section.fields');
+if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  fieldsSection.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const r = threeC.getBoundingClientRect();
+    cursor = { x: e.clientX - r.left, y: e.clientY - r.top };
+  }, { passive: true });
+  fieldsSection.addEventListener('pointerleave', () => { cursor = null; }, { passive: true });
+}
 function threeTick() {
   tt++;
-  // resolve as the section scrolls into view
+  // resolve as the band scrolls into view
   const rect = fieldsEl.getBoundingClientRect();
   const vis = Math.min(1, Math.max(0, (innerHeight - rect.top) / (innerHeight * .9)));
   resolveAmt += (vis - resolveAmt) * .03;
   tctx.clearRect(0, 0, tw(), th());
-  const T = targets();
+  const { ring, centres } = geometry(tw(), th());
   for (const d of dust) {
-    const t0 = T[d.home];
-    const ang = tt / 200 + d.ph;
-    const homex = t0.x + Math.cos(ang) * d.dr, homey = t0.y + Math.sin(ang) * d.dr * .6;
+    const t0 = centres[d.home];
+    const ang = tt / 200 + d.ph, orbit = d.dr * ring;
+    const homex = t0.x + Math.cos(ang) * orbit, homey = t0.y + Math.sin(ang) * orbit * .6;
     const freex = d.x * tw(), freey = d.y * th();
     const k = Math.min(1, Math.max(0, (resolveAmt - d.resolve * .35) * 1.6));
     const x = freex + (homex - freex) * k, y = freey + (homey - freey) * k;
-    tctx.beginPath(); tctx.arc(x, y, 2.2, 0, 7);
+    // Displacement is measured from where the grain belongs, never from where
+    // the last frame pushed it — a mote cannot chase its own escape.
+    let tox = 0, toy = 0;
+    if (cursor) {
+      const dx = x - cursor.x, dy = y - cursor.y, dist = Math.hypot(dx, dy);
+      if (dist > .01 && dist < 120) {
+        const falloff = 1 - dist / 120, push = 26 * falloff * falloff;
+        tox = (dx / dist) * push; toy = (dy / dist) * push;
+      }
+    }
+    d.ox += (tox - d.ox) * .09; d.oy += (toy - d.oy) * .09;
+    tctx.beginPath(); tctx.arc(x + d.ox, y + d.oy, 2.2, 0, 7);
     tctx.fillStyle = `rgba(244,237,228,${.24 + .40 * k})`; tctx.fill();
   }
   if (resolveAmt > .5) {
     const a = Math.min(1, (resolveAmt - .5) * 2.2);
-    for (const t0 of T) {
-      tctx.beginPath(); tctx.arc(t0.x, t0.y, 56, 0, 7);
+    // The rings and the words are never stirred: the disturbance is the dust's
+    // alone, so the schema stays exactly as legible as it was.
+    for (const [i, t0] of centres.entries()) {
+      tctx.beginPath(); tctx.arc(t0.x, t0.y, ring, 0, 7);
       tctx.strokeStyle = `rgba(${AMBER},${a * .8})`; tctx.lineWidth = 2; tctx.stroke();
       tctx.save();
       tctx.shadowColor = 'rgba(43,35,32,.9)'; tctx.shadowBlur = 10;
       tctx.fillStyle = `rgba(250,244,236,${a})`;
       tctx.font = '600 19px -apple-system, sans-serif'; tctx.textAlign = 'center';
-      tctx.fillText(t0.label, t0.x, t0.y + 6);
+      tctx.fillText(LABELS[i], t0.x, t0.y + 6);
       tctx.restore();
     }
   }
