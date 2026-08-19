@@ -2840,4 +2840,42 @@ browser — all three adopted as the standard for future surfaces.**
      `pointer-events-none` removed, the entry animation ungated, its own words, its
      own target, and showing up with no observer at all.
 
-     **Next number: 138.**
+     **Next number: 138.** *(taken below)*
+
+138. **device_alive on iOS is a third automation, not an app; the native app pairs with
+     the Android wave** (PM ruling with the founder, 2026-08-19; supersedes the open
+     mechanics of Q107's device_alive note, keeps its intent).
+
+     The founder proposed a mobile app sending a once-daily device-alive ping as a
+     second line of signal. Investigated and ruled:
+
+     * **No iOS permission buys a guaranteed daily background wake.** "Allow tracking"
+       (ATT) gates only the advertising identifier and has zero effect on execution.
+       Background App Refresh is opportunistic and skips lightly-used phones — a
+       parent's phone exactly. Silent pushes are throttled and explicitly not
+       guaranteed. "Always" location wakes reliably only on *movement*, so a homebound
+       week produces manufactured silence — the one failure mode Kettle cannot carry,
+       before even reaching the privacy page's "no location, ever collected," which is
+       load-bearing. Borrowed VoIP/audio background modes are rejection bait. An
+       unreliable absence-signal is worse than none: this product reads absence as
+       meaning.
+     * **iOS already has a reliable device_alive: a time-of-day Shortcuts automation.**
+       "Every day at HH:MM" personal automations fire dependably in the background on
+       modern iOS, locked phone included. One more automation in the existing setup
+       flow — same shortcut pattern, same ping URL, `device_alive` signal, never
+       alarm-grade — proves daily that the phone is powered and connected, which is the
+       feature's whole semantic. Cost: one extra automation in a flow whose tap count
+       we fight for; therefore **optional at provisioning, not default**. The charger
+       signal already behaves as a de facto daily heartbeat for most phones.
+     * **The native app moves to the Android wave**, where a daily background ping is
+       actually honest, and where the app is simultaneously the first-line signal
+       source for Android parents (no Shortcuts equivalent exists there). One build,
+       two problems. The waitlist's parent_phone answers decide when that wave earns
+       its slot.
+
+     Build order unchanged: outbound channel → SMTP (Resend, per the founder's
+     existing account; the SMTP plan doc's Postmark-class placeholder updates to
+     Resend when next touched) → stranger install. The time-of-day automation enters
+     the wizard whenever provisioning next gets worked on, not before.
+
+     **Next number: 139.**

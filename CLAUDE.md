@@ -169,7 +169,7 @@ the duplicated Family-circle row); reconciling the built setup page's
 `kettle/setup_copy.py` against the PM's keyed deck `specs/005b-copy.md`
 (landed with item 132, written 2026-08-16 — the page was built from the mock
 before the deck was in the repo; queues behind the same pause).
-**Next QUESTIONS number: 138.**
+**Next QUESTIONS number: 139.**
 
 **The Rhythm Field is BUILT (Q131 — the mock landed mid-pass and resolved
 Q130): Canvas 2D port of the approved mock, both placements, hard
