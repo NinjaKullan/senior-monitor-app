@@ -72,6 +72,16 @@ specs, product law, conventions — is written down already; read it there.
 - **Commits are the PM's review surface.** Split by concern — logic, rendering,
   tests, docs — and write the message to explain *why*, not what the diff shows.
   A `git add -A` sweep that buries four concerns in one commit has to be undone.
+- **Check the site on a phone before the founder does.** Any pass that touches
+  layout or adds a component checks the affected sections at **360, 390 and
+  768** and treats a wrap, overlap or horizontal overflow there as a blocking
+  finding. jsdom lays nothing out, so the suite is structurally blind to this:
+  twice the founder has found on a real handset what the whole suite called
+  green (the field's orbits on the section's words; the scenario tabs folding
+  into two ragged lines). `site/scripts/probe-responsive.mjs` and
+  `probe-field.mjs` measure it in a real browser — neither is in `npm run ci`,
+  because Playwright is not a dependency; run them against a preview server.
+  What they cannot reach, pin as classes **with the arithmetic beside them**.
 - **Verify a guardrail test by planting the regression it exists to catch**,
   then reverting. Several tests in this repo passed for the wrong reason until
   this was done (fabricated future timestamps, substring matches, a count hidden

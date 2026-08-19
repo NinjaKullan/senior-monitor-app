@@ -25,7 +25,10 @@ stricter.
 | Only digits: the price and the three step numerals | DOM digit walk, attributes included |
 | Four panels differ by tint and content, never by structure | `scenarios.test.tsx` compares DOM skeletons |
 | Every animation behind `motion-safe:`; hovers colour-only | `motion.test.tsx`, scanned off the rendered DOM |
-| Serif only in its three slots, never twice in a row | `motion.test.tsx` |
+| One typeface, five type roles, three real weights, no inline emphasis | `motion.test.tsx`, scanned off the rendered DOM |
+| Every image comes from the illustration set; no retired photograph is named anywhere | `imagery.test.tsx` |
+| `public/` holds exactly those six illustrations, at unhashed stable names | `product/tests/test_site_caching.py` |
+| The scenario tab row stays one line on a phone | `scenarios.test.tsx` pins the classes; `scripts/probe-responsive.mjs` measures it |
 | Notification proportions live in one place | `motion.test.tsx` against `lib/notification.ts` |
 | No foreign origin in `dist/` | `scripts/check-foreign-origins.mjs`, in `npm run ci` |
 | The page reads with JavaScript off | `scripts/check-prerender.mjs`, in `npm run ci` |
@@ -43,7 +46,7 @@ before reverting.
 **Universal English, and both parents** (Amendment A, founder site review). The
 copy carries no romanized kinship terms and no culture-coded vocabulary: the
 audience is English-fluent and broader than any one culture, a word a reader
-cannot parse costs more than it earns, and the photography carries the
+cannot parse costs more than it earns, and the imagery carries the
 specificity instead. `CULTURE_CODED` enforces it, and it is the one ban here
 scanned against the *unmasked* string — "no allowlist entries" means the
 exemption is unreachable, not merely empty. `beta` is deliberately excluded so a
@@ -76,6 +79,35 @@ npm run verify:build # secrets, foreign origins, prerender
 npm run ci           # all four, in the order CI runs them
 ```
 
+### Check it on a phone before the founder does
+
+**Standing rule (QUESTIONS 136).** Any pass that touches layout or adds a
+component checks the affected sections at **360, 390 and 768** before it is
+called done. A wrap, an overlap or a horizontal overflow found at those widths
+is a blocking finding, not a polish item.
+
+This is not a preference. jsdom lays nothing out, so the suite is structurally
+blind to layout: it can pin that a container carries `aspect-[4/3]` but not
+that anything fits. Twice now the founder has found on a real handset something
+the whole suite called green — the rhythm field's orbits sitting on the
+section's words, and the scenario tabs folding into a ragged two-line block.
+Both were invisible here and obvious in his hand.
+
+So layout gets checked two ways, and neither substitutes for the other:
+
+```bash
+npm run build && npx vite preview --port 5288 &
+node scripts/probe-responsive.mjs http://127.0.0.1:5288/   # wrap, overflow, tap targets
+node scripts/probe-field.mjs      http://127.0.0.1:5288/   # canvas pixels vs text boxes
+```
+
+Both scripts need a browser and exit non-zero on a finding. They are
+deliberately **not** in `npm run ci`, because Playwright is not a dependency of
+this package — run them by hand, or against the deployed site. What they cannot
+reach, pin as classes *with the arithmetic written beside them*, the way
+`story.test.tsx` pins the hero's crop and `scenarios.test.tsx` pins the tab
+row's: a class with no arithmetic beside it is a decision nobody can re-derive.
+
 `VITE_API_BASE_URL` points the waitlist form at an API; it defaults to
 `https://kettle-api.fly.dev`. It is a public URL and the only value this page
 reads from its environment — there is no key here to leak.
@@ -91,10 +123,10 @@ points at the production API rather than at an empty string. There is no
 `dist/` is a folder of static files, built and verified locally (`npm run ci`)
 before `fly deploy` ships it. The image serves it with nginx under the
 QUESTIONS 112 caching contract (`nginx.conf`, asserted by
-`product/tests/test_site_caching.py`): the shell, the photographs and
+`product/tests/test_site_caching.py`): the shell, the illustrations and
 privacy.html revalidate on every visit (`no-cache` — unchanged files are
 304s), hashed `/assets/` are immutable for a year. Any other static host works
-too, but it must honour that split — the photographs live at stable names, so
+too, but it must honour that split — the illustrations live at stable names, so
 a host that invents a cache lifetime pins old imagery to returning visitors.
 
 ```bash
