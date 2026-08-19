@@ -9,22 +9,22 @@ import type { ReactNode } from "react";
  * hook is what makes AC7 checkable by reading the DOM: a viewer who asked for
  * no motion gets none, and the test does not have to simulate a media query to
  * prove it.
+ *
+ * There is no backdrop slot any more (QUESTIONS 135). A decorative layer that
+ * shares a box with flowing text will land on that text at some width, and did:
+ * the rhythm field's second placement now owns a reserved band of its own
+ * inside the content column instead of sitting behind it.
  */
 export function Section({
   id,
   children,
   className = "",
   inverted = false,
-  backdrop,
 }: {
   id?: string;
   children: ReactNode;
   className?: string;
   inverted?: boolean;
-  /** A decorative layer behind the content — the rhythm-field canvas
-   *  (QUESTIONS 131). Rendered as the section's first child so the content
-   *  stacks above it; it must never carry content of its own. */
-  backdrop?: ReactNode;
 }) {
   return (
     <section
@@ -37,8 +37,7 @@ export function Section({
         `px-6 py-24 md:py-32 ${className}`
       }
     >
-      {backdrop}
-      <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col gap-8">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
         {children}
       </div>
     </section>

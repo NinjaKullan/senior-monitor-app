@@ -106,7 +106,48 @@ export const PRESENCE = {
   dustAlphaFloor: 0.24,
   dustAlphaRange: 0.4,
   dustRingWidth: 2,
+  /* The three-fields band (QUESTIONS 135). The mock placed the orbits at fixed
+   * fractions with a fixed 56px ring, which overlapped its own neighbours below
+   * roughly 600px of canvas and put drawn labels under written text. The ring
+   * now shrinks with the band so three of them plus their margins always fit,
+   * and the dust orbits are expressed as fractions of the ring rather than in
+   * pixels, so they stay inside it at every width. */
+  fieldsRingMax: 56,
+  fieldsRingDivisor: 8,
+  fieldsSpread: 0.3,
+  fieldsRowY: 0.46,
+  fieldsRowYMid: 0.54,
+  dustOrbitMin: 0.535,
+  dustOrbitSpread: 0.395,
+  /* Stirring dust, not repelling magnets (QUESTIONS 135, founder request).
+   * A modest reach, a displacement smaller than the orbit itself, and an ease
+   * slow enough that the dust lags the pointer and drifts home after it. The
+   * falloff is squared so the edge of the reach is a suggestion rather than a
+   * wall. Desktop pointer only; never on touch, never under reduced motion. */
+  cursorRadius: 120,
+  cursorPush: 26,
+  cursorEase: 0.09,
 } as const;
+
+/**
+ * Where the three orbits sit inside the band, and how big they are.
+ *
+ * Exported because it is the part of the collision fix that can be checked
+ * without a browser: a test walks the real viewport widths and asserts three
+ * rings plus their labels fit inside the canvas with margin to spare.
+ */
+export function fieldsGeometry(W: number, H: number) {
+  const ring = Math.min(PRESENCE.fieldsRingMax, W / PRESENCE.fieldsRingDivisor);
+  const spread = PRESENCE.fieldsSpread;
+  return {
+    ring,
+    centres: [
+      { x: W * (0.5 - spread), y: H * PRESENCE.fieldsRowY },
+      { x: W * 0.5, y: H * PRESENCE.fieldsRowYMid },
+      { x: W * (0.5 + spread), y: H * PRESENCE.fieldsRowY },
+    ],
+  };
+}
 
 /* The quiet-morning sequence, in frames (~60/s): trigger after ~6 s in view,
  * ghost rings on the pulse cadence, the messenger leaving one beat
@@ -412,6 +453,9 @@ export function startHeroField(
 export interface FieldsResolveOptions {
   reducedMotion: boolean;
   mobile: boolean;
+  /** A desktop pointer is present, so the dust may be stirred. Decided by the
+   *  section, never assumed here; false means no listener is ever attached. */
+  pointer?: boolean;
   labels: readonly [string, string, string];
   /** Tests inject; the page reads tokens.css. */
   palette?: FieldPalette;
@@ -421,24 +465,40 @@ interface Dust {
   x: number;
   y: number;
   home: number;
+  /** Orbit radius, as a fraction of the ring it belongs to. */
   dr: number;
   ph: number;
   resolve: number;
+  /** Current displacement from the pointer, eased toward its target. */
+  ox: number;
+  oy: number;
 }
 
 /**
- * The three-fields resolve: cream dust drifts free, and as the section
- * scrolls into view it settles into three slow orbits labelled with the
- * schema's own words — 19px cream over a dark glow, drawn above the dust,
- * exactly as the mock's second section.
+ * The three-fields resolve: cream dust drifts free, and as the band scrolls
+ * into view it settles into three slow orbits labelled with the schema's own
+ * words — 19px cream over a dark glow, drawn above the dust.
+ *
+ * The canvas lives in a band of its own now (QUESTIONS 135), so the geometry
+ * answers to the band rather than to a whole section it was sharing with
+ * paragraphs: rings shrink with the width, orbits are fractions of their ring,
+ * and nothing is placed where text might be.
+ *
+ * With a desktop pointer the dust is stirrable: within a modest reach it is
+ * displaced away from the cursor and eases back when the cursor leaves. The
+ * canvas stays `pointer-events: none` and the listener is passive, so nothing
+ * here can intercept a click or a scroll; touch devices attach no listener at
+ * all, and a reduced-motion viewer returns before any of it exists.
  */
 export function startFieldsResolve(
   canvas: HTMLCanvasElement,
   opts: FieldsResolveOptions,
 ): FieldHandle {
   const ctx = canvas.getContext("2d");
-  const section = canvas.parentElement;
-  if (!ctx || !section) return INERT;
+  // The reserved band, which is also what the resolve watches: the dust
+  // settles as the band arrives, not as the paragraphs above it do.
+  const band = canvas.parentElement;
+  if (!ctx || !band) return INERT;
 
   sizeCanvas(canvas);
   const palette = opts.palette ?? readPalette();
@@ -449,43 +509,62 @@ export function startFieldsResolve(
       x: Math.random(),
       y: Math.random(),
       home: i % 3,
-      dr: 30 + Math.random() * 22,
+      dr: PRESENCE.dustOrbitMin + Math.random() * PRESENCE.dustOrbitSpread,
       ph: Math.random() * 7,
       resolve: Math.random(),
+      ox: 0,
+      oy: 0,
     });
   }
 
   const W = () => canvas.clientWidth;
   const H = () => canvas.clientHeight;
-  const targets = () => [
-    { x: W() * 0.3, y: H() * 0.62, label: opts.labels[0] },
-    { x: W() * 0.5, y: H() * 0.68, label: opts.labels[1] },
-    { x: W() * 0.7, y: H() * 0.62, label: opts.labels[2] },
-  ];
+  /** Where the pointer is inside the canvas, or null when it is elsewhere. */
+  let cursor: { x: number; y: number } | null = null;
 
   function drawFrame(tt: number, resolveAmt: number): void {
     ctx!.clearRect(0, 0, W(), H());
-    const T = targets();
+    const { ring, centres } = fieldsGeometry(W(), H());
     for (const d of dust) {
-      const t0 = T[d.home];
+      const t0 = centres[d.home];
       const ang = tt / 200 + d.ph;
-      const homex = t0.x + Math.cos(ang) * d.dr;
-      const homey = t0.y + Math.sin(ang) * d.dr * 0.6;
+      const orbit = d.dr * ring;
+      const homex = t0.x + Math.cos(ang) * orbit;
+      const homey = t0.y + Math.sin(ang) * orbit * 0.6;
       const freex = d.x * W();
       const freey = d.y * H();
       const k = Math.min(1, Math.max(0, (resolveAmt - d.resolve * 0.35) * 1.6));
       const x = freex + (homex - freex) * k;
       const y = freey + (homey - freey) * k;
+      // Displacement is measured from where the grain belongs, never from
+      // where the last frame pushed it — a mote cannot chase its own escape.
+      let tox = 0;
+      let toy = 0;
+      if (cursor) {
+        const dx = x - cursor.x;
+        const dy = y - cursor.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 0.01 && dist < PRESENCE.cursorRadius) {
+          const falloff = 1 - dist / PRESENCE.cursorRadius;
+          const push = PRESENCE.cursorPush * falloff * falloff;
+          tox = (dx / dist) * push;
+          toy = (dy / dist) * push;
+        }
+      }
+      d.ox += (tox - d.ox) * PRESENCE.cursorEase;
+      d.oy += (toy - d.oy) * PRESENCE.cursorEase;
       ctx!.beginPath();
-      ctx!.arc(x, y, PRESENCE.dustRadius, 0, 7);
+      ctx!.arc(x + d.ox, y + d.oy, PRESENCE.dustRadius, 0, 7);
       ctx!.fillStyle = `rgba(${palette.dust},${PRESENCE.dustAlphaFloor + PRESENCE.dustAlphaRange * k})`;
       ctx!.fill();
     }
     if (resolveAmt > 0.5) {
       const a = Math.min(1, (resolveAmt - 0.5) * 2.2);
-      for (const t0 of T) {
+      // The rings and the words are never stirred: the disturbance is the
+      // dust's alone, so the schema stays exactly as legible as it was.
+      for (const [i, t0] of centres.entries()) {
         ctx!.beginPath();
-        ctx!.arc(t0.x, t0.y, 56, 0, 7);
+        ctx!.arc(t0.x, t0.y, ring, 0, 7);
         ctx!.strokeStyle = `rgba(${palette.signal},${a * 0.8})`;
         ctx!.lineWidth = PRESENCE.dustRingWidth;
         ctx!.stroke();
@@ -495,7 +574,7 @@ export function startFieldsResolve(
         ctx!.fillStyle = `rgba(${palette.label},${a})`;
         ctx!.font = '600 19px "Instrument Sans", -apple-system, sans-serif';
         ctx!.textAlign = "center";
-        ctx!.fillText(t0.label, t0.x, t0.y + 6);
+        ctx!.fillText(opts.labels[i], t0.x, t0.y + 6);
         ctx!.restore();
       }
     }
@@ -519,11 +598,35 @@ export function startFieldsResolve(
   const onResize = () => sizeCanvas(canvas);
   window.addEventListener("resize", onResize);
 
+  /* Stirring the dust. The listener is passive and lives on the section, so it
+   * observes and never intervenes: the canvas keeps `pointer-events: none`,
+   * nothing here calls preventDefault, and no scroll or click changes course.
+   * A pointer that is not a mouse is ignored even if one reaches us, and on a
+   * device without a fine pointer nothing is attached in the first place. */
+  const host = canvas.closest("section") ?? band;
+  let detachPointer = () => {};
+  if (opts.pointer) {
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      const rect = canvas.getBoundingClientRect();
+      cursor = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    };
+    const onLeave = () => {
+      cursor = null;
+    };
+    host.addEventListener("pointermove", onMove, { passive: true });
+    host.addEventListener("pointerleave", onLeave, { passive: true });
+    detachPointer = () => {
+      host.removeEventListener("pointermove", onMove);
+      host.removeEventListener("pointerleave", onLeave);
+    };
+  }
+
   function tick(): void {
     scheduled = false;
     if (stopped || !visible) return;
     tt++;
-    const rect = section!.getBoundingClientRect();
+    const rect = band!.getBoundingClientRect();
     const vis = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / (window.innerHeight * 0.9)));
     resolveAmt += (vis - resolveAmt) * 0.03;
     drawFrame(tt, resolveAmt);
@@ -547,6 +650,7 @@ export function startFieldsResolve(
     stop() {
       stopped = true;
       unobserve();
+      detachPointer();
       window.removeEventListener("resize", onResize);
     },
     debug: { kind: "animated", motes: dustCount, mode: () => "resolve", frames: () => tt },
@@ -560,4 +664,10 @@ export function prefersReducedMotion(): boolean {
 
 export function isMobileViewport(): boolean {
   return window.matchMedia?.("(max-width: 768px)").matches ?? false;
+}
+
+/** A mouse-like pointer that hovers — the gate on the dust disturbance. A
+ *  touchscreen answers false here, and then no listener is ever attached. */
+export function hasFinePointer(): boolean {
+  return window.matchMedia?.("(hover: hover) and (pointer: fine)").matches ?? false;
 }
