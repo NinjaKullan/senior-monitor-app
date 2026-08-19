@@ -13,6 +13,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import App from "@/App";
 import { KettleStory } from "@/sections/KettleStory";
+import { PARENT_X_FRACTION } from "@/sections/Hero";
 import {
   FIELDS_H2,
   FOUNDING_H2,
@@ -130,47 +131,55 @@ describe("the hero sub, now two sentences", () => {
   });
 });
 
-describe("the hero diptych", () => {
-  it("keeps the headline block first, then two eager photographs in day order", () => {
+describe("the hero image", () => {
+  it("keeps the headline block first, then one eager illustration", () => {
     render(<App />);
-    const diptych = screen.getByTestId("hero-diptych");
+    const image = screen.getByTestId("hero-image");
 
-    // The headline block keeps priority: text before photographs, in source
+    // The headline block keeps priority: text before the artwork, in source
     // and therefore on screen, per the brief's no-overlay law.
     const sub = screen.getByTestId("hero-sub");
     expect(
-      sub.compareDocumentPosition(diptych) & Node.DOCUMENT_POSITION_FOLLOWING,
+      sub.compareDocumentPosition(image) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
 
-    // Parent's morning left, child's evening right (profiles face inward,
-    // docs/hero-diptych-brief.md: parent left is decided, not relitigable).
-    const images = Array.from(diptych.querySelectorAll("img"));
-    expect(images.map((i) => i.getAttribute("src"))).toEqual([
-      "/hero-morning.webp",
-      "/hero-evening.webp",
-    ]);
-
-    // The hero pair is the page's visual identity: never lazy. Everything
+    expect(image.getAttribute("src")).toBe("/hero-two-cities.webp");
+    // The hero image is the page's visual identity: never lazy. Everything
     // below the hero lazy-loads (asserted where those sections are tested).
-    for (const image of images) {
-      expect(image.getAttribute("loading")).not.toBe("lazy");
-      expect(image.hasAttribute("alt")).toBe(true);
-    }
+    expect(image.getAttribute("loading")).not.toBe("lazy");
+    expect(image.hasAttribute("alt")).toBe(true);
   });
 
-  it("stays side by side on a phone, with the shorter crop", () => {
-    // QUESTIONS 129: stacked portraits made the mobile hero two photographs
-    // tall and pushed the CTA a full screen down. jsdom cannot measure, so
-    // the classes that produce the tight layout are pinned with the
-    // arithmetic in the component beside them: two columns at every width,
-    // 3:4 on phones, the taller 4:5 only from md up.
+  it("is one frame, not two — the grid is gone rather than collapsed", () => {
+    // The diptych staged the gap between two rooms with a column gap. The
+    // drawing contains that gap, so the grid has no job left; a two-column
+    // container here would be staging it twice (QUESTIONS 136).
+    const { container } = render(<App />);
+    const hero = screen.getByTestId("hero-image").closest("section")!;
+    expect(hero.querySelectorAll("img")).toHaveLength(1);
+    expect(screen.queryByTestId("hero-diptych")).toBeNull();
+    expect(container.querySelector('[class*="grid-cols-2"]')).toBeNull();
+  });
+
+  it("uses one crop at every width, with the phone arithmetic beside it", () => {
+    // jsdom cannot measure, so the classes that produce the layout are pinned
+    // with their arithmetic: at 390px the content column is 342px, so a 16:9
+    // frame is 192px tall — shorter than either half of the old diptych, which
+    // is what keeps headline, sub and CTA in the first viewport height.
     render(<App />);
-    const diptych = screen.getByTestId("hero-diptych");
-    expect(diptych.className).toContain("grid-cols-2");
-    expect(diptych.className).not.toContain("grid-cols-1");
-    for (const image of Array.from(diptych.querySelectorAll("img"))) {
-      expect(image.className).toContain("aspect-[3/4]");
-      expect(image.className).toContain("md:aspect-[4/5]");
-    }
+    const image = screen.getByTestId("hero-image");
+    expect(image.className).toContain("aspect-[16/9]");
+    expect(image.className).toContain("w-full");
+    expect(image.className).not.toMatch(/md:aspect-/);
+  });
+
+  it("still sends the messenger to the parent's half of the drawing", () => {
+    // Law #6 at the animation: the quiet morning asks the parent first, and
+    // the mote has to land on her room. The frame that used to locate her is
+    // gone, so the fraction that replaces it is pinned — anything at or past
+    // the middle would put her question on her daughter's side of the page.
+    expect(PARENT_X_FRACTION).toBeGreaterThan(0);
+    expect(PARENT_X_FRACTION).toBeLessThan(0.5);
+    expect(PARENT_X_FRACTION).toBe(0.25);
   });
 });

@@ -15,6 +15,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SCENARIOS, Scenarios } from "@/sections/Scenarios";
+import { EDGE_FADE, isOverflowing, scrollLeftFor } from "@/lib/tabStrip";
 import { OFF_NOTIF, OFF_TAB, SEEN_NOTIF, SEEN_TAB } from "@/copy";
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -194,19 +195,19 @@ describe("AC6 — the measured tab grammar", () => {
   });
 });
 
-describe("the scenario photographs", () => {
-  it("gives every panel its own photograph, above the message card", () => {
+describe("the scenario illustrations", () => {
+  it("gives every panel its own illustration, above the message card", () => {
     render(<Scenarios />);
     for (const panel of panels()) {
       const image = panel.querySelector("img")!;
-      expect(image, "a panel lost its photograph").not.toBeNull();
-      // Above the message card: the photograph sets the scene the card lands
+      expect(image, "a panel lost its illustration").not.toBeNull();
+      // Above the message card: the illustration sets the scene the card lands
       // in, so a panel that carries a notification renders it after the image.
       const card = panel.querySelector('[data-testid="notification"]');
       if (card) {
         expect(
           image.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING,
-          "the message card rose above its photograph",
+          "the message card rose above its illustration",
         ).toBeTruthy();
       }
     }
@@ -217,7 +218,10 @@ describe("the scenario photographs", () => {
     for (const panel of panels()) {
       const image = panel.querySelector("img")!;
       expect(image.getAttribute("loading")).toBe("lazy");
-      expect(image.getAttribute("src")).toMatch(/^\/section-.+\.webp$/);
+      expect(image.getAttribute("src")).toMatch(/^\/ill-.+\.webp$/);
+      // The container matches the artwork's own crop, so nothing is cut off
+      // by a frame that disagrees with the drawing (QUESTIONS 136).
+      expect(image.className).toContain("aspect-[4/3]");
     }
   });
 });
@@ -256,5 +260,102 @@ describe("AC9 — the panels read with no JavaScript", () => {
       expect(html, `${scenario.set} is missing from the static HTML`).toContain(scenario.body);
       expect(html).toContain(scenario.lead);
     }
+  });
+});
+
+/* --------------------------------------------------------------------- */
+/* The tab row on a phone (QUESTIONS 136)                                  */
+/* --------------------------------------------------------------------- */
+
+describe("where the tab row has to be scrolled", () => {
+  // The arithmetic lives in lib/tabStrip.ts precisely so it can be checked
+  // with numbers: jsdom lays nothing out, so a test that read offsetLeft off
+  // the DOM would be reading zeroes and passing on them.
+  const view = (scrollLeft: number, clientWidth = 342, scrollWidth = 540) => ({
+    scrollLeft,
+    clientWidth,
+    scrollWidth,
+  });
+
+  it("knows a clipped row from one that fits", () => {
+    expect(isOverflowing(540, 342)).toBe(true);
+    expect(isOverflowing(342, 342)).toBe(false);
+    expect(isOverflowing(300, 342)).toBe(false);
+  });
+
+  it("leaves a visible tab where it is", () => {
+    // A tab in the middle of what the reader can already see must not drag
+    // the row around underneath them.
+    expect(scrollLeftFor(view(0), { offsetLeft: 120, offsetWidth: 90 })).toBe(0);
+  });
+
+  it("brings a tab past the right edge fully into view, clear of the fade", () => {
+    // "What you see" starts at 430 in a 342-wide window scrolled to 0: its
+    // right edge plus the fade is 430 + 95 + 40 = 565, so the row scrolls to
+    // 565 - 342 = 223 — except the row can only scroll to 540 - 342 = 198.
+    expect(scrollLeftFor(view(0), { offsetLeft: 430, offsetWidth: 95 })).toBe(198);
+  });
+
+  it("brings a tab past the left edge back, and never scrolls past the start", () => {
+    expect(scrollLeftFor(view(198), { offsetLeft: 100, offsetWidth: 90 })).toBe(60);
+    expect(scrollLeftFor(view(198), { offsetLeft: 0, offsetWidth: 90 })).toBe(0);
+  });
+
+  it("keeps the fade's width and the margin the same number", () => {
+    // If they drift apart the active tab lands under its own fade, which is
+    // the failure this pass exists to avoid rather than to relocate.
+    expect(EDGE_FADE).toBe(40);
+    const css = readFileSync(join(SRC, "index.css"), "utf8");
+    expect(css).toContain(`calc(100% - ${EDGE_FADE / 16}rem)`);
+  });
+});
+
+describe("the tab row on a phone", () => {
+  const strip = () => screen.getByTestId("scenario-tablist");
+
+  it("scrolls sideways below md and wraps from md up", () => {
+    // Four tabs need about 540px of row and a phone gives 312–380, so the
+    // wrapping row folded into a ragged two-line block on a real handset.
+    // jsdom cannot measure, so the classes are pinned with that arithmetic.
+    render(<Scenarios />);
+    expect(strip().className).toContain("overflow-x-auto");
+    expect(strip().className).toContain("scrollbar-none");
+    expect(strip().className).toContain("md:flex-wrap");
+    expect(strip().className).toContain("md:overflow-x-visible");
+    // Not wrapping below md is the whole fix: `flex` alone is nowrap, so a
+    // bare `flex-wrap` here would restore the fold.
+    expect(strip().className).not.toMatch(/(^|\s)flex-wrap(\s|$)/);
+  });
+
+  it("gives every tab a tap target and a label that cannot break", () => {
+    render(<Scenarios />);
+    for (const tab of tabs()) {
+      // py-2 on body text is 24 + 8 + 8 = 40px of target.
+      expect(tab.className).toContain("py-2");
+      expect(tab.className).not.toContain("pb-2");
+      // Without these two, flex compresses the tabs and "When something's
+      // off" breaks across two lines inside its own tab.
+      expect(tab.className).toContain("shrink-0");
+      expect(tab.className).toContain("whitespace-nowrap");
+    }
+  });
+
+  it("fades the clipped edge only while the row is actually clipped", () => {
+    // jsdom reports every width as zero, so nothing is clipped and nothing is
+    // faded — which is the assertion: the fade is measured, not assumed from
+    // the breakpoint. A row that fits is never faded.
+    render(<Scenarios />);
+    expect(strip().className).not.toContain("fade-edge-x");
+    const css = readFileSync(join(SRC, "index.css"), "utf8");
+    expect(css).toMatch(/\.fade-edge-x\s*\{[^}]*mask-image/);
+    expect(css).toMatch(/\.scrollbar-none::-webkit-scrollbar\s*\{\s*display: none/);
+  });
+
+  it("never reaches for scrollIntoView, which would take the page with it", () => {
+    // A call, not the word: the comment that explains why we do not call it
+    // says its name, and a bare substring scan would fail on its own reasoning.
+    const source = readFileSync(join(SRC, "sections", "Scenarios.tsx"), "utf8");
+    expect(source).not.toMatch(/scrollIntoView\s*\(/);
+    expect(source).toMatch(/\.scrollLeft\s*=/);
   });
 });
