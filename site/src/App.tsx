@@ -6,6 +6,7 @@ import { HowItWorks } from "@/sections/HowItWorks";
 import { FoundingFamilies } from "@/sections/FoundingFamilies";
 import { Waitlist } from "@/sections/Waitlist";
 import { Footer } from "@/sections/Footer";
+import { FloatingCta } from "@/components/FloatingCta";
 
 /**
  * The landing page, top to bottom (spec 006 §3).
@@ -25,6 +26,10 @@ export default function App() {
       <FoundingFamilies />
       <Waitlist />
       <Footer />
+      {/* Last in source on purpose: it is a fixed element that only exists in
+          the middle of the page, so putting it here leaves the reading and tab
+          order of everything above it exactly as it was. */}
+      <FloatingCta />
     </main>
   );
 }

@@ -70,6 +70,7 @@ export function Hero() {
 
   return (
     <section
+      id="hero"
       data-testid="section"
       className="relative overflow-hidden bg-canvas px-6 py-28 text-ink md:py-36"
       style={{ backgroundImage: washBackground("morning") }}

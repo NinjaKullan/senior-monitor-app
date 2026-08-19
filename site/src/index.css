@@ -70,6 +70,13 @@
      is alpha only — no colour is involved and this cannot quietly become a
      second palette (AC1). Applied only while the row is actually clipped, so a
      row that fits is never faded. */
+  /* The floating CTA's bottom margin (QUESTIONS 137): a comfortable 24px plus
+     whatever the device reserves for its home indicator. `env()` resolves to 0
+     where there is no inset, so this is 1.5rem on every other screen. */
+  .pb-safe {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
   .fade-edge-x {
     mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
     -webkit-mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
