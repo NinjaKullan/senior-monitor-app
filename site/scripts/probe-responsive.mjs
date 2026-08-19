@@ -15,6 +15,9 @@
  *   2. The scenario tab row is one line — every tab shares a top edge.
  *   3. Every tab is at least 40px tall, and the row's fade is present exactly
  *      when the row is actually clipped.
+ *   4. The floating CTA (QUESTIONS 137) is absent at the hero, at the form and
+ *      at the footer, present in between, big enough to hit, inside the
+ *      viewport, and never on top of another link or button.
  *
  * It also drives the scenario tabs: each tab is clicked and required to be
  * wholly inside its strip afterwards, which is the behaviour the strip's
@@ -33,8 +36,22 @@ import { chromium } from "/opt/node22/lib/node_modules/playwright/index.mjs";
 
 const URL = process.argv[2] ?? "http://127.0.0.1:5288/";
 /** The phones the founder actually holds, plus the tablet breakpoint. */
-const WIDTHS = [360, 390, 428, 768];
+const WIDTHS = [360, 390, 428, 768, 1440];
 const MIN_TAP_TARGET = 40;
+/** The floating CTA is a primary action and gets the larger floor. */
+const MIN_CTA_TARGET = 44;
+
+/** Where to stand, and whether the floating CTA belongs there. */
+const STOPS = [
+  { name: "the hero", scroll: null, expect: false },
+  // Not the scenarios section: centred, it still leaves ~17px of the hero on
+  // screen, and the ruling says the button waits until the hero has gone. The
+  // two stops below are unambiguously mid-page.
+  { name: "the story", scroll: "#why-the-name", expect: true },
+  { name: "the strip", scroll: '[data-testid="story-strip"]', expect: true },
+  { name: "the form", scroll: "#waitlist", expect: false },
+  { name: "the footer", scroll: '[data-testid="footer"]', expect: false },
+];
 
 /** Runs in the page: everything that sticks out past the viewport. */
 const findOverflow = () => {
@@ -101,6 +118,33 @@ const tabFullyVisible = (index) => {
   return { left: Math.round(t.left - s.left), right: Math.round(s.right - t.right) };
 };
 
+/** Runs in the page: the floating CTA, if it is there at all. */
+const inspectCta = () => {
+  const pill = document.querySelector('[data-testid="floating-cta"] a');
+  if (!pill) return { present: false };
+  const r = pill.getBoundingClientRect();
+  // A floating button may sit over prose — that is what floating means — but
+  // never over something else a person can click or type into.
+  const overlaps = [];
+  for (const el of Array.from(document.querySelectorAll("a[href], button, input, textarea"))) {
+    if (el === pill || el.contains(pill) || pill.contains(el)) continue;
+    const o = el.getBoundingClientRect();
+    if (o.width === 0 && o.height === 0) continue;
+    if (o.right > r.left && o.left < r.right && o.bottom > r.top && o.top < r.bottom) {
+      overlaps.push((el.textContent || el.tagName).trim().slice(0, 30));
+    }
+  }
+  return {
+    present: true,
+    height: Math.round(r.height),
+    top: Math.round(r.top),
+    left: Math.round(r.left),
+    fromRight: Math.round(document.documentElement.clientWidth - r.right),
+    fromBottom: Math.round(window.innerHeight - r.bottom),
+    overlaps,
+  };
+};
+
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 const findings = [];
 
@@ -153,6 +197,51 @@ for (const width of WIDTHS) {
         `page overflow ${overflow.documentOverflow}px`,
     );
   }
+  // The floating CTA, at each place it is meant to be present or absent.
+  for (const stop of STOPS) {
+    // `behavior: "instant"` on purpose: the stylesheet asks for smooth
+    // scrolling, and a probe that reads the page mid-flight measures a
+    // position nobody is standing at. The first run of this check reported the
+    // button "present at the form" for exactly that reason.
+    if (stop.scroll === null) {
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    } else {
+      await page.evaluate(
+        (selector) =>
+          document.querySelector(selector)?.scrollIntoView({ block: "center", behavior: "instant" }),
+        stop.scroll,
+      );
+    }
+    await page.waitForTimeout(500);
+    const cta = await page.evaluate(inspectCta);
+
+    if (cta.present !== stop.expect) {
+      findings.push(
+        `${width}px: the floating CTA is ${cta.present ? "present" : "absent"} at ${stop.name}`,
+      );
+      continue;
+    }
+    if (!cta.present) continue;
+
+    if (cta.height < MIN_CTA_TARGET) {
+      findings.push(`${width}px: the floating CTA is only ${cta.height}px tall at ${stop.name}`);
+    }
+    if (cta.left < 0 || cta.fromRight < 0 || cta.top < 0 || cta.fromBottom < 0) {
+      findings.push(
+        `${width}px: the floating CTA hangs off the viewport at ${stop.name} ` +
+          `(left ${cta.left}, right ${cta.fromRight}, bottom ${cta.fromBottom})`,
+      );
+    }
+    for (const covered of cta.overlaps) {
+      findings.push(`${width}px: the floating CTA covers "${covered}" at ${stop.name}`);
+    }
+    console.log(
+      `${width}px  floating CTA at ${stop.name}: ${cta.height}px tall, ` +
+        `${cta.left}px from the left, ${cta.fromRight}px from the right, ` +
+        `${cta.fromBottom}px from the bottom`,
+    );
+  }
+
   await page.close();
 }
 
@@ -162,4 +251,4 @@ if (findings.length > 0) {
   for (const finding of findings) console.error(`  ${finding}`);
   process.exit(1);
 }
-console.log("PASS: no wrap, no overflow, every tab reachable and in view.");
+console.log("PASS: no wrap, no overflow, tabs reachable, floating CTA where it belongs.");
