@@ -23,30 +23,46 @@ law #1), and a household-grade signal never speaks for a human being (law #6).
 
 ## 3 Typography
 
-**DECIDED (PM rulings 74–76, Aug 2026 — ruling 74).** No commercial licences pre-revenue. Oura's
-Akkurat LL and PP Editorial New are both paid; we adopt the *pairing pattern*, not the faces. Kettle
-ships **Fraunces** (editorial serif — free, true italics, real weight range) and **Instrument Sans**
-(workhorse sans — true semibold; Oura faux-bolds its CTAs from a 400 file and we will not). Google
-Fonts, **self-hosted at build**, no runtime third-party requests (law #4).
+**DECIDED (PM ruling, founder-endorsed, QUESTIONS 135 — supersedes the two-face pairing of rulings
+74–76).** Two independent reviewers of the live site read the page as mix-and-matched, and they were
+right: a second face carried emphasis, seven sizes were in play, and a weight class was being written
+that the font file could not serve. The page speaks in **one voice**.
 
-**Serif scarcity is the rule.** In the measured corpus the serif appears a few dozen times against
-hundreds of text nodes: an italic phrase inside a sans sentence (34 `<em class="font-serif italic">`
-instances), large statistics, pull-quotes, a few display headings. Kettle's serif is permitted in
-three places — the emotional phrase inside an otherwise plain sans sentence, a pull-quote, and a
-card's reassurance sentence. Never body, buttons, UI chrome, or two consecutive elements.
+**One typeface: Instrument Sans**, self-hosted at build (Google Fonts, no runtime third-party
+request — law #4). Fraunces is retired along with the role it existed for. Reference point for the
+discipline, chosen by the founder: headspace.com — one face everywhere, hierarchy from size and
+weight, warmth from colour, and a handful of sizes on the whole page.
 
-**The scale is bimodal: big and quiet, or small and firm.** Display gets *lighter* as it grows, bold is reserved for small text, tracking tightens with size, body never varies.
+**Hierarchy comes from size and weight. Warmth comes from colour.** Nothing else is a hierarchy
+tool: no second face, no italics, no letter-spacing tricks, no all-caps outside the eyebrow.
 
-| Role | Size ladder (px) | Family / weight | Leading | Tracking |
-|---|---|---|---|---|
-| Section display | 36 → 48 → 64 | sans 300 | 1.25 | −0.03em |
-| Card title | 24 → 28 → 32 | sans 300 | 1.05 | 0 |
-| Lead paragraph | 18–20 | sans 400 | 1.5 | 0 |
-| Body | **16** (Oura's 14 is too small — read at arm's length at 6am) | sans 400 | 1.5 | 0 |
-| Feature title / button | 18 | sans **600, true semibold** | 1.5 | 0 |
-| Eyebrow | 13 | sans 400, uppercase | 1.5 | +0.05em |
-| Serif emphasis phrase | inherits its sentence | serif 300 *italic* | inherits | inherits |
-| Pull-quote | 30 | serif 200–300 | 1.5 | 0 |
+**Five roles, each with one job.** If a size would be used by exactly one element, it merges into its
+neighbour instead of becoming a sixth role. A new size is an amendment to this section, not a
+decision to be made inside a `className`.
+
+| Role | Size | Weight | Leading | Tracking | Its one job |
+|---|---|---|---|---|---|
+| Display | 48 | 400 | 1.15 | −0.03em | The page's single `h1`. Nothing else. |
+| Heading | 32 | 400 | 1.2 | −0.02em | Every section `h2`. |
+| Lead | 20 | 400, or 500 for a sub-head | 1.5 | 0 | Opening paragraphs, panel headlines, the emphasis line. |
+| Body | **16** (14 is too small — read at arm's length at 6am) | 400, or 600 for buttons and labels | 1.5 | 0 | Everything else, including buttons. |
+| Eyebrow | 13 | 400, uppercase | 1.5 | +0.05em | Section eyebrows and timestamps. |
+
+**Three weights, and all three are real files: 400, 500, 600.** Instrument Sans has no 300; `font-light`
+was written across every heading for months while the browser quietly served 400, so the type law's
+old "display gets lighter as it grows" was describing something that never rendered. The reference
+faux-bolds its CTAs from a 400 file; we ship a true 600. Neither mistake is available here — a weight
+the stylesheet does not load may not be named.
+
+**Emphasis is a whole sentence, or it is nothing.** It is expressed by weight (500) or by the accent
+colour, and only ever on a complete sentence that stands on its own. An italic fragment spliced into
+someone else's sentence — the old serif role — is banned, and so are `<em>`, `<i>`, `<b>` and
+`<strong>` anywhere in the page's prose. The page currently spends this once, on the three-fields
+section's closing line.
+
+*Enforced, not merely written down:* the rendered page is scanned for a second face, for italics, for
+inline emphasis elements, for any `text-` size outside the five, and for any weight class outside the
+three — and each of those five regressions is planted in the test suite and required to fail.
 
 ## 4 Colour
 
@@ -111,6 +127,16 @@ the conditions are the law: it draws no words where it decorates the hero, impli
 no verdicts, hides itself from assistive technology, pauses when unseen, stands down to a designed
 still when the visitor asks for reduced motion, and the page must remain whole without it. A second
 animated element is not covered by this exception; it is a new argument, to be made here first.
+
+**The exception's one interactive extension (founder request — QUESTIONS 135).** Everything above is
+motion the page performs at the visitor. The three-fields band may also *respond*: with a desktop
+pointer, dust within a modest reach is displaced away from the cursor and eases back to its orbit
+when the cursor leaves. Disturb and recover, and nothing else — no trails, no colour change, no
+effect on the orbit rings or the three words. The conditions are again the law: the listener is
+passive and the canvas keeps `pointer-events: none`, so nothing can intercept a click or a scroll; a
+touch device attaches no listener at all; and a reduced-motion viewer gets the designed still,
+undisturbed. This extension covers the dust and only the dust. Any other element that answers the
+pointer is a new argument, to be made here first.
 
 ## 7 Component grammar
 
