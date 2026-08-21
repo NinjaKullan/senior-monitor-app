@@ -1,3 +1,10 @@
+/**
+ * @vitest-environment jsdom
+ *
+ * Pinned per file rather than left to vite.config.ts alone (DECISIONS 146): a
+ * suite whose verdict depends on how it was invoked is the false green wearing
+ * a new coat, and `--environment node` on the command line is one flag away.
+ */
 /** AC3 — the digest list, recomposed from the templates that sent it. */
 import { describe, expect, it } from "vitest";
 import { buildDigestEntries } from "@/lib/digests";

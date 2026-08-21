@@ -1,4 +1,11 @@
 /**
+ * @vitest-environment jsdom
+ *
+ * Pinned per file rather than left to vite.config.ts alone (DECISIONS 146): a
+ * suite whose verdict depends on how it was invoked is the false green wearing
+ * a new coat, and `--environment node` on the command line is one flag away.
+ */
+/**
  * AC3 / AC4 / AC12 — the copy law, extended to marketing.
  *
  * Design-language §8 asks for the product's existing copy-law tests to reach

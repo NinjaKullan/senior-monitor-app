@@ -1,4 +1,11 @@
 /**
+ * @vitest-environment jsdom
+ *
+ * Pinned per file rather than left to vite.config.ts alone (DECISIONS 146): a
+ * suite whose verdict depends on how it was invoked is the false green wearing
+ * a new coat, and `--environment node` on the command line is one flag away.
+ */
+/**
  * AC8 — the self-containment scan, checked for teeth.
  *
  * `scripts/check-foreign-origins.mjs` runs against `dist/` in CI, where a

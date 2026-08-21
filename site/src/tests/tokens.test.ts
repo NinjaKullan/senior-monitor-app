@@ -1,4 +1,11 @@
 /**
+ * @vitest-environment jsdom
+ *
+ * Pinned per file rather than left to vite.config.ts alone (DECISIONS 146): a
+ * suite whose verdict depends on how it was invoked is the false green wearing
+ * a new coat, and `--environment node` on the command line is one flag away.
+ */
+/**
  * AC1 / AC2 — the palette, checked rather than described.
  *
  * Two things are easy to get wrong here and impossible to notice afterwards.

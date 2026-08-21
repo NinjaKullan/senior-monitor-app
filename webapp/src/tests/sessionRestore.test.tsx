@@ -1,4 +1,11 @@
 /**
+ * @vitest-environment jsdom
+ *
+ * Pinned per file rather than left to vite.config.ts alone (DECISIONS 146): a
+ * suite whose verdict depends on how it was invoked is the false green wearing
+ * a new coat, and `--environment node` on the command line is one flag away.
+ */
+/**
  * DECISIONS 142 — stale credentials degrade to re-auth, never hang.
  *
  * The founder hit this on a real phone: the app restored a stored session, the

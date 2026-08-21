@@ -1,4 +1,11 @@
 /**
+ * @vitest-environment jsdom
+ *
+ * Pinned per file rather than left to vite.config.ts alone (DECISIONS 146): a
+ * suite whose verdict depends on how it was invoked is the false green wearing
+ * a new coat, and `--environment node` on the command line is one flag away.
+ */
+/**
  * The Rhythm Field's hard requirements (DECISIONS 129/131), tested where
  * jsdom can reach them. The engine is the mock's Canvas 2D code made
  * production-shaped, so these tests pin behaviour, not pixels: reduced

@@ -1,4 +1,11 @@
 /**
+ * @vitest-environment jsdom
+ *
+ * Pinned per file rather than left to vite.config.ts alone (DECISIONS 146): a
+ * suite whose verdict depends on how it was invoked is the false green wearing
+ * a new coat, and `--environment node` on the command line is one flag away.
+ */
+/**
  * AC2 / AC3 — what the day arc and the beacon actually put in the DOM.
  *
  * `glance.test.ts` proves the logic; this proves the rendering honours it. The
