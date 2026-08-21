@@ -13,9 +13,22 @@
  * here: copy that gets edited without this file being touched must still be
  * checked, or the guard rots into a test of six sentences nobody uses any more.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
-const html = readFileSync(process.argv[2] ?? "dist/index.html", "utf8");
+/* A missing dist/ means the build did not finish — since DECISIONS 139 every
+   build clears its output first, precisely so a failed one leaves nothing to
+   be verified. Say that plainly instead of dying on a readFileSync stack. */
+function requireBuild(path) {
+  if (!existsSync(path)) {
+    console.error(`${path} is missing — the build did not finish. Run \`npm run build\` first.`);
+    process.exit(1);
+  }
+}
+
+const indexPath = process.argv[2] ?? "dist/index.html";
+requireBuild(indexPath);
+requireBuild("dist/privacy.html");
+const html = readFileSync(indexPath, "utf8");
 const copy = readFileSync("src/copy.ts", "utf8");
 // The privacy placeholder is a hand-written static page rather than a React
 // route, so its copy is checked against that file. Reading both here means the

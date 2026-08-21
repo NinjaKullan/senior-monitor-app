@@ -13,10 +13,16 @@
  * not on the list below. Fonts are self-hosted (`@fontsource` vendors the woff2
  * into `dist/assets`), which is why nothing here needs a font CDN entry.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { extname, join } from "node:path";
 
 const DIST = process.argv[2] ?? "dist";
+/* A missing dist/ means the build did not finish (DECISIONS 139): every
+   build clears its output first, so there is nothing stale to pass against. */
+if (!existsSync(DIST)) {
+  console.error(`${DIST} is missing — the build did not finish. Run \`npm run build\` first.`);
+  process.exit(1);
+}
 
 /** Hosts we control, and the one reason each is allowed to appear. */
 const OURS = new Set([

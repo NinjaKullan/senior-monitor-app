@@ -9,10 +9,16 @@
  * finds, because a service key is only distinguishable from a publishable one
  * by the `role` claim inside it.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const DIST = process.argv[2] ?? "dist";
+/* A missing dist/ means the build did not finish (DECISIONS 139): every
+   build clears its output first, so there is nothing stale to pass against. */
+if (!existsSync(DIST)) {
+  console.error(`${DIST} is missing — the build did not finish. Run \`npm run build\` first.`);
+  process.exit(1);
+}
 
 const LITERAL_PATTERNS = [
   { name: "service_role claim", re: /service_role/ },
