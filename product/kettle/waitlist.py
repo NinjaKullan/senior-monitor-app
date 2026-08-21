@@ -42,7 +42,7 @@ _EMAIL = re.compile(r"^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$")
 MAX_EMAIL_LENGTH = 254
 
 #: The optional "what would you most like Kettle to help with?" answer
-#: (QUESTIONS 129). A thousand characters is several honest paragraphs; the
+#: (DECISIONS 129). A thousand characters is several honest paragraphs; the
 #: column's CHECK repeats the number so the cap holds even against code that
 #: forgets to call the normaliser.
 MAX_HELP_WITH_LENGTH = 1000

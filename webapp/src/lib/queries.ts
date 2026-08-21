@@ -15,7 +15,7 @@
  * about each of them. Nothing widened here, so the conscious act required by
  * standing structure 48 happened in the test instead: both tables are now
  * asserted row-by-row for isolation rather than riding on the loop's
- * spot-checks. QUESTIONS item 58 records the reasoning.
+ * spot-checks. DECISIONS item 58 records the reasoning.
  */
 
 export const READ_SURFACE = {

@@ -23,7 +23,7 @@ law #1), and a household-grade signal never speaks for a human being (law #6).
 
 ## 3 Typography
 
-**DECIDED (PM ruling, founder-endorsed, QUESTIONS 135 — supersedes the two-face pairing of rulings
+**DECIDED (PM ruling, founder-endorsed, DECISIONS 135 — supersedes the two-face pairing of rulings
 74–76).** Two independent reviewers of the live site read the page as mix-and-matched, and they were
 right: a second face carried emphasis, seven sizes were in play, and a weight class was being written
 that the font file could not serve. The page speaks in **one voice**.
@@ -119,7 +119,7 @@ alone, never by structure.
 **v1 refuses scroll-scrubbed pinning.** Oura's sticky-pane choreography is the one thing the fetch
 could not see, it is expensive to tune, and plain fades are cheaper and calmer.
 
-**The first scripted exception (PM, 2026-08-17 — QUESTIONS 132).** Motion on the page is entry fade
+**The first scripted exception (PM, 2026-08-17 — DECISIONS 132).** Motion on the page is entry fade
 and rise, once, and nothing else — with one scripted exception, the Rhythm Field. The field earns
 motion no other element gets because it depicts the product's one story and nothing beyond it:
 signals arriving, and a quiet morning asked about, parent first. The exception is conditional and
@@ -128,7 +128,7 @@ no verdicts, hides itself from assistive technology, pauses when unseen, stands 
 still when the visitor asks for reduced motion, and the page must remain whole without it. A second
 animated element is not covered by this exception; it is a new argument, to be made here first.
 
-**The exception's one interactive extension (founder request — QUESTIONS 135).** Everything above is
+**The exception's one interactive extension (founder request — DECISIONS 135).** Everything above is
 motion the page performs at the visitor. The three-fields band may also *respond*: with a desktop
 pointer, dust within a modest reach is displaced away from the cursor and eases back to its orbit
 when the cursor leaves. Disturb and recover, and nothing else — no trails, no colour change, no

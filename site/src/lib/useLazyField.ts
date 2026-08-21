@@ -9,7 +9,7 @@ type FieldModule = typeof import("./rhythmField");
  * The engine loads via dynamic import from an idle callback, so it is a
  * separate chunk fetched after first paint: the headline and CTA are in the
  * prerendered HTML and hydrate before any animation code is even requested
- * (the no-LCP-regression requirement, QUESTIONS 129). A canvas that cannot
+ * (the no-LCP-regression requirement, DECISIONS 129). A canvas that cannot
  * give a 2D context makes the engine return an inert handle, and unmounting
  * stops whatever started.
  */

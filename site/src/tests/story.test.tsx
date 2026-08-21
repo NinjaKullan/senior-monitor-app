@@ -34,7 +34,7 @@ describe("the section order", () => {
     // kettle → phone → three fields, in that order, is the argument. The
     // amendment places it deliberately, so the placement is pinned rather than
     // left to whoever next adds a section to App.tsx. The founding-families
-    // section (beta conversion, QUESTIONS 129) sits directly before the form:
+    // section (beta conversion, DECISIONS 129) sits directly before the form:
     // what the beta is, then the ask.
     render(<App />);
     const headings = screen.getAllByTestId("section-heading").map((n) => n.textContent);
@@ -67,7 +67,7 @@ describe("the story section itself", () => {
 
   it("says the idea in one unbroken sentence, in the page's one face", () => {
     // The phrase used to be an italic serif fragment spliced into this
-    // sentence. QUESTIONS 135 retired that role; the sentence is whole, and
+    // sentence. DECISIONS 135 retired that role; the sentence is whole, and
     // nothing inside the paragraph changes face or slope.
     const { container } = render(<KettleStory />);
     const sentence = Array.from(container.querySelectorAll("p")).find((node) =>
@@ -153,7 +153,7 @@ describe("the hero image", () => {
   it("is one frame, not two — the grid is gone rather than collapsed", () => {
     // The diptych staged the gap between two rooms with a column gap. The
     // drawing contains that gap, so the grid has no job left; a two-column
-    // container here would be staging it twice (QUESTIONS 136).
+    // container here would be staging it twice (DECISIONS 136).
     const { container } = render(<App />);
     const hero = screen.getByTestId("hero-image").closest("section")!;
     expect(hero.querySelectorAll("img")).toHaveLength(1);

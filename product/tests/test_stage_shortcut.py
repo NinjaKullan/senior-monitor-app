@@ -1,4 +1,4 @@
-"""The §5.1 staging harness (QUESTIONS 102): what can be proved before the tap.
+"""The §5.1 staging harness (DECISIONS 102): what can be proved before the tap.
 
 The experiment itself — does iOS open a served `.shortcut` straight into the
 Add Shortcut sheet? — happens on Hema's iPhone and cannot be tested here. What
@@ -58,7 +58,7 @@ def test_stages_one_file_at_an_unguessable_path(tmp_path: Path):
     staged = list(dest.rglob("*.shortcut"))
     assert len(staged) == 1
     assert staged[0].read_bytes() == signed.read_bytes()
-    # World-readable (QUESTIONS 113): the mode travels into the Docker image,
+    # World-readable (DECISIONS 113): the mode travels into the Docker image,
     # and 0600 there means nginx's worker answers 403. The URL is the guard.
     assert staged[0].stat().st_mode & 0o777 == 0o644
     # Token-grade entropy in the slug: 18 url-safe bytes -> 24 characters.

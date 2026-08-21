@@ -6,7 +6,7 @@ Apple warning, Run Immediately on every automation row, the kill switch. The
 flat structure is also requirement §4.4's future — a family-language variant
 is another module shaped exactly like this one, not a rewrite.
 
-Copy discipline (QUESTIONS 106): nobody reads. One short paragraph per step,
+Copy discipline (DECISIONS 106): nobody reads. One short paragraph per step,
 speech bubbles over prose, and every screen answers "what do I tap next".
 
 `{child}` is the family's owner display name, `{parent}` the monitored
@@ -17,10 +17,10 @@ escapes the values, never the templates.
 from __future__ import annotations
 
 #: Apple's own store page for the Shortcuts app — step zero's one button
-#: (QUESTIONS 103: the app may have been deleted; never assume it exists).
+#: (DECISIONS 103: the app may have been deleted; never assume it exists).
 APP_STORE_SHORTCUTS_URL = "https://apps.apple.com/app/shortcuts/id915249334"
 
-#: Signal keys that watch a browser. Empty until QUESTIONS 100 adds one
+#: Signal keys that watch a browser. Empty until DECISIONS 100 adds one
 #: (`safari` is the candidate); the consent screen adds CONSENT_BROWSER
 #: whenever a parent's active set intersects this. The sentence exists now
 #: because requirement §4.5 says the copy structure must not preclude it —
@@ -72,7 +72,7 @@ HELPER_NOTE_CONSENT = (
     "fine answer."
 )
 
-# --- step zero: the Shortcuts app (screen 2; QUESTIONS 103) ------------------
+# --- step zero: the Shortcuts app (screen 2; DECISIONS 103) ------------------
 
 STEP_ZERO_TITLE = "Do you see this app on your phone?"
 STEP_ZERO_CAP = (
@@ -101,7 +101,7 @@ ADD_SAY_NO_CHILD = (
 ADD_CAP = "These are yours alone — they only work on this phone."
 ADD_CTA = "I added them all"
 
-# --- first run + the pre-empted warning (screen 4; QUESTIONS 92/99) ----------
+# --- first run + the pre-empted warning (screen 4; DECISIONS 92/99) ----------
 
 FIRSTRUN_TITLE = "Now run each one once — and expect a warning"
 FIRSTRUN_SAY = (
@@ -159,7 +159,7 @@ AUTO_HONESTY = (
 )
 AUTO_CTA = "The automations are built"
 
-# --- verify by prediction (screen 6; runbook §8, QUESTIONS 92) ---------------
+# --- verify by prediction (screen 6; runbook §8, DECISIONS 92) ---------------
 
 VERIFY_TITLE = "The proof: watch it work"
 VERIFY_SAY = "Open {app} right now, then come back here."

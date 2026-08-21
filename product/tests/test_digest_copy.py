@@ -74,7 +74,7 @@ def test_morning_matches_the_binding_template():
 
 
 def test_morning_uses_a_recorded_pronoun_only():
-    """Gendered copy is available but never inferred — see QUESTIONS.md item 24."""
+    """Gendered copy is available but never inferred — see DECISIONS.md item 24."""
     assert "her time" in render_morning("Amma", MORNING_PING, pronoun="she")
     assert "their time" in render_morning("Amma", MORNING_PING, pronoun="they")
     # Anything not explicitly recorded falls back to neutral, including a name

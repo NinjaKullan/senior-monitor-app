@@ -22,7 +22,7 @@ import {
  * tint here would imply a fifth scenario.
  *
  * The idea sentence used to be split so the serif could carry its ending; it is
- * one sentence again, in the one face the page speaks (QUESTIONS 135).
+ * one sentence again, in the one face the page speaks (DECISIONS 135).
  */
 export function KettleStory() {
   return (

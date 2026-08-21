@@ -53,7 +53,7 @@ def test_a_generated_shortcut_round_trips_through_plistlib():
     ]
     assert plist["WFWorkflowHasOutputParameters"] is False
     assert plist["WFWorkflowHasShortcutInputVariables"] is False
-    # The measured icon (QUESTIONS 96b): founder-picked values read from a real
+    # The measured icon (DECISIONS 96b): founder-picked values read from a real
     # signed shortcut's iCloud record, not guesses.
     assert plist["WFWorkflowIcon"] == {
         "WFWorkflowIconGlyphNumber": 62041,
@@ -65,7 +65,7 @@ def test_a_generated_shortcut_round_trips_through_plistlib():
 def test_the_file_is_named_the_way_the_repair_surface_names_it():
     """One vocabulary: the app, the shortcut on the phone, and this filename.
 
-    And no parent name in it (QUESTIONS 96a): the signal is the token a reader
+    And no parent name in it (DECISIONS 96a): the signal is the token a reader
     needs, and it is what an iPhone tile was truncating away.
     """
     assert forge.file_name("whatsapp") == "Kettle — WhatsApp.shortcut"
@@ -137,7 +137,7 @@ def test_a_second_action_fails_validation():
 
 
 def test_an_extra_top_level_key_fails_validation():
-    # WFWorkflowIcon was this test's plant until QUESTIONS 96b made it a real
+    # WFWorkflowIcon was this test's plant until DECISIONS 96b made it a real
     # key; the plant moves to a key the forge still never writes.
     problems = forge.validate(_mutated(lambda p: p.update({"WFWorkflowName": "x"})))
     assert any("unexpected top-level keys" in p for p in problems), problems
@@ -335,7 +335,7 @@ def test_the_signing_wrapper_refuses_to_run_off_macos():
 
 
 # ---------------------------------------------------------------------------
-# QUESTIONS 77 — the bare-Mac path
+# DECISIONS 77 — the bare-Mac path
 # ---------------------------------------------------------------------------
 
 #: Makes `import psycopg` fail the way it fails on a laptop that never installed
@@ -398,7 +398,7 @@ def test_the_blocker_really_blocks_psycopg(tmp_path: Path):
 
 
 def test_device_token_mode_runs_with_psycopg_absent(tmp_path: Path):
-    """QUESTIONS 77: the founder's laptop has a token and no backend installed.
+    """DECISIONS 77: the founder's laptop has a token and no backend installed.
 
     `--device-token --name` needs nothing from the database — the token and the
     name are both on the command line — so it must not import a driver to prove
@@ -454,9 +454,9 @@ def test_verify_and_inspect_are_offline_too(tmp_path: Path):
 
 
 def test_a_bare_token_forges_offline_with_no_name_at_all(tmp_path: Path):
-    """QUESTIONS 96a's consequence: the token really is enough now.
+    """DECISIONS 96a's consequence: the token really is enough now.
 
-    --name existed (QUESTIONS 78) to supply the one fact filenames needed from
+    --name existed (DECISIONS 78) to supply the one fact filenames needed from
     the database. With the parent's name out of the filename, that fact has no
     consumer, so the failure the founder originally hit — token in hand, no
     database, an error demanding a flag — cannot recur.
@@ -506,7 +506,7 @@ def test_forging_for_a_provisioned_device_emits_every_active_signal(
         # The URL provisioning printed and the URL in the file are the same URL.
         wanted = next(s.url for s in parent.signals if s.shortcut + ".shortcut" == filename)
         assert wanted.encode() in raw
-    # Two parents' files are identical by name (QUESTIONS 96a) — the runbook's
+    # Two parents' files are identical by name (DECISIONS 96a) — the runbook's
     # verify-by-prediction step, not the filename, is what catches a mix-up.
 
 
@@ -547,7 +547,7 @@ def test_an_unknown_parent_is_an_error_not_an_empty_directory(
 
 
 def test_a_merged_set_parent_forges_exactly_two_shortcuts(conn: psycopg.Connection):
-    """QUESTIONS 107: routine + charger in parent_signals emit two files, no more.
+    """DECISIONS 107: routine + charger in parent_signals emit two files, no more.
 
     This is the end-state a new setup gets — one multi-app automation, one
     charger automation — and the forge must follow the allowlist rather than the

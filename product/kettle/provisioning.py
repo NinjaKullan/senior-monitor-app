@@ -133,7 +133,7 @@ def issue_setup_link_by_token(
     The Appa case: provisioned weeks ago, setup happening now — the original
     link has expired and nothing should have to be re-provisioned to get a
     fresh one. None when the token is unknown or the device is revoked; a dead
-    device gets no new doors (QUESTIONS 95's one-way door, unchanged).
+    device gets no new doors (DECISIONS 95's one-way door, unchanged).
     """
     device = db.device_by_token(conn, device_token)
     if device is None or not device["active"] or device["revoked_utc"]:
@@ -165,7 +165,7 @@ def provision_family(
     the row's `auth_user_id` stays null until that person actually signs up
     through Supabase Auth.
 
-    `signals` chooses the allowlist at provisioning time (QUESTIONS 94) instead
+    `signals` chooses the allowlist at provisioning time (DECISIONS 94) instead
     of seeding the standard set and editing afterwards. Keys must be in the
     vocabulary — alarm grade comes from `kettle.signals.ALARM_GRADE`, never from
     the caller, so a merged `routine` cannot arrive corroborating or a `charger`
@@ -273,7 +273,7 @@ def set_parent_signals(
 ) -> tuple[str, list[str]] | None:
     """Re-point an existing parent's allowlist at a chosen signal set.
 
-    The Appa case (QUESTIONS 107): a live parent moving from per-app keys to the
+    The Appa case (DECISIONS 107): a live parent moving from per-app keys to the
     merged pair, without hand-written SQL. Chosen keys are upserted active with
     the vocabulary's alarm grade; everything else the parent had goes inactive
     rather than away, so history keeps its rows and `Not set up yet` never lies.

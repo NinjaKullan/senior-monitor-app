@@ -44,7 +44,7 @@ are treating casually.
 
 Afterwards, abandon that family and forge the real one fresh. **Do not rotate the rehearsal tokens
 into production.** `--revoke` kills a device and nothing re-issues one for an existing parent
-(QUESTIONS 95), so revocation is one-way — fine for a family you discard, not something to lean on.
+(DECISIONS 95), so revocation is one-way — fine for a family you discard, not something to lean on.
 
 ## 2 Terminal setup, once
 
@@ -96,7 +96,7 @@ than guesswork, and record their answers either way. Two constraints: a browser 
 sentence in the consent conversation, because people hear "browsing" even though we only see that an
 app opened; and financial apps are excluded at every tier, permanently.
 
-**The merged end state exists now (QUESTIONS 107): `routine` and `charger`.** One multi-app
+**The merged end state exists now (DECISIONS 107): `routine` and `charger`.** One multi-app
 automation ("Any of N Apps") fires the `routine` shortcut; one charger automation with **Connected
 and Disconnected both checked** fires `charger`. Two files, two unlocked first-runs, two automations
 — roughly a third of the per-app install, on the surface where every tap costs most. The record says
@@ -107,7 +107,7 @@ untouched until merged shortcuts are signed and delivered; nothing is rebuilt re
 
 Provisioning seeds the standard set unless told otherwise — `--signals routine,charger,device_alive`
 chooses at provisioning time, and `--set-signals <device_token> --signals routine,charger` re-points
-an existing parent's allowlist without hand-written SQL (both from QUESTIONS 94/107). To skip a
+an existing parent's allowlist without hand-written SQL (both from DECISIONS 94/107). To skip a
 signal, do not build its automation — it reads `Not set up yet`, which is neutral, with no amber and
 no repair nudge. **Adding a new key to the vocabulary is still a two-file code change with a drift
 test, not a database row** — ask before the call, not during.
@@ -162,7 +162,7 @@ validation, and it is what makes them install with a single tap on a parent's ph
 ```
 
 **Filenames are identical across people** — `Kettle — WhatsApp.shortcut` in every folder, since
-QUESTIONS 96a removed the parent's name. The folder is the only thing distinguishing them, so send
+DECISIONS 96a removed the parent's name. The folder is the only thing distinguishing them, so send
 one person's set at a time, in its own message, and never let two people's files sit in one place.
 
 **Only `-signed` gets sent.** The tell is file size: unsigned is roughly 1 KB per file, signed
@@ -192,13 +192,13 @@ Shortcut**. No Settings toggle, no warning — field-proven twice.
 Allow.** The first run asks permission to contact `kettle-api.fly.dev`, and iOS cannot show that
 prompt on a locked phone. Skip it and the automations fail with *"requires privacy permissions that
 cannot be granted while your device is locked"* — silently, from the family's point of view
-(QUESTIONS 92).
+(DECISIONS 92).
 
 **Build the automations.** Shortcuts → Automation → + → App → *(WhatsApp / YouTube / …, or all the
 habit apps at once for a merged `routine` setup — the trigger reads "Any of N Apps")* → Is Opened →
 **Run Immediately** → Next → pick the pre-made shortcut by name.
 
-**The Charger trigger has the same trap with a different default (QUESTIONS 107):** it comes up as
+**The Charger trigger has the same trap with a different default (DECISIONS 107):** it comes up as
 **Run After Confirmation**, which on a parent's phone means a prompt at every plug-in that never gets
 tapped. Flip it to **Run Immediately**, exactly like the App trigger. And check **Is Connected and Is
 Disconnected in the same automation** — one automation, one `charger` shortcut, both edges. Know the
@@ -256,7 +256,7 @@ The install is not the point; the notes are. Capture, per parent:
 5. **What either parent asked to exclude.** A refused signal is a requirement, not a setback.
 6. **Their own words for what this is.** A sentence better than our landing page is the landing page.
 
-File them in `specs/QUESTIONS.md` as a numbered founder-field block, the way the on-device UI round
+File them in `specs/DECISIONS.md` as a numbered founder-field block, the way the on-device UI round
 (items 65–68) went in, starting at the next free number (see `CLAUDE.md`). 005b gets written from
 these.
 
@@ -272,6 +272,6 @@ these.
 - **The pilot backend keeps running** with no traffic. Leave it alone until the Day-30 findings memo
   is written; it is still the YC-evidence instrument.
 
-Tooling gaps queued, so you work around them once rather than twice: **QUESTIONS 93** (forge derives
+Tooling gaps queued, so you work around them once rather than twice: **DECISIONS 93** (forge derives
 its output path from the token, deleting the `--out` naming decision), **94** (`provision
 --signals`), **95** (`--add-device`, `--rotate`, `--delete-family`).

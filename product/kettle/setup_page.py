@@ -7,9 +7,9 @@ this one. Same origin, no CORS surface, no coupling to the child app's build.
 What this page is: consent in plain language, the visual steps, the
 pre-empted permission warning, and the live verify-by-prediction check.
 What it never is: a file. Delivery is WhatsApp document attachments
-(QUESTIONS 117); no route here serves or links a `.shortcut`.
+(DECISIONS 117); no route here serves or links a `.shortcut`.
 
-The URL is the credential (QUESTIONS 102), so every response is
+The URL is the credential (DECISIONS 102), so every response is
 `Cache-Control: no-store`, the document carries no-referrer and noindex, and
 the slug appears nowhere in the HTML — the script derives its state URL from
 `location.pathname`, so the secret lives in the address bar alone.
@@ -37,7 +37,7 @@ from kettle.timeutil import now_utc
 router = APIRouter()
 
 #: Header on every /s/* response. The page is a credential's escort; nothing
-#: about it may outlive the link in a cache (the QUESTIONS 111 posture).
+#: about it may outlive the link in a cache (the DECISIONS 111 posture).
 CACHE_CONTROL = "no-store"
 
 #: The page runs its own inline script and styles and talks only to us.
@@ -83,7 +83,7 @@ def automation_row(signal: str, parent_name: str) -> str:
 def browser_consent_applies(keys: list[str]) -> bool:
     """Does this set need the browser consent sentence (spec §4.5)?
 
-    Empty until QUESTIONS 100 lands a browser key, but wired now: people hear
+    Empty until DECISIONS 100 lands a browser key, but wired now: people hear
     "browsing" even though we only see that an app opened, so the sentence
     must appear the day such a signal exists — not be rediscovered then.
     """

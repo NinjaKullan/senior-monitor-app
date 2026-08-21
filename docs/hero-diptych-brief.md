@@ -65,7 +65,7 @@ including inside any mockup visible in the photo.
   `A mother tending her balcony garden in one city; her son at his kitchen table in another,
   at ease.`
 - No new tokens, no new type styles, no motion beyond the section's existing entry fade.
-- Log the change as a numbered `specs/QUESTIONS.md` item (next number per `CLAUDE.md`); if any test
+- Log the change as a numbered `specs/DECISIONS.md` item (next number per `CLAUDE.md`); if any test
   needs weakening to land this, stop — that is a PM question, not a design decision.
 
 ## 6 Prompt seeds (generation or shoot brief)

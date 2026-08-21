@@ -84,7 +84,7 @@ Stacks: `--font-sans: "AkkuratLL"`, `--font-serif: "Editorial New"`,
 serif is opt-in per element.
 
 Both are commercial licences — Akkurat LL is Lineto, PP Editorial New is Pangram
-Pangram. Kettle cannot use either without buying them (**QUESTIONS 74**).
+Pangram. Kettle cannot use either without buying them (**DECISIONS 74**).
 
 ### Two loading facts worth not repeating
 
@@ -753,7 +753,7 @@ wear their clothes. **Refuse** = ruled out by product law.
 
 | Role | Oura's value | Kettle candidate | Carry / Re-choose / Refuse |
 |---|---|---|---|
-| **Sans family** | Akkurat LL 300/400 (commercial) | A grotesque with real 300/400/**600**; licensed or open — decision in QUESTIONS 74 | Re-choose (licence) |
+| **Sans family** | Akkurat LL 300/400 (commercial) | A grotesque with real 300/400/**600**; licensed or open — decision in DECISIONS 74 | Re-choose (licence) |
 | **Serif family** | PP Editorial New 200/300 + italic | A high-contrast editorial serif with a true italic at ~200–300 | Re-choose (licence) |
 | **Serif usage rule** | ~34 italic `<em>` inside sans lines; stats; pull quotes; nothing else | Identical discipline: the human phrase inside a plain sentence, and numbers-as-objects | **Carry** |
 | **Base body** | 14 / 1.5 / 0 tracking | **16** / 1.5 / 0 — Kettle's readers include people reading at arm's length on a phone at 6am | Re-choose (larger) |
@@ -801,7 +801,7 @@ wear their clothes. **Refuse** = ruled out by product law.
 
 ## §12 Open questions for the PM
 
-Filed as **QUESTIONS 74–76**. Summary: the two typefaces are commercial and need
+Filed as **DECISIONS 74–76**. Summary: the two typefaces are commercial and need
 a licensing decision; the "status eyebrow" pattern is typographically desirable
 but semantically forbidden by product law #1 and needs a ruling on how far the
 form can travel without the meaning; and the trade-dress line needs a concrete

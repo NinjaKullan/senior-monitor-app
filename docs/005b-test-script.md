@@ -34,7 +34,7 @@ closed:
    links disappear.
 
 Done means: two green cards, zero founder keystrokes after step 0, and field
-notes filed as a numbered QUESTIONS block (acceptance 5 discipline).
+notes filed as a numbered DECISIONS block (acceptance 5 discipline).
 
 ## 2 Tap enumeration (acceptance 2) — merged method, Shortcuts installed
 
@@ -83,7 +83,7 @@ tap is genuinely required.
 **Honest total: ~37 taps** (±3 for iOS version differences in the automation
 builder), of which the page's own CTAs are 8 and the automation builder is
 ~16. **This does not meet acceptance 2's ≤ 12.** The enumeration is the
-deliverable the criterion asked for; the discrepancy is filed as QUESTIONS 121
+deliverable the criterion asked for; the discrepancy is filed as DECISIONS 121
 rather than met by counting generously. The floor configuration the ≤ 12
 arithmetic fits is page CTAs + add + first-run only — i.e. a world where the
 automations are built by the helper or arrive pre-built, which iOS does not

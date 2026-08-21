@@ -4,7 +4,7 @@
 -- This file is the canonical text (PM ruling, 2026-07-29). Production reached the
 -- same end state in two steps — a differently-worded 0004 that revoked default
 -- privileges from `anon` only, then a follow-up applying the both-roles form
--- below — and has been converged to this. See specs/QUESTIONS.md item 22.
+-- below — and has been converged to this. See specs/DECISIONS.md item 22.
 --
 -- End state, asserted by tests rather than described:
 --   * anon holds zero privileges on every public table and sequence

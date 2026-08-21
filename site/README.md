@@ -81,7 +81,7 @@ npm run ci           # all four, in the order CI runs them
 
 ### Check it on a phone before the founder does
 
-**Standing rule (QUESTIONS 136).** Any pass that touches layout or adds a
+**Standing rule (DECISIONS 136).** Any pass that touches layout or adds a
 component checks the affected sections at **360, 390 and 768** before it is
 called done. A wrap, an overlap or a horizontal overflow found at those widths
 is a blocking finding, not a polish item.
@@ -112,7 +112,7 @@ row's: a class with no arithmetic beside it is a decision nobody can re-derive.
 `https://kettle-api.fly.dev`. It is a public URL and the only value this page
 reads from its environment — there is no key here to leak.
 
-This surface deliberately does not have the webapp's QUESTIONS-114 gap: the
+This surface deliberately does not have the webapp's DECISIONS-114 gap: the
 site is built *locally* (`npm run ci`) before `fly deploy` ships `dist/`, and
 the default above is baked into the code, so a build with no env var still
 points at the production API rather than at an empty string. There is no
@@ -122,7 +122,7 @@ points at the production API rather than at an empty string. There is no
 
 `dist/` is a folder of static files, built and verified locally (`npm run ci`)
 before `fly deploy` ships it. The image serves it with nginx under the
-QUESTIONS 112 caching contract (`nginx.conf`, asserted by
+DECISIONS 112 caching contract (`nginx.conf`, asserted by
 `product/tests/test_site_caching.py`): the shell, the illustrations and
 privacy.html revalidate on every visit (`no-cache` — unchanged files are
 304s), hashed `/assets/` are immutable for a year. Any other static host works

@@ -1,7 +1,7 @@
 # Kettle — working plan
 
 *PM: Fable, updated 2026-08-19 (prior: 08-15). One page. If this file and reality disagree,
-fix this file in the same commit that changes reality. QUESTIONS.md holds the findings; this
+fix this file in the same commit that changes reality. DECISIONS.md holds the findings; this
 holds the order.*
 
 ## Where we are
@@ -42,7 +42,7 @@ speaks. No beta family can be onboarded honestly until the ladder's first two ru
 2. Twilio number + WhatsApp display name — unblocks product item 1.
 3. Beta recruiting (separate marketing session) once the outbound channel exists.
 4. First stranger-family install, founder hands off after provisioning (005b AC1) — produces
-   the field-note QUESTIONS block that tunes the manual-handhold script.
+   the field-note DECISIONS block that tunes the manual-handhold script.
 
 ## Next — PM
 
@@ -63,6 +63,6 @@ speaks. No beta family can be onboarded honestly until the ladder's first two ru
 - Signed shortcuts never enter the founder's library; test only with Rehearsal tokens.
 - Signed files are credentials; delete family folders after verification.
 - Automations are Run Immediately, always.
-- Field notes go to QUESTIONS as numbered items the same day; next free number in CLAUDE.md.
+- Field notes go to DECISIONS as numbered items the same day; next free number in CLAUDE.md.
 - Web assets committed over the bridge get chmod 644 before any build.
 - After every deploy: PM live look before the next thing starts.

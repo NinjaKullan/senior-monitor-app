@@ -81,7 +81,7 @@ export const TRIPWIRE_STALE = "Not heard in a while";
 /**
  * Never heard from. Neutral, not amber: absence of *ever* means nobody has
  * installed the shortcut yet, which is a setup step, not a fault (PM ruling on
- * QUESTIONS 60).
+ * DECISIONS 60).
  */
 export const TRIPWIRE_UNSET = "Not set up yet";
 export const TRIPWIRE_REPAIR =
@@ -107,7 +107,7 @@ export const RECENCY_YESTERDAY = "yesterday";
 export const RECENCY_DAYS = "{days} days ago";
 
 /**
- * Login (QUESTIONS 115). The mailer is equipment, so its failures are worded
+ * Login (DECISIONS 115). The mailer is equipment, so its failures are worded
  * like equipment — calm, specific, and with the next step in the sentence. A
  * rate limit surfacing as silence was the founder's lost hour: the screen said
  * "check your email" over a link that was never sent.

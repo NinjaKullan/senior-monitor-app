@@ -1,5 +1,5 @@
 /**
- * QUESTIONS 115 — login failures surface as words, not silence.
+ * DECISIONS 115 — login failures surface as words, not silence.
  *
  * The regression this guards is exact and field-proven: the built-in mailer
  * rate-limits at roughly two emails an hour, supabase-js *returns* the 429

@@ -1,4 +1,4 @@
-"""QUESTIONS 112's caching contract, ported to the landing page (item 128).
+"""DECISIONS 112's caching contract, ported to the landing page (item 128).
 
 The webapp's version of this bug white-screened returning browsers; the site's
 version is quieter and therefore longer-lived — the six photographs and the
@@ -52,7 +52,7 @@ def test_the_illustrations_really_are_unhashed_stable_names():
     If imagery ever moves into the hashed pipeline this starts failing, which
     is the right moment to notice the contract's split no longer matches the
     files it was written for. The names are the illustration set that replaced
-    the photographs wholesale (QUESTIONS 136); a retired photograph left behind
+    the photographs wholesale (DECISIONS 136); a retired photograph left behind
     in public/ fails here, which is how this list stays a manifest rather than
     a comment.
     """

@@ -14,7 +14,7 @@ export default {
         secondary: "var(--text-secondary)",
         error: "var(--error)",
       },
-      // One typeface, everywhere (QUESTIONS 135). The serif family is gone,
+      // One typeface, everywhere (DECISIONS 135). The serif family is gone,
       // not merely unused: a face that is still reachable is a face that comes
       // back.
       fontFamily: {

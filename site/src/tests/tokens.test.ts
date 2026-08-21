@@ -65,7 +65,7 @@ describe("AC1 — one file holds every colour", () => {
   });
 
   it("keeps every colour literal out of every other file", () => {
-    // One scoped refinement (QUESTIONS 131): the rhythm-field engine paints a
+    // One scoped refinement (DECISIONS 131): the rhythm-field engine paints a
     // canvas, which has no CSS, so it may *compose* rgba() strings — but only
     // from channels interpolated out of tokens.css. In that one file the ban
     // moves from the function name to the values: any rgba( followed by a
@@ -91,7 +91,7 @@ describe("AC1 — one file holds every colour", () => {
   });
 
   it("declares the field palette the approved mock specified", () => {
-    // The mock's channel values, held where every colour lives (QUESTIONS
+    // The mock's channel values, held where every colour lives (DECISIONS
     // 129/131). --field-signal is the kettle orange: the brand mark's hue,
     // depicting an ordinary signal arriving — not an alarm state, and no
     // utility class can reach it.

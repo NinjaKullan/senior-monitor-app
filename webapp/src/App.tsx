@@ -20,7 +20,7 @@ import { NoFamily } from "@/screens/NoFamily";
 import { TripwireDetail } from "@/screens/TripwireDetail";
 
 /**
- * Refresh interval. Polling rather than Supabase realtime — see QUESTIONS.md
+ * Refresh interval. Polling rather than Supabase realtime — see DECISIONS.md
  * item 42: the underlying events happen at human pace (a handful of pings a
  * day), and a poll has no socket to drop, no channel-level RLS to reason about,
  * and no reconnect path to get wrong on a phone that has been in a pocket.

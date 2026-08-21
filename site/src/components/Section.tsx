@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
  * no motion gets none, and the test does not have to simulate a media query to
  * prove it.
  *
- * There is no backdrop slot any more (QUESTIONS 135). A decorative layer that
+ * There is no backdrop slot any more (DECISIONS 135). A decorative layer that
  * shares a box with flowing text will land on that text at some width, and did:
  * the rhythm field's second placement now owns a reserved band of its own
  * inside the content column instead of sitting behind it.

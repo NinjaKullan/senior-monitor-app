@@ -1,5 +1,5 @@
 -- 0006 — record every digest send against a specific parent (PM ruling on
--- QUESTIONS.md item 27).
+-- DECISIONS.md item 27).
 --
 -- 0005 recorded an aggregated evening message as one row with a null parent_id,
 -- which meant the unique index had to coalesce nulls to a sentinel uuid. Two
@@ -15,7 +15,7 @@
 --
 -- A separate migration rather than an edit to 0005 on purpose: this converges
 -- the schema whether or not 0005 has already been applied anywhere. See
--- QUESTIONS.md item 22 for why the repo no longer assumes.
+-- DECISIONS.md item 22 for why the repo no longer assumes.
 
 -- Refuse rather than destroy. Aggregated rows can only exist if digests ran
 -- under the 0005 shape; with DIGEST_ENABLED off by default there should be

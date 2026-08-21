@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
  * scale. The reference's own buttons faux-bold a 400-weight file; ours renders a
  * true semibold from a real 600 file, which is the one place this site is
  * deliberately better than what it learned from. The label sits at body
- * size: with five type roles a button is not its own size (QUESTIONS 135).
+ * size: with five type roles a button is not its own size (DECISIONS 135).
  *
  * `hover:scale` is planted in the motion test and must fail. A page whose job is
  * calm cannot have controls that jump.

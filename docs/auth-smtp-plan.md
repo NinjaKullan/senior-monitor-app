@@ -1,4 +1,4 @@
-# Custom SMTP for Supabase auth — the plan (QUESTIONS 115)
+# Custom SMTP for Supabase auth — the plan (DECISIONS 115)
 
 *Planned 2026-08-16, not yet applied. Founder-applied when it happens: every step here is dashboard
 and DNS work, nothing in this repo changes except `.env.example`'s documentation of the fact. Owed
@@ -54,7 +54,7 @@ with a rewritten tracking URL is also a broken magic link, so this is correctnes
 6. **Test, from a clean inbox:** three magic links inside ten minutes (the exact sequence that broke
    the built-in mailer); confirm all three arrive, land in the inbox not spam, and the link works.
    Then one send to a Gmail *and* an Outlook address — the two spam filters that matter.
-7. **Record the result in QUESTIONS** and update `.env.example`'s comment block to name the sending
+7. **Record the result in DECISIONS** and update `.env.example`'s comment block to name the sending
    domain, so the next implementer knows auth mail is custom-SMTP and where it is configured.
 
 ## Rollback

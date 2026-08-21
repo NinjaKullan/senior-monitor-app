@@ -1,5 +1,5 @@
 /**
- * The illustration set (QUESTIONS 136).
+ * The illustration set (DECISIONS 136).
  *
  * The site's imagery moved from photographs to one drawn set, on two
  * independent reviewer reports about authenticity. The swap is easy to do

@@ -5,14 +5,14 @@
    Every weight the page uses is a real file, not a synthesised one. The
    reference declares only 300 and 400 and then applies `font-bold` to every
    CTA, which fakes the weight in the browser; that is a bug worth not copying.
-   The same trap ran the other way here until QUESTIONS 135: `font-light` was
+   The same trap ran the other way here until DECISIONS 135: `font-light` was
    written across every heading while Instrument Sans has no 300 file at all —
    its range starts at 400 — so the browser served 400 and the type law's
    "display gets lighter as it grows" was decoration. The class is gone and the
    law now names weights this face actually has: 400 regular, 500 for the one
    emphasis role, 600 for buttons and labels.
 
-   The serif is gone with the emphasis role it existed for (QUESTIONS 135). */
+   The serif is gone with the emphasis role it existed for (DECISIONS 135). */
 @import "@fontsource/instrument-sans/400.css";
 @import "@fontsource/instrument-sans/500.css";
 @import "@fontsource/instrument-sans/600.css";
@@ -28,7 +28,7 @@
     scroll-behavior: smooth;
   }
 
-  /* The hidden attribute must always win (QUESTIONS 128). The scenario panels
+  /* The hidden attribute must always win (DECISIONS 128). The scenario panels
      carry `hidden` plus a `flex` display utility, and author classes beat the
      preflight's plain `[hidden]` rule — which left all four panels stacked and
      the tabs decorative. `!important` is the documented Tailwind answer here,
@@ -53,7 +53,7 @@
 }
 
 @layer utilities {
-  /* The scenario tab row on a phone (QUESTIONS 136). A row the finger scrolls
+  /* The scenario tab row on a phone (DECISIONS 136). A row the finger scrolls
      and no bar interrupts: the scrollbar would sit under the tabs on the one
      surface where vertical space is scarcest, and it says nothing a reader
      needs. Discoverability is the fade's job, not the bar's. */
@@ -70,7 +70,7 @@
      is alpha only — no colour is involved and this cannot quietly become a
      second palette (AC1). Applied only while the row is actually clipped, so a
      row that fits is never faded. */
-  /* The floating CTA's bottom margin (QUESTIONS 137): a comfortable 24px plus
+  /* The floating CTA's bottom margin (DECISIONS 137): a comfortable 24px plus
      whatever the device reserves for its home indicator. `env()` resolves to 0
      where there is no inset, so this is 1.5rem on every other screen. */
   .pb-safe {

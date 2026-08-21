@@ -1,5 +1,5 @@
 /**
- * The scenario tab row on a phone (QUESTIONS 136).
+ * The scenario tab row on a phone (DECISIONS 136).
  *
  * Four tabs — "Her morning", "Her afternoon", "When something's off", "What you
  * see" — need about 540px of row. A phone gives 312–380, so a wrapping row

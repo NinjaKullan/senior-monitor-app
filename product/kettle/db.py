@@ -160,7 +160,7 @@ def parent_active_signals(conn: psycopg.Connection, parent_id: Any) -> list[Row]
 
     This is what the setup page renders steps from: the database stays
     authoritative about which signals a parent has, exactly as the forge's
-    token path does (QUESTIONS 97).
+    token path does (DECISIONS 97).
     """
     return conn.execute(
         """

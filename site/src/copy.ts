@@ -44,7 +44,7 @@ export const HERO_NO_DEVICE_BODY =
 export const HERO_CTA = "Apply for the family beta";
 /*
  * The hero image. The diptych's two photographs are one drawing now (founder
- * decision, QUESTIONS 136): the artwork carries both rooms *and* the gap
+ * decision, DECISIONS 136): the artwork carries both rooms *and* the gap
  * between them, so the frame that used to be a two-column grid is a single
  * wide illustration. The brief's law survives the change of medium — parent
  * on the left, profiles facing inward, the distance doing the work no drawn
@@ -64,10 +64,10 @@ export const SCENARIOS_H2 = "An ordinary day.";
 
 /*
  * Each scenario is one lead sentence, whole. It used to be split at the last
- * phrase so the serif could carry the ending; QUESTIONS 135 retired that role
+ * phrase so the serif could carry the ending; DECISIONS 135 retired that role
  * and the two halves are one string again. The spec's drafted sentences are
  * still intact word for word — the element boundary that used to fall inside
- * them (QUESTIONS 79) is simply gone.
+ * them (DECISIONS 79) is simply gone.
  */
 
 export const MORNING_TAB = "Her morning";
@@ -142,7 +142,7 @@ export const FIELDS_H2 = "Three fields. Nothing else.";
 export const FIELDS_CHIPS = ["who", "signal", "when"] as const;
 /** The page's one emphasis line, and the shape the law now allows: a whole
  *  sentence, carried by weight in the body face — never an italic fragment
- *  inside someone else's sentence (QUESTIONS 135). */
+ *  inside someone else's sentence (DECISIONS 135). */
 export const FIELDS_EMPHASIS = "What isn't collected can't leak.";
 export const FIELDS_BODY =
   "This is the whole record Kettle keeps. Not what she typed. Not who she called. Not where she went.";
@@ -152,7 +152,7 @@ export const FIELDS_BODY =
 /* ---------------------------------------------------------------------- */
 
 export const HOW_H2 = "How Kettle works.";
-/** The narrative strip that opens the section (QUESTIONS 136). It is
+/** The narrative strip that opens the section (DECISIONS 136). It is
  *  decorative — it restates the ladder in pictures and adds no claim the steps
  *  below do not already make — so it carries no copy of its own beyond this
  *  alt text. PM-drafted, verbatim. */
@@ -161,7 +161,7 @@ export const HOW_STRIP_ALT =
   + "not started marked by an amber glow on her phone, and the mother replying as the day resumes.";
 
 export const STEP_ONE_LABEL = "Set up together on one video call.";
-/** What, never how (QUESTIONS 132): public surfaces describe what is
+/** What, never how (DECISIONS 132): public surfaces describe what is
  *  collected, never the mechanism — so this sentence names no tooling. */
 export const STEP_ONE_BODY =
   "Kettle notices her phone's ordinary moments. She approves every part of the setup, and can switch any of it off herself.";
@@ -175,7 +175,7 @@ export const STEP_THREE_BODY =
   "Quiet reassurance, morning and evening. If the day looks unusual, the first message goes to her, not about her.";
 
 /* ---------------------------------------------------------------------- */
-/* Founding families (beta conversion, QUESTIONS 129)                       */
+/* Founding families (beta conversion, DECISIONS 129)                       */
 /* ---------------------------------------------------------------------- */
 
 /*
@@ -194,7 +194,7 @@ export const FOUNDING_PRICE_BODY =
 export const FOUNDING_FEEDBACK_BODY =
   "A few short feedback conversations, so Kettle grows around real families.";
 
-/** The founder's note, final and verbatim (QUESTIONS 132; the STUB name
+/** The founder's note, final and verbatim (DECISIONS 132; the STUB name
  *  retired with the stub). Six paragraphs in the founder's own words, with
  *  the one PM substitution the copy law required already applied ("Once in a
  *  while" — the page-wide urgency scan owns the word it replaced). It renders
@@ -242,7 +242,7 @@ export const WAITLIST_UNSURE_LABEL = "Not sure";
 export const WAITLIST_CTA = "See if Kettle fits my family";
 /** Under the button, answering the hesitation the button creates. */
 export const WAITLIST_REASSURE_BODY = "A short conversation. No commitment.";
-/** The one optional free-text field (QUESTIONS 129): a kindness, not a gate. */
+/** The one optional free-text field (DECISIONS 129): a kindness, not a gate. */
 export const WAITLIST_HELP_LABEL = "What would you most like Kettle to help with?";
 /** Mirrored in `kettle/waitlist.py`: with JavaScript off the browser shows the
  *  API's response directly, and both paths must say the same words (item 47). */
@@ -264,7 +264,7 @@ export const FOOTER_CONTACT_HREF = "mailto:hello@getkettle.com";
 /* ---------------------------------------------------------------------- */
 
 /*
- * The real policy shipped (QUESTIONS 132), so the placeholder's "being
+ * The real policy shipped (DECISIONS 132), so the placeholder's "being
  * written with counsel" sentence retired with the placeholder. These two
  * constants tie this module to the standalone page: check-prerender requires
  * both to appear verbatim in privacy.html, so the page and the promise it

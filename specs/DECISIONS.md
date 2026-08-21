@@ -1495,7 +1495,7 @@ Owed by the founder before the page is live: migration 0009 applied to
     a mechanism change rather than a string change and this amendment is
     explicitly strings and tests only.
 
-86. **The morning sentence keeps QUESTIONS 79's split.** Amendment A gives the
+86. **The morning sentence keeps DECISIONS 79's split.** Amendment A gives the
     line whole (`By the time her coffee went cold …`); it lands as `MORNING_LEAD`
     plus `MORNING_SERIF` exactly as before, because design-language §3 permits
     the serif only as a phrase inside a sans sentence. The words are the
@@ -1545,7 +1545,7 @@ specified — strings and tests only, all three suites green.
 ## Spec 006 Amendment B — the kettle story (implementer notes, 2026-08-02)
 
 88. **Paragraph 2 is three strings, not two.** The existing serif split
-    (QUESTIONS 79/86) is lead-then-serif, because every scenario sentence ends
+    (DECISIONS 79/86) is lead-then-serif, because every scenario sentence ends
     on its emphasis. This one has the serif in the *middle* — `The idea was
     gentle — ` *`notice the ordinary, and say so.`* ` Kettle does the same …` —
     so it needs a tail as well: `STORY_TWO_LEAD`, `STORY_TWO_SERIF`,
@@ -1745,11 +1745,11 @@ backend, form, or dependency change.
 
 ---
 
-## QUESTIONS 96 build notes (implementer, 2026-08-15)
+## DECISIONS 96 build notes (implementer, 2026-08-15)
 
 97. **`--name` survives as a label only, and a bare token now forges offline.**
     Item 96a removed the parent's name from filenames, which retired the one
-    fact `--name` existed to supply (QUESTIONS 78: the token path queried the
+    fact `--name` existed to supply (DECISIONS 78: the token path queried the
     database for the display name because filenames needed it). Rather than
     keep requiring a flag whose value nothing consumes, offline mode now
     triggers on `--device-token` plus any of: `--name`, `--signals`, or no
@@ -1805,7 +1805,7 @@ backend, form, or dependency change.
        signal is a guess standing in for that. If routine discovery ships, this item mostly
        dissolves; if it does not, Safari is the better guess than News.
 
-     Depends on QUESTIONS 94 (`provision --signals`) landing first, and on the "adding a signal"
+     Depends on DECISIONS 94 (`provision --signals`) landing first, and on the "adding a signal"
      procedure being written down — a new key needs both label maps and survives the drift test.
 
 101. **Item 96a removed the parent's name from the *filename* as well as the shortcut name, and the
@@ -2508,7 +2508,7 @@ browser — all three adopted as the standard for future surfaces.**
      * **Two pinned literals on the privacy page's law scan**, both the same move: the
        founder's guarantees "stops collection immediately" and "with delivery tracking
        turned off" use banned words to promise their *absence* — the opposite of the
-       selling and surveilling the bans exist to stop. Pinned whole, QUESTIONS-62
+       selling and surveilling the bans exist to stop. Pinned whole, DECISIONS-62
        shape, so nothing else rides in on the words.
      * **The what-never-how ruling became a MECHANISM ban list** (tooling, automation
        vocabulary, named infrastructure) across the copy module, the rendered page,

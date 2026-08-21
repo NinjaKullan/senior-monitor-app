@@ -29,7 +29,7 @@
      alert states, so the colour to style one with does not exist. AC2 asserts
      the absence. */
 
-  /* The rhythm field's palette (QUESTIONS 129/131), as channel triplets the
+  /* The rhythm field's palette (DECISIONS 129/131), as channel triplets the
      canvas engine composes into paint — canvas has no CSS, but its colours
      still live here and nowhere else (AC1). --field-signal is the kettle
      orange from the approved mock: an ordinary signal arriving, the same hue

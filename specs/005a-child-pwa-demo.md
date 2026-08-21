@@ -17,7 +17,7 @@
 
 ## 3. Screens (three, plus login)
 
-1. **Glance ("Today")** — the anxious-moment screen and the demo centerpiece. Per parent: display name, a large calm status — `All normal` (alarm-grade ping seen today), `Quiet so far` (none yet today, before evening), never anything scarier — and "last routine seen {time} local". Auto-refresh (poll 30–60s or Supabase realtime — implementer's choice, note in QUESTIONS). Copy law applies: no counts, no signal names, no trend anything. `Quiet so far` is as dark as this screen ever gets — the ladder owns everything darker, and it isn't in this app yet.
+1. **Glance ("Today")** — the anxious-moment screen and the demo centerpiece. Per parent: display name, a large calm status — `All normal` (alarm-grade ping seen today), `Quiet so far` (none yet today, before evening), never anything scarier — and "last routine seen {time} local". Auto-refresh (poll 30–60s or Supabase realtime — implementer's choice, note in DECISIONS). Copy law applies: no counts, no signal names, no trend anything. `Quiet so far` is as dark as this screen ever gets — the ladder owns everything darker, and it isn't in this app yet.
 2. **Digests** — reverse-chron list of this family's `digest_sends` rendered as the messages read (recompose from templates by kind + parent + date; do not store message text anywhere new). Empty state: "Your daily digests will appear here."
 3. **Family** — parents (name, timezone) and members (name, channel) — read-only roster. Footer line, verbatim: "Kettle stores three things: who, which routine, when. Nothing else exists to show you."
 

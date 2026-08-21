@@ -4,7 +4,7 @@
 
 ## Working model
 
-Fable 5 (Cowork) = PM/reviewer. Claude Code (Opus 5, cloud container) = implementer. Hema pulls after each big build → Fable reviews the diff here → feedback goes into the spec or `specs/QUESTIONS.md`.
+Fable 5 (Cowork) = PM/reviewer. Claude Code (Opus 5, cloud container) = implementer. Hema pulls after each big build → Fable reviews the diff here → feedback goes into the spec or `specs/DECISIONS.md`.
 
 ## Critical path to Sunday (YC deadline: Sun Jul 27, 8:00pm PT)
 

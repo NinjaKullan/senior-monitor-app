@@ -31,7 +31,7 @@ site/dist-ssr/
 out/
 *.shortcut
 
-# Experiment §5.1 (QUESTIONS 102): staged signed shortcuts served by kettle-app.
+# Experiment §5.1 (DECISIONS 102): staged signed shortcuts served by kettle-app.
 # Each carries a live device token; the slug directory must never reach git.
 # (*.shortcut is already ignored tree-wide; this covers notes or unsigned
 # copies dropped beside one.)

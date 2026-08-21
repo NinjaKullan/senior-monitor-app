@@ -136,7 +136,7 @@ const TRIPWIRE_NAME_EXEMPTION = [
   "Charger On",
   "Charger Off",
   "Daily Check",
-  // The merged end-state pair (QUESTIONS 107). "Charger" sits after the two
+  // The merged end-state pair (DECISIONS 107). "Charger" sits after the two
   // per-edge names so the longer strings mask first.
   "Daily routine",
   "Charger",

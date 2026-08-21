@@ -1,6 +1,6 @@
 # Spec 006 — Landing page (getkettle.*)
 
-**STATUS: BUILT — `1effca4..0bbf9cc`, reviewed and approved by PM 2026-08-02 (rulings 78–83 in QUESTIONS.md). Amendment A (§10) is BUILT (`369f33e..66457ee`, approved). Amendment B (§11, the kettle story) is ACTIVE — build it. Site is LIVE at kettle-site.fly.dev; remaining founder steps: migration 0009 to `kettle-prod`, `WAITLIST_ORIGINS` to include the serving origin, DNS.**
+**STATUS: BUILT — `1effca4..0bbf9cc`, reviewed and approved by PM 2026-08-02 (rulings 78–83 in DECISIONS.md). Amendment A (§10) is BUILT (`369f33e..66457ee`, approved). Amendment B (§11, the kettle story) is ACTIVE — build it. Site is LIVE at kettle-site.fly.dev; remaining founder steps: migration 0009 to `kettle-prod`, `WAITLIST_ORIGINS` to include the serving origin, DNS.**
 
 *PM: Fable, 2026-08-02. The Wave-0 landing page: one static page whose job is to collect a waitlist and ask THE question ("What phone does your parent use?" — it decides Wave 2 priority with data, per the GTM roadmap). `docs/design-language.md` is the law of this surface; this spec locks its TBD-at-spec-time values, defines the page, and wires the copy-law tests into marketing. Rulings 74–76 govern typography, the eyebrow slot, and the trade-dress line. Where this spec drafts copy, the **rules** are binding and the **strings** are founder-editable at review — swap a sentence freely, but it must still pass the tests in §8.*
 
@@ -8,7 +8,7 @@
 
 Deliverables: a static site in `site/` (new top-level directory), plus the smallest possible waitlist backend — migration 0009 and one public endpoint on kettle-api. Founder owns DNS, hosting, and deploy; the build produces a `dist/` and a README section saying exactly what to point where.
 
-**Non-goals, decided here so they are not re-litigated in QUESTIONS:** no Phone Watch tier mention (post-beta decision, and its device/person language guardrail deserves its own spec), no checkout or billing, no blog, no analytics or tracking of any kind ever (law #4 — not even self-hosted page counters in v1), no A/B tooling, no confirmation email (no email infra exists; the success state is the confirmation), no scroll-scrubbed pinning (design-language §6 refuses it for v1).
+**Non-goals, decided here so they are not re-litigated in DECISIONS:** no Phone Watch tier mention (post-beta decision, and its device/person language guardrail deserves its own spec), no checkout or billing, no blog, no analytics or tracking of any kind ever (law #4 — not even self-hosted page counters in v1), no A/B tooling, no confirmation email (no email infra exists; the success state is the confirmation), no scroll-scrubbed pinning (design-language §6 refuses it for v1).
 
 ## 2. Locked values (closes design-language §4/§5 open items)
 
@@ -92,7 +92,7 @@ Wordmark, `Three fields. Nothing else.`, a link to a plain static privacy page (
 
 ## 4. Copy law — the marketing extension
 
-Design-language §8 requires extending the product's copy-law tests to marketing rather than inventing a second standard. Same pattern as the webapp: every rendered string lives in `site/src/copy.ts`; `assertCopyLaw(text, allow)` masks a pinned allowlist, then scans; the ban side is derived where possible so new entries join the ban for free (QUESTIONS 62 precedent).
+Design-language §8 requires extending the product's copy-law tests to marketing rather than inventing a second standard. Same pattern as the webapp: every rendered string lives in `site/src/copy.ts`; `assertCopyLaw(text, allow)` masks a pinned allowlist, then scans; the ban side is derived where possible so new entries join the ban for free (DECISIONS 62 precedent).
 
 Banned on this surface, in addition to the existing product bans:
 
@@ -131,7 +131,7 @@ Five slots, keyed to design-language §9's commissioned concepts: hero→3, morn
 2. **No alarm colours.** No amber token exists in `site/`; `--error` appears in form-error styles and nowhere else — asserted by scanning built CSS/class usage, and verified by planting a red chip outside the form.
 3. **Copy law.** The §4 bans run over `copy.ts` and the rendered DOM (including alt/aria); the allowlist is pinned literals; the ban side derives from shared vocabulary where possible. Plants, each verified caught then reverted: an urgency word, a `!` CTA, a person-status verdict, a person-status eyebrow, an app name inside activity narration, and a three-fields claim that drifts from `who · signal · when`.
 4. **Digits.** DOM digit walk passes with only the pinned allowlist (price, step numerals); plants for a clock time in a mockup timestamp and a count of her activity both fail.
-5. **Gradients & panel structure.** Tint constants match §2 exactly (geometry, corner anchoring, alpha bounds, `transparent` terminal stop, one template four tint-sets). Panel structure — amended per the ruling on QUESTIONS 80, whose purpose is that the `off` panel must never be escalated: morning≡afternoon and off≡seen structurally, one class list across all four, and `off` adds nothing structural beyond the notification slot that `seen` also carries. An always-rendered empty slot on all four is explicitly not required.
+5. **Gradients & panel structure.** Tint constants match §2 exactly (geometry, corner anchoring, alpha bounds, `transparent` terminal stop, one template four tint-sets). Panel structure — amended per the ruling on DECISIONS 80, whose purpose is that the `off` panel must never be escalated: morning≡afternoon and off≡seen structurally, one class list across all four, and `off` adds nothing structural beyond the notification slot that `seen` also carries. An always-rendered empty slot on all four is explicitly not required.
 6. **Tab grammar.** Active/inactive states match §3.2's measured set; 300ms opacity ease on tabs; no transition on the panel; tabs are keyboard-operable with `tablist`/`tab`/`tabpanel` roles and a visible focus ring.
 7. **Motion.** Every animation sits behind `motion-safe:`; `prefers-reduced-motion` yields a fully static page; hovers are colour-only — planted `hover:scale` and a non-gated entry animation both fail.
 8. **Self-containment.** `dist/` contains no foreign-origin reference; fonts are self-hosted woff2; no third-party script or beacon of any kind.

@@ -32,7 +32,7 @@ import { effectiveTz, localDate } from "./time";
  * tripwire that is working.
  *
  * These fixed windows stand until the threshold-analysis spec exists (PM ruling
- * on QUESTIONS 59). Learning a cadence from a parent's own ping history is the
+ * on DECISIONS 59). Learning a cadence from a parent's own ping history is the
  * obvious tuning move and is **deferred, not rejected**: if it is ever built it
  * is mechanism-health only, never displayed and never compared across time —
  * and that ruling waits for that spec rather than being assumed here.
@@ -42,7 +42,7 @@ export const DEFAULT_CADENCE_HOURS = 7 * 24;
 
 /**
  * Three states, and the third is the one that matters most (PM ruling on
- * QUESTIONS 60).
+ * DECISIONS 60).
  *
  * `unconfigured` — never heard from, ever — is not `stale`. Absence of *ever* is
  * not-yet-configured, not broken: the same distinction the 001 item-4 ruling

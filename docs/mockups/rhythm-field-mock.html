@@ -42,14 +42,14 @@
   .fields .emphasis { color: #f4ede4; font-size: 20px; font-weight: 500; }
   /* The field's reserved band: a flow sibling below the words, never a layer
      behind them. Text cannot enter it at any width, which is the whole point —
-     the orbits used to land on the copy (QUESTIONS 135). */
+     the orbits used to land on the copy (DECISIONS 135). */
   .field-band { position: relative; width: 100%; max-width: 768px; height: 256px; margin-top: 28px; }
   .field-band canvas { pointer-events: none; }
   @media (min-width: 768px) { .field-band { height: 320px; } }
 </style>
 </head>
 <body>
-<div class="note"><b>Motion mock — not production.</b> Canvas 2D stand-in for the Three.js build. Watch the hero field: soft pulses are ordinary signals arriving. Press "simulate a quiet morning" to see one pulse go missing and the quiet question travel to the parent's side first. Scroll down for the "Three fields" resolve.<br><b>Presence pass (QUESTIONS 134):</b> motes larger and brighter, a larger amber share taken from graphite, drift with a floor under it, and pulse rings that breathe — the field was invisible over cream at the original values. These constants are the ones the site ships.<br><b>Band + stir (QUESTIONS 135):</b> the
+<div class="note"><b>Motion mock — not production.</b> Canvas 2D stand-in for the Three.js build. Watch the hero field: soft pulses are ordinary signals arriving. Press "simulate a quiet morning" to see one pulse go missing and the quiet question travel to the parent's side first. Scroll down for the "Three fields" resolve.<br><b>Presence pass (DECISIONS 134):</b> motes larger and brighter, a larger amber share taken from graphite, drift with a floor under it, and pulse rings that breathe — the field was invisible over cream at the original values. These constants are the ones the site ships.<br><b>Band + stir (DECISIONS 135):</b> the
 three-fields canvas has a reserved band below the words instead of a layer behind them, its rings
 size themselves to that band, and with a desktop pointer the dust is displaced and eases home.</div>
 
@@ -174,7 +174,7 @@ sizeCanvas(threeC);
 const tctx = threeC.getContext('2d');
 const tw = () => threeC.clientWidth, th = () => threeC.clientHeight;
 // Ring and orbit sizes answer to the band, not to fixed pixels: three rings
-// plus their margins have to fit at 360 as well as at 1440 (QUESTIONS 135).
+// plus their margins have to fit at 360 as well as at 1440 (DECISIONS 135).
 const geometry = (W, H) => {
   const ring = Math.min(56, W / 8);
   return { ring, centres: [

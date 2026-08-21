@@ -3,7 +3,7 @@ import { PillLink } from "@/components/Pill";
 import { HERO_CTA } from "@/copy";
 
 /**
- * The floating CTA (founder request, QUESTIONS 137).
+ * The floating CTA (founder request, DECISIONS 137).
  *
  * The ask stays reachable while someone reads, without the page acquiring a
  * permanent overlay. It is the same pill, pointed at the same anchor, carrying

@@ -1,4 +1,4 @@
-"""QUESTIONS 112: the caching contract that stops deploys white-screening.
+"""DECISIONS 112: the caching contract that stops deploys white-screening.
 
 Hit three times in one evening: nginx sent no Cache-Control on the SPA shell,
 browsers heuristically cached it, a deploy renamed the hashed assets, and the
@@ -55,7 +55,7 @@ def test_the_experiment_path_stays_uncached():
 def test_no_service_worker_exists_to_outlive_this_contract():
     """HTTP caching is the whole update story, and that is load-bearing.
 
-    A service worker would reintroduce QUESTIONS 112's failure class with worse
+    A service worker would reintroduce DECISIONS 112's failure class with worse
     persistence — a cached app that survives even a fixed server. If one is ever
     added deliberately, it must bring its own update flow, and this test is the
     reminder to design that rather than a ban on doing so.

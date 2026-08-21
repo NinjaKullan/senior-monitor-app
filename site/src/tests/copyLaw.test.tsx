@@ -56,7 +56,7 @@ const SURVEILLANCE = ["track", "tracking", "tracked", "surveillance", "monitor h
 const VERDICTS = ["she's fine", "she is fine", "is safe", "doing well", "she's okay", "she is okay"];
 
 /**
- * Inference vocabulary (founder decision, QUESTIONS 129). Law #1 rules out
+ * Inference vocabulary (founder decision, DECISIONS 129). Law #1 rules out
  * decline detection; this bans the site from *sounding* like it does it.
  * Kettle notices absence against a fixed expectation — it does not learn, and
  * a page that says "learns her routine" has promised a model that product law
@@ -68,7 +68,7 @@ const VERDICTS = ["she's fine", "she is fine", "is safe", "doing well", "she's o
 const INFERENCE = ["learns", "learning", "intelligence", "ai"];
 
 /**
- * Mechanism vocabulary (founder IP ruling, QUESTIONS 132, standing): public
+ * Mechanism vocabulary (founder IP ruling, DECISIONS 132, standing): public
  * surfaces describe what is collected, never how. No tooling names, no
  * automation vocabulary, no named infrastructure — providers are "established
  * cloud infrastructure providers", named on request. Mechanism transparency
@@ -112,7 +112,7 @@ const BANNED = [
 /**
  * The pinned allowlist. Every entry is a literal, written out here rather than
  * derived, so widening it is a visible act in this file — the asymmetry adopted
- * in QUESTIONS 62: the ban may derive itself, the exemption may not.
+ * in DECISIONS 62: the ban may derive itself, the exemption may not.
  */
 const ALLOW: (string | RegExp)[] = [
   // A question addressed *to her*, not a claim about her. That distinction is
@@ -194,8 +194,8 @@ const ARRAYS = Object.entries(copy).flatMap(([name, value]) =>
 const PROSE = [...STRINGS, ...ARRAYS];
 
 /** Roles, and the shape rule each carries (AC12). H3 joined with the scenario
- *  panel headlines (beta conversion, QUESTIONS 129). SERIF retired and
- *  EMPHASIS replaced it (QUESTIONS 135): the page's emphasis is a whole
+ *  panel headlines (beta conversion, DECISIONS 129). SERIF retired and
+ *  EMPHASIS replaced it (DECISIONS 135): the page's emphasis is a whole
  *  sentence carried by weight, never an italic fragment, so the role that
  *  named a sentence-fragment no longer exists. */
 const ROLE =
@@ -209,7 +209,7 @@ describe("AC3 — the copy module obeys the marketing bans", () => {
   });
 
   it("bans urgency, diagnosis, alarm, surveillance, verdicts and mechanism", () => {
-    // The STEP_ mechanism exemption retired with QUESTIONS 132's what-never-
+    // The STEP_ mechanism exemption retired with DECISIONS 132's what-never-
     // how ruling: the setup steps describe what Kettle notices, not the
     // tooling that notices it, so no string on this surface names either.
     for (const [name, value] of PROSE) {
@@ -230,7 +230,7 @@ describe("AC3 — the copy module obeys the marketing bans", () => {
 
   it("would catch each of the planted regressions", () => {
     // AC3 names the first six exactly; the inference pair joined with
-    // QUESTIONS 129. Each is a sentence someone could plausibly write.
+    // DECISIONS 129. Each is a sentence someone could plausibly write.
     expect(() => assertCopyLaw("Join now — limited places")).toThrow();
     expect(() => assertCopyLaw("Know she's fine today")).toThrow();
     expect(() => assertCopyLaw("Kettle sends an alert when something is wrong")).toThrow();
@@ -242,7 +242,7 @@ describe("AC3 — the copy module obeys the marketing bans", () => {
     // The plain sense stays free: the story's "nothing to learn" is a promise
     // about the parent's effort, not a claim about a model.
     expect(() => assertCopyLaw("Nothing to wear, nothing to learn.")).not.toThrow();
-    // What, never how (QUESTIONS 132): tooling and infrastructure names fail.
+    // What, never how (DECISIONS 132): tooling and infrastructure names fail.
     expect(() => assertCopyLaw("Pre-built shortcuts note her phone's moments")).toThrow();
     expect(() => assertCopyLaw("One automation watches her morning")).toThrow();
     expect(() => assertCopyLaw("Hosted on AWS and Supabase")).toThrow();
@@ -331,7 +331,7 @@ describe("AC12 — copy shape", () => {
   it("keeps CTA labels to six plain words at most", () => {
     // Was two flat words ("Join waitlist"). The beta conversion's approved
     // CTAs are sentences a person would say — "See if Kettle fits my family"
-    // — so the cap moves to fit them (founder decision, QUESTIONS 129). The
+    // — so the cap moves to fit them (founder decision, DECISIONS 129). The
     // flatness the old cap protected lives on in the urgency bans above: a
     // longer label may be warmer, never louder.
     for (const [name, value] of STRINGS) {
@@ -403,7 +403,7 @@ describe("AC3 — the rendered page obeys them too", () => {
 });
 
 /* --------------------------------------------------------------------- */
-/* The privacy page (QUESTIONS 132)                                        */
+/* The privacy page (DECISIONS 132)                                        */
 /* --------------------------------------------------------------------- */
 
 describe("the privacy page obeys the same law", () => {
@@ -433,7 +433,7 @@ describe("the privacy page obeys the same law", () => {
     // reader studies hardest names no tooling, no automation vocabulary, no
     // infrastructure. It also carries none of the vocabulary banned anywhere
     // else — a policy that says "alert" or "track" has already broken the
-    // promise it documents. Two literal exemptions, in the QUESTIONS-62 shape
+    // promise it documents. Two literal exemptions, in the DECISIONS-62 shape
     // (the exemption may never derive itself), and both are the same move:
     // a founder guarantee that uses a banned word to promise its *absence* —
     // deletion is immediate, delivery tracking is off. The words the bans
@@ -539,7 +539,7 @@ describe("the refused components stay refused", () => {
 
   it("permits canvas only as the two aria-hidden rhythm-field backdrops", () => {
     // The blanket canvas ban was written against charts and scores. The
-    // rhythm field (founder decision, QUESTIONS 129/131) is a decorative
+    // rhythm field (founder decision, DECISIONS 129/131) is a decorative
     // backdrop with a content-honesty rule of its own — signals and the
     // parent-first ask, never inference — so the exemption is scoped to
     // exactly that shape: marked, hidden from assistive tech, inert to the

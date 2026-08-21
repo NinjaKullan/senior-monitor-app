@@ -28,7 +28,7 @@ for (const match of copy.matchAll(/export const ([A-Z0-9_]+)\s*=\s*((?:"[^"]*"\s
   constants.set(match[1], [...match[2].matchAll(/"([^"]*)"/g)].map((m) => m[1]).join(""));
 }
 
-// Array copy — the founder note's paragraphs (QUESTIONS 132). Each element is
+// Array copy — the founder note's paragraphs (DECISIONS 132). Each element is
 // required in the prerendered HTML under the array's own role suffix, so a
 // letter is covered exactly like a sentence; a paragraph dropped from the
 // render fails here by name.
@@ -80,7 +80,7 @@ if (missing.length > 0) {
 // page, the *only* copy they read. It duplicated HERO_BODY by hand, which is
 // exactly the pair that drifts: one gets edited at review, the other stays
 // behind in a file nobody thinks of as containing sentences. Tied structurally
-// here rather than by a second copy of the string (QUESTIONS 85, PM-approved).
+// here rather than by a second copy of the string (DECISIONS 85, PM-approved).
 const description = html.match(/<meta\s+name="description"\s+content="([^"]*)"/s);
 if (!description) {
   console.error("dist/index.html has no meta description");

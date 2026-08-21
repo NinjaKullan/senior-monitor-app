@@ -278,7 +278,7 @@ def create_app(
         parent_phone = waitlist.normalise_choice(field("parent_phone"))
         if email is None or parent_phone is None:
             raise StarletteHTTPException(status_code=400, detail="check the form")
-        # Optional, capped, never a reason to fail a signup (QUESTIONS 129).
+        # Optional, capped, never a reason to fail a signup (DECISIONS 129).
         help_with = waitlist.normalise_help_with(field("help_with"))
 
         with request.app.state.pool.connection() as conn:

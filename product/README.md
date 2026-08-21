@@ -228,7 +228,7 @@ follow the 0004 doctrine: `authenticated` only, `anon` explicitly revoked.
 Provisioning prints ping URLs; the forge turns them into files a parent can
 install by tapping. Each generated `.shortcut` is a plist holding exactly one
 `Get Contents of URL` action, named `Kettle — {Signal}` (no parent name — an iPhone tile truncates it away,
-QUESTIONS 96a) — the same
+DECISIONS 96a) — the same
 string the app's tripwire health view shows when that signal needs repair, so a
 family that reads "her WhatsApp tripwire needs attention" is looking for a
 shortcut with that name on the phone.
@@ -262,9 +262,9 @@ DATABASE_URL=... python -m scripts.forge \
 one, or when you are working from a provisioning printout rather than a name.
 `--verify out/shortcuts` re-checks a directory at any time; `--inspect FILE`
 prints a real shortcut's plist shape beside the forge's, which is how the format
-assumptions in `specs/QUESTIONS.md` item 69 get confirmed against a Mac.
+assumptions in `specs/DECISIONS.md` item 69 get confirmed against a Mac.
 
-### Adding a signal to the vocabulary (the QUESTIONS 94 procedure)
+### Adding a signal to the vocabulary (the DECISIONS 94 procedure)
 
 A new key is a two-file code change with a drift test, never a database row:
 
@@ -309,7 +309,7 @@ imports on its own. **This has not been confirmed on a real handset from here**
 as expected behaviour, not established fact, and confirm it on the first real
 send. If a phone does refuse the import, the fallback is Settings → Shortcuts →
 Allow Untrusted Shortcuts, which only appears after the Shortcuts app has been
-opened at least once. Record the answer in QUESTIONS 69 either way; it decides
+opened at least once. Record the answer in DECISIONS 69 either way; it decides
 whether the 005b wizard needs a "turn this on first" step.
 
 Sources for the above: [Apple, *Run shortcuts from the command
@@ -325,7 +325,7 @@ that signs a family's files at provisioning time, which removes the founder's
 laptop from the loop entirely. Nothing here needs to change for that — the
 generation half already runs anywhere; only the signing half needs the runner.
 Note the files still travel by WhatsApp document attachment either way:
-QUESTIONS 117 closed the hosted-delivery experiment (iOS Safari downloads a
+DECISIONS 117 closed the hosted-delivery experiment (iOS Safari downloads a
 served `.shortcut` rather than opening the Add Shortcut sheet), so no server
 of ours serves shortcut files.
 
@@ -336,7 +336,7 @@ seven-day expiry — and prints the page URL beside the token. The page at
 `/s/{slug}` carries what only a page can: consent in plain language, the
 visual steps, the pre-empted Apple permission warning, and the live
 verify-by-prediction check. It never serves a file and never shows a token;
-files travel by WhatsApp document attachment (QUESTIONS 117).
+files travel by WhatsApp document attachment (DECISIONS 117).
 
 ```bash
 # A fresh link for an existing parent (the Appa case). Issuance is rotation:

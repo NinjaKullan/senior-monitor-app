@@ -34,7 +34,7 @@ CONTACT_LINE = " Your named local contact is {name}{relation}{phone}."
 
 # Subject pronoun plus its verb, so agreement survives the substitution:
 # "they haven't answered", not "they hasn't answered". Nothing infers a pronoun
-# from a name (QUESTIONS.md item 24, adopted as policy); with no pronoun
+# from a name (DECISIONS.md item 24, adopted as policy); with no pronoun
 # recorded, every message uses the neutral clause.
 UNANSWERED_CLAUSE = {
     "she": "she hasn't",

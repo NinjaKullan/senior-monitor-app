@@ -7,7 +7,7 @@ import { LOGIN_FAILED, LOGIN_RATE_LIMITED, LOGIN_SENT } from "@/lib/copy";
 /**
  * Magic link only. No passwords for a senior-adjacent audience.
  *
- * Failures surface as words (QUESTIONS 115). The founder's lost hour was a
+ * Failures surface as words (DECISIONS 115). The founder's lost hour was a
  * mailer rate limit that this screen swallowed: it said "check your email" over
  * a link that was never sent, and the only evidence was an auth log nobody was
  * reading. The mailer is equipment, so its failures read like equipment — calm,

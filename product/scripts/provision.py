@@ -82,7 +82,7 @@ def main(argv: list[str] | None = None) -> int:
         "--set-signals",
         metavar="DEVICE_TOKEN",
         default=None,
-        help="re-point an existing parent's allowlist to --signals (QUESTIONS 107)",
+        help="re-point an existing parent's allowlist to --signals (DECISIONS 107)",
     )
     parser.add_argument(
         "--revoke",
@@ -162,7 +162,7 @@ def main(argv: list[str] | None = None) -> int:
         if issued is None:
             print(
                 "No active device matches that token — no link issued. "
-                "A revoked device gets no new doors (QUESTIONS 95: re-issue "
+                "A revoked device gets no new doors (DECISIONS 95: re-issue "
                 "for a replacement phone is still an open tooling gap).",
                 file=sys.stderr,
             )

@@ -2,7 +2,7 @@
 --
 -- A setup link is the parent setup page's address: unguessable, expiring,
 -- revocable. It resolves through its device, so revoking the device token kills
--- the URL with it — the URL is the token in transit (QUESTIONS 102) and never
+-- the URL with it — the URL is the token in transit (DECISIONS 102) and never
 -- outlives it. The slug is a *separate* secret from the device token: the page
 -- it unlocks shows steps and a live verify check, never the token, so a leaked
 -- link burns a page, not a ping identity.
@@ -10,7 +10,7 @@
 -- `parent_id` is deliberately denormalised from the device row. The child app
 -- renders "Amma's setup" from this table alone; giving it the parent directly
 -- means its read surface never has to touch `devices`, and device tokens stay
--- out of every browser (QUESTIONS 101's standing rule, applied to the webapp).
+-- out of every browser (DECISIONS 101's standing rule, applied to the webapp).
 
 create table setup_links (
     id          uuid primary key default gen_random_uuid(),

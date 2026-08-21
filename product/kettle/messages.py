@@ -24,7 +24,7 @@ EVENING_MANY = "{leading} and {last} all had normal, active days."
 
 # Used only when a parent's pronoun is explicitly recorded. Nothing infers a
 # pronoun from a name, so with no pronoun column in the schema this stays
-# unreached and every message uses the neutral form (QUESTIONS.md item 24).
+# unreached and every message uses the neutral form (DECISIONS.md item 24).
 CLOCK_BY_PRONOUN = {
     "she": "her time",
     "he": "his time",

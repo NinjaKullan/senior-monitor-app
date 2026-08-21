@@ -54,7 +54,7 @@ def test_the_form_degrades_to_a_plain_post(client: TestClient, conn: psycopg.Con
 
 
 def test_the_optional_note_is_stored_and_capped(client: TestClient, conn: psycopg.Connection):
-    """QUESTIONS 129: one free-text kindness, bounded, never a reason to fail."""
+    """DECISIONS 129: one free-text kindness, bounded, never a reason to fail."""
     noted = {**SIGNUP, "help_with": "  Mostly the mornings, when nobody has heard yet.  "}
     assert client.post("/waitlist", json=noted).status_code == 200
     stored = conn.execute("select help_with from waitlist").fetchone()["help_with"]
@@ -181,7 +181,7 @@ def test_the_endpoint_stores_only_what_was_typed(client: TestClient, conn: psyco
 
     The page carries no tracking, and the endpoint behind it does not get to
     become the tracking by the back door — so the columns are asserted, not the
-    intention. `help_with` joined in 0011 (QUESTIONS 129) and honours the same
+    intention. `help_with` joined in 0011 (DECISIONS 129) and honours the same
     rule from the other side: it holds only what the person themselves typed
     into a labelled, optional box, and nothing arrives in it any other way.
     """

@@ -34,10 +34,10 @@ interface Scenario {
   /** The panel's one-line headline (beta conversion: the kickers retired). */
   headline: string;
   /** The lead sentence, whole — it used to be split so the serif could carry
-   *  its ending (QUESTIONS 135). */
+   *  its ending (DECISIONS 135). */
   lead: string;
   body: string;
-  /** The commissioned illustration, from site/public/ (QUESTIONS 136 — the
+  /** The commissioned illustration, from site/public/ (DECISIONS 136 — the
    *  set replaced the photographs wholesale). */
   image: string;
   alt: string;
@@ -105,7 +105,7 @@ export function Scenarios() {
   const base = useId();
 
   // Is the row actually clipped? Measured rather than assumed from the
-  // breakpoint, so a row that happens to fit is never faded (QUESTIONS 136).
+  // breakpoint, so a row that happens to fit is never faded (DECISIONS 136).
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
@@ -198,7 +198,7 @@ export function Scenarios() {
             reader modes get all four in day order. On screen, `hidden` marks
             the three inactive panels — backed by the stylesheet's [hidden]
             override, because the display utility would otherwise beat the
-            attribute and stack all four (QUESTIONS 128). `hidden` rather than
+            attribute and stack all four (DECISIONS 128). `hidden` rather than
             unmounting is what keeps the copy in the markup. */}
         {SCENARIOS.map((scenario, index) => (
           <div
@@ -220,7 +220,7 @@ export function Scenarios() {
             {/* Below the hero, so it lazy-loads; sized by class so the
                 digit walk over perceivable attributes stays clean. 4:3 is the
                 set's own crop — the container matches the artwork rather than
-                cropping it (QUESTIONS 136). */}
+                cropping it (DECISIONS 136). */}
             <img
               src={scenario.image}
               alt={scenario.alt}

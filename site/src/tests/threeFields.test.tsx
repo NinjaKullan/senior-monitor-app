@@ -1,5 +1,5 @@
 /**
- * The three-fields section, after QUESTIONS 135.
+ * The three-fields section, after DECISIONS 135.
  *
  * Two independent reviewers of the live site reported the field's orbits
  * landing on the section's words, on phones and on desktops. The cause was

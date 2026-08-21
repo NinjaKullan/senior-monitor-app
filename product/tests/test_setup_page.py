@@ -77,10 +77,10 @@ def test_merged_page_renders_the_whole_sequence(conn: psycopg.Connection, client
     assert "Kettle — Daily routine" in body
     assert "Kettle — Charger" in body
 
-    # Step zero's App Store path (QUESTIONS 103).
+    # Step zero's App Store path (DECISIONS 103).
     assert setup_copy.APP_STORE_SHORTCUTS_URL in body
 
-    # The pre-empted warning names the real host (QUESTIONS 99).
+    # The pre-empted warning names the real host (DECISIONS 99).
     assert "wants to connect to kettle-api.test" in body
 
     # Q107's two field gotchas: Run Immediately on every automation row, and
@@ -88,7 +88,7 @@ def test_merged_page_renders_the_whole_sequence(conn: psycopg.Connection, client
     assert "Tick both" in body
     assert "Is Connected" in body and "Is Disconnected" in body
 
-    # The helper path (QUESTIONS 104) is present but off by default.
+    # The helper path (DECISIONS 104) is present but off by default.
     assert setup_copy.HELPER_TOGGLE in body
     assert setup_copy.HELPER_NOTE_FIRSTRUN in body
 

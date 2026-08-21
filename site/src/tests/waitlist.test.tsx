@@ -26,7 +26,7 @@ function fill() {
 describe("the form's shape", () => {
   it("types the email, one optional note, and nothing else", () => {
     // The zero-free-text principle held until the beta conversion added one
-    // deliberate exception (QUESTIONS 129): "what would you most like Kettle
+    // deliberate exception (DECISIONS 129): "what would you most like Kettle
     // to help with?" — optional, never required, capped server-side. The
     // email stays the only *required* typing, and this pin keeps the form
     // from growing a third field quietly.

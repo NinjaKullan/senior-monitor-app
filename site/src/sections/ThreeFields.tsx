@@ -18,7 +18,7 @@ import { useLazyField } from "@/lib/useLazyField";
  * text becomes canvas with no second palette anywhere.
  *
  * Below the words — never behind them — the rhythm field's second placement
- * (QUESTIONS 131, re-housed by 135): cream dust resolves into three labelled
+ * (DECISIONS 131, re-housed by 135): cream dust resolves into three labelled
  * orbits as the band scrolls into view. The canvas used to span the whole
  * section as a backdrop, which put drawn words underneath written ones at most
  * widths; two reviewers read the result as a collision because it was one. It
@@ -35,7 +35,7 @@ export function ThreeFields() {
         reducedMotion: module.prefersReducedMotion(),
         mobile: module.isMobileViewport(),
         // Desktop pointers only, decided here rather than in the engine so the
-        // test can hand it either answer (QUESTIONS 135).
+        // test can hand it either answer (DECISIONS 135).
         pointer: module.hasFinePointer(),
         labels: FIELDS_CHIPS,
       }),

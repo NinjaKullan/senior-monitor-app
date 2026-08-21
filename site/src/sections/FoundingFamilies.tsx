@@ -21,11 +21,11 @@ const PROMISES = [
 
 /**
  * What the beta actually is, said before the form asks for anything
- * (beta conversion, QUESTIONS 129). Only promises that will be kept: setup,
+ * (beta conversion, DECISIONS 129). Only promises that will be kept: setup,
  * support, the price, a few conversations — no outcomes, no roadmap. The
  * founder's note sits under them because a beta this small is a relationship
  * with a person, and the person should be on the page. The note is the
- * founder's final text, verbatim (QUESTIONS 132), rendered as the paragraphs
+ * founder's final text, verbatim (DECISIONS 132), rendered as the paragraphs
  * it was written in.
  */
 export function FoundingFamilies() {

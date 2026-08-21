@@ -1,4 +1,4 @@
--- 0011 — the waitlist's one optional sentence (beta conversion, QUESTIONS 129).
+-- 0011 — the waitlist's one optional sentence (beta conversion, DECISIONS 129).
 --
 -- "What would you most like Kettle to help with?" — the first free text a
 -- stranger can leave anywhere in this product, and it changes nothing about

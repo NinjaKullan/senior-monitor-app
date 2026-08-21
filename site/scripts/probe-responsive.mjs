@@ -1,5 +1,5 @@
 /**
- * The mobile check, run in a real browser (QUESTIONS 136).
+ * The mobile check, run in a real browser (DECISIONS 136).
  *
  * The founder reviews this site on a phone, and twice now he has found on a
  * handset something no test could see: the field's orbits sitting on the
@@ -15,7 +15,7 @@
  *   2. The scenario tab row is one line — every tab shares a top edge.
  *   3. Every tab is at least 40px tall, and the row's fade is present exactly
  *      when the row is actually clipped.
- *   4. The floating CTA (QUESTIONS 137) is absent at the hero, at the form and
+ *   4. The floating CTA (DECISIONS 137) is absent at the hero, at the form and
  *      at the footer, present in between, big enough to hit, inside the
  *      viewport, and never on top of another link or button.
  *

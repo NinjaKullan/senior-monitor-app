@@ -59,7 +59,7 @@ describe("AC5 — panels differ by tint and content, never by structure", () => 
     // And the escalation risk: `off` must not have acquired anything `morning`
     // lacks beyond that notification. The prefix is morning's own length rather
     // than a hard-coded count — the panel lost an element when the serif was
-    // retired (QUESTIONS 135), and a literal 6 here quietly stopped comparing
+    // retired (DECISIONS 135), and a literal 6 here quietly stopped comparing
     // the whole of morning against the start of off.
     const morning = shapes[0].split("\n");
     expect(shapes[2].split("\n").slice(0, morning.length)).toEqual(morning);
@@ -85,7 +85,7 @@ describe("AC5 — panels differ by tint and content, never by structure", () => 
   });
 });
 
-describe("the tabs actually toggle (QUESTIONS 128)", () => {
+describe("the tabs actually toggle (DECISIONS 128)", () => {
   const visiblePanels = () => panels().filter((p) => !p.hasAttribute("hidden"));
 
   it("shows exactly one panel, and moves it on click", () => {
@@ -220,7 +220,7 @@ describe("the scenario illustrations", () => {
       expect(image.getAttribute("loading")).toBe("lazy");
       expect(image.getAttribute("src")).toMatch(/^\/ill-.+\.webp$/);
       // The container matches the artwork's own crop, so nothing is cut off
-      // by a frame that disagrees with the drawing (QUESTIONS 136).
+      // by a frame that disagrees with the drawing (DECISIONS 136).
       expect(image.className).toContain("aspect-[4/3]");
     }
   });
@@ -264,7 +264,7 @@ describe("AC9 — the panels read with no JavaScript", () => {
 });
 
 /* --------------------------------------------------------------------- */
-/* The tab row on a phone (QUESTIONS 136)                                  */
+/* The tab row on a phone (DECISIONS 136)                                  */
 /* --------------------------------------------------------------------- */
 
 describe("where the tab row has to be scrolled", () => {

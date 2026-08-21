@@ -1,7 +1,7 @@
 # The setup problem — design brief and session handoff
 
 *PM: Fable, 2026-08-13. Written to end a long session cleanly. **A new session should read this
-first, then `docs/onboarding-runbook.md`, then QUESTIONS items 92–102.** Everything below is
+first, then `docs/onboarding-runbook.md`, then DECISIONS items 92–102.** Everything below is
 either settled fact, a measured finding, or a clearly-labelled proposal.*
 
 ---
@@ -84,7 +84,7 @@ Assessed today, worst to best:
 | WhatsApp Web → paperclip → Document | **Works**, and is the beta answer. Needs no desktop app. |
 | Email attachments | Works; risk of provider filtering, and Mail may not be a channel the parent uses. |
 | iCloud Drive share link | Works; adds a Files-app hop for the parent. |
-| Import to founder's Mac Shortcuts → iCloud links | **Refused.** The library is a flat namespace with no family scoping and it syncs to the founder's own devices — one family's shortcuts become indistinguishable from another's (this actually happened, QUESTIONS 101). Standing rule: **signed shortcuts never enter the founder's Shortcuts library.** |
+| Import to founder's Mac Shortcuts → iCloud links | **Refused.** The library is a flat namespace with no family scoping and it syncs to the founder's own devices — one family's shortcuts become indistinguishable from another's (this actually happened, DECISIONS 101). Standing rule: **signed shortcuts never enter the founder's Shortcuts library.** |
 | **Hosted per-parent setup page** | **The proposal.** See §4. |
 
 ---
@@ -148,7 +148,7 @@ kettle-api (the landing page cannot collect signups until both), a site redeploy
 NC annual reports for LinkAbit, and the WhatsApp display name (rejected twice as "Kettle"; parked
 with the naming question).
 
-**Queued for Claude Code:** QUESTIONS 93 (forge derives output path from token), 94 (`provision
+**Queued for Claude Code:** DECISIONS 93 (forge derives output path from token), 94 (`provision
 --signals`, plus an "adding a signal" procedure), 95 (`--add-device` / `--rotate`), 100 (replace
 `news`, make the seeded set platform-aware), 101 (filename carries the person; plist name does
 not), 102 (this brief's delivery design, for spec 005b).

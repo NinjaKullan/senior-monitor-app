@@ -5,7 +5,7 @@
  * decay quietly. Motion arrives one hover at a time. A type scale grows one
  * className at a time, and a second face comes back one emphasis at a time —
  * which is how the page ended up mix-and-matched enough for two reviewers to
- * say so (QUESTIONS 135). And the notification mockup drifts toward a
+ * say so (DECISIONS 135). And the notification mockup drifts toward a
  * screenshot the moment a proportion is nudged by hand.
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";

@@ -76,7 +76,7 @@ def test_status_renders_the_device_alive_row(client: TestClient, logged_labels):
 
 
 def test_today_count_headline_is_alarm_grade_only(client: TestClient, conn, logged_labels):
-    """QUESTIONS item 10: plumbing must not inflate the per-person headline.
+    """DECISIONS item 10: plumbing must not inflate the per-person headline.
 
     Two whatsapp opens plus one device_alive timer ping reads as 2, not 3 —
     the number says how active the person was, and the timer says nothing

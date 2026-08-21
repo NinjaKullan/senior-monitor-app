@@ -104,7 +104,7 @@ def test_urls_and_shortcut_names_are_ready_to_use(conn: psycopg.Connection):
     assert whatsapp.shortcut == "Kettle — WhatsApp"
     assert whatsapp.alarm_grade is True
     assert by_signal["device_alive"].alarm_grade is False
-    # No parent name in the shortcut (QUESTIONS 96a): the tile truncates it,
+    # No parent name in the shortcut (DECISIONS 96a): the tile truncates it,
     # and everyone reading the string already knows whose phone it is on.
     assert by_signal["device_alive"].shortcut == "Kettle — Daily Check"
     # No `who` in the URL — the token is the identity.
@@ -214,7 +214,7 @@ def test_cli_named_family(conn: psycopg.Connection, database_url: str, capsys):
 
 
 def test_signals_flag_chooses_the_allowlist_at_provisioning(conn: psycopg.Connection):
-    """QUESTIONS 94: chosen at creation, not seeded-then-edited."""
+    """DECISIONS 94: chosen at creation, not seeded-then-edited."""
     family = provision_family(
         conn, "Chosen", "Asia/Kolkata", [("Appa", None)],
         base_url=BASE_URL, signals=["routine", "charger", "device_alive"],
@@ -241,7 +241,7 @@ def test_an_unknown_signal_key_fails_before_anything_is_written(conn: psycopg.Co
 
 
 def test_set_signals_repoints_a_live_parent_without_sql(conn: psycopg.Connection):
-    """QUESTIONS 107's migration path: Appa moves from per-app keys to the pair.
+    """DECISIONS 107's migration path: Appa moves from per-app keys to the pair.
 
     The old rows go inactive rather than away — history keeps its rows, and the
     app's `Not set up yet` never lies about a signal that really did report.

@@ -1,5 +1,5 @@
 /**
- * The Rhythm Field (QUESTIONS 129/131) — a faithful Canvas 2D port of the
+ * The Rhythm Field (DECISIONS 129/131) — a faithful Canvas 2D port of the
  * approved mock, docs/mockups/rhythm-field-mock.html. The mock is the spec
  * for feel, pace, density and palette; the constants below are its constants,
  * and a change to the character of the motion belongs there first.
@@ -51,7 +51,7 @@ export const HERO_MOTES_MOBILE = 45;
 export const FIELDS_DUST = 140;
 export const FIELDS_DUST_MOBILE = 70;
 
-/* Presence (QUESTIONS 134). The mock's own numbers were tuned against a
+/* Presence (DECISIONS 134). The mock's own numbers were tuned against a
  * warmer, darker composition than the page turned out to have; over the live
  * cream ground the hero field painted 0.14% of its pixels and read as static
  * specks, with the amber pulses barely registering. The founder ruled the
@@ -106,7 +106,7 @@ export const PRESENCE = {
   dustAlphaFloor: 0.24,
   dustAlphaRange: 0.4,
   dustRingWidth: 2,
-  /* The three-fields band (QUESTIONS 135). The mock placed the orbits at fixed
+  /* The three-fields band (DECISIONS 135). The mock placed the orbits at fixed
    * fractions with a fixed 56px ring, which overlapped its own neighbours below
    * roughly 600px of canvas and put drawn labels under written text. The ring
    * now shrinks with the band so three of them plus their margins always fit,
@@ -119,7 +119,7 @@ export const PRESENCE = {
   fieldsRowYMid: 0.54,
   dustOrbitMin: 0.535,
   dustOrbitSpread: 0.395,
-  /* Stirring dust, not repelling magnets (QUESTIONS 135, founder request).
+  /* Stirring dust, not repelling magnets (DECISIONS 135, founder request).
    * A modest reach, a displacement smaller than the orbit itself, and an ease
    * slow enough that the dust lags the pointer and drifts home after it. The
    * falloff is squared so the edge of the reach is a suggestion rather than a
@@ -479,7 +479,7 @@ interface Dust {
  * into view it settles into three slow orbits labelled with the schema's own
  * words — 19px cream over a dark glow, drawn above the dust.
  *
- * The canvas lives in a band of its own now (QUESTIONS 135), so the geometry
+ * The canvas lives in a band of its own now (DECISIONS 135), so the geometry
  * answers to the band rather than to a whole section it was sharing with
  * paragraphs: rings shrink with the width, orbits are fractions of their ring,
  * and nothing is placed where text might be.

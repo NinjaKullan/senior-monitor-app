@@ -39,7 +39,7 @@ that earns one.
 **No verdicts on unfinished time.** The stretch of the day you are currently
 standing in renders `ahead`, never `quiet`. A dimmed morning segment at 10am is
 an accusation against someone who slept in; `ahead` is patience. A segment dims
-only once it is genuinely over. (PM ruling, 2026-08-01, graduating QUESTIONS 51
+only once it is genuinely over. (PM ruling, 2026-08-01, graduating DECISIONS 51
 to principle.)
 
 Spec 005c warmed that surface without widening it: **warmth rises, information
@@ -105,13 +105,13 @@ before the first ping ever arrives. A family's first minutes in the app must not
 open with "something needs fixing", so an uninstalled shortcut reads like an
 empty field waiting for 005b's wizard. One real ping followed by silence is a
 different thing entirely, and that does go amber. (PM ruling, 2026-08-01,
-QUESTIONS 60; both cases are tests.)
+DECISIONS 60; both cases are tests.)
 
 Cadences are v1 guesses and deliberately generous: 26 hours for the daily timer,
 seven days for anything a human opens by hand. A news app she reads on Sundays
 is not broken plumbing on a Wednesday, and a false `Not heard in a while` spends
 the family's attention on a tripwire that works. Tuning notes are in
-`specs/QUESTIONS.md` item 59.
+`specs/DECISIONS.md` item 59.
 
 The Digests screen stores nothing new: `digest_sends` records that a message
 went out and deliberately holds no text, so the list is rebuilt from the same
@@ -120,7 +120,7 @@ from the pings it was derived from. `product/tests/test_webapp_contract.py`
 fails if those templates ever drift from the Python originals.
 
 Refresh is a 45-second poll rather than Supabase realtime — reasoning in
-`specs/QUESTIONS.md` item 42.
+`specs/DECISIONS.md` item 42.
 
 ## Local development
 
@@ -148,7 +148,7 @@ curl -s https://kettle-app.fly.dev/healthz     # {"ok":true}
 ```
 
 **The build args live in `fly.toml`'s `[build.args]` and a bare `fly deploy` is
-the whole command** (QUESTIONS 114). They used to be `--build-arg` flags, and a
+the whole command** (DECISIONS 114). They used to be `--build-arg` flags, and a
 deploy without them built a login page pointed at an empty string — it rendered,
 said "check your email," and sent nothing, while the auth logs showed no request
 arriving. A config a human must remember to retype is a config that will be

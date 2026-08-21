@@ -23,7 +23,7 @@ exactly like the token: the default output directory is gitignored, and
 
 ## On the plist format
 
-The schema is stable but under-documented; `specs/QUESTIONS.md` item 69 records
+The schema is stable but under-documented; `specs/DECISIONS.md` item 69 records
 what was known by construction versus inferred, and is now closed — the field
 test proved import and ping end-to-end, and the icon values are measured from a
 real signed shortcut (item 96b). `--inspect` remains for the next format
@@ -53,7 +53,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing only, never imported at runtime
 # from a provisioning printout with no database in the picture, and it has to
 # run on a bare Mac that has never installed the backend. Importing a
 # database driver at module scope made that mode fail with ModuleNotFoundError
-# on a laptop in the field (QUESTIONS 77). --verify and --inspect are offline
+# on a laptop in the field (DECISIONS 77). --verify and --inspect are offline
 # for the same reason.
 
 # ---------------------------------------------------------------------------
@@ -71,11 +71,11 @@ URL_PARAMETER = "WFURL"
 #: Client-version keys. Shortcuts writes these on export and uses them to decide
 #: whether the running build is new enough to open the file. The values below
 #: are deliberately old: they claim little, so nothing modern is required of a
-#: parent's phone. See QUESTIONS 69 — these are the least-verified values here.
+#: parent's phone. See DECISIONS 69 — these are the least-verified values here.
 CLIENT_VERSION = "900"
 MINIMUM_CLIENT_VERSION = 900
 
-#: The tile's look (QUESTIONS 96b). Both values are *measured*, not guessed —
+#: The tile's look (DECISIONS 96b). Both values are *measured*, not guessed —
 #: the founder set the icon by hand in Shortcuts and the iCloud record for the
 #: shared shortcut exposed them (`…/shortcuts/api/records/<share-id>` returns
 #: `icon_color` and `icon_glyph` directly). That closes item 69's inference:
@@ -129,7 +129,7 @@ def build_plist(url: str) -> dict[str, Any]:
         "WFWorkflowMinimumClientVersion": MINIMUM_CLIENT_VERSION,
         "WFWorkflowMinimumClientVersionString": CLIENT_VERSION,
         "WFWorkflowTypes": [],
-        # Present since QUESTIONS 96b. The key was omitted while the values
+        # Present since DECISIONS 96b. The key was omitted while the values
         # would have been guesses; these are read from a real signed shortcut,
         # so the "visible oddity on someone's home screen" risk is gone and the
         # unlabelled-beige-tile problem it left behind is what gets fixed.
@@ -161,7 +161,7 @@ def file_name(signal: str) -> str:
     The name a `.shortcut` imports under is its filename, so this is not
     cosmetic: it is the string the tripwire health view shows when that signal
     needs repair, and the string the founder says on the phone. One source
-    (`kettle.signals`) keeps all three in step — and per QUESTIONS 96a the
+    (`kettle.signals`) keeps all three in step — and per DECISIONS 96a the
     parent's name is not in it, so two parents' files are identical by design.
     """
     return f"{shortcut_name(signal)}.shortcut"
@@ -205,7 +205,7 @@ def scan_for_secrets(raw: bytes) -> list[str]:
     """Anything credential-shaped in the emitted file, other than the token.
 
     Decode, do not grep, where JWTs are concerned (adopted as the pattern in
-    QUESTIONS 44): a publishable key and a service key are both `eyJ…` and
+    DECISIONS 44): a publishable key and a service key are both `eyJ…` and
     differ only in an interior claim, so a pattern match would pass on exactly
     the string it was written to catch.
 
@@ -424,7 +424,7 @@ def _inspect(path: Path) -> int:
     only_mine = sorted(set(mine) - set(theirs))
     print(f"  keys only in {path.name}: {only_theirs or 'none'}")
     print(f"  keys only in forge output: {only_mine or 'none'}")
-    print("\nRecord anything surprising in specs/QUESTIONS.md item 69.")
+    print("\nRecord anything surprising in specs/DECISIONS.md item 69.")
     return 0
 
 
@@ -454,7 +454,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--parent", help="look the device up by the person's display name")
     parser.add_argument(
         "--name",
-        help="optional label for offline output (names left files since QUESTIONS 96a)",
+        help="optional label for offline output (names left files since DECISIONS 96a)",
     )
     parser.add_argument(
         "--signals",
@@ -494,13 +494,13 @@ def main(argv: list[str] | None = None) -> int:
 
     database_url = os.environ.get("DATABASE_URL")
     # Offline: the token alone is enough now that filenames carry no parent name
-    # (QUESTIONS 96a retired the one thing the database was still needed for on
+    # (DECISIONS 96a retired the one thing the database was still needed for on
     # this path). Taken when the command line says so (--name/--signals) or when
-    # there is simply no database to ask — the bare-Mac case QUESTIONS 77/78
+    # there is simply no database to ask — the bare-Mac case DECISIONS 77/78
     # exist for. With a DATABASE_URL and no override, the database stays
     # authoritative about which signals are active.
     if args.device_token and (args.name or args.signals or not database_url):
-        # No driver is imported on this path (QUESTIONS 77). The signal list is
+        # No driver is imported on this path (DECISIONS 77). The signal list is
         # the standard set unless given, which is what a provisioning printout
         # in the founder's hand actually lists — and it is printed back below
         # so an unexpected sixth file is noticed at the terminal, not on a

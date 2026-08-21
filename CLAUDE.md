@@ -6,7 +6,7 @@ Passive peace-of-mind monitoring for adult children with aging parents far away.
 
 - **Hema** — founder, decisions, phone setup, YC app.
 - **Fable 5 (Cowork session)** — PM/project manager: writes specs in `specs/`, reviews every build after Hema does `git pull`.
-- **Claude Code (you)** — implementer. Build exactly what the active spec says. If a spec is ambiguous or seems wrong, stop and leave a question in `specs/QUESTIONS.md` rather than guessing.
+- **Claude Code (you)** — implementer. Build exactly what the active spec says. If a spec is ambiguous or seems wrong, stop and leave a question in `specs/DECISIONS.md` rather than guessing.
 
 Build against the lowest-numbered spec in `specs/` that isn't marked done. Commit in coherent units with descriptive messages — commits are the review surface, and they are reviewed **from `main`**: merge the working branch and push there when a build is green.
 
@@ -89,7 +89,7 @@ specs, product law, conventions — is written down already; read it there.
   is not evidence it is load-bearing.
 - **Commit WIP before destructive experiments.** `git checkout <file>` during a
   plant-and-revert cost an entire uncommitted rewrite here.
-- **`specs/QUESTIONS.md` is the PM channel.** Number every question or judgement
+- **`specs/DECISIONS.md` is the PM channel.** Number every question or judgement
   call; the PM appends a rulings section referencing those numbers. **Next item
   number is 138.** Ambiguity goes there rather than into a guess. Rulings that
   graduate to standing rules get made structural — stated where the rule lives
@@ -100,7 +100,7 @@ specs, product law, conventions — is written down already; read it there.
 **`docs/setup-delivery-brief.md` (2026-08-13).** State of the world, the setup/delivery problem
 stated properly — a parent faces ~78 interactions today and delivery is only ~15% of them — the two
 cheap experiments that decide spec 005b's shape, and what is owed by whom. Read it before
-`docs/onboarding-runbook.md` and QUESTIONS 92–102.
+`docs/onboarding-runbook.md` and DECISIONS 92–102.
 
 ### State of the build (baton, 2026-08-18 — session handoff)
 
@@ -138,7 +138,7 @@ unprompted. Q125 killed the consent *ceremony* (one-pagers deleted; consent
 lives in the product) and ruled surfaces English-only; the runbook §7 rewrite
 ("open the setup link together") is still owed.
 
-**005b as built** (details in QUESTIONS 118–123): migration 0010
+**005b as built** (details in DECISIONS 118–123): migration 0010
 `setup_links` — per-device slug (144-bit), 7-day expiry, issuance-as-rotation,
 dies with the device token; RLS select-only for the family, `parent_id`
 denormalised so the webapp never reads `devices` [123]. `provision` prints a
@@ -169,7 +169,7 @@ the duplicated Family-circle row); reconciling the built setup page's
 `kettle/setup_copy.py` against the PM's keyed deck `specs/005b-copy.md`
 (landed with item 132, written 2026-08-16 — the page was built from the mock
 before the deck was in the repo; queues behind the same pause).
-**Next QUESTIONS number: 139.**
+**Next DECISIONS number: 139.**
 
 **The Rhythm Field is BUILT (Q131 — the mock landed mid-pass and resolved
 Q130): Canvas 2D port of the approved mock, both placements, hard
@@ -270,7 +270,7 @@ physically in Texas while provisioned `Asia/Kolkata` [108, backlog] — a
 shifted-looking routine there is geography, not a bug.
 
 **Read before touching 005b surfaces:** `docs/setup-delivery-brief.md`, then
-`docs/onboarding-runbook.md`, then QUESTIONS 92–127 (the 2026-08-16 rulings
+`docs/onboarding-runbook.md`, then DECISIONS 92–127 (the 2026-08-16 rulings
 and the Appa field log especially). The runbook carries the item-107 field
 gotchas (charger trigger defaults to Run After Confirmation and must be
 flipped to Run Immediately; merged automation subtitles read "Kettle — Daily

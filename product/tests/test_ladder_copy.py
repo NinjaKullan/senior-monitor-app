@@ -127,7 +127,7 @@ def test_all_clear_copy():
 
 
 def test_contact_line_is_the_one_place_digits_are_allowed():
-    """A phone number is the point of the suggestion (QUESTIONS.md item 36)."""
+    """A phone number is the point of the suggestion (DECISIONS.md item 36)."""
     line = render_contact_line("Priya", "neighbour", "+919845557777")
     assert line == " Your named local contact is Priya (neighbour) on +919845557777."
 

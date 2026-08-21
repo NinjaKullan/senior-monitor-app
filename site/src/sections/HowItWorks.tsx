@@ -21,7 +21,7 @@ import {
  *
  * The step numerals are two of the three digits allowed on this page.
  *
- * The strip that opens the section (QUESTIONS 136) is decorative narrative: it
+ * The strip that opens the section (DECISIONS 136) is decorative narrative: it
  * draws the same ladder the steps below spell out, and adds no claim of its
  * own. It sits after the heading rather than above it — every section on this
  * page starts with its heading, and an image that outranks one would be the

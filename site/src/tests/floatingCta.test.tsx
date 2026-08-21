@@ -1,5 +1,5 @@
 /**
- * The floating CTA (QUESTIONS 137).
+ * The floating CTA (DECISIONS 137).
  *
  * A persistent button is the easiest thing on a page like this to get wrong:
  * it becomes an overlay that is always there, or it lands on the form it points

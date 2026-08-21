@@ -1,4 +1,4 @@
-"""Stage one signed .shortcut for the §5.1 delivery experiment (QUESTIONS 102).
+"""Stage one signed .shortcut for the §5.1 delivery experiment (DECISIONS 102).
 
     python -m scripts.stage_shortcut \\
         --signed ~/kettle-files/rehearsal-signed/"Kettle — WhatsApp.shortcut" \\
@@ -62,7 +62,7 @@ def stage(signed: Path, dest: Path, base_url: str) -> tuple[Path, str]:
     target = dest / slug / signed.name
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(signed, target)
-    # 0644, not the forge's 0600 (QUESTIONS 113): the mode travels into the
+    # 0644, not the forge's 0600 (DECISIONS 113): the mode travels into the
     # Docker image, where nginx's worker is not the owner and answered 403 on
     # the founder's first tap. This file exists to be served — the unguessable
     # URL is the credential, and on-disk restrictiveness here breaks the serving

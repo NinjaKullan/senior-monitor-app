@@ -142,7 +142,7 @@ def _fan_out(
         # the message named. `on conflict do nothing` makes the write itself the
         # race guard.
         #
-        # Known window, accepted (QUESTIONS.md item 30): a crash between the
+        # Known window, accepted (DECISIONS.md item 30): a crash between the
         # provider accepting the message and these rows landing would re-send on
         # the next pass. The trade is deliberate — a duplicate "good morning" is
         # a harmless oddity, a silent loss is a missing reassurance. Revisit at

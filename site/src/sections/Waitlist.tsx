@@ -115,7 +115,7 @@ export function Waitlist() {
             </div>
           </fieldset>
 
-          {/* The one free-text field, optional on purpose (QUESTIONS 129): a
+          {/* The one free-text field, optional on purpose (DECISIONS 129): a
               kindness, not a gate. The server strips, caps and stores absence
               for an empty answer; no maxLength attribute here because the
               digit walk reads perceivable attributes, and the cap is the

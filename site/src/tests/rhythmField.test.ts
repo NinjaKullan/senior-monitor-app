@@ -1,5 +1,5 @@
 /**
- * The Rhythm Field's hard requirements (QUESTIONS 129/131), tested where
+ * The Rhythm Field's hard requirements (DECISIONS 129/131), tested where
  * jsdom can reach them. The engine is the mock's Canvas 2D code made
  * production-shaped, so these tests pin behaviour, not pixels: reduced
  * motion is a single still frame, a missing context is inert, the loop
@@ -305,7 +305,7 @@ describe("the page never waits for the field", () => {
 });
 
 /**
- * QUESTIONS 134 — the mock stays the spec.
+ * DECISIONS 134 — the mock stays the spec.
  *
  * The presence pass was a founder ruling about how the field *looks*, and the
  * one thing jsdom can check about it is that the two files still agree: the
@@ -400,7 +400,7 @@ describe("the presence constants match the approved mock", () => {
 });
 
 /**
- * QUESTIONS 135 — the band, and what may happen inside it.
+ * DECISIONS 135 — the band, and what may happen inside it.
  *
  * The collision the reviewers saw was geometry: three fixed-radius rings on a
  * canvas that shared its box with flowing text. The rings now size themselves

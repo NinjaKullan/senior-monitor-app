@@ -2,8 +2,8 @@
  * The rhythm field's pixel probe — the check jsdom cannot stand in for.
  *
  * Two things are only true in a real browser: whether the field is visible at
- * all over the page's actual ground (QUESTIONS 134), and whether the
- * three-fields canvas paints anything where the section's words are (QUESTIONS
+ * all over the page's actual ground (DECISIONS 134), and whether the
+ * three-fields canvas paints anything where the section's words are (DECISIONS
  * 135). Both are measured here by reading the canvas' own pixels and comparing
  * them against the laid-out boxes of the text, at the widths the ruling named.
  *

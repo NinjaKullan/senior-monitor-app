@@ -102,7 +102,7 @@ TRIPWIRE_CHIPS = {
     "TRIPWIRE_CONNECTED": "Connected",
     "TRIPWIRE_STALE": "Not heard in a while",
     # Never heard from is its own state, not the amber one: absence of *ever*
-    # means not-yet-configured (PM ruling on QUESTIONS 60, the same principle as
+    # means not-yet-configured (PM ruling on DECISIONS 60, the same principle as
     # 001 item 4's "suppress the infra alert until the first ping arrives").
     "TRIPWIRE_UNSET": "Not set up yet",
 }
@@ -157,7 +157,7 @@ def test_webapp_recency_copy_has_no_clock_variant_and_no_never():
 
     There is no template here a future caller could pass a time into, which is
     the point — the constraint holds because the words to break it do not exist.
-    `never` was deleted the same way (founder's on-device round, QUESTIONS 68):
+    `never` was deleted the same way (founder's on-device round, DECISIONS 68):
     a tripwire that has never reported renders its chip and no recency at all,
     and the word is gone from the module rather than merely uncalled.
     """

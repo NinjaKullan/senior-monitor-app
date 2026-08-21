@@ -35,7 +35,7 @@ export interface FamilySnapshot {
 }
 
 /**
- * Request a magic link, and make failures visible (QUESTIONS 115).
+ * Request a magic link, and make failures visible (DECISIONS 115).
  *
  * supabase-js returns errors rather than throwing them. The founder's lost hour
  * was exactly this line swallowing a 429: the screen said "check your email"

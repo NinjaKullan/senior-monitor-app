@@ -21,7 +21,7 @@ export const SIGNAL_DISPLAY_NAMES: Record<string, string> = {
   charge_on: "Charger On",
   charge_off: "Charger Off",
   device_alive: "Daily Check",
-  // The merged end-state pair (QUESTIONS 107): `routine` is one multi-app
+  // The merged end-state pair (DECISIONS 107): `routine` is one multi-app
   // automation — the record says routine happened, never which app — and
   // `charger` is one automation with both plug edges checked. Old keys stay
   // valid; live per-app setups are untouched until their merged shortcuts are

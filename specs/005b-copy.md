@@ -1,10 +1,10 @@
 # 005b — setup page copy deck
 
 *PM: Fable, 2026-08-16. Every string the parent setup page shows, keyed for implementation.
-Register per QUESTIONS 106: one visual + one short paragraph per screen, speech bubbles over
+Register per DECISIONS 106: one visual + one short paragraph per screen, speech bubbles over
 prose, no alarm vocabulary anywhere (the copy-law test should extend to every key here).
 `{parent}` = display name ("Appa"), `{child}` = the child's name ("Hema"), `{apps}` = the
-chosen habit apps. Helper mode (QUESTIONS 104) adds the `helper_` strings; it never replaces
+chosen habit apps. Helper mode (DECISIONS 104) adds the `helper_` strings; it never replaces
 the parent-facing ones. The page never says "error", "fail", "warning", or "wrong".*
 
 ## Screen 0 — consent
@@ -23,7 +23,7 @@ the parent-facing ones. The page never says "error", "fail", "warning", or "wron
 - `helper_consent` — Read this screen out loud to {parent}, in the language you two actually
   speak. Then ask them to tell you what they think it does. If they're uneasy, stop — really.
 
-## Screen 1 — step zero: the Shortcuts app (QUESTIONS 103)
+## Screen 1 — step zero: the Shortcuts app (DECISIONS 103)
 
 - `shortcuts_title` — Do you see this app on your phone?
 - `shortcuts_body` — Swipe down on your home screen and type **Shortcuts**. It comes with
@@ -45,7 +45,7 @@ the parent-facing ones. The page never says "error", "fail", "warning", or "wron
 - `helper_add` — Send one person's files only, from that person's chat. Two files, two taps
   each.
 
-## Screen 3 — first run, and the message your phone will show (QUESTIONS 92/99)
+## Screen 3 — first run, and the message your phone will show (DECISIONS 92/99)
 
 - `firstrun_title` — Now run each one once — and expect a question
 - `firstrun_body` — Open Shortcuts, tap **Kettle — Daily routine**. Your phone will ask
@@ -72,7 +72,7 @@ the parent-facing ones. The page never says "error", "fail", "warning", or "wron
   that one asks permission at every plug-in and never gets tapped), and picking the Kettle
   button at the end of each.
 
-## Screen 5 — verify by prediction (QUESTIONS 92, runbook §8)
+## Screen 5 — verify by prediction (DECISIONS 92, runbook §8)
 
 - `verify_title` — The proof: watch it work
 - `verify_body` — Open **WhatsApp** right now, then come back here.
