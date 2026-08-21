@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 140.** This line is the one to update; the `Next number:` lines inside
+**Next number: 141.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -821,3 +821,98 @@ browser — all three adopted as the standard for future surfaces.**
      Two plants, both failing by name: bypassing the argparse joiner reproduces the
      original "expected one argument" exactly, and scanning the Family screen without
      the channel exemption still rejects it.
+
+---
+
+## Spec 007 Wave A build notes (implementer, 2026-08-21)
+
+140. **The outbound channel's decision core is built and runs dark.** Everything §2
+     names is in: the quiet-morning evaluator, the scheduler, the sent-once ledger
+     (migration 0012), the copy-law-scanned template registry with §5's bodies
+     verbatim, the console transport behind the `Transport` seam, and the reply-intake
+     endpoint that nothing calls. §6.1's four days pass on a fake clock, §6.2's plants
+     fail by name, all suites green (`pytest` 401), ruff clean, nothing deployed.
+
+     **One thing needs a ruling before Wave B, and it is not small.**
+
+     * **This is the second ladder and the second digest engine in the tree.** Spec
+       004's `ladder.py` already implements candidate → ask → family escalation with
+       shadow/live modes, its own `ladder_candidates`/`ladder_events` tables, its own
+       ask copy in `ladder_messages.py`, and a live reply webhook at
+       `/twilio/inbound`. Spec 003's `digest.py` already implements twice-daily
+       digests with `digest_sends` and a channel abstraction. Spec 007 describes all
+       of this again, in a cleaner shape, and says nothing about what happens to the
+       old one. I built 007 as specified and touched neither — "pilot untouched" —
+       but the result is two engines that would both speak the moment a transport
+       lands. Today nothing collides because all three switches default off. **Before
+       Wave B someone must rule: does 007 supersede 003/004, or run beside them?** If
+       it supersedes, the migration path is the interesting part, because spec 004's
+       ladder is the one with a live inbound webhook.
+
+     **The execution calls the ruling invited, and one it did not.**
+
+     * **§2.3's ledger key is `(family, date, kind)`; I built
+       `(family, parent, date, kind)`.** Migration 0006 exists precisely because 0005
+       keyed a send at family granularity and a family with two parents silently lost
+       the second row. Every message here is about or to one person — the digest names
+       a parent, the ask goes to a parent — and both of the founder's parents are
+       live. The spec's literal key would have let exactly one of them be asked about
+       per day. `parent_id` is NOT NULL, no sentinel. **Cheap to overrule; I do not
+       think it should be.**
+     * **§2.2's family-timezone rule: I used the parent's.** The spec says family
+       timezone = the parents' provisioned timezone and calls it cheap to overrule.
+       `effective_tz(parent.tz, family.tz)` is this codebase's existing law and the
+       reason "Amma is visiting Texas" is a data change rather than a code change, so
+       every decision here — digest included — is computed in the *parent's* zone.
+       Consequence worth seeing: a family whose two parents have different zones gets
+       two schedules, and there is no family-scoped clock anywhere in this build.
+     * **The digest times, 08:30 and 20:30, are as specified — and they disagree with
+       the digest engine that is already shipped.** Spec 003 runs a morning cutoff
+       hour of 14:00 and an evening hour of 20:30 (`DIGEST_MORNING_CUTOFF_HOUR`,
+       `DIGEST_EVENING_HOUR`). If 007 supersedes 003 that is fine; if they are to run
+       side by side, a family would hear from Kettle at 08:30 and again whenever 003's
+       morning window fires. Same ruling as above, arriving from a different direction.
+     * **§4's premise is out of date, so migration 0012 adds one column, not a
+       table.** "The parent's phone number, deliberately never collected until now" —
+       `parents.phone_e164` has existed since 0007 (spec 004's ask number),
+       `members.email` since 0001, and `family_contacts` is a *taken name*: 0007 uses
+       it for the named local contact. So the migration adds `parents.whatsapp_e164`
+       and nothing else. A second column rather than a reuse of `phone_e164` because
+       that one belongs to the other ladder's SMS ask, and one column serving two
+       senders makes "which channel did we reach her on" unanswerable.
+     * **The §5 copy is verbatim, and two things in it are the PM's to settle.** The
+       bodies say "her" and "she", while DECISIONS 24 is standing policy that nothing
+       infers a pronoun from a name — `ladder_messages.py` carries a neutral clause
+       for exactly that reason, and the founder's own family includes a father. The
+       morning digest currently renders "Appa's morning looked like her morning." And
+       the follow-on carries an em dash, which DECISIONS 127 retired from
+       customer-facing *site* copy; whether that reaches product messages is a call.
+       Both are flagged in the registry's docstring rather than edited.
+     * **`/outbound/reply` 404s until a secret is configured** (implementer call).
+       Cancelling a follow-on is safety-relevant: an unauthenticated endpoint would
+       let anyone who knows a number suppress an escalation. Wave C swaps the shared
+       secret for the provider's signature, the way `/twilio/inbound` already
+       validates Twilio's. It also answers an unknown number and a known one with no
+       pending ask identically, so it cannot be used to ask "is this a Kettle parent".
+     * **`LogTransport` reports delivered even with no address on file.** Deliberate:
+       a dark run's ledger is a record of the *decisions*, which is what §6.3 asks the
+       founder to review. A transport with a network client must do the opposite — no
+       address means no delivery, no ledger row, and the day's slot stays free. That
+       asymmetry is the trap in this design and it is written into the class docstring.
+
+     **Two assertions the plant drill said were missing, both found by planting and
+     watching the suite stay green.** The unique index was never being exercised: a
+     double *run* of the scheduler is stopped by the read before the write, so every
+     acceptance scenario proved the observable property while `on conflict do nothing`
+     could be deleted with no test noticing. There is now a test that calls the write
+     twice directly. And "the body is never read" only checked the stored row — a
+     planted `log.info("reply body: …")` passed, because a log line is a copy the row
+     scan cannot see. Eight plants fire by name now: charger counting as a morning, a
+     follow-on without its ask, the dedupe clause, the index's uniqueness, the reply
+     secret, the reply body reaching a log, a transport with an HTTP client appearing
+     in Wave A, and a verdict in a template.
+
+     **Owed by the founder, unchanged from the spec:** Wave A runs dark for 48 hours
+     and the ledger is reviewed against what actually happened; that review is the
+     gate to Wave B. `docs/auth-smtp-plan.md` now says Resend (DECISIONS 138), so the
+     domain errand and the DNS records are the next thing on the critical path.

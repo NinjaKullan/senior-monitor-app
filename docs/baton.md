@@ -17,7 +17,7 @@ cheap experiments that decide spec 005b's shape, and what is owed by whom. Read 
 
 ## State of the build (baton, 2026-08-18 — session handoff)
 
-**All three suites green** (`pytest` 354 with Postgres up, `webapp` 102,
+**All three suites green** (`pytest` 401 with Postgres up, `webapp` 102,
 `site` 172 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
 never trust a skip. The `--revoke` ~1-in-64 flake is *fixed* as of DECISIONS 139;
 a failure there now means something new.). Specs 001–006 plus amendments A/B built and reviewed;
@@ -100,7 +100,19 @@ ruling is a MECHANISM ban across site copy and the privacy page; the
 motion-law prose sits in design-language §6. PM review of e815276: approved,
 no overrules.**
 
-**The context pass is in (DECISIONS 139, this session).** The decision log is
+**Spec 007 Wave A is in (DECISIONS 140, this session).** The outbound channel's
+decision core is built and **runs dark**: the quiet-morning evaluator, the
+scheduler, the sent-once ledger (migration **0012**, `sent_messages`), the
+template registry with §5's bodies verbatim, the console transport behind the
+`Transport` seam, and `/outbound/reply`, which nothing calls and which 404s
+until `OUTBOUND_REPLY_TOKEN` is set. `OUTBOUND_ENABLED` is off by default and
+"on" still reaches nobody in this wave. **The ruling this needs before Wave B:
+spec 007 is the second ladder and the second digest engine in the tree** —
+`ladder.py` (004) and `digest.py` (003) already do versions of this, nothing was
+touched, and today nothing collides only because all three switches default off.
+See DECISIONS 140 for that and the rest of the execution calls.
+
+**The context pass is in (DECISIONS 139, previous session).** The decision log is
 renamed and split (1–120 archived), CLAUDE.md is 72 lines with the surface norms
 in `site/CLAUDE.md`, `product/CLAUDE.md` and `webapp/CLAUDE.md`, and the traps
 live in `docs/failure-families.md`. This file is what is left of the old root
@@ -176,6 +188,11 @@ kettle-app (Q112 cache headers — until then deploys white-screen returning
 browsers — plus login words and the Setup card); the SMTP plan's DNS + dashboard
 steps (`docs/auth-smtp-plan.md`) before any non-founder family; Q126's 48-hour
 check that Appa's charger automation has both edges ticked.
+
+**Owed before Wave B (spec 007 §6.3):** the founder family runs Wave A dark for
+48 hours and the ledger is reviewed against what actually happened. The SMTP plan
+now says Resend (DECISIONS 138), so the domain and its DNS records are the next
+thing on that critical path.
 
 **Deployed as of 2026-08-18 (founder-reported):** migration 0011 applied and the
 `help_with` column verified in the live database; kettle-api out and healthy
