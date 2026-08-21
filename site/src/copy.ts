@@ -257,7 +257,7 @@ export const FOOTER_WORDMARK = "Kettle";
 export const FOOTER_LINE = "Three fields. Nothing else.";
 export const FOOTER_PRIVACY_LABEL = "Privacy";
 export const FOOTER_CONTACT_LABEL = "Say hello";
-export const FOOTER_CONTACT_HREF = "mailto:hello@getkettle.com";
+export const FOOTER_CONTACT_HREF = "mailto:hello@heykettle.com";
 
 /* ---------------------------------------------------------------------- */
 /* Privacy                                                                  */

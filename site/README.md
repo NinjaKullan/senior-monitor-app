@@ -1,4 +1,4 @@
-# Kettle — landing page (getkettle.*)
+# Kettle — landing page (heykettle.com)
 
 Spec `specs/006-landing-page.md`. One static page whose job is to collect a
 waitlist and ask the question that decides Wave 2 platform priority with data
@@ -136,11 +136,15 @@ VITE_API_BASE_URL="https://kettle-api.fly.dev" npm run ci   # builds dist/
 
 Then, on the founder's side:
 
-1. Point `getkettle.com` and `www.getkettle.com` at the host serving `dist/`.
+1. `heykettle.com` is live on Cloudflare DNS and points at the host serving
+   `dist/`. Requests that still arrive on `kettle-site.fly.dev` are 301'd to the
+   apex by `nginx.conf`, so the old URL forwards rather than serving a second
+   copy of the page (DECISIONS 142).
 2. If the API moves, or another TLD is registered, set `WAITLIST_ORIGINS` on
    kettle-api to the comma-separated list of origins allowed to POST. The
-   default already covers `getkettle.com`, `www.getkettle.com` and the Vite dev
-   server.
+   default covers `heykettle.com`, `www.heykettle.com` and the Vite dev server;
+   the fly.dev origin is **not** in the default and is added by env var for as
+   long as the transition needs it.
 3. Apply migration `0009_waitlist.sql`.
 
 `/privacy.html` ships as a placeholder with the product's own privacy sentence

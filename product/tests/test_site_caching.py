@@ -18,10 +18,39 @@ SITE = Path(__file__).resolve().parent.parent.parent / "site"
 CONFIG = (SITE / "nginx.conf").read_text()
 
 
-def block(prefix: str) -> str:
+def server_blocks() -> dict[str, str]:
+    """The file's top-level `server { … }` blocks, keyed by their server_name.
+
+    There are two since DECISIONS 142 — the one that serves the site and the one
+    that 301s the retired Fly hostname away — and every rule below is about one
+    of them specifically. Slicing the whole file would silently read whichever
+    block happens to come first, which is exactly the mistake this helper stops:
+    the redirect block owns a `location /` too, and before the split every
+    caching assertion here would have started reading *its* body instead.
+    """
+    parts = re.split(r"^server \{", CONFIG, flags=re.MULTILINE)[1:]
+    blocks = {}
+    for part in parts:
+        name = re.search(r"server_name\s+([^;]+);", part)
+        assert name, "a server block with no server_name"
+        blocks[name.group(1).strip()] = part
+    return blocks
+
+
+BLOCKS = server_blocks()
+SERVING = BLOCKS["_"]
+REDIRECT = BLOCKS["kettle-site.fly.dev"]
+
+#: The config with its comments stripped. Bans below are about what nginx does,
+#: and this file explains itself at length — a rule spelled out in prose was
+#: tripping the rule that forbids it.
+DIRECTIVES = re.sub(r"#[^\n]*", "", CONFIG)
+
+
+def block(prefix: str, within: str = SERVING) -> str:
     """One location block's body, sliced to the next location directive."""
-    assert f"location {prefix}" in CONFIG, f"no `location {prefix}` block"
-    return CONFIG.split(f"location {prefix}")[1].split("location ")[0]
+    assert f"location {prefix}" in within, f"no `location {prefix}` block"
+    return within.split(f"location {prefix}")[1].split("location ")[0]
 
 
 def test_the_shell_always_revalidates():
@@ -42,8 +71,8 @@ def test_hashed_assets_are_immutable_for_a_year():
 def test_no_other_block_reintroduces_a_lifetime_on_unhashed_files():
     """The webapp bug's second half, banned here from day one: no `expires`,
     and no regex location that would outrank both prefix rules silently."""
-    assert "expires" not in CONFIG
-    assert not re.search(r"location\s+~", CONFIG), "a regex location outranks the cache rules"
+    assert "expires" not in DIRECTIVES
+    assert not re.search(r"location\s+~", DIRECTIVES), "a regex location outranks the cache rules"
 
 
 def test_the_illustrations_really_are_unhashed_stable_names():
@@ -92,3 +121,65 @@ def test_no_service_worker_exists_to_outlive_this_contract():
             assert "serviceWorker" not in path.read_text(), path
     assert not (SITE / "public" / "sw.js").exists()
     assert "serviceWorker" not in (SITE / "index.html").read_text()
+
+
+# ---------------------------------------------------------------------------
+# DECISIONS 142 — the retired Fly hostname forwards instead of duplicating.
+# ---------------------------------------------------------------------------
+
+
+def test_the_old_fly_hostname_301s_to_the_canonical_domain():
+    """One page, one address. The canonical link is a hint; this is the answer."""
+    assert "return 301 https://heykettle.com$request_uri;" in block("/ {", REDIRECT)
+    # $request_uri, not $uri: it carries the query string and the original
+    # encoding, so a deep link keeps its path instead of landing on the home page.
+    assert "$request_uri" in REDIRECT
+    assert "$uri;" not in REDIRECT
+
+
+def test_the_redirect_is_scoped_to_that_one_host():
+    """Host-scoped by server_name, not by an `if` inside the serving block.
+
+    The distinction is the whole safety of this change: requests arriving on
+    heykettle.com never enter the redirect block, so the caching contract cannot
+    be affected by anything written in it. An `if ($host = ...)` would put the
+    two concerns in one block and make that reasoning a matter of reading order.
+    """
+    assert "server_name kettle-site.fly.dev;" in REDIRECT
+    assert "server_name _;" in SERVING
+    assert "if (" not in DIRECTIVES, "host routing belongs in server_name, not in `if`"
+    # The serving block must not have grown a redirect of its own.
+    assert "return 301" not in SERVING
+
+
+def test_the_serving_block_still_owns_the_whole_caching_contract():
+    """The contract on the real domain is untouched — asserted, not assumed."""
+    assert "Cache-Control" not in REDIRECT
+    for prefix in ("/assets/", "= /index.html", "/ {"):
+        assert f"location {prefix}" in SERVING
+
+
+def test_healthz_answers_on_both_hosts_rather_than_redirecting():
+    """A machine asked whether it is alive answers for itself.
+
+    fly.toml configures no HTTP check today, so nothing breaks either way right
+    now. This is about the check somebody adds later: a health endpoint that
+    301s to a different host reports on that host, and a machine that is
+    actually down would still look fine.
+    """
+    assert "return 200 '{\"ok\":true}';" in block("/healthz", REDIRECT)
+    assert "return 200 '{\"ok\":true}';" in block("/healthz", SERVING)
+
+
+def test_the_canonical_link_names_the_domain_the_redirect_points_at():
+    """The two halves of the same claim, which are edited in different files.
+
+    A canonical pointing one way while the 301 points another is the failure
+    mode worth a test: each is individually plausible and the pair is incoherent.
+    """
+    head = (SITE / "index.html").read_text()
+    assert '<link rel="canonical" href="https://heykettle.com/" />' in head
+    privacy = (SITE / "public" / "privacy.html").read_text()
+    assert '<link rel="canonical" href="https://heykettle.com/privacy.html" />' in privacy
+    assert "heykettle.com" in REDIRECT
+    assert "getkettle" not in head and "getkettle" not in privacy

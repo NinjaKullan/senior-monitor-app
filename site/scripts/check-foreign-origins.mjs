@@ -27,8 +27,8 @@ if (!existsSync(DIST)) {
 /** Hosts we control, and the one reason each is allowed to appear. */
 const OURS = new Set([
   "kettle-api.fly.dev", // the waitlist POST target
-  "getkettle.com", // canonical site origin
-  "www.getkettle.com",
+  "heykettle.com", // canonical site origin (DECISIONS 142)
+  "www.heykettle.com",
   "localhost",
   "127.0.0.1",
 ]);
