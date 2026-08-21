@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 146.** This line is the one to update; the `Next number:` lines inside
+**Next number: 147.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1173,3 +1173,85 @@ browser — all three adopted as the standard for future surfaces.**
      141). They were not in the founder's message this time either, so
      `outbound_templates.py` still renders `"Appa's morning looked like her
      morning."`
+
+---
+
+## The environment split (implementer, 2026-08-21)
+
+146. **`npm run ci` disagreed about the webapp depending on which machine ran it, and
+     the mechanism is not what the flag suggested.** Fixed, with the founder's exact
+     condition reproduced rather than inferred. Suites green on **both** Node builds —
+     `webapp` 117, `site` 174, `pytest` 277 + 1 xfail, ruff clean, nothing deployed.
+
+     **What it actually was.** Not the Node version, and not the lockfile: `jsdom`
+     25.0.1 and `vitest` 2.1.8 are pinned exactly, and Node 24.18.1 running this repo
+     unmodified passes. It is one line in vitest's jsdom setup. `populateGlobal`
+     installs the jsdom window's properties onto `globalThis`, and `getWindowKeys`
+     filters them:
+
+     ```js
+     if (k in global) return keysArray.includes(k);
+     ```
+
+     A name that **already exists on the host global** survives only if it is in
+     vitest's own hard-coded KEYS list. `localStorage` is an own property of the jsdom
+     window and is **not** in that list. So on any machine where Node itself defines
+     `globalThis.localStorage` — webstorage behind a flag, an env var, a future
+     default — jsdom's Storage is never installed, the host's object stays, and the
+     tests use that.
+
+     **Two things the reproduction proved that the hypothesis had wrong.**
+
+     * **Node's own `Storage` does have `setItem`.** So "Node's webstorage global
+       shadows the browser one" cannot by itself produce
+       `localStorage.setItem is not a function`; whatever is on the founder's global
+       is some third thing. The mechanism turns out to be indifferent to *which*
+       object shadows, which is why the fix is "install our own" rather than "handle
+       Node's" — that repair works for the object nobody has identified yet.
+     * **The loud failure is the lucky one.** Reproduced with a host object that
+       *works*, the suite goes **9-of-10 green** while the code under test writes to a
+       different store than the assertions read. That is the false green, and it is
+       what a future Node shipping webstorage by default would hand everybody. The
+       founder's TypeError was the good outcome.
+
+     **The fix, in two halves that do different jobs.** `src/tests/setup.ts` installs
+     an explicit Storage unconditionally, after the environment has had its turn,
+     owing nothing to the host. Items live as **enumerable own properties**, because
+     `clearStoredSession` walks `Object.keys` to find `sb-*-auth-token` — a
+     Map-backed fake passes every round-trip assertion and breaks its only caller, and
+     that is a plant that fires. A non-enumerable marker lets the guardrail assert the
+     stub *won*, not merely that storage works; without it the guardrail would pass
+     against the very object that caused the bug. Separately, all 22 test files across
+     both front ends now carry `@vitest-environment jsdom`. **The pin does not replace
+     the stub** — the shadowing happens *inside* jsdom setup, so naming the
+     environment does not prevent it. It closes the other door: `--environment node`
+     on a command line.
+
+     **Verified green under every condition, not just the fixed one:** Node 22.22.2
+     and Node 24.18.1, each with a hostile host `localStorage` present (both the
+     founder's shape and the working shape) and absent, and with
+     `--experimental-webstorage` enabled. The hostile globals were injected with
+     `--import`, which is the only way to be on `globalThis` before vitest builds the
+     environment — a setup file cannot reproduce this, because setup files run after.
+
+     **Every other test file is immune, and now provably so.** Nothing else in either
+     suite touches storage — `sessionRestore.test.tsx` and `lib/session.ts` are the
+     only references in the tree. The site suite therefore never had the storage
+     exposure and gets **no stub**, deliberately; it shares the invocation exposure, so
+     it gets the pins and a two-test guardrail, because a pin nothing reads rots.
+
+     **One thing worth the PM's eye.** The same skip rule applies to **220** of the
+     jsdom window's 442 own properties, including `crypto`, `atob`/`btoa`,
+     `setTimeout`, `queueMicrotask` and `origin`. Most are harmless because Node's
+     implementation matches, and `setTimeout` is already shadowed today. This is not
+     worth pre-emptively stubbing — but it is the reason the failure family is written
+     around the *shape* rather than around `localStorage`, and it is why the next one
+     of these will not look like this one.
+
+     **Filed as failure family 6**, appended rather than inserted: DECISIONS 145 cites
+     "failure family 5" by number, and renumbering silently rewrites what an existing
+     ruling points at. That rule is now stated at the top of the file.
+
+     **Still owed, unchanged and untouched by this pass** (it blocks no deploy, and
+     this one did): §5's five corrected template bodies (DECISIONS 141) and the
+     local-midnight reply ruling (DECISIONS 145).

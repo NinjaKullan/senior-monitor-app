@@ -17,8 +17,8 @@ cheap experiments that decide spec 005b's shape, and what is owed by whom. Read 
 
 ## State of the build (baton, 2026-08-21 — session handoff, second pass)
 
-**All three suites green** (`pytest` 277 + 1 xfail with Postgres up, `webapp` 111,
-`site` 172 — the product count fell from 401 to 270 because the digest and ladder
+**All three suites green** (`pytest` 277 + 1 xfail with Postgres up, `webapp` 117,
+`site` 174 — the product count fell from 401 to 270 because the digest and ladder
 suites went with their engines (DECISIONS 141); the xfail is a real open bug, not a
 skipped test, see DECISIONS 145 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
 never trust a skip. The `--revoke` ~1-in-64 flake is *fixed* as of DECISIONS 139;
@@ -111,6 +111,26 @@ until `OUTBOUND_REPLY_TOKEN` is set. `OUTBOUND_ENABLED` is off by default and
 "on" still reaches nobody in this wave. **That ruling has landed: 007
 supersedes 003 and 004** (DECISIONS 141), so 007 is now the only engine in the tree
 that can speak. See DECISIONS 140 for the rest of the execution calls.
+
+**The front-end suites no longer depend on the host machine (DECISIONS 146).** `npm
+run ci` for the webapp was green here and red on the founder's Node 24.18.1, on
+identical code and lockfile. vitest's jsdom setup skips installing jsdom's
+`localStorage` whenever the host global already has one, so the tests used the host's
+object. `webapp/src/tests/setup.ts` now installs its **own** Storage unconditionally,
+and all 22 test files across webapp and site carry `@vitest-environment jsdom`.
+
+**Three things a fresh session must not undo here.** The storage stub's items are
+**enumerable own properties** on purpose — `clearStoredSession` walks `Object.keys`,
+and a Map-backed fake passes its own tests while breaking its only caller. The
+non-enumerable marker the guardrail reads is what proves the stub won rather than that
+"storage works"; without it the guardrail passes against the object that caused the
+bug. And the per-file environment pin does **not** replace the stub — the shadowing
+happens inside jsdom setup, so naming the environment does not prevent it.
+
+**Verify front-end changes on more than one Node.** Node 22.22.2 is the container's;
+the founder runs 24.18.1. This pass was verified green on both, with a hostile host
+`localStorage` present and absent. Injecting one requires `--import`, because a setup
+file runs after the environment is built and cannot reproduce the condition.
 
 **The domain is heykettle.com (DECISIONS 142–143, this session).** Live on Cloudflare
 DNS, site still hosted on Fly, Resend verified on `send.heykettle.com`. The contact

@@ -7,6 +7,9 @@ across surfaces and the countermeasure is the same each time.
 Pointed at from `CLAUDE.md`; read it when a run looks green and you are about to say
 so, or when a test you just wrote passed on the first try.
 
+**The numbers are cited from `specs/DECISIONS.md`, so a new family is appended rather
+than inserted.** Renumbering silently rewrites what an old ruling points at.
+
 ## 1. The false green — a run that proves nothing and says it passed
 
 - **Postgres stops between sessions — and can die mid-session too.**
@@ -103,3 +106,37 @@ so, or when a test you just wrote passed on the first try.
   a fake clock with a real one is a scheduled failure, not a flake** — and the
   fix is a seam, not a retry: every other decision in that spec takes `now` as
   an argument, and the one route that did not was the one that broke.
+
+## 6. The verdict that depends on the machine
+
+- **A suite whose answer changes with the host is the false green wearing a new
+  coat.** `npm run ci` was green in the container and red on the founder's
+  machine, on identical code and an identical lockfile (DECISIONS 146). The
+  cause was one line in vitest's jsdom setup: `populateGlobal` skips any jsdom
+  window property that already exists on the host global and is absent from its
+  own hard-coded KEYS list, and `localStorage` is exactly that. Where Node
+  defines `globalThis.localStorage`, jsdom's Storage is never installed and the
+  tests use the host's object instead.
+
+  * **The loud failure is the lucky one.** Reproduced against a host object that
+    *worked*, the suite went 9-of-10 green while the code under test wrote to a
+    different store than the assertions read. A TypeError at least stops the
+    build. Assume the quiet variant is the one that reaches production.
+  * **A test asserting "X works" is not asserting "X is ours."** Mark the thing
+    the suite installs and assert the mark, or the guardrail passes just as
+    happily against the object that caused the bug.
+  * **Own the global rather than pinning the environment and hoping.** Naming
+    `@vitest-environment jsdom` is worth doing and does not fix this: the
+    shadowing happens *inside* jsdom setup. A stub the suite installs itself
+    owes nothing to the host.
+  * **A fake must match the interface its callers actually use**, not the one
+    its own tests exercise. A Map-backed storage passes every round-trip
+    assertion and breaks the single caller that walks `Object.keys`.
+
+- **Reproduce the other machine; do not reason about it.** Downloading the
+  founder's exact Node build took two minutes and immediately disproved the
+  leading hypothesis — Node's own `Storage` *does* have `setItem`, so "Node's
+  webstorage shadows jsdom's" could not by itself produce the reported error.
+  The real mechanism turned out to be indifferent to *which* object was
+  shadowing, which is a stronger finding than the guess would have been, and it
+  is why the fix is "install our own" rather than "handle Node's".
