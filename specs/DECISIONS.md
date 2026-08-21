@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 142.** This line is the one to update; the `Next number:` lines inside
+**Next number: 146.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1037,3 +1037,139 @@ browser — all three adopted as the standard for future surfaces.**
      customer-facing copy, which is a worse failure than a pass finishing one item
      short. **Send the five strings and it is a ten-minute pass** (registry, spec §5,
      the copy-law tests).
+
+---
+
+## The domain cascade + session-restore hardening (implementer, 2026-08-21)
+
+142. **heykettle.com is the canonical origin everywhere, and the family app no longer
+     hangs on a rejected token.** All six items are in. Suites green (`pytest` 277 + 1
+     xfail, `webapp` 111 + 10 new, `site` 172 with `npm run ci` clean end to end),
+     ruff clean, pilot untouched, nothing deployed.
+
+     * **Contact.** `FOOTER_CONTACT_HREF` and the privacy page's contact line are
+       `hello@heykettle.com`. The site is clean — the only other place the string
+       lived was the foreign-origin allowlist, which now names heykettle.com. Live
+       docs (root `CLAUDE.md`, `site/README.md`, the SMTP plan's step 1, the spec
+       index) say heykettle.com; history is annotated rather than rewritten, because
+       the GTM roadmap's "domains getkettle.\*" and the naming shortlist's
+       registrability research were true when written and are the record of how the
+       decision was made. Spec 006 gets a banner in the superseded-spec shape.
+     * **Canonical.** `<link rel="canonical" href="https://heykettle.com/" />` is in
+       the head and survives the prerender into `dist/index.html` (asserted). There
+       were no absolute self-referencing metadata URLs to repoint — the page carries
+       a description and a title and nothing else, no `og:`, no `twitter:`.
+     * **The 301** is a named `server` block, not host-matching inside the serving
+       one. nginx resolves an exact `server_name` before falling back to `_`, so a
+       request arriving on heykettle.com never enters the redirect block and the
+       caching contract cannot be affected by anything written in it — a structural
+       guarantee rather than a matter of reading order, and the test asserts there is
+       no `if (` in the config at all.
+     * **`WAITLIST_ORIGINS`** and the founder's command are below, in their own item.
+
+     **Two implementer calls, both cheap to overrule.**
+
+     * **`/healthz` answers on both hosts rather than redirecting.** `fly.toml`
+       configures no HTTP check today, so nothing changes either way right now. This
+       is about the check somebody adds later: a health endpoint that 301s to another
+       host reports on *that* host, so a machine that is actually down still looks
+       fine. Say the word and it redirects with everything else.
+     * **privacy.html gets NO canonical, and I withdrew the one I added.** The ruling
+       said "the site's head", singular; extending it to the privacy page was mine,
+       and it tripped the standing law that page is held to — it stands alone, with
+       no `<link>` and no absolute URL of any kind, so that the page a
+       privacy-minded reader studies hardest provably fetches nothing. A canonical
+       link fetches nothing either, so this is the law's letter rather than its
+       purpose — but trading a plain privacy guarantee for an SEO hint is not a swap
+       to make on the way past, and the 301 already stops that page being reachable
+       at two addresses. **Yours if you want it made deliberately.**
+
+143. **`WAITLIST_ORIGINS` is an env var on kettle-api, and setting it *replaces* the
+     default rather than adding to it.** `_origins()` falls back to the shipped tuple
+     only when the variable is empty, so a list naming just the fly.dev origin is a
+     lockout, not an addition. The command:
+
+     ```bash
+     fly secrets set -a kettle-api \
+       WAITLIST_ORIGINS="https://heykettle.com,https://www.heykettle.com,https://kettle-site.fly.dev"
+     ```
+
+     Drop the fly.dev entry once the old host stops being used; the remaining two are
+     then identical to the default and the variable can be unset entirely.
+
+     **The code-side default is heykettle.com and deliberately does not include
+     kettle-site.fly.dev.** The default is what the system settles on, and a temporary
+     allowance written into code is a permanent one — the transition grant belongs
+     where removing it is one command. Both properties are now pinned by test, along
+     with the replacement semantics, because the shape of the command above depends
+     on them. `product/README.md` prints the whole list rather than the one addition
+     for the same reason.
+
+     **Standing caveat, unchanged and still unconfirmed:** the waitlist form is
+     CORS-dead until this variable includes the serving origin. It has never been
+     confirmed here that it was set on the last kettle-api deploy at all.
+
+144. **The family app's session restore is hardened, and the bug was worse than a
+     spinner.** Reproduced exactly as reported: a stored session, a token the server
+     rejects, and "Loading…" for as long as the tab stays open. Three defects, one
+     symptom. `claimMembership()` rejected into a bare `.catch(() => undefined)`;
+     `loadSnapshot()` rejected into nothing at all, so `snapshot` stayed null;
+     and `!session` could not tell *restoring* from *signed out*, so a stored session
+     rendered the login screen for an instant and then a spinner forever. Nothing
+     was watching a clock over any of it.
+
+     Auth failures now end the session and land on login — on the claim, on every
+     read, first load or an hour into a poll. `restoring` is a named state, which is
+     what makes it boundable. "Loading…" is bounded at 15 seconds, and that timer
+     deliberately knows nothing about *why* a restore stalled: the failures above are
+     the ones anticipated, and the bound is for the ones nobody anticipated,
+     including a promise that never settles.
+
+     Two details worth the PM's eye. **`clearStoredSession` removes the storage key
+     by hand after asking `signOut()` to** — `signOut()` talks to the server, and the
+     server refusing this token is why we are here, so it can fail, and a stored
+     session surviving a sign-out is the same bug again on the next page load.
+     **`isAuthFailure` is deliberately narrow**: a 500, a 429 or a dropped connection
+     is not a rejected credential, and signing a working session out over a train
+     tunnel is this bug's mirror image, so a test holds that line from the other side.
+
+     **Six plants, and one of them changed the code.** Restoring the original
+     swallowed `.catch(() => undefined)` on the claim left all nine tests green: the
+     first test refuses both calls, so the snapshot's guard reached login and the
+     claim's guard proved nothing. The shape that isolates it — a refused claim
+     behind a read that never settles — is now a test.
+
+145. **A test in spec 007 was green every morning and red every evening, and had been
+     since it was written.** Found because the suite went red this evening on
+     unchanged code. `/outbound/reply` is the one decision in 007 that reads wall
+     time instead of being handed an instant; its test writes the ask on the fixed
+     test day, and after 18:30 UTC, IST is already tomorrow, so the reply matched no
+     ask. It was written, reviewed and reported green inside a single afternoon,
+     which is the entire window in which it worked. `create_app` now takes a `clock`
+     defaulting to `now_utc`; behaviour in production is unchanged.
+
+     **The seam uncovered a real defect underneath, and it needs a ruling.**
+     `record_parent_reply` matches the ask by the parent's **local calendar day**. A
+     parent asked at 11:00 who answers at 00:20 is answering on a different local
+     day: no ask matches, nothing is marked replied, and the follow-on goes to her
+     family after she has already said she is fine. That is precisely the failure
+     §2.6 exists to prevent, and escalating over someone who answered is worse than a
+     missed message. **Not fixed, because the repair is a spec choice, not a bug
+     fix** — match the most recent *unanswered* ask instead of the day's, then decide
+     the bound on "recent". It is pinned as a `strict=True` xfail asserting the
+     behaviour that is wanted, so the day it is fixed the marker fails as XPASS and
+     has to be removed. The marker cannot outlive the bug.
+
+     **Both of these are now failure family 5** in `docs/failure-families.md` — the
+     state with no exit, where the code does not do the wrong thing so much as
+     decline to do anything, and waiting looks like working. Neither was found by the
+     suite; one was found by the founder and one by the clock.
+
+     **Numbering note:** the ruling said to file at the next number, which was 142.
+     The pass covers four separable decisions the PM will want to cite individually,
+     so it is filed as 142–145 and the top-of-file line now reads 146.
+
+     **Still owed and unchanged: §5's five corrected template bodies** (DECISIONS
+     141). They were not in the founder's message this time either, so
+     `outbound_templates.py` still renders `"Appa's morning looked like her
+     morning."`

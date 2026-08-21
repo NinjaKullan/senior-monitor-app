@@ -15,11 +15,12 @@ stated properly — a parent faces ~78 interactions today and delivery is only ~
 cheap experiments that decide spec 005b's shape, and what is owed by whom. Read it before
 `docs/onboarding-runbook.md` and DECISIONS 92–102.
 
-## State of the build (baton, 2026-08-21 — session handoff)
+## State of the build (baton, 2026-08-21 — session handoff, second pass)
 
-**All three suites green** (`pytest` 270 with Postgres up, `webapp` 102,
-`site` 172 — the product count fell from 401 because the digest and ladder suites
-went with their engines (DECISIONS 141) — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
+**All three suites green** (`pytest` 277 + 1 xfail with Postgres up, `webapp` 111,
+`site` 172 — the product count fell from 401 to 270 because the digest and ladder
+suites went with their engines (DECISIONS 141); the xfail is a real open bug, not a
+skipped test, see DECISIONS 145 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
 never trust a skip. The `--revoke` ~1-in-64 flake is *fixed* as of DECISIONS 139;
 a failure there now means something new.). Specs 001–006 plus amendments A/B built and reviewed;
 **spec 005b built and PM-approved** (rulings follow item 123: 118 upheld —
@@ -110,6 +111,40 @@ until `OUTBOUND_REPLY_TOKEN` is set. `OUTBOUND_ENABLED` is off by default and
 "on" still reaches nobody in this wave. **That ruling has landed: 007
 supersedes 003 and 004** (DECISIONS 141), so 007 is now the only engine in the tree
 that can speak. See DECISIONS 140 for the rest of the execution calls.
+
+**The domain is heykettle.com (DECISIONS 142–143, this session).** Live on Cloudflare
+DNS, site still hosted on Fly, Resend verified on `send.heykettle.com`. The contact
+address is `hello@heykettle.com`, `<link rel="canonical" href="https://heykettle.com/">`
+is in the site head, and `site/nginx.conf` 301s `kettle-site.fly.dev` to the apex from
+a **named server block** — requests on the real domain never enter it, so the caching
+contract is structurally unaffected. `/healthz` deliberately answers on both hosts.
+**privacy.html deliberately has NO canonical**: it is held to a stricter standing law
+(stands alone, no `<link>`, no absolute URL) and that law won — do not "fix" it.
+
+**Owed by the founder, one command:** `WAITLIST_ORIGINS` is an env var on kettle-api
+and setting it **replaces** the default rather than adding to it, so the whole list
+has to be named:
+
+```bash
+fly secrets set -a kettle-api \
+  WAITLIST_ORIGINS="https://heykettle.com,https://www.heykettle.com,https://kettle-site.fly.dev"
+```
+
+The fly.dev entry comes out when the old host stops being used. The code default is
+the heykettle pair plus localhost and deliberately excludes fly.dev.
+
+**The family app's session restore is fixed (DECISIONS 144).** A stored session whose
+token the server rejects now signs out, clears storage and lands on login; `restoring`
+is a named state; "Loading…" is bounded at 15s. `webapp/src/lib/session.ts` carries the
+reasoning. **Do not widen `isAuthFailure`** — a 500 or a dropped connection must not
+end a working session, and a test holds that line.
+
+**One open bug with a ruling owed (DECISIONS 145).** `record_parent_reply` matches the
+ask by local calendar day, so a parent who answers after local midnight cancels
+nothing and her family gets escalated to anyway. Pinned as a `strict=True` xfail in
+`test_outbound.py` — when it is fixed the marker fails as XPASS and must be removed.
+The repair is a spec choice (match the most recent unanswered ask, then bound
+"recent"), which is why it was not made here.
 
 **Specs 003 and 004 are RETIRED (DECISIONS 141, this session).** `digest.py`,
 `ladder.py`, their copy modules, the channel abstraction, `scripts/ladder.py` and the
