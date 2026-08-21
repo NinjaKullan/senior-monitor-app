@@ -15,7 +15,7 @@ Sentence: "Lamplight says Amma's day started normally." — reads as warmth, not
 Story: the working name and the homage — Japan's i-Pot kettle has been telling families "mom made tea" since 2001; the product is that, grown up.
 Mouths: KET-tle; universal household object; effortless both directions.
 Vibe check: a kitchen object; the i-Pot lineage is literally the consent story Dad was told. Safe.
-TM/domain: moderate — crowded across distant classes (Kettle Foods chips = famous mark, Kettle reinsurance, Kettle NYC agency); nothing in care. kettle.com unavailable; kettle.care / getkettle.com plausible.
+TM/domain: moderate — crowded across distant classes (Kettle Foods chips = famous mark, Kettle reinsurance, Kettle NYC agency); nothing in care. kettle.com unavailable; kettle.care / getkettle.com plausible. **(What was actually registered: `heykettle.com` — DECISIONS 142.)**
 Sentence: "Kettle says Amma's day started normally." — charming, faintly quirky in a good way.
 
 **3. Postcard**

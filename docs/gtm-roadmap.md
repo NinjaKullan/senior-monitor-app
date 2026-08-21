@@ -52,7 +52,7 @@ The gates were designed when the concept itself was unproven. Since then: Parent
 
 ## Founder feedback, Jul 28 (decisions + onboarding findings)
 
-**Wave-0 status:** Stripe ✅. Landing page Thursday. Dad's phone + signing Friday. WhatsApp Business API: Hema, separate session. Name FINAL: Kettle, domains getkettle.* — no further ideation. Beta recruiting starts only once the child app is on TestFlight → child PWA gets a Capacitor wrap + TestFlight distribution in Wave 1 (RosterPro playbook).
+**Wave-0 status:** Stripe ✅. Landing page Thursday. Dad's phone + signing Friday. WhatsApp Business API: Hema, separate session. Name FINAL: Kettle, domains getkettle.* — no further ideation. **(Superseded 2026-08-21: the domain is `heykettle.com`, live on Cloudflare DNS — DECISIONS 142. The name did not change.)** Beta recruiting starts only once the child app is on TestFlight → child PWA gets a Capacitor wrap + TestFlight distribution in Wave 1 (RosterPro playbook).
 
 **Onboarding findings (from founder's own setup error — the `curl "` paste bug):**
 1. Zero free-text-fields principle: seniors/children never type or paste URLs. Pre-built shortcuts delivered as iCloud links ("Kettle — Mom WhatsApp"); automation wrapper selects the existing shortcut, no action search, no paste. → spec 005.

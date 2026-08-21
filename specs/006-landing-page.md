@@ -1,4 +1,10 @@
-# Spec 006 — Landing page (getkettle.*)
+# Spec 006 — Landing page (heykettle.com)
+
+> **Domain note (DECISIONS 142).** This spec was written when the domain was
+> going to be `getkettle.*`, and says so throughout — including the CORS
+> allowlist in the backend section. The domain is now **`heykettle.com`**, live
+> on Cloudflare DNS. The reasoning is unaffected; only the string changed. The
+> shipped defaults are in `product/kettle/config.py` and `site/nginx.conf`.
 
 **STATUS: BUILT — `1effca4..0bbf9cc`, reviewed and approved by PM 2026-08-02 (rulings 78–83 in DECISIONS.md). Amendment A (§10) is BUILT (`369f33e..66457ee`, approved). Amendment B (§11, the kettle story) is ACTIVE — build it. Site is LIVE at kettle-site.fly.dev; remaining founder steps: migration 0009 to `kettle-prod`, `WAITLIST_ORIGINS` to include the serving origin, DNS.**
 

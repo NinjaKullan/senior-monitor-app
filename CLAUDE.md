@@ -29,7 +29,7 @@ A session touching only one surface does not pay for the other two.
 | Tree | What it is | Its rules |
 |---|---|---|
 | `product/` | FastAPI + Postgres backend, the ladder, the digests, the forge | `product/CLAUDE.md`, `product/README.md` |
-| `site/` | The marketing page (getkettle.\*) | `site/CLAUDE.md`, `site/README.md`, `docs/design-language.md` |
+| `site/` | The marketing page (heykettle.com) | `site/CLAUDE.md`, `site/README.md`, `docs/design-language.md` |
 | `webapp/` | The family app (kettle-app) | `webapp/CLAUDE.md`, `webapp/README.md` |
 
 ## Stack conventions

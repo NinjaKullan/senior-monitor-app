@@ -20,7 +20,7 @@ line at its top. Items 1 through 120 are in `DECISIONS-archive.md`.
 | [005c](005c-glance-warmth.md) | Glance warmth pass | Built. |
 | [005d](005d-tripwire-health.md) | Tripwire health panel | Built. Carries the app's one scoped copy-law exemption. |
 | [005e](005e-shortcut-forge.md) | Shortcut forge — generate and sign real `.shortcut` files | Built. Signing is a macOS founder step; generation runs anywhere. |
-| [006](006-landing-page.md) | Landing page (getkettle.*) | Built. Four passes since (DECISIONS 134–137) are unshipped pending a founder deploy. |
+| [006](006-landing-page.md) | Landing page (heykettle.com) | Built. Five passes since (DECISIONS 134–137, 142) are unshipped pending a founder deploy. The spec says getkettle.* throughout; the domain changed after it was written (DECISIONS 142). |
 | [007](007-outbound-channel.md) | The outbound channel — Kettle learns to speak | **Wave A built and running dark.** Waves B–D are each gated on one founder errand. Supersedes 003 and 004. |
 
 ## What "superseded" means here

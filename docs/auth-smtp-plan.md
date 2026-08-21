@@ -43,9 +43,12 @@ with a rewritten tracking URL is also a broken magic link, so this is correctnes
 
 ## The steps, in order
 
-1. **Domain.** Send from `auth.getkettle.com` (a subdomain isolates reputation; the apex stays
-   clean for whatever 005b's product email becomes). From address: `Kettle <sign-in@auth.getkettle.com>`,
-   reply-to `hello@getkettle.com` so a confused parent's reply reaches a human.
+1. **Domain — DONE.** The domain is `heykettle.com` and Resend is **verified on
+   `send.heykettle.com`** (founder, DECISIONS 142), which is the subdomain this step asked for
+   under a different name: a subdomain isolates reputation and the apex stays clean for whatever
+   005b's product email becomes. From address: `Kettle <sign-in@send.heykettle.com>`, reply-to
+   `hello@heykettle.com` so a confused parent's reply reaches a human. The plan below still says
+   "the sending subdomain"; read that as `send.heykettle.com`.
 2. **DNS, at the registrar:** Resend's DKIM records, SPF include on the sending subdomain, and
    Resend's custom return-path CNAME. Add a `p=none` DMARC record on the apex if none exists —
    monitoring first, policy later.
