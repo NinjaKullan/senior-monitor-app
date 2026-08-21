@@ -18,18 +18,12 @@ class Settings:
     default_tz: str
     public_base_url: str
     heartbeat_loop: bool
-    # Global digest kill-switch. Off by default: family-facing sending is opt-in
-    # at two levels, this one and families.digest_enabled (also false by default).
-    digest_enabled: bool
-    digest_morning_cutoff_hour: int
-    digest_evening_hour: int
-    digest_evening_minute: int
-    twilio_account_sid: str
-    twilio_auth_token: str
-    twilio_from: str
-    # Global ladder kill-switch, over and above each family's ladder_mode.
-    # Off by default: this is the alert path.
-    ladder_enabled: bool
+    # Specs 003 and 004 were retired by 007 (DECISIONS 141), and their settings
+    # went with them: DIGEST_ENABLED, the digest hours, LADDER_ENABLED and the
+    # three TWILIO_* values, which existed for the SMS channel and the inbound
+    # webhook those engines used. Wave C re-adds a Twilio credential when it has
+    # a transport to spend it on; a setting with nothing reading it is a
+    # deployment that looks configured and is not.
     # Spec 007's outbound channel. Off by default like every other sending
     # path, and in Wave A "on" still reaches nothing: the only transport that
     # exists writes a log line. Two switches rather than one because the wave
@@ -67,14 +61,6 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
             or "https://kettle-api.fly.dev"
         ),
         heartbeat_loop=_flag(src, "HEARTBEAT_LOOP", default=True),
-        digest_enabled=_flag(src, "DIGEST_ENABLED", default=False),
-        digest_morning_cutoff_hour=_int(src, "DIGEST_MORNING_CUTOFF_HOUR", 14),
-        digest_evening_hour=_int(src, "DIGEST_EVENING_HOUR", 20),
-        digest_evening_minute=_int(src, "DIGEST_EVENING_MINUTE", 30),
-        twilio_account_sid=src.get("TWILIO_ACCOUNT_SID", "").strip(),
-        twilio_auth_token=src.get("TWILIO_AUTH_TOKEN", "").strip(),
-        twilio_from=src.get("TWILIO_FROM", "").strip(),
-        ladder_enabled=_flag(src, "LADDER_ENABLED", default=False),
         outbound_enabled=_flag(src, "OUTBOUND_ENABLED", default=False),
         outbound_reply_token=src.get("OUTBOUND_REPLY_TOKEN", "").strip(),
         waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
