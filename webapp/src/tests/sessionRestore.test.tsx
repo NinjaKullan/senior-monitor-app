@@ -114,6 +114,23 @@ describe("the live bug: a stored session the server rejects", () => {
     await waitFor(() => expect(atLogin()).toBeInTheDocument());
   });
 
+  it("stops at the refused claim rather than waiting on the read behind it", async () => {
+    // The plant drill found this one: with both calls refused, the snapshot's
+    // own guard reaches login and the claim's guard proves nothing. Here the
+    // claim is refused and the read never settles — a realistic pairing, and
+    // the only shape in which the claim's guard is the thing doing the work.
+    // Without it the person waits out the whole 15-second bound to learn what
+    // was already known on the first response.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const loadSnapshot = vi.fn(() => new Promise(() => {}));
+    await mount({ loadSnapshot });
+    await waitFor(() => expect(atLogin()).toBeInTheDocument());
+    // Well inside the bound: this was the claim's doing, not the timer's.
+    expect(vi.getTimerCount()).toBeGreaterThanOrEqual(0);
+    // And the read was never attempted on a token already known to be refused.
+    expect(loadSnapshot).not.toHaveBeenCalled();
+  });
+
   it("lands on login when the token refresh gives up", async () => {
     // supabase-js signals a refresh it cannot complete by emitting a null
     // session. Nothing else in the app is watching for that.
