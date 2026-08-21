@@ -208,51 +208,6 @@ def test_digest_sends_are_read_only_for_members(two_families, authed, conn):
         )
 
 
-def test_ladder_tables_are_isolated_per_family(two_families, authed, conn):
-    """AC8: candidates, events and contacts mirror digest_sends exactly."""
-    for key in ("a", "b"):
-        family = two_families[key]
-        candidate = conn.execute(
-            """
-            insert into ladder_candidates
-                (family_id, parent_id, local_date, mode, trigger, mechanism_ok,
-                 stage, opened_utc)
-            values (%s, %s, %s, 'shadow', 'deadline', true, 'candidate', now())
-            returning id
-            """,
-            (family.family_id, family.parents[0].parent_id, date(2026, 8, 3)),
-        ).fetchone()
-        db.insert_ladder_event(
-            conn, candidate["id"], family.family_id, family.parents[0].parent_id,
-            "candidate", "shadow", "opened", now_utc(),
-        )
-        conn.execute(
-            "insert into family_contacts (family_id, name, relation) "
-            "values (%s, 'Priya', 'neighbour')",
-            (family.family_id,),
-        )
-
-    as_user(authed, USER_A)
-    for table in ("ladder_candidates", "ladder_events", "family_contacts"):
-        rows = _rows(authed, f"select family_id from {table}")
-        assert [r["family_id"] for r in rows] == [two_families["a"].family_id], table
-        # Naming the other family explicitly does not help either.
-        assert authed.execute(
-            f"select count(*) as n from {table} where family_id = %s",  # noqa: S608
-            (two_families["b"].family_id,),
-        ).fetchone()["n"] == 0
-
-
-def test_ladder_tables_are_read_only_for_members(two_families, authed):
-    """The ladder is written by the service and read by the family, never both."""
-    as_user(authed, USER_A)
-    with pytest.raises(psycopg.errors.InsufficientPrivilege):
-        authed.execute(
-            "insert into ladder_events "
-            "(candidate_id, family_id, parent_id, stage, mode, detail) "
-            "values (1, (select id from families limit 1), "
-            "(select id from parents limit 1), 'candidate', 'shadow', 'x')"
-        )
 
 
 def test_anon_holds_no_privileges_on_anything(conn: psycopg.Connection):

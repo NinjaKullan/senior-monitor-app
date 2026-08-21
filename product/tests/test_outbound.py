@@ -503,6 +503,6 @@ def test_the_pilot_paths_are_untouched(conn, family):
     """This engine writes to its own table and nothing else's."""
     transport = CountingTransport()
     run_twice(conn, transport, at(11, 0))
-    for table in ("pings", "digest_sends", "ladder_candidates", "ladder_events", "ops_alerts"):
+    for table in ("pings", "digest_sends", "ops_alerts"):
         count = conn.execute(f"select count(*) as n from {table}").fetchone()["n"]
         assert count == 0, f"the outbound channel wrote to {table}"

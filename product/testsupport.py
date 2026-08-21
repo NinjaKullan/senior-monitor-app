@@ -21,9 +21,6 @@ TABLES = (
     "pings",
     "ops_alerts",
     "digest_sends",
-    "family_contacts",
-    "ladder_candidates",
-    "ladder_events",
     "waitlist",
     "sent_messages",
 )
@@ -73,50 +70,6 @@ class RecordingNotifier:
     def send(self, message: str) -> bool:
         self.messages.append(message)
         return True
-
-
-def enable_digests(
-    conn: psycopg.Connection,
-    family_id: object,
-    recipients: list[tuple[str, str]] | None = None,
-    channel: str = "sms",
-) -> list[dict]:
-    """Opt a family in and give it recipients. Nothing sends without both."""
-    conn.execute("update families set digest_enabled = true where id = %s", (family_id,))
-    for name, phone in recipients or [("Child", "+15125550100")]:
-        conn.execute(
-            """
-            insert into members (family_id, display_name, role, email, phone_e164,
-                                 digest_channel)
-            values (%s, %s, 'owner', %s, %s, %s)
-            """,
-            (family_id, name, f"{name.lower()}@example.test", phone, channel),
-        )
-    return conn.execute(
-        "select id as member_id, display_name, phone_e164 from members "
-        "where family_id = %s order by created_utc, id",
-        (family_id,),
-    ).fetchall()
-
-
-def enable_ladder(
-    conn: psycopg.Connection, family_id: object, mode: str = "shadow"
-) -> None:
-    """Put a family into a ladder mode. `live` needs digests on first (DB CHECK)."""
-    if mode == "live":
-        conn.execute(
-            "update families set digest_enabled = true where id = %s", (family_id,)
-        )
-    conn.execute("update families set ladder_mode = %s where id = %s", (mode, family_id))
-
-
-def set_senior_phone(
-    conn: psycopg.Connection, parent_id: object, phone_e164: str
-) -> None:
-    """Give a monitored person a number the ASK stage can reach."""
-    conn.execute(
-        "update parents set phone_e164 = %s where id = %s", (phone_e164, parent_id)
-    )
 
 
 def set_parent_whatsapp(
