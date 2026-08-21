@@ -210,6 +210,54 @@ no schema change, no code change.
 Ladder copy carries the digest copy law plus a ban on urgency vocabulary, and
 lives in its own module so neither law has to be weakened for the other.
 
+## The outbound channel (spec 007, Wave A)
+
+Kettle's own voice, and in this wave it does not use it. The decision core is
+complete and runs in production **dark**: it evaluates each day, writes its
+ledger, and hands every message to a transport that writes a log line. Waves B
+to D add transports that actually send, each gated on one founder errand.
+
+Three message kinds and nothing else speaks: the **digest** to the child twice
+daily, the **ask** to the parent on a quiet morning, and the **follow-on** to
+the child only after the ask has gone unanswered past a grace window.
+
+| Piece | Where |
+|---|---|
+| Quiet-morning evaluation, the scheduler, the transport seam | `kettle/outbound.py` |
+| Every string the channel can say | `kettle/outbound_templates.py` |
+| The sent-once ledger | migration 0012, `sent_messages` |
+| Reply intake | `POST /outbound/reply` |
+
+**v1 constants**, per parent, in her own timezone: the morning window opens at
+06:00, the ask threshold is 11:00, the follow-on grace is 2 hours, and the two
+digests go at 08:30 and 20:30. Per-family configuration is a later spec.
+
+Four properties are structural rather than remembered:
+
+- **Parent-first cannot be skipped.** A follow-on is reachable only through a
+  ledger row proving the ask already went, unanswered, more than the grace
+  window ago. Delete that row and the deadline passes in silence — there is no
+  query that returns a follow-on without it.
+- **Nothing is interpreted.** A quiet morning is the *absence* of an
+  alarm-grade ping in a window, reported as absence. Charger and `device_alive`
+  rows are invisible to the evaluator because the grade comes from each
+  parent's own allowlist (law #6).
+- **Sent once.** Every send goes through a unique index on
+  `(family_id, parent_id, local_date, kind)`, so a scheduler that crashes and
+  restarts mid-day re-decides and records nothing. Every acceptance scenario
+  runs the scheduler twice and asserts the second run is silent.
+- **No body is ever stored.** The ledger keeps a template *id*. Templates are
+  code, which is also what makes the copy law scannable over all of them.
+
+`/outbound/reply` **does not exist until `OUTBOUND_REPLY_TOKEN` is set** — it
+404s. Cancelling a follow-on is safety-relevant, and an unauthenticated route
+would let anyone who knows a number suppress an escalation. It reads the sender
+and nothing else: what she said is content, and this product does not hold
+content. Wave C swaps the shared secret for the provider's signature.
+
+The gate to Wave B is human: the founder family runs Wave A dark for 48 hours
+and the ledger is reviewed against what actually happened.
+
 ## Child PWA (spec 005a)
 
 The read-only demo app lives in `webapp/` and is deployed separately. It talks to

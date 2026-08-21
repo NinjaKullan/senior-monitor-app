@@ -19,20 +19,26 @@ legible; custom SMTP is what makes it rare.
 
 ## Provider
 
-**Postmark, transactional-only** is the recommendation; Resend is the acceptable alternative if the
-founder prefers one dashboard for future product email.
+**Resend** — founder decision, DECISIONS 138. This document recommended Postmark and named Resend
+as the acceptable alternative if the founder preferred one dashboard for future product email; that
+is now what he wants, and spec 007's Wave B sends the family digest through the same account.
 
-* Postmark's entire reputation is transactional deliverability, magic links are the canonical
-  transactional email, and their separate transactional/broadcast streams mean nothing this account
-  ever does can drag auth mail into a promotions tab.
-* Resend is developer-simpler and its free tier (~100/day) covers the beta severalfold; its trade-off
-  is a younger sending reputation.
-* Either clears the real bar: the built-in mailer's limit is ~2/hour, and a beta family's worst case
-  is maybe a dozen a day across everyone.
+* One provider for both jobs. Auth mail and the digest are the only email this product sends, and a
+  second dashboard for the second one buys nothing.
+* Developer-simpler, and the free tier (~100/day) covers the beta severalfold. The trade-off, stated
+  rather than glossed: a younger sending reputation than Postmark's, which is why the subdomain
+  isolation and the DNS records in the steps below are not optional.
+* It clears the real bar either way: the built-in mailer's limit is ~2/hour, and a beta family's
+  worst case is maybe a dozen a day across everyone.
+
+The reasoning that pointed at Postmark is kept rather than deleted, because it is what to re-read if
+deliverability ever becomes the problem: its entire reputation is transactional deliverability,
+magic links are the canonical transactional email, and its separate transactional/broadcast streams
+mean nothing an account does can drag auth mail into a promotions tab.
 
 Law #4 check, stated rather than assumed: an SMTP relay for auth mail is transactional
 infrastructure, not analytics — no tracking pixels, and **open/click tracking must be switched OFF
-in the provider settings** (both providers ship it on by default for some plans; a magic-link email
+in the provider settings** (it ships on by default on some plans; a magic-link email
 with a rewritten tracking URL is also a broken magic link, so this is correctness as well as law).
 
 ## The steps, in order
@@ -40,10 +46,10 @@ with a rewritten tracking URL is also a broken magic link, so this is correctnes
 1. **Domain.** Send from `auth.getkettle.com` (a subdomain isolates reputation; the apex stays
    clean for whatever 005b's product email becomes). From address: `Kettle <sign-in@auth.getkettle.com>`,
    reply-to `hello@getkettle.com` so a confused parent's reply reaches a human.
-2. **DNS, at the registrar:** the provider's DKIM records, SPF include on the sending subdomain, and
-   the provider's custom return-path CNAME. Add a `p=none` DMARC record on the apex if none exists —
+2. **DNS, at the registrar:** Resend's DKIM records, SPF include on the sending subdomain, and
+   Resend's custom return-path CNAME. Add a `p=none` DMARC record on the apex if none exists —
    monitoring first, policy later.
-3. **Provider side:** create the server/domain, verify DNS, confirm the transactional stream, turn
+3. **Resend side:** create the domain, verify DNS, confirm the transactional stream, turn
    OFF open/click tracking, note the SMTP host/port/credentials.
 4. **Supabase dashboard** → Authentication → SMTP settings: host, port 587, user, password, sender
    name and address from step 1. The SMTP password is a real secret — it lives in the dashboard and
