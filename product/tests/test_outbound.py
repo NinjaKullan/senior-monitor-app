@@ -405,6 +405,25 @@ def test_the_log_transport_never_logs_a_whole_number(conn, family, caplog):
 # --- the reply endpoint (§2.6) ------------------------------------------------
 
 
+@pytest.fixture
+def replying_client(settings, notifier, conn):
+    """A client whose `/outbound/reply` shares the fake clock the scheduler uses.
+
+    Without this the route read wall time while the ask was written on the fixed
+    test day, so the test passed only while the suite ran before 18:30 UTC — after
+    that, IST is already tomorrow and the reply matched no ask (DECISIONS 142). It
+    was green all morning and red all evening, every day, and it went unnoticed
+    because nobody runs a suite at 02:00 IST on purpose.
+    """
+    from fastapi.testclient import TestClient
+
+    from kettle.main import create_app
+
+    with TestClient(create_app(settings, notifier, clock=lambda: at(11, 30))) as c:
+        yield c
+
+
+
 def test_the_reply_endpoint_does_not_exist_without_a_secret(conn, settings, notifier):
     """An unauthenticated route that cancels an escalation is not shipped."""
     from dataclasses import replace
@@ -426,11 +445,11 @@ def test_the_reply_endpoint_refuses_a_wrong_secret(client, conn, family):
     assert response.status_code == 403
 
 
-def test_the_reply_endpoint_cancels_the_follow_on(client, conn, family):
+def test_the_reply_endpoint_cancels_the_follow_on(replying_client, conn, family):
     transport = CountingTransport()
     run_twice(conn, transport, at(11, 0))
 
-    response = client.post(
+    response = replying_client.post(
         "/outbound/reply",
         data={"From": WHATSAPP, "Body": "yes all fine, had a lie-in"},
         headers={"X-Kettle-Reply-Token": "test-reply-token"},
@@ -506,3 +525,34 @@ def test_the_pilot_paths_are_untouched(conn, family):
     for table in ("pings", "digest_sends", "ops_alerts"):
         count = conn.execute(f"select count(*) as n from {table}").fetchone()["n"]
         assert count == 0, f"the outbound channel wrote to {table}"
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="DECISIONS 142: a reply after local midnight matches no ask and the "
+    "follow-on fires anyway. Needs a PM ruling on the matching rule, so this "
+    "pins the behaviour that is wanted rather than the behaviour that ships.",
+)
+def test_a_reply_just_after_local_midnight_still_cancels_the_follow_on(conn, family):
+    """The bug the clock seam uncovered, kept visible until it is ruled on.
+
+    `record_parent_reply` looks up the ask by the parent's **local calendar day**.
+    A parent asked at 11:00 who answers at 00:20 the next morning is answering on
+    a different local day, so no ask matches, nothing is marked replied, and the
+    follow-on to her family goes out at its appointed hour — after she has already
+    said she is fine. That is the exact failure spec 007 §2.6 exists to prevent,
+    and it is worse than a missed message: it escalates to the family over a
+    parent who answered.
+
+    Not fixed here because the repair is a spec-level choice, not a bug fix: match
+    the most recent *unanswered* ask instead of the day's, and then decide the
+    bound on "recent". Both are the PM's to rule. `strict=True` means the day this
+    is fixed, this test fails as XPASS and has to be turned into a normal
+    assertion — the marker cannot outlive the bug.
+    """
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0))
+
+    # 00:20 IST the next morning: still the same night, a different local day.
+    just_after_midnight = at(11, 0) + timedelta(hours=13, minutes=20)
+    assert record_parent_reply(conn, WHATSAPP, just_after_midnight) is True

@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager, suppress
+from datetime import datetime
 from hmac import compare_digest
 from urllib.parse import parse_qs
 
@@ -51,9 +52,18 @@ def _client_ip(request: Request) -> str | None:
 
 
 def create_app(
-    settings: Settings | None = None, notifier: Notifier | None = None
+    settings: Settings | None = None,
+    notifier: Notifier | None = None,
+    clock: Callable[[], datetime] = now_utc,
 ) -> FastAPI:
-    """Build the application. `settings`/`notifier` are injectable for tests."""
+    """Build the application. `settings`/`notifier`/`clock` are injectable for tests.
+
+    `clock` exists because `/outbound/reply` is the one decision in spec 007 that
+    reads wall time instead of being handed an instant, which made its test green
+    only while the suite happened to run before 18:30 UTC (DECISIONS 142). Every
+    other 007 decision takes `now` as an argument; this restores the seam rather
+    than leaving one route that cannot be tested at an arbitrary hour.
+    """
     cfg = settings or settings_from_env()
 
     @asynccontextmanager
@@ -191,7 +201,7 @@ def create_app(
 
         if sender:
             with request.app.state.pool.connection() as conn:
-                record_parent_reply(conn, sender, now_utc())
+                record_parent_reply(conn, sender, clock())
         return PlainTextResponse("", status_code=204)
 
     @app.post("/waitlist", response_class=PlainTextResponse)
