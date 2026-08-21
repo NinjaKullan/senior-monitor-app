@@ -622,3 +622,112 @@ def ops_alert_exists_with_detail(
         (kind, family_id, parent_id, detail, start, end),
     ).fetchone()
     return row is not None
+
+
+# --- the outbound channel's ledger (spec 007) --------------------------------
+
+
+def outbound_contacts(conn: psycopg.Connection, family_id: Any) -> Row | None:
+    """Where this family's two audiences are reached, if anywhere yet.
+
+    One row: the child's digest address (their account email, which has existed
+    since 0001 — spec 007 §3 sends the digest there) and nothing else, because
+    the parent's number is per parent and travels with the parent row.
+    """
+    return conn.execute(
+        """
+        select m.email as child_email
+        from members m
+        where m.family_id = %s and m.email is not null
+        order by (m.role = 'owner') desc, m.created_utc
+        limit 1
+        """,
+        (family_id,),
+    ).fetchone()
+
+
+def parent_whatsapp(conn: psycopg.Connection, parent_id: Any) -> str | None:
+    """The parent's WhatsApp number, or None when the founder has not entered it."""
+    row = conn.execute(
+        "select whatsapp_e164 from parents where id = %s", (parent_id,)
+    ).fetchone()
+    return (row or {}).get("whatsapp_e164")
+
+
+def sent_message(
+    conn: psycopg.Connection, family_id: Any, parent_id: Any, local_date: str, kind: str
+) -> Row | None:
+    """The ledger row for one family, parent, local day and kind — or None."""
+    return conn.execute(
+        """
+        select id, template_id, transport, sent_utc, replied_utc
+        from sent_messages
+        where family_id = %s and parent_id = %s and local_date = %s and kind = %s
+        """,
+        (family_id, parent_id, local_date, kind),
+    ).fetchone()
+
+
+def record_sent_message(
+    conn: psycopg.Connection,
+    family_id: Any,
+    parent_id: Any,
+    local_date: str,
+    kind: str,
+    template_id: str,
+    transport: str,
+    sent_utc: datetime,
+) -> bool:
+    """Write the ledger row. False means this one was already recorded.
+
+    `on conflict do nothing` rather than a check-then-insert: two schedulers
+    racing on the same day is exactly what the unique index exists for, and a
+    read followed by a write leaves a window between them.
+    """
+    row = conn.execute(
+        """
+        insert into sent_messages
+            (family_id, parent_id, local_date, kind, template_id, transport, sent_utc)
+        values (%s, %s, %s, %s, %s, %s, %s)
+        on conflict (family_id, parent_id, local_date, kind) do nothing
+        returning id
+        """,
+        (family_id, parent_id, local_date, kind, template_id, transport, sent_utc),
+    ).fetchone()
+    return row is not None
+
+
+def record_reply(
+    conn: psycopg.Connection, parent_id: Any, local_date: str, when: datetime
+) -> bool:
+    """Mark that the parent answered the ask on her local day. Timestamp only.
+
+    Never the content: what she said is content, and this product does not hold
+    content. The first reply wins — a second one changes nothing, so a duplicate
+    webhook delivery cannot move the timestamp around.
+    """
+    row = conn.execute(
+        """
+        update sent_messages
+        set replied_utc = %s
+        where parent_id = %s and local_date = %s and kind = 'ask'
+          and replied_utc is null
+        returning id
+        """,
+        (when, parent_id, local_date),
+    ).fetchone()
+    return row is not None
+
+
+def parent_by_whatsapp(conn: psycopg.Connection, number: str) -> Row | None:
+    """Find a parent by the WhatsApp number the reply arrived from."""
+    return conn.execute(
+        """
+        select p.id as parent_id, p.display_name as parent_name, p.tz as parent_tz,
+               f.id as family_id, f.tz as family_tz
+        from parents p
+        join families f on f.id = p.family_id
+        where p.whatsapp_e164 = %s
+        """,
+        (number,),
+    ).fetchone()
