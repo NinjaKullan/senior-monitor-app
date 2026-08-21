@@ -323,6 +323,33 @@ def test_a_restarted_scheduler_re_decides_and_records_nothing_new(conn, family):
     assert ledger(conn) == before
 
 
+def test_the_index_is_what_stops_a_double_send_not_the_read_before_it(conn, family):
+    """The race the unique index actually guards, exercised directly.
+
+    A double *run* of the scheduler is stopped by the read that precedes the
+    write — the second run sees the row and decides nothing — so the scenarios
+    above prove the observable property without ever reaching the index. Two
+    schedulers running at once would; this is that, without the threads. The
+    write must be idempotent on its own.
+    """
+    plan = schedule_for(at(11, 0), "Asia/Kolkata")
+    parent_id = family.parents[0].parent_id
+    args = (
+        family.family_id,
+        parent_id,
+        plan.local_date,
+        "ask",
+        "ask_parent",
+        "log",
+        at(11, 0),
+    )
+    assert db.record_sent_message(conn, *args) is True
+    assert db.record_sent_message(conn, *args) is False
+    assert (
+        conn.execute("select count(*) as n from sent_messages").fetchone()["n"] == 1
+    )
+
+
 def test_the_kill_switch_decides_nothing_at_all(conn, family):
     transport = CountingTransport()
     assert run_outbound(conn, transport, at(11, 0), enabled=False) == []
@@ -417,6 +444,28 @@ def test_the_reply_endpoint_cancels_the_follow_on(client, conn, family):
 
     run_twice(conn, transport, at(14, 0))
     assert ("follow_on", "follow_on_family") not in ledger(conn)
+
+
+def test_the_reply_endpoint_never_repeats_what_she_said(client, conn, family, caplog):
+    """Not stored is half of it; not logged is the other half.
+
+    A log line is a copy. The first version of this test only checked the row,
+    and a planted `log.info("reply body: %s", ...)` sailed through it.
+    """
+    import logging
+
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0))
+    secret = "yes all fine, had a lie-in and forgot my phone"
+    with caplog.at_level(logging.DEBUG):
+        client.post(
+            "/outbound/reply",
+            data={"From": WHATSAPP, "Body": secret},
+            headers={"X-Kettle-Reply-Token": "test-reply-token"},
+        )
+    logged = "\n".join(record.getMessage() for record in caplog.records)
+    assert "lie-in" not in logged and secret not in logged
+    assert WHATSAPP not in logged
 
 
 def test_the_reply_endpoint_is_not_an_oracle(client, conn, family):
