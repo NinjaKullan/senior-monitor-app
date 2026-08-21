@@ -105,7 +105,7 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         heartbeat_loop=False,
         outbound_enabled=False,
         outbound_reply_token="",
-        waitlist_origins=("https://getkettle.com",),
+        waitlist_origins=("https://heykettle.com",),
     )
     with TestClient(create_app(settings, notifier)) as fresh_client:
         assert fresh_client.get("/healthz").json() == {"db": True}

@@ -188,7 +188,7 @@ def test_the_endpoint_stores_only_what_was_typed(client: TestClient, conn: psyco
     client.post(
         "/waitlist",
         json=SIGNUP,
-        headers={"user-agent": "Mozilla/5.0 (test)", "referer": "https://getkettle.com/"},
+        headers={"user-agent": "Mozilla/5.0 (test)", "referer": "https://heykettle.com/"},
     )
 
     columns = {
@@ -207,9 +207,9 @@ def test_the_endpoint_stores_only_what_was_typed(client: TestClient, conn: psyco
 def test_cors_is_locked_to_the_landing_page(client: TestClient):
     """A wildcard would let any page on the internet post on a visitor's behalf."""
     allowed = client.post(
-        "/waitlist", json=SIGNUP, headers={"origin": "https://getkettle.com"}
+        "/waitlist", json=SIGNUP, headers={"origin": "https://heykettle.com"}
     )
-    assert allowed.headers.get("access-control-allow-origin") == "https://getkettle.com"
+    assert allowed.headers.get("access-control-allow-origin") == "https://heykettle.com"
 
     elsewhere = client.post(
         "/waitlist", json={"email": "b@c.co", "parent_phone": "iphone"},
@@ -285,3 +285,45 @@ def test_the_success_sentence_matches_the_landing_page():
     match = re.search(r'export const WAITLIST_SUCCESS = "([^"]+)";', source)
     assert match, "WAITLIST_SUCCESS not found in site/src/copy.ts"
     assert match.group(1) == waitlist.WAITLIST_SUCCESS
+
+
+def test_the_default_origin_list_is_the_live_domain_and_nothing_else():
+    """DECISIONS 142 — what the system settles on when nobody sets the env var.
+
+    Two claims, and the second is the one worth a test. The default names
+    heykettle.com; it deliberately does **not** name `kettle-site.fly.dev`, even
+    though that origin has to be accepted while the domain transitions. The
+    transition grant belongs in `WAITLIST_ORIGINS` on kettle-api, where removing
+    it is one command, rather than in a shipped default nobody revisits — a
+    temporary allowance written into code is a permanent one.
+    """
+    from kettle.config import DEFAULT_WAITLIST_ORIGINS
+
+    assert DEFAULT_WAITLIST_ORIGINS == (
+        "https://heykettle.com",
+        "https://www.heykettle.com",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    )
+    assert not any("getkettle" in origin for origin in DEFAULT_WAITLIST_ORIGINS)
+    assert not any("fly.dev" in origin for origin in DEFAULT_WAITLIST_ORIGINS)
+    assert not any("*" in origin for origin in DEFAULT_WAITLIST_ORIGINS)
+
+
+def test_setting_the_env_var_replaces_the_default_rather_than_adding_to_it():
+    """The shape of the founder's command depends on this, so it is pinned.
+
+    `_origins` falls back to the default only when the variable is empty. A list
+    that names just the fly.dev origin locks out the real domain — which is why
+    product/README.md prints the whole list rather than the one addition.
+    """
+    from kettle.config import DEFAULT_WAITLIST_ORIGINS, settings_from_env
+
+    only_old = settings_from_env(
+        {"DATABASE_URL": "postgresql:///x", "WAITLIST_ORIGINS": "https://kettle-site.fly.dev"}
+    )
+    assert only_old.waitlist_origins == ("https://kettle-site.fly.dev",)
+    assert "https://heykettle.com" not in only_old.waitlist_origins
+
+    empty = settings_from_env({"DATABASE_URL": "postgresql:///x"})
+    assert empty.waitlist_origins == DEFAULT_WAITLIST_ORIGINS

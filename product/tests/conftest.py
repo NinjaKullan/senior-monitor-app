@@ -81,7 +81,7 @@ def settings(database_url: str) -> Settings:
         outbound_enabled=True,
         outbound_reply_token="test-reply-token",
         # The landing page is the only browser that calls this API (spec 006).
-        waitlist_origins=("https://getkettle.com",),
+        waitlist_origins=("https://heykettle.com",),
     )
 
 

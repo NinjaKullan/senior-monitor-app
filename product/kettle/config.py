@@ -67,11 +67,14 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
     )
 
 
-#: getkettle.* per the GTM roadmap, plus the Vite dev server. Further TLDs are an
-#: env var at deploy, not a code change.
+#: heykettle.com is the live domain (DECISIONS 142), plus the Vite dev server.
+#: Further origins are an env var at deploy, not a code change — which is how the
+#: transition works: `kettle-site.fly.dev` is deliberately NOT in this default,
+#: because the default is what the system should settle on, and the old origin is
+#: a temporary grant the founder sets and later removes.
 DEFAULT_WAITLIST_ORIGINS = (
-    "https://getkettle.com",
-    "https://www.getkettle.com",
+    "https://heykettle.com",
+    "https://www.heykettle.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 )

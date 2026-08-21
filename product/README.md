@@ -343,8 +343,22 @@ table behind it. Both are shaped around not leaking:
   wrong decision months later.
 
 `WAITLIST_ORIGINS` sets the browser origins allowed to POST — an explicit list,
-never a wildcard. It defaults to `getkettle.com`, `www.getkettle.com` and the
-Vite dev server.
+never a wildcard. It defaults to `heykettle.com`, `www.heykettle.com` and the
+Vite dev server (DECISIONS 142).
+
+**It is an env var on kettle-api, and setting it replaces the default outright** —
+`_origins()` falls back to the shipped tuple only when the variable is empty, so a
+partial list is a lockout, not an addition. During the domain transition the
+fly.dev origin has to be named explicitly, because it is deliberately not in the
+default:
+
+```bash
+fly secrets set -a kettle-api \
+  WAITLIST_ORIGINS="https://heykettle.com,https://www.heykettle.com,https://kettle-site.fly.dev"
+```
+
+Drop the fly.dev entry once the old host stops being used; the two apex origins are
+then the same as the default and the variable can be unset entirely.
 
 Counting signups is `python -c` against the database, deliberately: there is no
 endpoint that reads this table.
@@ -500,7 +514,7 @@ revocation time.
 | `DEFAULT_TZ` | default family timezone | `Asia/Kolkata` |
 | `PUBLIC_BASE_URL` | base URL printed into provisioned links | `https://kettle-api.fly.dev` |
 | `HEARTBEAT_LOOP` | `0` disables the background loops (tests) | `1` |
-| `WAITLIST_ORIGINS` | comma-separated browser origins allowed to POST /waitlist (default: the getkettle.* pair plus localhost dev) |
+| `WAITLIST_ORIGINS` | comma-separated browser origins allowed to POST /waitlist (default: the heykettle.com pair plus localhost dev; setting it REPLACES the default) |
 | `OUTBOUND_ENABLED` | global outbound-channel kill-switch; "on" still reaches nobody in Wave A | **off** |
 | `OUTBOUND_REPLY_TOKEN` | shared secret `/outbound/reply` requires; empty means the route 404s | empty |
 | `TEST_DATABASE_URL` | tests only | local `kettle_test` |
