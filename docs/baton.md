@@ -15,10 +15,11 @@ stated properly — a parent faces ~78 interactions today and delivery is only ~
 cheap experiments that decide spec 005b's shape, and what is owed by whom. Read it before
 `docs/onboarding-runbook.md` and DECISIONS 92–102.
 
-## State of the build (baton, 2026-08-18 — session handoff)
+## State of the build (baton, 2026-08-21 — session handoff)
 
-**All three suites green** (`pytest` 401 with Postgres up, `webapp` 102,
-`site` 172 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
+**All three suites green** (`pytest` 270 with Postgres up, `webapp` 102,
+`site` 172 — the product count fell from 401 because the digest and ladder suites
+went with their engines (DECISIONS 141) — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
 never trust a skip. The `--revoke` ~1-in-64 flake is *fixed* as of DECISIONS 139;
 a failure there now means something new.). Specs 001–006 plus amendments A/B built and reviewed;
 **spec 005b built and PM-approved** (rulings follow item 123: 118 upheld —
@@ -106,11 +107,37 @@ scheduler, the sent-once ledger (migration **0012**, `sent_messages`), the
 template registry with §5's bodies verbatim, the console transport behind the
 `Transport` seam, and `/outbound/reply`, which nothing calls and which 404s
 until `OUTBOUND_REPLY_TOKEN` is set. `OUTBOUND_ENABLED` is off by default and
-"on" still reaches nobody in this wave. **The ruling this needs before Wave B:
-spec 007 is the second ladder and the second digest engine in the tree** —
-`ladder.py` (004) and `digest.py` (003) already do versions of this, nothing was
-touched, and today nothing collides only because all three switches default off.
-See DECISIONS 140 for that and the rest of the execution calls.
+"on" still reaches nobody in this wave. **That ruling has landed: 007
+supersedes 003 and 004** (DECISIONS 141), so 007 is now the only engine in the tree
+that can speak. See DECISIONS 140 for the rest of the execution calls.
+
+**Specs 003 and 004 are RETIRED (DECISIONS 141, this session).** `digest.py`,
+`ladder.py`, their copy modules, the channel abstraction, `scripts/ladder.py` and the
+`/twilio/inbound` webhook are deleted; both background loops are gone from `main.py`;
+the eight `DIGEST_*`/`LADDER_*`/`TWILIO_*` settings no longer exist. Migration **0013**
+retires the ladder tables and **decides at apply time** — a table that never held a row
+is dropped, a table with rows is renamed `retired_<name>` with policies dropped and
+privileges revoked. `families.ladder_mode` and 0007's per-parent threshold columns are
+left in place on purpose (the ruling named tables; a column drop is not reversible).
+`specs/README.md` is the new index of what still describes the product.
+
+**Two things a fresh session must not get wrong here.** First, **`digest_sends` is still
+in the schema and must stay** until someone decides otherwise — the family app's Digests
+screen renders from it (`webapp/src/lib/queries.ts` READ_SURFACE), and 007's
+`sent_messages` is RLS deny-all so it cannot replace it. Nothing writes to
+`digest_sends` any more, so the screen shows a log that stopped; the two ways out are in
+DECISIONS 141 and both are the PM's call, not a migration. Second, **DECISIONS 141 lists
+sixteen things 007 does not have that the retired engines did** — founder ops alerts on
+delivery failure, `ask_skipped`, `mechanism_ok`, the evidence gate, the morning cutoff,
+the all-clear, and the rest. None of it blocks Wave A, which runs dark; several are
+load-bearing before a message reaches a family.
+
+**Still owed from this pass: §5's five corrected template bodies.** The ruling was to
+replace them with the founder's strings verbatim; that message was not in the session's
+context, and `specs/007-outbound-channel.md` §5 still carries the originals, so
+`outbound_templates.py` is unchanged and still renders "Appa's morning looked like her
+morning." The DECISIONS 24 pronoun problem and the DECISIONS 127 em dash are both still
+live in product copy. **Ask for the five strings; it is a ten-minute pass.**
 
 **The context pass is in (DECISIONS 139, previous session).** The decision log is
 renamed and split (1–120 archived), CLAUDE.md is 72 lines with the surface norms

@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 141.** This line is the one to update; the `Next number:` lines inside
+**Next number: 142.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -916,3 +916,114 @@ browser — all three adopted as the standard for future surfaces.**
      and the ledger is reviewed against what actually happened; that review is the
      gate to Wave B. `docs/auth-smtp-plan.md` now says Resend (DECISIONS 138), so the
      domain errand and the DNS records are the next thing on the critical path.
+
+---
+
+## Retiring specs 003 and 004 (implementer, 2026-08-21)
+
+141. **Specs 003 and 004 are retired; 007 is the only engine that can speak.**
+     `digest.py`, `ladder.py`, `ladder_messages.py`, `messages.py`, `channels.py`,
+     `twilio_signature.py` and `scripts/ladder.py` are deleted, both background loops
+     are gone from `main.py`, `/twilio/inbound` 404s, the eight `DIGEST_*` /
+     `LADDER_*` / `TWILIO_*` settings are removed, and migration **0013** retires the
+     ladder's tables. `specs/README.md` is new — thirteen specs, one line each, a
+     status — and 003 and 004 carry banners. Suites green (`pytest` 270 with Postgres
+     up, `webapp` 102, `site` 172), ruff clean, nothing deployed. The pilot's ingest,
+     provisioning, forge and family app were not touched.
+
+     **`digest_sends` is deliberately still here, and it is the one thing in this
+     retirement that needs a decision rather than a migration.** The family app reads
+     it: `webapp/src/lib/queries.ts` declares it in `READ_SURFACE` and the Digests
+     screen renders from it. Spec 007's `sent_messages` is not a replacement — it is
+     RLS deny-all by design, so no client can read it at all. Dropping or renaming
+     `digest_sends` would empty a screen in a live app that both of the founder's
+     children use. **Two ways out, PM's call:** give `sent_messages` a family-scoped
+     read policy and move the screen onto it, or retire the screen. Until then the
+     table is a read-only historical record that nothing writes to any more, which is
+     honest but will look increasingly odd — the screen shows a log that stopped. The
+     migration header, `product/README.md`, the 003 banner and
+     `test_retirement.py`'s docstring all say so, in the four places somebody might
+     arrive from.
+
+     **Checked, not assumed — the migration decides at apply time.** This container's
+     test database is not evidence about production, so 0013 counts rows per table:
+     empty ones are dropped outright, and any table holding rows is renamed to
+     `retired_<name>`, has every policy on it dropped, and has privileges revoked from
+     `anon` and `authenticated`. History kept, reach removed. Shadow-mode ladder rows
+     are the labelled ledger that was meant to tune the thresholds; deleting them
+     silently would be the wrong call to make on someone else's behalf. The **archive
+     branch is tested**, on its own database built to 0012 with a `family_contacts`
+     row planted, because every other test in the suite runs against empty tables and
+     therefore only ever exercises the drop path — the branch production might take
+     was the one nothing covered.
+
+     **Left in place on purpose:** `families.ladder_mode` and its CHECK, and the
+     per-parent columns 0007 added (`phone_e164`, `alarm_deadline`, `max_gap_minutes`,
+     `grace_minutes`, `family_gap_minutes`). The ruling named tables, a column drop is
+     not reversible, and `phone_e164` holds a real number the founder entered. Nothing
+     reads them now that the module is gone. A later migration can take them once
+     007's own contact fields have been through a wave that actually sends.
+
+     **What 007 does not have that the retired engines did.** Read out of both before
+     deleting them, as instructed. Nothing here blocks Wave A — it runs dark — but
+     several are load-bearing before anything reaches a family, and four of them are
+     the difference between a quiet system and a silent one.
+
+     *Safety and honesty, in rough order of how much they matter:*
+
+     * **The founder learns nothing when a message fails.** `digest.py` raised four
+       ops-alert kinds — `digest_skipped`, `digest_delivery_failed`,
+       `digest_channel_unavailable`, `digest_unroutable` — on ntfy, to the founder
+       only, per law #3. 007 raises none. An undeliverable message today is a log
+       line in a process nobody is watching. **This is the one I would build first.**
+     * **`ask_skipped` has no equivalent, and its absence is worse than it sounds.**
+       When there was no number to ask on, 004 recorded that fact and escalated on the
+       clock anyway. In 007, a transport that returns False writes no ask row — and
+       because the follow-on is gated on an ask row existing, there is then *no
+       follow-on ever*. A missing phone number silently disables the whole ladder for
+       that parent. Wave C's real transport is where this becomes live, not theory.
+     * **`mechanism_ok` is gone — the unreachable-handset distinction.** 004 knew the
+       difference between "the phone has stopped reporting" and "the routine has
+       changed", and said different, honest things for each. 007 has one story for
+       both, so a dead battery reads as a changed morning.
+     * **The morning digest was evidence-gated: no evidence, no reassurance.** That is
+       law #6 wearing working clothes, and 007's morning note does not carry it.
+     * **No morning cutoff, so no staleness guard.** 003 refused to send a morning
+       digest after `DIGEST_MORNING_CUTOFF_HOUR`. 007 has no equivalent: a scheduler
+       catching up after an outage will send "her morning looked ordinary" at
+       dinnertime, correctly and absurdly.
+     * **All-clear when routine resumes**, and the resolution-on-activity bookkeeping
+       under it. 004 closed its own loops. 007 opens them.
+
+     *Reach and shape:*
+
+     * **Per-recipient fan-out.** 003 sent to every member; 007 has one child address.
+     * **Recorded delivery status** (sent / failed) per message. 007's ledger records
+       that a decision was made, not that it landed.
+     * **The aggregated evening digest.** 003 sent one message per timezone group
+       covering the family; 007 sends one per parent. A two-parent family gets two
+       messages every evening where it used to get one.
+     * **`max_gap` as a trigger** and the **daytime window** it lived in — 004's
+       second way of noticing, independent of the morning.
+     * **Staged escalation family_1 → family_all**, with the named local contact.
+       007's follow-on is one step.
+     * **Per-family `shadow` / `live` modes**, and the DB CHECK that made `live`
+       impossible without `digest_enabled` — a schema-level interlock against a family
+       being escalated at before it was ever messaged.
+     * **Per-parent thresholds.** 007 evaluates every parent on the same clock.
+
+     None of this was discarded quietly: the specs stay in the tree with banners, and
+     the reasoning inside 004 — particularly its law-#6 argument for asking the senior
+     before the family, which is the same argument 007's parent-first ordering rests
+     on — is still the best account of why the shape is the shape.
+
+     **§5's five corrected bodies are NOT in.** The ruling says to replace them with
+     the founder's strings "verbatim", and that message is not in this session's
+     context; `specs/007-outbound-channel.md` §5 still carries the originals, so there
+     is nothing here to copy from. `outbound_templates.py` is therefore unchanged and
+     still renders `"Appa's morning looked like her morning."` — the DECISIONS 24
+     pronoun problem and the DECISIONS 127 em dash, both still live. Inventing five
+     strings and labelling them the founder's would put words in someone's mouth in
+     customer-facing copy, which is a worse failure than a pass finishing one item
+     short. **Send the five strings and it is a ten-minute pass** (registry, spec §5,
+     the copy-law tests).
