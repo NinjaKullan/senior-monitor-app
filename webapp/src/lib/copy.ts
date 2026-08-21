@@ -121,17 +121,25 @@ export const LOGIN_FAILED = "That didn't go through. Check the address and try a
 /**
  * The setup card (spec 005b §4.1) — the Family screen's forwarding surface.
  *
- * This copy renders on a surface the copy law scans with no allowlist, so it
- * names no signal and no app — not even the channel the share button opens
- * (the wa.me href says it for us). "Reach for on their phone" is the habits
- * question (§4.5) phrased inside the law; the answer guides which everyday
- * things the routine watches, and it is asked of the child, not the parent.
+ * This copy renders on a surface the copy law scans with almost no allowlist:
+ * it names no signal, and the only app name on it is the one the PM exempted
+ * by ruling (DECISIONS 122) — `SETUP_SEND_LABEL`, and that key alone. The
+ * rationale is the law's own shape: app names are banned where they would
+ * describe *a parent's behaviour*, and this string describes the child's next
+ * action. Navigation, not surveillance vocabulary.
+ *
+ * "Reach for on their phone" is the habits question (§4.5) phrased inside the
+ * law; the answer guides which everyday things the routine watches, and it is
+ * asked of the child, not the parent.
  */
 export const SETUP_TITLE = "Setup";
 export const SETUP_READY = "Ready to send";
 export const SETUP_REPORTING = "Set up and reporting";
 export const SETUP_NEEDS_LINK = "Needs a fresh link";
-export const SETUP_SEND_LABEL = "Send {name}'s setup link";
+/** The one channel name this surface may carry, exempted by DECISIONS 122 and
+ *  pinned by value in the copy-law test. The parent it belongs to is named on
+ *  the line directly above it in the card. */
+export const SETUP_SEND_LABEL = "Send on WhatsApp";
 export const SETUP_EXPIRES = "Link works until {date}";
 export const SETUP_HOW = [
   "Send the link first, then that person's button files into the same chat, " +

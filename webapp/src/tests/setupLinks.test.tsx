@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import { buildSetupEntries, setupPageUrl, shareText } from "@/lib/setupLinks";
 import { FamilyScreen } from "@/screens/Family";
 import type { Parent, Ping, SetupLink } from "@/lib/types";
+import { SETUP_SEND_LABEL } from "@/lib/copy";
 
 const NOW = new Date("2026-08-16T12:00:00Z");
 const parents: Parent[] = [
@@ -96,7 +97,11 @@ describe("the Family screen's setup card", () => {
     expect(statuses).toEqual(["Set up and reporting", "Ready to send"]);
 
     const share = screen.getByTestId("setup-share");
-    expect(share).toHaveTextContent("Send Appa's setup link");
+    // The channel, named by ruling (DECISIONS 122). The parent it belongs to is
+    // the line directly above it, which is why the label no longer carries a
+    // name — one card, one parent, one button.
+    expect(share).toHaveTextContent(SETUP_SEND_LABEL);
+    expect(share).toHaveTextContent("Send on WhatsApp");
     expect(share.getAttribute("href")).toContain("wa.me");
   });
 

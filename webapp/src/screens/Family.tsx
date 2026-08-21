@@ -69,7 +69,7 @@ export function FamilyScreen({
                     href={entry.shareHref}
                     data-testid="setup-share"
                   >
-                    {SETUP_SEND_LABEL.replace("{name}", entry.parentName)}
+                    {SETUP_SEND_LABEL}
                   </a>
                   {entry.expiresDate && (
                     <span className="text-xs text-muted-foreground">

@@ -28,7 +28,7 @@ import { buildDigestEntries } from "@/lib/digests";
 import { computeGlance } from "@/lib/glance";
 import { computeTripwires } from "@/lib/tripwires";
 import { SIGNAL_DISPLAY_NAMES } from "@/lib/signalNames";
-import { PRIVACY_FOOTER } from "@/lib/copy";
+import { PRIVACY_FOOTER, SETUP_SEND_LABEL } from "@/lib/copy";
 import type { DigestSend, Member, Parent, ParentSignal, Ping } from "@/lib/types";
 
 const IST = "Asia/Kolkata";
@@ -144,6 +144,19 @@ const TRIPWIRE_NAME_EXEMPTION = [
   // are — the digest and glance surfaces get no such allowance.
   /\d+ days ago/g,
 ];
+
+/**
+ * The channel-name exemption (DECISIONS 122, granted in the rulings that follow
+ * item 123), and the narrowest one this codebase has.
+ *
+ * It is one *key*, and that key's value is pinned by a test below. Both halves
+ * matter: exempting the key alone would let anyone widen the law by rewriting
+ * the string it points at, and exempting the string alone would let a second key
+ * say the same word somewhere it has no business being. The law's shape is
+ * unchanged — app names are banned where they would describe a parent's
+ * behaviour, and this string describes the child's own next action.
+ */
+const SHARE_CTA_EXEMPTION = [SETUP_SEND_LABEL];
 
 /** Digits are allowed only inside a clock time or an ISO date. */
 function strayDigits(text: string): string {
@@ -294,7 +307,29 @@ describe("rendered copy law", () => {
     expect(text).toContain("Ready to send");
     expect(text).toContain("Set up and reporting");
     expect(text).toContain("Needs a fresh link");
-    assertCopyLaw(text);
+    assertCopyLaw(text, SHARE_CTA_EXEMPTION);
+  });
+
+  it("spends the channel exemption on one key with one value, and no wider", () => {
+    // The value is pinned so the exemption cannot be widened by rewriting the
+    // string it points at, and the list is pinned so a second key cannot join
+    // it quietly. Changing either is a visible act in this file.
+    expect(SETUP_SEND_LABEL).toBe("Send on WhatsApp");
+    expect(SHARE_CTA_EXEMPTION).toEqual(["Send on WhatsApp"]);
+  });
+
+  it("is load-bearing: the Family screen fails the law without it", () => {
+    // The exemption is a hole of a fixed shape, and this is the shape. Scanned
+    // with no allowlist, the same screen must still be rejected.
+    render(
+      <FamilyScreen
+        parents={parents}
+        members={members}
+        familyTz="Asia/Kolkata"
+        setupEntries={setupEntries}
+      />,
+    );
+    expect(() => assertCopyLaw(renderedText())).toThrow(/whatsapp/i);
   });
 
   it("holds for the no-family screen", () => {
