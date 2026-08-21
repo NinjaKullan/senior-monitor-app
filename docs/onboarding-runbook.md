@@ -175,11 +175,18 @@ laptop is a live credential with no remaining purpose.
 
 ## 7 On the call
 
-**Consent first, phone second.** Read `docs/consent-onepager.md` together, one per parent, in the
-language you will actually speak: what is recorded (who, which app, when), what is never recorded (no
-messages, calls, location or listening), who sees it, and how it stops. Then **ask them to say back
-what they think it does** and correct any gap. **If either of them is uneasy, stop.** A parent who
-agrees to be polite is a parent who switches it off silently in three weeks and tells nobody.
+**Consent first, phone second — and the consent conversation is the product, not a document.**
+Open the setup link together, one per parent. Its first screen *is* the conversation: what is
+recorded (who, which routine, when), what is never recorded (no messages, calls, location or
+listening), who sees it, and how it stops. Read it with them in the language you will actually speak
+— the page is English and you are the translator (DECISIONS 125b). Then **ask them to say back what
+they think it does** and correct any gap. **If either of them is uneasy, stop.** A parent who agrees
+to be polite is a parent who switches it off silently in three weeks and tells nobody.
+
+There is no one-pager to print, sign or scan, and there will not be one (DECISIONS 125a). What
+carries consent is what the product itself does: the setup page's plain-language first screen, the
+kill switch that stays visible afterwards, and three-fields honesty. Legal language lives in the
+Terms of Use, where payment happens.
 
 **Delete the old July pilot automations before installing anything**, so there is never a moment with
 two systems half-working on one phone: Shortcuts app → Automation tab. If the names no longer mean

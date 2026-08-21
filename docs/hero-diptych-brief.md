@@ -1,3 +1,10 @@
+> **Superseded (DECISIONS 136).** The site's imagery is one drawn illustration set now,
+> and the hero is a single wide image rather than the two-frame diptych this brief
+> specifies — the artwork holds the gap the grid used to stage. The brief is kept whole
+> because the *reasoning* still governs: parent on the left, profiles facing inward, the
+> distance doing the work no drawn connection line is allowed to do. Read it for the
+> argument, not for the format.
+
 # Kettle — hero diptych brief
 
 *PM: Fable, 2026-08-03. Hand this to any design session working on the landing-page hero. It is

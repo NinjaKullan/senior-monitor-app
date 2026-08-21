@@ -277,9 +277,11 @@ A new key is a two-file code change with a drift test, never a database row:
    name is added there *consciously* (`TRIPWIRE_NAME_EXEMPTION`).
 3. If the parent should get it: `--signals` at provisioning, or
    `--set-signals <device_token> --signals …` for a live parent.
-4. A browser-ish or ambiguous signal needs its consent sentence in
-   `docs/consent-onepager.md` before the call, not during. Financial apps are
-   excluded at every tier, permanently.
+4. A browser-ish or ambiguous signal needs its consent sentence written into the
+   setup page's first screen (`product/kettle/setup_copy.py`) before the call,
+   not during — the one-pager it used to point at is gone, and consent is
+   carried by the product (DECISIONS 125a). Financial apps are excluded at every
+   tier, permanently.
 
 ### Treat the emitted files like the token
 
