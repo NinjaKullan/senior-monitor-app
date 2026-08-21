@@ -63,3 +63,43 @@ so, or when a test you just wrote passed on the first try.
 - **Commits are the PM's review surface.** Split by concern — logic, rendering,
   tests, docs — and write the message to explain *why*, not what the diff shows.
   A `git add -A` sweep that buries four concerns in one commit has to be undone.
+
+## 5. The state with no exit — a failure that waits instead of failing
+
+- **Stale credentials must degrade to re-authentication, never hang.** A stored
+  session is a *claim* about being signed in, and only the server can settle it.
+  Anything that says the claim is false — a 401, an expired JWT, a refresh that
+  will not refresh — has to end at the screen a person can act on. The family
+  app shipped for weeks with the opposite: a rejected token produced "Loading…"
+  for as long as the tab stayed open, because `claimMembership()` rejected into
+  a bare `.catch(() => undefined)`, `loadSnapshot()` rejected into nothing at
+  all, and `!session` could not tell *restoring* from *signed out* (DECISIONS
+  142). The founder found it on a real phone. The countermeasures generalise:
+
+  * **Name the in-between state.** `restoring` has to be distinct from
+    signed-out before anything can watch a clock over it. A state that is
+    indistinguishable from a resting state is a state nobody bounds.
+  * **Bound every wait, including the ones you think cannot happen.** The
+    timeout must know nothing about *why* the wait stalled — the anticipated
+    failures are already handled by name, so the bound exists precisely for the
+    ones nobody anticipated, including a promise that simply never settles.
+  * **Do not swallow a rejection to keep a chain running.** `.catch(() =>
+    undefined)` on an optional step also discards the one error that means the
+    session is over.
+  * **Do not trust a cleanup call that talks to the thing that is refusing
+    you.** `signOut()` calls the server; the server rejecting this token is the
+    whole reason we are signing out. Clear the local copy by hand afterwards, or
+    the next page load lands in the same hole.
+  * **Keep the trigger narrow in the other direction too.** A 500, a 429 or a
+    dropped connection is not a rejected credential, and ending a working
+    session over a train tunnel is this bug's mirror image. Hold that line with
+    a test written from the other side.
+
+- **The test that is only green for part of the day.** `/outbound/reply` read
+  wall time while its test wrote the ask on a fixed calendar day, so the suite
+  passed every morning and failed every evening once IST rolled past midnight
+  (DECISIONS 142). It was written, reviewed and reported green in a single
+  afternoon, which is the entire window in which it worked. **A test that mixes
+  a fake clock with a real one is a scheduled failure, not a flake** — and the
+  fix is a seam, not a retry: every other decision in that spec takes `now` as
+  an argument, and the one route that did not was the one that broke.
