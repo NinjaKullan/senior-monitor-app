@@ -11,6 +11,7 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
+from hmac import compare_digest
 from urllib.parse import parse_qs
 
 import psycopg
@@ -28,6 +29,7 @@ from kettle.digest import DigestState, digest_loop
 from kettle.heartbeat import HeartbeatState, heartbeat_loop
 from kettle.ladder import LadderState, ladder_loop, resolve_by_senior_reply
 from kettle.notify import LogOnlyNotifier, Notifier, NtfyNotifier
+from kettle.outbound import record_parent_reply
 from kettle.setup_page import router as setup_router
 from kettle.timeutil import now_utc
 from kettle.twilio_signature import is_valid
@@ -230,6 +232,44 @@ def create_app(
             '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
             media_type="application/xml",
         )
+
+    @app.post("/outbound/reply", response_class=PlainTextResponse)
+    async def outbound_reply(request: Request) -> PlainTextResponse:
+        """The parent answered the ask (spec 007 §2.6). Nothing calls this yet.
+
+        Wave A builds and tests the endpoint; Wave C points a real WhatsApp
+        webhook at it. Three properties hold from today, because they are the
+        ones that are expensive to add later:
+
+        * **It does not exist until it is configured.** Cancelling a follow-on
+          is a safety-relevant act — anyone who could call this and knows a
+          number could suppress an escalation — so with no shared secret set,
+          the route is a 404 rather than an open door. Wave C swaps the shared
+          secret for the provider's own signature, the way `/twilio/inbound`
+          already does.
+        * **The body is never read.** Only the sender is, and only to find which
+          parent replied. What she said is content, and this product does not
+          hold content.
+        * **It is not an oracle.** An unknown number and a known one with no
+          pending ask get the same empty acknowledgement, so the endpoint cannot
+          be used to ask "is this number a Kettle parent".
+        """
+        if not cfg.outbound_reply_token:
+            raise StarletteHTTPException(status_code=404, detail="not found")
+        supplied = request.headers.get("x-kettle-reply-token") or ""
+        if not compare_digest(supplied, cfg.outbound_reply_token):
+            raise StarletteHTTPException(status_code=403, detail="forbidden")
+
+        raw = (await request.body()).decode("utf-8", errors="replace")
+        params = {k: v[0] for k, v in parse_qs(raw, keep_blank_values=True).items()}
+        sender = (params.get("From") or "").strip()
+        # From here on the body is gone, unread beyond the sender.
+        del params, raw
+
+        if sender:
+            with request.app.state.pool.connection() as conn:
+                record_parent_reply(conn, sender, now_utc())
+        return PlainTextResponse("", status_code=204)
 
     @app.post("/waitlist", response_class=PlainTextResponse)
     async def join_waitlist(request: Request) -> PlainTextResponse:

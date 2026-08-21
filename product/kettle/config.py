@@ -30,6 +30,15 @@ class Settings:
     # Global ladder kill-switch, over and above each family's ladder_mode.
     # Off by default: this is the alert path.
     ladder_enabled: bool
+    # Spec 007's outbound channel. Off by default like every other sending
+    # path, and in Wave A "on" still reaches nothing: the only transport that
+    # exists writes a log line. Two switches rather than one because the wave
+    # after this adds a transport that does not.
+    outbound_enabled: bool
+    # The shared secret the reply webhook requires. Empty — the default — means
+    # the endpoint does not exist: an unauthenticated route that can cancel a
+    # follow-on would let anyone who knows a number suppress an escalation.
+    outbound_reply_token: str
     # Browser origins allowed to POST /waitlist. An explicit list, not a
     # wildcard: this is the only route a browser ever calls, and the landing
     # page is served from origins we control (spec 006 §7).
@@ -66,6 +75,8 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         twilio_auth_token=src.get("TWILIO_AUTH_TOKEN", "").strip(),
         twilio_from=src.get("TWILIO_FROM", "").strip(),
         ladder_enabled=_flag(src, "LADDER_ENABLED", default=False),
+        outbound_enabled=_flag(src, "OUTBOUND_ENABLED", default=False),
+        outbound_reply_token=src.get("OUTBOUND_REPLY_TOKEN", "").strip(),
         waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
     )
 
