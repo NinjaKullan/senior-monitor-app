@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 139.** This line is the one to update; the `Next number:` lines inside
+**Next number: 140.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -739,3 +739,85 @@ browser — all three adopted as the standard for future surfaces.**
      the wizard whenever provisioning next gets worked on, not before.
 
      **Next number: 139.**
+
+---
+
+## Context pass build notes (implementer, 2026-08-19)
+
+139. **The log is renamed and split, CLAUDE.md is a page again, and five queued
+     hygiene items are done.** Founder-ordered, one pass. What a reviewer should see,
+     and the calls made inside it:
+
+     **The rename** is 252 insertions against 252 deletions across 92 files — the shape
+     a mechanical rename should have. Numbering is untouched; DECISIONS 107 is the item
+     QUESTIONS 107 was. The name had been wrong for a while: the file stopped being a
+     list of open questions long ago and became the log of what was decided and why.
+
+     **The split** moves items 1 through 120 verbatim into `specs/DECISIONS-archive.md`
+     and leaves the live file at 741 lines from 2,881. Two things a reader should know:
+
+     * **It falls inside a section, because item 121 does.** The live file opens with
+       that section's heading marked as a continuation and a line naming which of its
+       items are in the archive, so nobody meets 121 with no idea what it belongs to.
+       That heading is new scaffolding; no item is reworded.
+     * **The next number now lives in exactly one place** — the line at the top of the
+       live file. It had already drifted: CLAUDE.md said 138 in its working-norms
+       section and 139 in the baton while the log said 139. The `Next number:` lines
+       inside older items are left alone as history.
+
+     **The diet: 278 lines to 72**, and nothing deleted. The judgement call worth
+     stating is the mechanism. The ruling said `.claude/rules/` *if the tooling supports
+     path scoping, otherwise `docs/norms/`* — but `.claude/rules/` is not a Claude Code
+     feature, so it would have been a folder nobody loads, and `docs/norms/` scopes
+     nothing at all. The mechanism the tooling actually has is a **nested `CLAUDE.md`**,
+     loaded when a session works in that subtree. So the norms live in
+     `site/CLAUDE.md`, `product/CLAUDE.md` and `webapp/CLAUDE.md`, the root file names
+     all three in a table for human readers, and a session touching only `site/` no
+     longer pays for the Postgres recipe. **If the PM wanted the literal folder, this is
+     the line to overrule.**
+
+     * **The six product laws stayed in the root file.** Everything else moved, but the
+       constitution binds every surface and costs fourteen lines; a session that never
+       reads it is the failure the whole file exists to prevent.
+     * `docs/failure-families.md` groups the traps by *shape* rather than by suite — the
+       false green, the test that passes for the wrong reason, jsdom's layout blindness,
+       work lost or buried — because the countermeasure repeats even when the surface
+       does not. `docs/baton.md` took the state of the build whole; it was the largest
+       block in the root file and it is the one thing that is stale by design.
+
+     **The hygiene, and one thing to look at:**
+
+     * **`--revoke <token>` works for every token the generator can produce.** The pair
+       is joined into `--revoke=<token>` before argparse sees it, and *only* when the
+       value is not itself a known option string — so `--revoke --demo` still refuses
+       the ambiguous invocation rather than trying to revoke a device called "--demo".
+       That guard is tested directly, because it is the part that could turn a fix into
+       a worse bug. `--setup-link` and `--set-signals` are covered too.
+     * **Both front-end builds clear their output first**, so a build that dies leaves
+       nothing for verification to pass against. Verified by breaking `tsc` on purpose:
+       the build exits 2, `dist/` is gone, and all three verifiers refuse. They also say
+       why now — "dist is missing, the build did not finish" — which is the difference
+       between a checker that failed and a checker that broke. `rm -rf` rather than a
+       `rimraf` dependency: this repo justifies every dependency, and both machines that
+       run it are POSIX.
+     * **The share CTA says "Send on WhatsApp"** (the 122 exemption, granted after item
+       123). It is pinned twice — the copy-law scan exempts the *key*, and a test pins
+       the key's *value* — because either half alone is a loophole, and a third test
+       requires the same screen to fail with no allowlist. **PM: the label loses the
+       parent's name**, which the ruling's wording implies and the card's structure
+       supports (the name is the line directly above it). But a screen reader listing
+       links now hears the same name twice on a two-parent family. If that matters the
+       fix is copy, which is yours to write.
+     * Runbook §7 opened with "read `docs/consent-onepager.md` together" — a file
+       deleted three passes ago. It reads "open the setup link together" now, with 125a's
+       reasoning stated and 125b named where it lands. `product/README.md` pointed at the
+       same dead file and now points at the setup page's copy module.
+     * `docs/hero-diptych-brief.md` gets a superseded banner rather than a deletion: the
+       format is retired, the reasoning still governs the artwork.
+
+     **Numbering note:** 138 was filed between passes (the founder's `device_alive`
+     ruling), so this pass is 139 as instructed, and the top-of-file line now reads 140.
+
+     Two plants, both failing by name: bypassing the argparse joiner reproduces the
+     original "expected one argument" exactly, and scanning the Family screen without
+     the channel exemption still rejects it.

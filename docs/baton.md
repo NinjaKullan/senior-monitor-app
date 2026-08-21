@@ -17,10 +17,10 @@ cheap experiments that decide spec 005b's shape, and what is owed by whom. Read 
 
 ## State of the build (baton, 2026-08-18 — session handoff)
 
-**All three suites green** (`pytest` 347 with Postgres up, `webapp` 100,
+**All three suites green** (`pytest` 354 with Postgres up, `webapp` 102,
 `site` 172 — always confirm the product suite with `KETTLE_REQUIRE_POSTGRES=1`,
-never trust a skip; `test_provisioning.py::--revoke` is a genuine ~1-in-64 flake,
-not a wobble — see Q136). Specs 001–006 plus amendments A/B built and reviewed;
+never trust a skip. The `--revoke` ~1-in-64 flake is *fixed* as of DECISIONS 139;
+a failure there now means something new.). Specs 001–006 plus amendments A/B built and reviewed;
 **spec 005b built and PM-approved** (rulings follow item 123: 118 upheld —
 provisioning stays terminal until the signing runner; 121 amended in the spec
 — honest enumeration ≤ 40, the automation builder is the named reduction
@@ -73,15 +73,18 @@ plant drill caught it [122]. Rehearsal script + honest tap enumeration:
 `docs/005b-test-script.md`.
 
 **Queued for Claude Code (build only when asked — onboarding polish is
-founder-PAUSED per Q126):** the item-122 channel-name exemption ("Send on
-WhatsApp" on the setup card's share CTA, pinned to that single copy key); the
-runbook §7 consent-step rewrite (Q125a); 93 (forge derives out path from
-token), 95 (`--add-device` / `--rotate`), 100 (platform-aware standard set),
-101 (person prefix on disk filenames); 124 (family-context header on Today +
-the duplicated Family-circle row); reconciling the built setup page's
-`kettle/setup_copy.py` against the PM's keyed deck `specs/005b-copy.md`
-(landed with item 132, written 2026-08-16 — the page was built from the mock
-before the deck was in the repo; queues behind the same pause).
+founder-PAUSED per DECISIONS 126):** 93 (forge derives out path from token), 95
+(`--add-device` / `--rotate`), 100 (platform-aware standard set), 101 (person
+prefix on disk filenames); 124 (family-context header on Today + the duplicated
+Family-circle row); reconciling the built setup page's `kettle/setup_copy.py`
+against the PM's keyed deck `specs/005b-copy.md` (landed with item 132, written
+2026-08-16 — the page was built from the mock before the deck was in the repo;
+queues behind the same pause).
+
+**Done in the DECISIONS 139 context pass, and off this queue:** the item-122
+channel-name exemption, the runbook §7 consent rewrite (125a), the `--revoke`
+dashed-token fix, `dist/` cleared before every front-end build, and the
+diptych brief marked superseded.
 **The next DECISIONS number lives at the top of `specs/DECISIONS.md`** and nowhere
 else — it used to be repeated here, and two copies of a counter is one too many.
 
@@ -97,7 +100,13 @@ ruling is a MECHANISM ban across site copy and the privacy page; the
 motion-law prose sits in design-language §6. PM review of e815276: approved,
 no overrules.**
 
-**The floating CTA is in (Q137, this session).** One fixed pill, the same
+**The context pass is in (DECISIONS 139, this session).** The decision log is
+renamed and split (1–120 archived), CLAUDE.md is 72 lines with the surface norms
+in `site/CLAUDE.md`, `product/CLAUDE.md` and `webapp/CLAUDE.md`, and the traps
+live in `docs/failure-families.md`. This file is what is left of the old root
+file's baton section.
+
+**The floating CTA is in (Q137, previous session).** One fixed pill, the same
 PillLink, the hero's exact string, pointed at `#waitlist`. It yields by
 rendering `null` — not a hidden element — whenever the hero, the form or the
 footer is on screen, so the page never carries an overlay; the frame is
