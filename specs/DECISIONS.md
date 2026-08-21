@@ -1017,6 +1017,16 @@ browser — all three adopted as the standard for future surfaces.**
      before the family, which is the same argument 007's parent-first ordering rests
      on — is still the best account of why the shape is the shape.
 
+     **Five plants, and one of them changed the code.** Retiring `digest_sends` did
+     turn the suite red — but through `testsupport.TABLES`' truncate, not through the
+     guardrail's assertion, so the failure read "relation digest_sends does not exist"
+     pointing at a fixture, and the docstring saying why the table is load-bearing was
+     never shown. A maintainer following that message would delete the fixture's
+     reference, which is the wrong repair. That test now runs on its own database and
+     fails with the sentence somebody needs. The other four fire by name as written: a
+     dangling import in a file pytest never imports, an unconditional drop erasing the
+     archive branch, the archive keeping a policy, and the Twilio webhook coming back.
+
      **§5's five corrected bodies are NOT in.** The ruling says to replace them with
      the founder's strings "verbatim", and that message is not in this session's
      context; `specs/007-outbound-channel.md` §5 still carries the originals, so there
