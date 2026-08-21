@@ -68,7 +68,7 @@ production.
 | `GET\|POST /p/{device_token}/{signal}` | record a ping; returns `ok` |
 | `GET /s/{slug}` | one parent's setup page (spec 005b), or a plain-language dead end |
 | `GET /s/{slug}/state` | the page's live verify check; `?since=` compares against alarm-grade pings only |
-| `POST /twilio/inbound` | a senior's reply to the check-in; Twilio-signature validated |
+| `POST /outbound/reply` | a parent's reply to the ask (spec 007); **404 unless `OUTBOUND_REPLY_TOKEN` is set** |
 | `GET /healthz` | `{"db": true}`, no auth, for Fly health checks |
 
 The device token *is* the identity: there is no `who` in the URL to guess. Unknown,
@@ -98,117 +98,29 @@ ntfy topic. Nothing family- or parent-facing fires from the heartbeat itself;
 family-facing sending lives in the digest (003) and the ladder (004), each behind
 its own switches.
 
-## Digests (spec 003)
+## Digests (spec 003) — RETIRED
 
-The first family-facing feature, and the only one authorised to send: digests are
-reassurance messages that go out **when routine is observed**. Nothing here
-messages a family about the *absence* of activity, and nothing here messages the
-senior at all — that is spec 004, unbuilt.
+Superseded by spec 007 (DECISIONS 141). The engine, its copy module and its
+channel abstraction are deleted. **`digest_sends` is deliberately left in**
+place: `webapp/src/lib/queries.ts` declares it in the app's read surface and
+the Digests screen renders from it, while spec 007's `sent_messages` is RLS
+deny-all by design and cannot be read by a client at all. Moving that screen is
+a decision in front of a webapp pass, not a line in a migration.
 
-| Message | When | Copy |
-|---|---|---|
-| Morning | on the first alarm-grade ping of the parent's local day, before the cutoff (14:00 local) | `Good morning — {parent}'s day started normally (8:12 am local time).` |
-| Evening | at 20:30 parent-local | `{parent} had a normal, active day.` / `{a} and {b} both had normal, active days.` |
+The rule worth carrying forward, which 007 states differently: reassurance
+requires evidence. The old engine sent nothing at all on a quiet morning and
+told the founder instead; 007 reports the absence to the child in words that
+do not interpret it, and asks the parent first.
 
-The morning message cannot be rendered without a real first-ping time: a "day
-started normally" with no evidence behind it is manufactured reassurance. A parent
-with no alarm-grade pings is silently omitted from the evening message and
-surfaced to the founder as a `digest_skipped` ops alert; if nobody qualifies, the
-family hears nothing at all.
+## Escalation ladder (spec 004) — RETIRED
 
-**The evening is final once sent**, per timezone group per local date. A parent
-whose first ping lands after their group's summary went out is omitted from that
-day's digest rather than triggering a second text — the contract is a predictable
-cadence, and a surprise late message is an anomaly even when the content is good.
-A parent silent until 9pm is heartbeat information, not digest information.
-
-**The copy is product law, not styling.** No counts, no app or signal names, no
-trends or comparisons, and no digits anywhere except the one clock time — two
-independent derivations reached that rule (PLAN.md, Jul 26), and
-`tests/test_digest_copy.py` enforces it, including a test that no template in the
-module describes absence.
-
-**Two switches, both off by default.** `DIGEST_ENABLED` globally, and
-`families.digest_enabled` per family. A family that exists is not a family that
-gets messaged.
-
-**Idempotency is the database's job.** The scheduler asks `digest_sends` what it
-has already sent — never its own memory. Restart mid-pass, re-run the pass, ping
-again: still one message. One message goes out per recipient, and one row is
-recorded per parent that message vouched for, so an aggregated evening summary
-leaves an audit trail naming everyone it covered and two timezone groups in one
-family cannot collide on the unique index.
-
-One known window, accepted deliberately: a crash between the provider accepting a
-message and its rows landing would re-send on the next pass. A duplicate "good
-morning" is a harmless oddity; a silent loss is a missing reassurance. Revisit if
-a digest ever carries anything heavier than reassurance.
-
-Delivery goes through a channel abstraction: Twilio SMS today, a WhatsApp
-template stub that honestly reports "not sent" until Meta verification lands, and
-a log-only fallback when no credentials are configured (rows record `log`, so a
-`digest_sends` row never claims an SMS nobody sent). A failed send is retried
-once, then recorded as failed with a `digest_delivery_failed` ops alert — the row
-holds the slot so the next pass does not re-dial.
-
-A member on a channel that is not live yet (WhatsApp, today) is skipped without
-any attempt and **without a row**: a failed row would hold that day's slot and
-eat the first real digest on the day the channel goes live. The founder is told
-once per member per day instead. Likewise, an enabled family with no member who
-has both a channel and a phone number is a misconfiguration, not a quiet day, and
-gets a `digest_unroutable` ops row once per day.
-
-Ops alert kinds from the digest engine — all founder-only: `digest_skipped`
-(a quiet parent omitted), `digest_delivery_failed`, `digest_channel_unavailable`,
-`digest_unroutable`.
-
-## Escalation ladder (spec 004)
-
-The alert path, and the only feature that can message the senior. **Three gates**
-stand between a running server and a message reaching anyone:
-
-1. `LADDER_ENABLED` — global, off by default.
-2. `families.ladder_mode` — `off` | `shadow` | `live`, per family, `off` by default.
-3. `live` additionally requires `digest_enabled`, enforced by a database CHECK —
-   a family meets Kettle as reassurance before it meets it as alarm, and the
-   wrong order is unrepresentable rather than merely discouraged.
-
-Privilege escalates only by explicit founder action, one family at a time:
-
-```bash
-python -m scripts.ladder --list
-python -m scripts.ladder --set-mode "Sharma" shadow
-python -m scripts.ladder --resolve 42 --note "called Amma, she is fine"
-```
-
-**Shadow is the beta workhorse.** The full ladder evaluates, records every
-transition in `ladder_events`, and reports each one to founder ops — and never
-invokes a channel. That is not a check performed just before sending; the send
-helper returns on the mode before it can reach the channel map, and the test that
-matters asserts zero invocations against the channel object itself.
-
-| Stage | What happens |
-|---|---|
-| Candidate | rule v1 fires: nothing alarm-grade since 05:00 local past the parent's deadline, or a gap beyond their maximum, daytime only, one per parent per local day |
-| ASK | the senior is asked "All good? Reply YES." — the only message this product ever sends them. Skipped if there is no number, or if nothing at all is arriving (you cannot ask a dead phone) |
-| REPLY | any reply from that number inside grace resolves it. The family hears nothing: for them the silence was never broken |
-| FAMILY-1 | grace expired: the first family contact, in escalation order |
-| FAMILY-ALL | after the family gap: everyone else, with the named local contact suggested. v1 never contacts that person itself |
-| RESOLVE | any alarm-grade ping resolves at any stage; a family already told gets one all-clear |
-
-**The reply body is dropped.** `/twilio/inbound` reads the POST parameters only
-to recompute the signature Twilio computed, then keeps the sender number and
-discards the rest. What resolves a candidate is that the right number answered;
-what they said is content, and this product does not hold content. A test posts a
-distinctive body and searches every table and every log record for it.
-
-Rule v1's thresholds are per-parent columns (`alarm_deadline`, `max_gap_minutes`,
-`grace_minutes`, `family_gap_minutes`) with conservative defaults. The pilot's
-Phase-1 percentile analysis will fit real per-person values by updating rows —
-no schema change, no code change.
-
-Ladder copy carries the digest copy law plus a ban on urgency vocabulary, and
-lives in its own module so neither law has to be weakened for the other.
+Superseded by spec 007 (DECISIONS 141). The module, its copy, its CLI and the
+`/twilio/inbound` webhook are deleted; migration 0013 drops its tables where
+they never held a row and archives them where they did. The ask and the
+follow-on live in the outbound channel now. What the old engine had that 007
+does not yet — the unreachable-handset distinction, the all-clear, the max-gap
+trigger, the per-family shadow/live gate — is listed in DECISIONS 141 rather
+than lost.
 
 ## The outbound channel (spec 007, Wave A)
 
@@ -588,10 +500,7 @@ revocation time.
 | `DEFAULT_TZ` | default family timezone | `Asia/Kolkata` |
 | `PUBLIC_BASE_URL` | base URL printed into provisioned links | `https://kettle-api.fly.dev` |
 | `HEARTBEAT_LOOP` | `0` disables the background loops (tests) | `1` |
-| `DIGEST_ENABLED` | global digest kill-switch | **off** |
-| `DIGEST_MORNING_CUTOFF_HOUR` | no "day started" at/after this local hour | `14` |
-| `DIGEST_EVENING_HOUR` / `_MINUTE` | parent-local summary time | `20` / `30` |
-| `TWILIO_ACCOUNT_SID` / `_AUTH_TOKEN` / `_FROM` | SMS delivery (secrets); the auth token also validates inbound webhooks | unset = log-only, inbound rejected |
 | `WAITLIST_ORIGINS` | comma-separated browser origins allowed to POST /waitlist (default: the getkettle.* pair plus localhost dev) |
-| `LADDER_ENABLED` | global escalation-ladder kill-switch | **off** |
+| `OUTBOUND_ENABLED` | global outbound-channel kill-switch; "on" still reaches nobody in Wave A | **off** |
+| `OUTBOUND_REPLY_TOKEN` | shared secret `/outbound/reply` requires; empty means the route 404s | empty |
 | `TEST_DATABASE_URL` | tests only | local `kettle_test` |

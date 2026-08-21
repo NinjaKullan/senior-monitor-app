@@ -1,3 +1,15 @@
+> **SUPERSEDED by spec 007** (DECISIONS 141). The digest engine, its copy module
+> and its channel abstraction are retired and deleted; spec 007's outbound channel
+> owns the two daily messages now. Two things this spec built do survive: the
+> `digest_sends` table, because the family app's Digests screen reads it and 007's
+> ledger is RLS deny-all by design, and the digest templates in
+> `webapp/src/lib/copy.ts`, which that screen renders with. Moving the screen onto
+> 007 is a decision in front of a webapp pass, not a migration.
+>
+> Read on for the reasoning. The rule this spec is still the best account of:
+> reassurance requires *evidence* — "no evidence, no reassurance" — and a quiet
+> day was surfaced to the founder rather than to the family.
+
 # Spec 003 — Digest engine (the two daily messages)
 
 *PM: Fable. Builds on spec 002's `product/` backend. This is the first family-facing feature of the product; the design decisions in PLAN.md ("Digest design decision", Jul 26) are binding.*

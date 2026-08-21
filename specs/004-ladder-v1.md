@@ -1,3 +1,15 @@
+> **SUPERSEDED by spec 007** (DECISIONS 141). The ladder module, its copy, its CLI
+> and the `/twilio/inbound` webhook are retired and deleted; migration 0013 drops
+> its tables where they never held a row and archives them where they did. Spec
+> 007's ask and follow-on are the first two rungs, rebuilt.
+>
+> Read on for the reasoning, which 007 inherits rather than replaces: the senior is
+> asked first, household signals decide only whether the phone can be asked and
+> never whether a person is fine, and privilege escalates by explicit founder
+> action. DECISIONS 141 lists what this engine had that 007 does not yet — the
+> unreachable-handset distinction, the all-clear, the max-gap trigger, the
+> per-family shadow/live gate — so none of it was discarded quietly.
+
 # Spec 004 — Escalation ladder v1 (senior-first, shadow-by-default)
 
 *PM: Fable. Builds on 002/003. This is the alert path — the highest-stakes feature in the product. Everything here defaults to the safest mode and escalates privilege only by explicit per-family founder action.*
