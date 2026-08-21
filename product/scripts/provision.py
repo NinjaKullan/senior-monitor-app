@@ -6,6 +6,7 @@
     python -m scripts.provision --demo
 
     python -m scripts.provision --revoke <device_token>
+    python -m scripts.provision --revoke=<device_token>   # equivalent
 
 Provisioning prints each person's device token, the ready-to-use ping URLs, and
 the name of the shortcut each URL belongs in. This is the onboarding path until
@@ -43,6 +44,43 @@ def _parse_parent(value: str) -> tuple[str, str | None]:
     if not name:
         raise argparse.ArgumentTypeError("parent name cannot be empty")
     return name, (tz.strip() or None)
+
+
+#: Options whose value is a device token, and therefore may begin with a dash.
+TOKEN_OPTIONS = ("--revoke", "--setup-link", "--set-signals")
+
+
+def join_token_values(argv: list[str], known_options: set[str]) -> list[str]:
+    """Rewrite `--revoke <token>` as `--revoke=<token>` when the token needs it.
+
+    Device tokens are `secrets.token_urlsafe`, whose alphabet is `A-Za-z0-9-_`,
+    so about one token in sixty-four starts with a dash — and argparse reads a
+    dashed value as another flag ("expected one argument"). That turned
+    revoking a *lost phone* into a confusing failure roughly every sixty-fourth
+    time it mattered (DECISIONS 136).
+
+    The `=` form has always worked and stays documented; this makes the bare
+    form work too, by joining the pair before argparse ever sees them. A value
+    that is a real option string is left alone, so `--revoke --demo` still
+    fails the way it should rather than being swallowed as a token.
+    """
+    joined: list[str] = []
+    index = 0
+    while index < len(argv):
+        argument = argv[index]
+        following = argv[index + 1] if index + 1 < len(argv) else None
+        if (
+            argument in TOKEN_OPTIONS
+            and following is not None
+            and following.startswith("-")
+            and following not in known_options
+        ):
+            joined.append(f"{argument}={following}")
+            index += 2
+            continue
+        joined.append(argument)
+        index += 1
+    return joined
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -106,7 +144,12 @@ def main(argv: list[str] | None = None) -> int:
         default=os.environ.get("DATABASE_URL", ""),
         help="defaults to $DATABASE_URL",
     )
-    args = parser.parse_args(argv)
+    known_options = {
+        option for action in parser._actions for option in action.option_strings
+    }
+    args = parser.parse_args(
+        join_token_values(list(sys.argv[1:] if argv is None else argv), known_options)
+    )
 
     if not args.database_url:
         parser.error("DATABASE_URL is not set and --database-url was not given")

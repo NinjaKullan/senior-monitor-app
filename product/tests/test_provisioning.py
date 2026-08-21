@@ -15,7 +15,7 @@ from kettle.provisioning import (
     set_parent_signals,
 )
 from kettle.signals import STANDARD_SIGNALS
-from scripts.provision import _parse_parent
+from scripts.provision import _parse_parent, join_token_values
 from scripts.provision import main as provision_main
 from testsupport import BASE_URL
 
@@ -155,6 +155,58 @@ def test_revoking_twice_is_idempotent(conn: psycopg.Connection, database_url: st
     assert "Already revoked device" in capsys.readouterr().out
     # The original revocation time is preserved.
     assert conn.execute("select revoked_utc from devices").fetchone()["revoked_utc"] == first
+
+
+def test_a_token_that_starts_with_a_dash_is_still_a_token(
+    conn: psycopg.Connection, database_url: str
+):
+    """The ~1-in-64 case that used to fail (DECISIONS 136, fixed in 139).
+
+    `secrets.token_urlsafe` draws from `A-Za-z0-9-_`, so roughly one device
+    token in sixty-four begins with a dash — and argparse read it as a flag.
+    Revoking a lost phone is exactly when a confusing failure costs the most,
+    so the bare form has to work for every token the generator can produce.
+    """
+    family = provision_family(
+        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
+    )
+    token = family.parents[0].device_token
+    dashed = "-" + token[1:]
+    conn.execute("update devices set device_token = %s", (dashed,))
+
+    assert provision_main(["--revoke", dashed, "--database-url", database_url]) == 0
+    assert conn.execute("select revoked_utc from devices").fetchone()["revoked_utc"]
+
+
+def test_a_dashed_token_works_for_setup_links_too(
+    conn: psycopg.Connection, database_url: str, capsys
+):
+    """`--setup-link` had the same exposure and gets the same fix."""
+    family = provision_family(
+        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
+    )
+    dashed = "-" + family.parents[0].device_token[1:]
+    conn.execute("update devices set device_token = %s", (dashed,))
+
+    assert provision_main(["--setup-link", dashed, "--database-url", database_url]) == 0
+    assert "Setup link for Amma" in capsys.readouterr().out
+
+
+def test_joining_a_dashed_token_never_swallows_a_real_flag():
+    """The guard on the fix: only a value that is not itself an option is joined.
+
+    Without this, `--revoke --demo` would become `--revoke=--demo` and a
+    mistyped command would quietly try to revoke a device called "--demo"
+    instead of refusing the ambiguous invocation.
+    """
+    known = {"--revoke", "--demo", "--setup-link", "--database-url"}
+    assert join_token_values(["--revoke", "-abc"], known) == ["--revoke=-abc"]
+    assert join_token_values(["--revoke", "--abc"], known) == ["--revoke=--abc"]
+    assert join_token_values(["--revoke", "--demo"], known) == ["--revoke", "--demo"]
+    assert join_token_values(["--revoke", "plain"], known) == ["--revoke", "plain"]
+    assert join_token_values(["--revoke"], known) == ["--revoke"]
+    # Options that do not take a token are never touched.
+    assert join_token_values(["--database-url", "-x"], known) == ["--database-url", "-x"]
 
 
 def test_revoke_cannot_be_mixed_with_provisioning(database_url: str):
