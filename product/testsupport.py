@@ -25,13 +25,14 @@ TABLES = (
     "ladder_candidates",
     "ladder_events",
     "waitlist",
+    "sent_messages",
 )
 
 
 # Everything except the two service-only tables: no policy and, after migration
 # 0004, no privilege either. `ops_alerts` is the founder's plumbing log (law #3);
 # `waitlist` is strangers' email addresses that no client ever reads (spec 006).
-SERVICE_ONLY_TABLES = ("ops_alerts", "waitlist")
+SERVICE_ONLY_TABLES = ("ops_alerts", "waitlist", "sent_messages")
 FAMILY_TABLES = tuple(t for t in TABLES if t not in SERVICE_ONLY_TABLES)
 
 # Actual granted privileges on public tables and sequences, straight from the
@@ -115,6 +116,26 @@ def set_senior_phone(
     """Give a monitored person a number the ASK stage can reach."""
     conn.execute(
         "update parents set phone_e164 = %s where id = %s", (phone_e164, parent_id)
+    )
+
+
+def set_parent_whatsapp(
+    conn: psycopg.Connection, parent_id: object, number: str
+) -> None:
+    """Give a monitored person a number spec 007's ask can reach (0012)."""
+    conn.execute(
+        "update parents set whatsapp_e164 = %s where id = %s", (number, parent_id)
+    )
+
+
+def add_child_email(
+    conn: psycopg.Connection, family_id: object, email: str = "child@example.test"
+) -> None:
+    """One member with an account email: where the digest goes (spec 007 §3)."""
+    conn.execute(
+        "insert into members (family_id, display_name, role, email) "
+        "values (%s, 'Child', 'owner', %s)",
+        (family_id, email),
     )
 
 

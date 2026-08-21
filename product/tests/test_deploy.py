@@ -90,9 +90,10 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         policies = conn.execute(
             "select tablename from pg_policies where schemaname = 'public'"
         ).fetchall()
-        # Two tables carry no policy at all, and that absence is the access
+        # Three tables carry no policy at all, and that absence is the access
         # control: ops_alerts is the founder's log, waitlist is strangers'
-        # addresses. RLS on plus zero policies denies everything by default.
+        # addresses, sent_messages is the outbound channel's ledger (spec 007).
+        # RLS on plus zero policies denies everything by default.
         assert {p["tablename"] for p in policies} == set(TABLES) - set(SERVICE_ONLY_TABLES)
 
     settings = Settings(
@@ -110,6 +111,8 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         twilio_auth_token="",
         twilio_from="",
         ladder_enabled=False,
+        outbound_enabled=False,
+        outbound_reply_token="",
         waitlist_origins=("https://getkettle.com",),
     )
     with TestClient(create_app(settings, notifier)) as fresh_client:
