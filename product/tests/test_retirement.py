@@ -71,22 +71,6 @@ def test_the_ladder_tables_are_gone_from_a_fresh_schema(conn: psycopg.Connection
         assert row["found"] is None, f"{table} is still here"
 
 
-def test_digest_sends_survives_and_stays_readable(conn: psycopg.Connection):
-    """The one table the retirement deliberately left alone.
-
-    `webapp/src/lib/queries.ts` declares it in the app's READ_SURFACE and the
-    Digests screen renders from it. Spec 007's `sent_messages` is RLS deny-all
-    by design, so it is not a replacement — moving the screen is a decision, not
-    a migration. If this ever fails, read DECISIONS 141 before "fixing" it.
-    """
-    assert conn.execute(
-        "select to_regclass('public.digest_sends') as found"
-    ).fetchone()["found"] is not None
-    policies = conn.execute(
-        "select count(*) as n from pg_policies "
-        "where schemaname = 'public' and tablename = 'digest_sends'"
-    ).fetchone()["n"]
-    assert policies > 0, "digest_sends lost the policy the family app reads through"
 
 
 @pytest.fixture
@@ -174,6 +158,39 @@ def test_a_table_with_rows_is_archived_rather_than_dropped(half_migrated: str):
             assert conn.execute(
                 "select to_regclass(%s) as found", (f"public.retired_{table}",)
             ).fetchone()["found"] is None
+
+
+def test_digest_sends_survives_the_retirement_migration(half_migrated: str):
+    """The one table the retirement deliberately left alone.
+
+    `webapp/src/lib/queries.ts` declares it in the app's READ_SURFACE and the
+    Digests screen renders from it. Spec 007's `sent_messages` is RLS deny-all
+    by design, so it is not a replacement — moving the screen is a decision, not
+    a migration. **If this fails, read DECISIONS 141 before "fixing" it**: the
+    likely cause is somebody tidying `digest_sends` into 0013's retire list,
+    and the repair is to take it back out, not to drop the screen.
+
+    Deliberately on `half_migrated` rather than the shared `conn`. On the shared
+    database this assertion never gets to run — `testsupport.TABLES` truncates
+    `digest_sends`, so retiring it blows the fixture up first, and the failure a
+    maintainer reads is "relation digest_sends does not exist" pointing at the
+    fixture. That reads like an invitation to delete the fixture's reference,
+    which is precisely the wrong repair. Here the migration is applied by the
+    test itself, so the named assertion below is what fails.
+    """
+    retirement = next(p for p in migration_files() if p.name.startswith("0013"))
+    with psycopg.connect(half_migrated, autocommit=True, row_factory=dict_row) as conn:
+        conn.execute(retirement.read_text())
+        assert conn.execute(
+            "select to_regclass('public.digest_sends') as found"
+        ).fetchone()["found"] is not None, (
+            "the retirement took digest_sends with it — the family app's Digests "
+            "screen reads this table. See DECISIONS 141."
+        )
+        assert conn.execute(
+            "select count(*) as n from pg_policies "
+            "where schemaname = 'public' and tablename = 'digest_sends'"
+        ).fetchone()["n"] > 0, "digest_sends lost the policy the family app reads through"
 
 
 def test_the_retirement_migration_is_safe_to_run_twice(half_migrated: str):
