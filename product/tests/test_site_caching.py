@@ -38,6 +38,11 @@ def server_blocks() -> dict[str, str]:
 
 
 BLOCKS = server_blocks()
+assert "_" in BLOCKS, "no default server block — nothing serves the site"
+assert "kettle-site.fly.dev" in BLOCKS, (
+    "the redirect block is gone: the retired Fly hostname would serve a second "
+    "copy of the page instead of forwarding to heykettle.com (DECISIONS 142)"
+)
 SERVING = BLOCKS["_"]
 REDIRECT = BLOCKS["kettle-site.fly.dev"]
 
@@ -179,7 +184,16 @@ def test_the_canonical_link_names_the_domain_the_redirect_points_at():
     """
     head = (SITE / "index.html").read_text()
     assert '<link rel="canonical" href="https://heykettle.com/" />' in head
-    privacy = (SITE / "public" / "privacy.html").read_text()
-    assert '<link rel="canonical" href="https://heykettle.com/privacy.html" />' in privacy
     assert "heykettle.com" in REDIRECT
-    assert "getkettle" not in head and "getkettle" not in privacy
+    assert "getkettle" not in head
+
+    # privacy.html gets NO canonical, deliberately (DECISIONS 142). It is held to
+    # a stricter standing law — it stands alone, with no <link> and no absolute
+    # URL of any kind, so that the page a privacy-minded reader studies hardest
+    # provably fetches nothing. A canonical link fetches nothing either, but the
+    # law is written bluntly on purpose, and trading a plain guarantee for an SEO
+    # hint is not a swap to make quietly. The 301 already stops that page being
+    # reachable at two addresses.
+    privacy = (SITE / "public" / "privacy.html").read_text()
+    assert "<link" not in privacy
+    assert "getkettle" not in privacy
