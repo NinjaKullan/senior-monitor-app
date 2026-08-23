@@ -681,3 +681,87 @@ def test_a_reply_matches_the_most_recent_pending_ask(conn, family):
     ).fetchall()
     assert rows[0]["replied_utc"] is None
     assert rows[1]["replied_utc"] is not None
+
+
+# --- the loop (§2.5): Wave A running dark, wired in the lifespan --------------
+
+
+def test_the_lifespan_runs_the_loop_under_the_flag(conn, settings, notifier, family):
+    """OUTBOUND_LOOP on: the scheduler runs as a background task from startup.
+
+    The wait is bounded, not believed: a loop that never runs its first pass
+    fails here at the deadline rather than hanging (failure family 5). Clean
+    context exit is the shutdown half — a task that were not cancelled would
+    stop the app from closing.
+    """
+    import time as wall
+    from dataclasses import replace
+
+    from fastapi.testclient import TestClient
+
+    from kettle.main import create_app
+
+    looped = replace(settings, outbound_loop=True)
+    with TestClient(create_app(looped, notifier)) as client:
+        state = client.app.state.outbound
+        deadline = wall.monotonic() + 10
+        while state.last_run_utc is None and wall.monotonic() < deadline:
+            wall.sleep(0.05)
+        assert state.last_run_utc is not None, "the loop never ran a pass"
+
+
+def test_the_flag_off_means_no_loop(client):
+    """Default off in code: the app runs, the outbound engine does not."""
+    import time as wall
+
+    wall.sleep(0.3)  # long enough that a wrongly started loop would have run
+    assert client.app.state.outbound.last_run_utc is None
+
+
+def test_an_unknown_transport_refuses_to_boot(settings, notifier):
+    """Fail closed at startup: a typo cannot choose who gets messaged.
+
+    Loop flag off does not soften it — the name is validated before the app
+    exists at all, so a misconfiguration is a crash-loop the founder sees, not
+    a latent branch waiting for the flag.
+    """
+    from dataclasses import replace
+
+    from kettle.main import create_app
+
+    with pytest.raises(RuntimeError, match="twilio"):
+        create_app(replace(settings, outbound_loop=True, outbound_transport="twilio"), notifier)
+    with pytest.raises(RuntimeError, match="whatsapp"):
+        create_app(
+            replace(settings, outbound_loop=False, outbound_transport="whatsapp"), notifier
+        )
+
+
+def test_the_loop_settings_default_off_and_console():
+    """Off in code, on only where fly.toml says so — HEARTBEAT_LOOP's pattern."""
+    from kettle.config import settings_from_env
+
+    cfg = settings_from_env({"DATABASE_URL": "postgresql://example/example"})
+    assert cfg.outbound_loop is False
+    assert cfg.outbound_transport == "console"
+
+
+def test_fly_config_runs_the_dark_loop():
+    """The deploy that follows this pass is the one that starts Wave A
+    (DECISIONS 155): both switches on in fly.toml, and no transport named —
+    the code default is the console registry's only entry."""
+    from pathlib import Path
+
+    text = (Path(__file__).resolve().parent.parent / "fly.toml").read_text()
+    assert 'OUTBOUND_LOOP = "1"' in text
+    assert 'OUTBOUND_ENABLED = "1"' in text
+    assert "OUTBOUND_TRANSPORT" not in text
+
+
+def test_console_is_the_only_registered_transport():
+    """Wave A's registry: one name, and it is the dark one."""
+    from kettle.outbound import TRANSPORTS, transport_from_name
+
+    assert set(TRANSPORTS) == {"console"}
+    built = transport_from_name("console")
+    assert isinstance(built, LogTransport)
