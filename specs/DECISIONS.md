@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 165.** This line is the one to update; the `Next number:` lines inside
+**Next number: 166.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1734,3 +1734,25 @@ browser — all three adopted as the standard for future surfaces.**
      is recorded in the ledger the same way the evidence gate records its own
      (no silent absence), but it raises no ops alert — this absence is the
      system working, not failing. Small build; goes into the next product pass.
+
+---
+
+## The followed-up evening (implementer, 2026-08-23)
+
+165. **DECISIONS 164 is built exactly as ruled; two mechanics worth a
+     reviewer's eye.** The withhold sits with the other withhold rules in
+     `run_outbound`, checked BEFORE the evidence gate so a still-quiet
+     followed-up day records the 164 reason silently rather than the gate's
+     loudly — the quiet-day test is what pins that ordering. The no-alert path
+     is `_record_outcome(alert=False)`: the ledger row still says why the slot
+     is empty (no silent absence) and an info log line remains, but neither
+     ntfy nor `ops_alerts` hears — asserted against both. SENT follow-ons
+     only, per the ruling's word: a skipped follow-on told the family nothing,
+     so their evening note still comes, and a plant that widens the check to
+     any-status fails by name. Resumption needs no code: the next local day is
+     a new ledger slot by construction, and a test walks into 2026-08-22 to
+     prove the morning digest returns. Suites: pytest 386, zero xfails, ruff
+     clean; three plants, three named failures — plus one bonus catch during
+     the build, when the registry-only copy scan rejected a code comment for
+     quoting the evening body verbatim, which is that guardrail doing
+     precisely its job.

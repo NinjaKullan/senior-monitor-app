@@ -38,13 +38,13 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 381, zero xfails**, **`webapp` 115**, **`site` 174**.
+Current green: **`pytest` 386, zero xfails**, **`webapp` 115**, **`site` 174**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
 * The webapp count moved 117 → 110 with the Digests screen's retirement (156), then
   to 115 with the 1000-row-cliff regression suite (160); the product count grew to
-  381 through the outbound passes (152/153/154/159/163).
+  386 through the outbound passes (152/153/154/159/163/165).
 * Postgres has died mid-session in this container. `KETTLE_REQUIRE_POSTGRES=1` turns
   that into 169 loud errors instead of a silent skip. Restart and re-run.
 * **Verify front-end changes on more than one Node.** The container has 22.22.2, the

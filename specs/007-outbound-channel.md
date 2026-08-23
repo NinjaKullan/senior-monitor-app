@@ -84,7 +84,12 @@ Three message kinds, and nothing else speaks:
    day is an ops condition, not a family message — the morning quiet-so-far path is
    honest absence and stands); a relationship-bearing template with no label waits
    (DECISIONS 152); a kind the transport does not carry, or an address-requiring
-   transport with no address, is a recorded skip, never an attempt. Only 'sent'
+   transport with no address, is a recorded skip, never an attempt. A fifth
+   withhold rule is the quiet one (DECISIONS 164): on any day a follow-on of
+   either body has been SENT for a parent, that parent's evening digest is
+   withheld — recorded in the ledger like the others, but with no ops alert,
+   because this absence is the system working; the twice-a-day notes resume
+   with the next morning digest. Only 'sent'
    rows count anywhere a row means "Kettle spoke" — the sent-once check and the
    reply matcher — with one ruled exception (DECISIONS 163, amending 159): the
    follow-on's precondition reads the ask's row at ANY status, so an ask that
