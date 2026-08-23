@@ -38,11 +38,11 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 278 + 1 xfail**, **`webapp` 117**, **`site` 174**.
+Current green: **`pytest` 315 + 1 xfail**, **`webapp` 117**, **`site` 174**.
 
 * The xfail is a **live bug**, not a skipped test (§5).
 * The product count fell from 401 to 270 when the digest and ladder suites went with
-  their engines (DECISIONS 141); it is 278 now.
+  their engines (DECISIONS 141); the outbound copy pass brought it to 315.
 * Postgres has died mid-session in this container. `KETTLE_REQUIRE_POSTGRES=1` turns
   that into 169 loud errors instead of a silent skip. Restart and re-run.
 * **Verify front-end changes on more than one Node.** The container has 22.22.2, the
@@ -94,8 +94,15 @@ build that predates six unshipped passes (§4).
 3. **`fly deploy` kettle-app.** Carries the 112 cache headers — until then deploys
    white-screen returning browsers — plus the login words, the Setup card, and now the
    session-restore fix (144).
-4. **Apply migrations 0012 and 0013.** 0013 decides per-table at apply time and prints
-   notices saying what it did; read them.
+4. **Apply migrations 0012, 0013 and 0014.** 0013 decides per-table at apply time and
+   prints notices saying what it did; read them. After 0014, **set the relationship
+   labels for both live parents** (DECISIONS 149/152):
+   ```bash
+   python -m scripts.provision --set-relationship <amma-device-token> --relationship Mom
+   python -m scripts.provision --set-relationship <appa-device-token> --relationship Dad
+   ```
+   Until set, relationship-bearing messages (morning digest, follow-on) skip that
+   parent — silently in the ledger, loudly in the logs — while asks still go.
 5. **Run Wave A dark for 48 hours** and review the ledger against what actually
    happened (spec 007 §6.3). That review is the gate to Wave B.
 6. **The Resend DNS records** on `send.heykettle.com` before any non-founder family
@@ -110,30 +117,26 @@ build that predates six unshipped passes (§4).
 | **141** | Sixteen capabilities 007 lacks that the retired engines had — founder ops alerts on delivery failure, `ask_skipped`, `mechanism_ok`, the evidence gate, the morning cutoff, the all-clear. None blocks Wave A; several are load-bearing before a message reaches a family. |
 | **145** | **Open bug.** `record_parent_reply` matches the ask by local calendar day, so a parent who answers after local midnight cancels nothing and her family is escalated to anyway. Pinned as a `strict=True` xfail in `test_outbound.py` — when fixed, the marker fails as XPASS and must be removed. The repair is a spec choice: match the most recent *unanswered* ask, then bound "recent". |
 | **142** | Two cheap-to-overrule calls: `/healthz` answers on both hosts instead of redirecting; privacy.html has no canonical. |
+| **152** | Where the *child* picks the relationship label. For beta it is founder-entered at provisioning (`--parent "Amma::Mom"`, `--set-relationship`); 149 says "the child picks at setup" without naming the surface, and onboarding investment is founder-PAUSED (126). |
 
-Resolved since: **151** delivered the five template bodies (see §6), **149** ruled
-relationship labels over names, **150** ruled the ask's icon.
+Resolved since: **151** delivered the five template bodies, **149** ruled relationship
+labels over names, **150** ruled the ask's icon — and **152** built all three (§6).
 
-## 6. The next build — the outbound copy pass (149, 150, 151)
+## 6. The outbound copy pass (149, 150, 151) — built
 
-**Unblocked as of 2026-08-23, and no longer a ten-minute pass.** DECISIONS 151 records
-the five founder-approved bodies verbatim, ending the block that stood since 141.
+Landed 2026-08-23 (DECISIONS 152). The registry renders the five approved bodies
+verbatim; `{relationship}` superseded `{parent_name}`; the copy-law scan now enforces
+no-gendered-pronoun (149, closing 24) and no-em-dash (151, extending 127) as law, with
+plants. Migration 0014 adds `parents.relationship`, nullable, closed to the standard
+set by a check constraint that a test holds identical to
+`kettle.provisioning.RELATIONSHIP_LABELS`.
 
-**DECISIONS 151 states that `outbound_templates.py` renders them. It does not yet** —
-the module still has `"{parent_name}'s morning looked like her morning."` The ruling is
-filed; the implementation is owed, and the entry reads as present tense, so do not
-trust it as a description of the code.
-
-It grew because 149 and 150 came with it. `{parent_name}` is superseded by a
-`{relationship}` label the child picks at setup from a standard set (Mom, Dad, Grandma,
-Grandpa, Aunt, Uncle, extendable) — Kettle cannot know what a family calls their elders.
-Pronouns are never guessed: singular they, or restructure to need none. So this touches
-the registry, spec 007 §5, the copy-law tests, **and** a new place to store and choose a
-relationship label per parent — which is schema, setup UI and a migration, not a string
-swap. **Read 149, 150 and 151 in full before scoping it.**
-
-This also closes the DECISIONS 24 pronoun problem and the 127 em dash, both still live
-in product copy until it lands.
+**Live consequence until the founder acts (§4 item 4): both live parents have no
+label**, so their morning digests and follow-ons are skipped (slot left free, warning
+logged) while asks still go — parent-first survives the gap by construction. Template
+ids are unchanged, so the ledger and Wave D's future WhatsApp registration are
+unaffected. The site's quoted ask string is deliberately untouched (150's scope
+ruling).
 
 ## 7. Deliberate, and easy to "fix" by mistake
 
@@ -172,9 +175,10 @@ in product copy until it lands.
 and 004 **retired**: engines, copy, CLI and `/twilio/inbound` deleted; migration 0013
 retires their tables, dropping the empty and archiving the non-empty. Spec **007 Wave A
 is built and runs dark** — evaluator, scheduler, sent-once ledger (0012 `sent_messages`),
-template registry, console transport behind the `Transport` seam, and a reply endpoint
-nothing calls. `OUTBOUND_ENABLED` is off and "on" still reaches nobody. Waves B–D are
-each gated on a founder errand. Migrations through **0013**.
+template registry (the DECISIONS 151 bodies, rendered by relationship label), console
+transport behind the `Transport` seam, and a reply endpoint nothing calls.
+`OUTBOUND_ENABLED` is off and "on" still reaches nobody. Waves B–D are each gated on a
+founder errand. Migrations through **0014**.
 
 **`site/`** — heykettle.com, live on Cloudflare DNS, hosted on Fly. One illustration set
 (six webps at unhashed stable names the cache contract depends on — there are no

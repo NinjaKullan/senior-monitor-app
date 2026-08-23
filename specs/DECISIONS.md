@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 152.** This line is the one to update; the `Next number:` lines inside
+**Next number: 153.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1364,3 +1364,48 @@ browser — all three adopted as the standard for future surfaces.**
         "Everything okay today? Reply with a 👍 whenever suits."
      5. Follow-on (to the child):
         "{relationship}'s usual morning hasn't shown up today, and they haven't answered Kettle's note yet. You know their day best. A call from you beats anything Kettle can send."
+
+---
+
+## Outbound copy pass build notes (implementer, 2026-08-23)
+
+152. **149/150/151 are built; the execution calls a reviewer should see, and the
+     two the task brief predicted would need a ruling.** The registry renders the
+     five approved bodies verbatim, `{relationship}` superseded `{parent_name}`
+     everywhere, and the copy-law scan now enforces the two rules that graduated
+     to law — no gendered pronoun (149, closing 24) and no em dash in any body
+     (151, extending 127 to product copy) — with plants of the exact regressions
+     151 replaced. Suites: pytest 315 + 1 xfail (the 145 marker untouched),
+     webapp 117, site 174, ruff clean. Calls made, each cheap to overrule:
+
+     * **Storage shape: a nullable `relationship` column on `parents`
+       (migration 0014), closed by a named check constraint.** Not a lookup
+       table, because the standard set is product vocabulary like the signal
+       set, not family data; not free text, because a family's own words stored
+       server-side and rendered into messages is what 149 rules out.
+       "Extendable" therefore means: widen `parents_relationship_known` in a
+       migration and add the same word to `RELATIONSHIP_LABELS`
+       (`kettle/provisioning.py`) — a test fails by name if the two lists
+       drift. Nullable because both live parents predate the column.
+     * **Where the child picks it: founder-entered at provisioning for beta,
+       like every contact field so far (spec 007 §4's own precedent).**
+       `--parent "Amma::Mom"` at provisioning; `--set-relationship
+       <device-token> --relationship Mom` for the two live parents. **The
+       child-facing picker is NOT built and needs a ruling**: the natural home
+       is the family app or the setup flow, but onboarding-surface investment
+       is founder-PAUSED (126), and 149 says "the child picks at setup"
+       without saying which surface setup is. Filed rather than guessed.
+     * **A parent with no label waits rather than rendering a blank.** A
+       relationship-bearing send is skipped without a ledger row — the day's
+       slot stays free, and the run after the label is set releases what the
+       slot held. The ask names nobody, so parent-first survives the gap by
+       construction; a test walks that day end to end. The founder-visible
+       consequences, owed alongside migrations 0012/0013: **apply 0014, then
+       set labels for both live parents**, or their morning digests and
+       follow-ons stay silent while asks still go.
+     * **Template ids are unchanged** (`digest_morning_normal` etc.): the
+       ledger stores ids, and Wave D's WhatsApp registration maps onto them —
+       the bodies changed, the identities did not.
+     * **The site's quoted ask string is untouched, per 150's explicit scope
+       ruling.** The product test that pinned site/product equality now pins
+       DECISIONS 151's string instead ("the site's quote is illustrative").

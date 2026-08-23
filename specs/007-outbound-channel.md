@@ -12,9 +12,11 @@ Three message kinds, and nothing else speaks:
 - **The digest** (to the child, twice daily): a short reassurance message. Morning edition
   says the day started; evening edition says the day happened. Never a feed, never a
   score, never a graph — the site's own words are the contract.
-- **The ask** (to the parent, on a quiet morning): the exact string the site already
-  shows and exempts from the verdict ban: "Everything okay today? Reply whenever suits."
-  Addressed to her, never about her. Parent-first is law #6's ladder made real.
+- **The ask** (to the parent, on a quiet morning): English plus a universal icon a
+  parent who reads no English can still act on: "Everything okay today? Reply with a 👍
+  whenever suits." (DECISIONS 150/151; the site's older quote of this string is
+  illustrative, not binding). Addressed to the parent, never about them. Parent-first
+  is law #6's ladder made real.
 - **The follow-on** (to the child, only after the ask has gone unanswered AND signals
   stay silent past a grace window): the only message that ever tells a child about a
   quiet day, and it reports facts, not verdicts.
@@ -76,19 +78,27 @@ deny-all, entered at provisioning by the founder for beta. The privacy policy al
 covers account contact data for the child; the parent's number is setup-surface
 disclosure (behind the expiring link), consistent with what-never-how.
 
-## 5. Message copy, v1 (PM draft — founder approves before Wave B sends)
+## 5. Message copy, v1 (founder-approved 2026-08-23 — DECISIONS 149, 150, 151)
 
-- Digest, morning, normal: "{parent_name}'s morning looked like her morning. Next note
-  this evening."
+`{relationship}` is the label the child picks at setup from the standard set (Mom,
+Dad, Grandma, Grandpa, Aunt, Uncle; extendable) — never a given name or a family's
+own pet name, because Kettle cannot know what a family calls their elders (149,
+superseding this section's original `{parent_name}`). Pronouns are never guessed:
+singular they, or the sentence is restructured to need none (149, closing DECISIONS
+24). No em dashes in any body (151, extending 127 to product copy).
+
+- Digest, morning, normal: "{relationship}'s morning looked like a normal morning.
+  Next note this evening."
 - Digest, evening, normal: "An ordinary day, start to finish. Next note in the morning."
 - Digest, morning, quiet-so-far (sent only if digest time lands before the ask
-  threshold on a quiet day): "Quiet so far this morning. Kettle will check in with her
-  first if that continues."
-- The ask (to the parent, verbatim from the site's exemption): "Everything okay today?
-  Reply whenever suits."
-- Follow-on (to the child, facts only): "{parent_name}'s usual morning hasn't shown up
-  today, and she hasn't answered Kettle's note yet. You know her day best — a call from
-  you beats anything Kettle can send."
+  threshold on a quiet day): "Quiet so far this morning. Kettle will check in with
+  {relationship} first if that continues."
+- The ask (to the parent; the 👍 is 150's universal icon, and the site's quote of the
+  older string is illustrative, not binding): "Everything okay today? Reply with a 👍
+  whenever suits."
+- Follow-on (to the child, facts only): "{relationship}'s usual morning hasn't shown up
+  today, and they haven't answered Kettle's note yet. You know their day best. A call
+  from you beats anything Kettle can send."
 All templates through the copy-law scan; the follow-on's last sentence is the ladder's
 handoff — Kettle stops speaking where the family starts.
 
