@@ -47,9 +47,15 @@ Three message kinds, and nothing else speaks:
    follow-on. Suggested v1 bodies below (§5); PM owns the words, founder approves.
 5. **The transport seam.** A `Transport` interface: send(to, template_id, variables) →
    delivery result. Wave A ships with a console/log transport only — the whole engine
-   runs "dark" in production, writing its ledger, sending nothing. That is the
-   acceptance path: watch the ledger match reality for the founder family for two days
-   before any real message goes out.
+   runs "dark" in production, writing its ledger, sending nothing. **The dark run does
+   not wait for a real transport: Wave A IS the scheduler loop running in production**
+   (DECISIONS 154) — an in-process background task like the heartbeat monitor, gated
+   on `OUTBOUND_LOOP`, with `OUTBOUND_ENABLED` as the live kill switch on the
+   decisions themselves. Transport selection is config (`OUTBOUND_TRANSPORT`) against
+   a closed registry with "console" as the only entry; an unknown name refuses to
+   boot, so a misconfiguration can never fail open into something that sends. That is
+   the acceptance path: watch the ledger match reality for the founder family for two
+   days before any real message goes out.
 6. **Reply intake (minimal).** A webhook endpoint that records "the parent replied"
    (timestamp only, never content) and cancels a pending follow-on. Intake is
    content-blind: a thumbs-up, a voice note, or a sentence in any language all count

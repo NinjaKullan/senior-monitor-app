@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 154.** This line is the one to update; the `Next number:` lines inside
+**Next number: 156.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1443,3 +1443,51 @@ browser — all three adopted as the standard for future surfaces.**
        told, marking the ask answered afterwards would rewrite the ledger into
        a question that never needed escalating — the row stays as the family
        experienced it, and the arrival is noted in the log only.
+
+---
+
+## The dark loop pass (implementer, 2026-08-23)
+
+154. **Spec 007's scheduler now runs in the lifespan; the calls inside the PM's
+     "wire it now", each cheap to overrule.** The stale main.py comment — "no
+     loop until it has a transport that can reach anyone" — inverted §2.5 and
+     is gone; §2.5 now says explicitly that Wave A IS the loop running dark.
+     Same shape as the heartbeat monitor: own connection, minutely pass in a
+     worker thread, cancelled on shutdown, survives any pass failure,
+     `OutboundState` for live ops visibility. All guardrails verified by plant
+     (validation removed, registry defaulting open, loop never wired, flag
+     ignored, fly flag off — five plants, five named failures).
+
+     * **Both switches are on in fly.toml, and they mean different things.**
+       `OUTBOUND_LOOP` runs the machinery; `OUTBOUND_ENABLED` is read live on
+       every pass as the kill switch on the decisions themselves, so the
+       founder can stop the engine deciding (`fly secrets` / env change)
+       without killing the process that also runs the heartbeat. The task
+       named only OUTBOUND_LOOP for fly.toml; ENABLED had to come with it or
+       the dark run would decide nothing and the §6.3 review would review an
+       empty ledger.
+     * **The config value is "console"; the transport's log label stays
+       "log".** OUTBOUND_TRANSPORT selects from a closed registry
+       (`kettle.outbound.TRANSPORTS`, one entry) and an unknown name raises at
+       `create_app` — before the app object exists, loop flag on or off — so a
+       typo is a crash-loop the founder sees, never a latent branch. fly.toml
+       deliberately does not set OUTBOUND_TRANSPORT: the code default is the
+       registry's only entry, and a test pins its absence.
+     * **The loop reads the enabled flag per pass rather than once at boot** —
+       a restart-to-disable on a safety-relevant engine is the wrong shape.
+       Settings are still immutable; what is re-read is the field, not the env.
+
+155. **Correcting the record: the 2026-08-18 deploy did NOT start Wave A.** The
+     baton and DECISIONS 141-era notes could be read as "Wave A runs dark in
+     production" from that deploy on. It did not and could not: no loop
+     existed — the lifespan comment explicitly declined to start one — so
+     nothing evaluated, nothing wrote the ledger, and the §6.3 48-hour review
+     clock has never started. **The dark run starts with the deploy that
+     follows this pass**, and the ledger review gates Wave B from that deploy,
+     not from any earlier date. Two preconditions the deployer must confirm,
+     both founder-side: migrations 0012 and 0013 applied (0014 was applied
+     today by the PM via SQL, and both live parents' labels are set Mom/Dad —
+     but 0012 creates `sent_messages`, and a loop without its ledger table
+     fails every pass, loudly in logs and invisibly in the product); and the
+     post-deploy check that the logs show `outbound (dark):` lines at the
+     expected local times.

@@ -75,8 +75,16 @@ Current green: **`pytest` 321, zero xfails**, **`webapp` 117**, **`site` 174**.
 
 **Deployed as of 2026-08-18 (founder-reported):** migration 0011 applied and verified in
 the live database; kettle-api healthy (`/healthz` → `{"db":true}`); kettle-site at
-`2f1f2f5`. **Migrations 0012 and 0013 are written but NOT applied.** The site runs a
-build that predates six unshipped passes (§4).
+`2f1f2f5`. **Migrations 0012 and 0013 are written but NOT applied — confirm them before
+the next kettle-api deploy, which starts the dark loop (§4 item 4).** Migration
+**0014 IS applied** and both live parents' relationship labels are set (Mom / Dad) —
+done 2026-08-23 by the PM via SQL. The site runs a build that predates six unshipped
+passes (§4).
+
+**Wave A has NOT started.** The running kettle-api build has no outbound loop — the
+old lifespan declined to start one — so nothing has ever written `sent_messages`, and
+the §6.3 48-hour review clock has never started (DECISIONS 155 corrects the record).
+The loop is wired as of this pass and starts, dark, with the next kettle-api deploy.
 
 ## 4. Owed — by the founder
 
@@ -96,17 +104,16 @@ build that predates six unshipped passes (§4).
 3. **`fly deploy` kettle-app.** Carries the 112 cache headers — until then deploys
    white-screen returning browsers — plus the login words, the Setup card, and now the
    session-restore fix (144).
-4. **Apply migrations 0012, 0013 and 0014.** 0013 decides per-table at apply time and
-   prints notices saying what it did; read them. After 0014, **set the relationship
-   labels for both live parents** (DECISIONS 149/152):
-   ```bash
-   python -m scripts.provision --set-relationship <amma-device-token> --relationship Mom
-   python -m scripts.provision --set-relationship <appa-device-token> --relationship Dad
-   ```
-   Until set, relationship-bearing messages (morning digest, follow-on) skip that
-   parent — silently in the ledger, loudly in the logs — while asks still go.
+4. **Apply migrations 0012 and 0013, then `fly deploy` kettle-api — this deploy
+   starts Wave A, dark** (DECISIONS 154/155). 0013 decides per-table at apply time
+   and prints notices saying what it did; read them. 0012 creates `sent_messages`,
+   which the loop writes: deploying before applying it means a loop that fails
+   every pass, loudly in logs and invisibly in the product. (0014 and the
+   relationship labels are already done — PM, 2026-08-23.) After deploying, check
+   the logs for `outbound (dark):` lines at the expected local times.
 5. **Run Wave A dark for 48 hours** and review the ledger against what actually
-   happened (spec 007 §6.3). That review is the gate to Wave B.
+   happened (spec 007 §6.3). That review is the gate to Wave B. The clock starts
+   at the deploy in item 4, not at any earlier date (155).
 6. **The Resend DNS records** on `send.heykettle.com` before any non-founder family
    (`docs/auth-smtp-plan.md`).
 7. **Confirm Appa's charger automation has both edges ticked** (126).
@@ -178,11 +185,13 @@ ruling).
 **`product/`** — FastAPI + Postgres. Specs 001, 001a, 002, 005b, 005e built. Specs 003
 and 004 **retired**: engines, copy, CLI and `/twilio/inbound` deleted; migration 0013
 retires their tables, dropping the empty and archiving the non-empty. Spec **007 Wave A
-is built and runs dark** — evaluator, scheduler, sent-once ledger (0012 `sent_messages`),
-template registry (the DECISIONS 151 bodies, rendered by relationship label), console
-transport behind the `Transport` seam, and a reply endpoint nothing calls.
-`OUTBOUND_ENABLED` is off and "on" still reaches nobody. Waves B–D are each gated on a
-founder errand. Migrations through **0014**.
+is built and wired to run dark** — evaluator, scheduler loop in the lifespan (154),
+sent-once ledger (0012 `sent_messages`), template registry (the DECISIONS 151 bodies,
+rendered by relationship label), console transport behind a closed registry that fails
+unknown names at boot, and a reply endpoint nothing calls. fly.toml now carries
+`OUTBOUND_LOOP = "1"` and `OUTBOUND_ENABLED = "1"`; the dark run itself starts with
+the next kettle-api deploy, not before (155 — the running build predates the loop).
+Waves B–D are each gated on a founder errand. Migrations through **0014**.
 
 **`site/`** — heykettle.com, live on Cloudflare DNS, hosted on Fly. One illustration set
 (six webps at unhashed stable names the cache contract depends on — there are no
