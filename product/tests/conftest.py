@@ -85,6 +85,9 @@ def settings(database_url: str) -> Settings:
         outbound_transport="console",
         resend_api_key="",
         resend_from="Kettle <notes@send.heykettle.com>",
+        twilio_account_sid="",
+        twilio_auth_token="",
+        twilio_whatsapp_from="",
         outbound_reply_token="test-reply-token",
         # The landing page is the only browser that calls this API (spec 006).
         waitlist_origins=("https://heykettle.com",),

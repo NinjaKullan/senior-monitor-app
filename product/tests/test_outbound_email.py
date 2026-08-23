@@ -118,7 +118,7 @@ def test_through_the_engine_a_delivery_lands_in_the_ledger_as_sent(conn, notifie
         "select status from sent_messages where kind = 'ask'"
     ).fetchone()
     assert row["status"] == "skipped"
-    assert any("Wave C" in m for m in notifier.messages)
+    assert any("does not carry" in m for m in notifier.messages)
     assert len(seen) == 1  # the ask never became an HTTP call
 
 

@@ -35,6 +35,7 @@ from kettle.outbound import (
 )
 from kettle.setup_page import router as setup_router
 from kettle.timeutil import now_utc
+from kettle.twilio_signature import verify_signature
 
 log = logging.getLogger("kettle")
 
@@ -215,16 +216,30 @@ def create_app(
           pending ask get the same empty acknowledgement, so the endpoint cannot
           be used to ask "is this number a Kettle parent".
         """
-        if not cfg.outbound_reply_token:
+        # Two ways in, both fail-closed (spec 007 §2.6, DECISIONS 163): the
+        # shared secret (tests, break-glass), or Twilio's own request
+        # signature when the auth token is configured — verified against the
+        # public URL Twilio actually signed, not the proxied one Fly hands us.
+        # With neither credential configured, the route does not exist.
+        if not cfg.outbound_reply_token and not cfg.twilio_auth_token:
             raise StarletteHTTPException(status_code=404, detail="not found")
-        supplied = request.headers.get("x-kettle-reply-token") or ""
-        if not compare_digest(supplied, cfg.outbound_reply_token):
-            raise StarletteHTTPException(status_code=403, detail="forbidden")
 
         raw = (await request.body()).decode("utf-8", errors="replace")
         params = {k: v[0] for k, v in parse_qs(raw, keep_blank_values=True).items()}
-        sender = (params.get("From") or "").strip()
-        # From here on the body is gone, unread beyond the sender.
+
+        supplied = request.headers.get("x-kettle-reply-token") or ""
+        token_ok = bool(cfg.outbound_reply_token) and compare_digest(
+            supplied, cfg.outbound_reply_token
+        )
+        signature = request.headers.get("x-twilio-signature") or ""
+        public_url = cfg.public_base_url + request.url.path
+        twilio_ok = verify_signature(cfg.twilio_auth_token, public_url, params, signature)
+        if not (token_ok or twilio_ok):
+            raise StarletteHTTPException(status_code=403, detail="forbidden")
+
+        sender = (params.get("From") or "").strip().removeprefix("whatsapp:")
+        # From here on the body is gone: it was read for signature verification
+        # and the sender, nothing else, per §2.6.
         del params, raw
 
         if sender:

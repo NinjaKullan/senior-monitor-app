@@ -46,6 +46,14 @@ class Settings:
     # subdomain (docs/auth-smtp-plan.md); reply-to goes to a human.
     resend_api_key: str
     resend_from: str
+    # Wave C's WhatsApp transport (spec 007 §3), Twilio sandbox. All three are
+    # read only when OUTBOUND_TRANSPORT selects twilio_whatsapp — and then all
+    # three must exist, or the app refuses to boot. The auth token doubles as
+    # the inbound webhook's signature secret (§2.6): with it set, a request to
+    # /outbound/reply may authenticate by Twilio's own signature.
+    twilio_account_sid: str
+    twilio_auth_token: str
+    twilio_whatsapp_from: str
     # The shared secret the reply webhook requires. Empty — the default — means
     # the endpoint does not exist: an unauthenticated route that can cancel a
     # follow-on would let anyone who knows a number suppress an escalation.
@@ -86,6 +94,9 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
             src.get("RESEND_FROM", "").strip()
             or "Kettle <notes@send.heykettle.com>"
         ),
+        twilio_account_sid=src.get("TWILIO_ACCOUNT_SID", "").strip(),
+        twilio_auth_token=src.get("TWILIO_AUTH_TOKEN", "").strip(),
+        twilio_whatsapp_from=src.get("TWILIO_WHATSAPP_FROM", "").strip(),
         outbound_reply_token=src.get("OUTBOUND_REPLY_TOKEN", "").strip(),
         waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
     )

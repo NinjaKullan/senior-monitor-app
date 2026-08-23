@@ -6,10 +6,10 @@ channel can reach the internet is this file, and it can reach exactly one API.
 
 What this transport will and will not do:
 
-* **Digests only.** `kinds` names the two digest kinds and nothing else; the
-  engine records an ask or follow-on as skipped (with a founder ops alert)
-  rather than handing it here, because a message to a parent has no channel
-  until Wave C.
+* **Child-facing kinds only.** `kinds` names the digests, the follow-on and
+  the all-clear (the Wave C channel ruling: everything to the child travels by
+  email; the ask travels to the parent by WhatsApp). The engine records an ask
+  as skipped rather than handing it here.
 * **No address, no attempt.** `requires_address` makes an empty recipient an
   unroutable skip upstream; this class never sees one.
 * **Failure is a result, never an exception.** A non-2xx, a timeout, a DNS
@@ -33,8 +33,10 @@ import httpx
 from kettle.outbound import DeliveryResult
 from kettle.outbound_templates import (
     EMAIL_SUBJECT,
+    KIND_ALL_CLEAR,
     KIND_DIGEST_EVENING,
     KIND_DIGEST_MORNING,
+    KIND_FOLLOW_ON,
     render,
     template,
 )
@@ -59,7 +61,7 @@ class ResendTransport:
     """POST one rendered digest to Resend's send endpoint."""
 
     name = "resend"
-    kinds = (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING)
+    kinds = (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING, KIND_FOLLOW_ON, KIND_ALL_CLEAR)
     requires_address = True
 
     def __init__(
