@@ -196,7 +196,9 @@ export default function App() {
               openParent,
               familyTz,
               snapshot.signals,
-              snapshot.pings,
+              // Unwindowed latest rows (DECISIONS 166): a tripwire's age must
+              // be its true age, not floored at the Today card's window.
+              snapshot.latestPings,
               now,
             )}
             onBack={() => setOpenParentId(null)}
@@ -212,7 +214,9 @@ export default function App() {
           setupEntries={buildSetupEntries(
             snapshot.parents,
             snapshot.setupLinks,
-            snapshot.pings,
+            // Unwindowed (DECISIONS 166): "has ever pinged" must not revert
+            // when a parent's pings age out of the 14-day window.
+            snapshot.latestPings,
             now,
           )}
         />

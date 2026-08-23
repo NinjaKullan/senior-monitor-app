@@ -35,6 +35,9 @@ import type {
   SetupLink,
 } from "./types";
 
+/** What the latest-ping reads need from a signal row to key one query. */
+type SignalKey = Pick<ParentSignal, "parent_id" | "signal">;
+
 async function readAll<T>(table: keyof typeof READ_SURFACE): Promise<T[]> {
   const { data, error } = await supabase.from(table).select(READ_SURFACE[table]);
   if (error) throw error;
@@ -58,6 +61,38 @@ async function readAll<T>(table: keyof typeof READ_SURFACE): Promise<T[]> {
  */
 export const PINGS_WINDOW_DAYS = 14;
 export const PINGS_LIMIT_PER_PARENT = 500;
+
+/**
+ * The unwindowed latest ping per (parent, signal) — DECISIONS 166, repairing
+ * 160's flagged consequence. The 14-day window is right for the Today card
+ * and the day arc, but it put a floor under two has-this-ever-happened
+ * surfaces: a tripwire whose last ping predates the window rendered "never
+ * reported" instead of its true age, and the Setup card's first-ping-heard
+ * check reverted once a parent's pings aged out. Both were false sentences.
+ *
+ * One row per (parent, signal) from the parent's own allowlist — inactive
+ * entries included, because history counts for "has ever pinged" — ordered
+ * ts_utc descending with limit 1 and deliberately NO time window: the whole
+ * point is reaching past it. Bounded by construction: parents × the fixed
+ * signal vocabulary, never by table growth, which is what keeps it inside
+ * this file's explicit-order-and-limit discipline.
+ */
+async function readLatestPings(keys: SignalKey[]): Promise<Ping[]> {
+  const perSignal = await Promise.all(
+    keys.map(async ({ parent_id, signal }) => {
+      const { data, error } = await supabase
+        .from("pings")
+        .select(READ_SURFACE.pings)
+        .eq("parent_id", parent_id)
+        .eq("signal", signal)
+        .order("ts_utc", { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      return (data ?? []) as Ping[];
+    }),
+  );
+  return perSignal.flat();
+}
 
 async function readRecentPings(parentIds: string[], now: Date): Promise<Ping[]> {
   const since = new Date(
@@ -84,7 +119,11 @@ export interface FamilySnapshot {
   parents: Parent[];
   members: Member[];
   signals: ParentSignal[];
+  /** The bounded 14-day window (DECISIONS 160): the Today card and day arc. */
   pings: Ping[];
+  /** One unwindowed latest row per (parent, signal) (DECISIONS 166): tripwire
+   * ages and the Setup card's has-ever-pinged check, and nothing else. */
+  latestPings: Ping[];
   setupLinks: SetupLink[];
 }
 
@@ -114,17 +153,24 @@ export async function loadSnapshot(now: Date = new Date()): Promise<FamilySnapsh
     readAll<ParentSignal>("parent_signals"),
     readAll<SetupLink>("setup_links"),
   ]);
-  // Pings wait for the parent list: the bounded read is per parent.
-  const pings = await readRecentPings(
-    parents.map((parent) => parent.id),
-    now,
-  );
+  // Ping reads wait for the earlier rows: the windowed read is per parent,
+  // the latest-row read is per (parent, signal) from the allowlist.
+  const [pings, latestPings] = await Promise.all([
+    readRecentPings(
+      parents.map((parent) => parent.id),
+      now,
+    ),
+    readLatestPings(
+      signals.map(({ parent_id, signal }) => ({ parent_id, signal })),
+    ),
+  ]);
   return {
     family: families[0] ?? null,
     parents,
     members,
     signals,
     pings,
+    latestPings,
     setupLinks,
   };
 }
