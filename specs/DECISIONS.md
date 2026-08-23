@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 166.** This line is the one to update; the `Next number:` lines inside
+**Next number: 167.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1756,3 +1756,33 @@ browser — all three adopted as the standard for future surfaces.**
      the build, when the registry-only copy scan rejected a code comment for
      quoting the evening body verbatim, which is that guardrail doing
      precisely its job.
+
+---
+
+## The window's floor lifted (implementer, 2026-08-23)
+
+166. **DECISIONS 160's flagged consequence is repaired as prescribed, webapp
+     only.** The snapshot now carries two ping sets with their audiences
+     named: the 14-day window (160, unchanged) feeds the Today card and the
+     day arc; a new `latestPings` set — one row per (parent, signal), ts_utc
+     descending, limit 1, deliberately no time window — feeds exactly the
+     tripwire ages and the Setup card's has-ever-pinged check. A tripwire
+     whose last ping is 20 days old says so again instead of "Not set up
+     yet", and a parent whose pings aged out stays "reporting". Suites:
+     webapp 119, full `npm run ci` clean; product/site untouched.
+
+     * **Keyed off the allowlist, inactive rows included** — history counts
+       for "has ever pinged", and the read count is people × the fixed signal
+       vocabulary, bounded by construction rather than by table growth, which
+       is what admits an unwindowed read to data.ts's explicit-order-and-limit
+       discipline. The audit test now names the two legal shapes of pings
+       read; anything else fails it.
+     * **The App call sites are pinned at the source** (the queries.ts
+       precedent): both sets share the `Ping[]` type, so rewiring a surface
+       back to the windowed set would compile cleanly and quietly
+       reintroduce the false sentence — a source-scan test holds
+       computeTripwires and buildSetupEntries to `latestPings` and
+       computeGlance to the window. Three plants, three named failures
+     * **Cost accepted:** up to parents × signals extra limit-1 requests per
+       45-second poll (≤ ~16 today). A per-family RPC or view collapses them
+       if that ever matters; not built unprompted.
