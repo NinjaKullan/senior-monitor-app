@@ -104,6 +104,8 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         public_base_url=BASE_URL,
         heartbeat_loop=False,
         outbound_enabled=False,
+        outbound_loop=False,
+        outbound_transport="console",
         outbound_reply_token="",
         waitlist_origins=("https://heykettle.com",),
     )

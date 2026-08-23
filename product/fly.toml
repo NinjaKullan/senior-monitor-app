@@ -9,6 +9,12 @@ primary_region = "sin"  # Singapore: closest low-latency region to Chennai
 [env]
   DEFAULT_TZ = "Asia/Kolkata"
   HEARTBEAT_LOOP = "1"
+  # Spec 007 Wave A running dark (DECISIONS 154). Both switches on: LOOP runs
+  # the scheduler as a background task, ENABLED lets it decide and write the
+  # ledger. The transport defaults to "console" in code — the only registered
+  # name — so nothing is sent; an unknown name refuses to boot.
+  OUTBOUND_LOOP = "1"
+  OUTBOUND_ENABLED = "1"
   PUBLIC_BASE_URL = "https://kettle-api.fly.dev"
 
 # No volume: all state lives in Supabase/Postgres.

@@ -27,7 +27,12 @@ from kettle import db, waitlist
 from kettle.config import Settings, settings_from_env
 from kettle.heartbeat import HeartbeatState, heartbeat_loop
 from kettle.notify import LogOnlyNotifier, Notifier, NtfyNotifier
-from kettle.outbound import record_parent_reply
+from kettle.outbound import (
+    OutboundState,
+    outbound_loop,
+    record_parent_reply,
+    transport_from_name,
+)
 from kettle.setup_page import router as setup_router
 from kettle.timeutil import now_utc
 
@@ -66,6 +71,12 @@ def create_app(
     """
     cfg = settings or settings_from_env()
 
+    # Fail closed before anything else exists: an unknown OUTBOUND_TRANSPORT
+    # refuses to build the app at all, loop flag on or off, so a typo in an env
+    # var can never fall through to something that sends (DECISIONS 154). The
+    # instance built here is thrown away; each boot's loop gets its own.
+    transport_from_name(cfg.outbound_transport)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         pool = ConnectionPool(
@@ -77,6 +88,7 @@ def create_app(
         )
         app.state.pool = pool
         app.state.heartbeat = HeartbeatState()
+        app.state.outbound = OutboundState()
         app.state.notifier = notifier or (
             NtfyNotifier(cfg.ntfy_topic) if cfg.ntfy_topic else LogOnlyNotifier()
         )
@@ -91,10 +103,24 @@ def create_app(
                     heartbeat_loop(hb_conn, cfg, app.state.notifier, app.state.heartbeat)
                 )
             )
-            # Spec 007's outbound channel has no loop yet, and will not until
-            # it has a transport that can reach anyone (DECISIONS 141). The
-            # engines that used to run here — the digest's and the ladder's —
-            # were retired with specs 003 and 004.
+        if cfg.outbound_loop:
+            # Spec 007 §2.5: Wave A IS this loop running dark — console
+            # transport, ledger written, nothing sent. It does not wait for a
+            # real transport; the 48-hour ledger review (§6.3) is a review of
+            # what this loop writes. The engines that used to run here — the
+            # digest's and the ladder's — were retired with specs 003 and 004.
+            ob_conn = db.connect(cfg.database_url)
+            loop_conns.append(ob_conn)
+            tasks.append(
+                asyncio.create_task(
+                    outbound_loop(
+                        ob_conn,
+                        transport_from_name(cfg.outbound_transport),
+                        cfg,
+                        app.state.outbound,
+                    )
+                )
+            )
         try:
             yield
         finally:

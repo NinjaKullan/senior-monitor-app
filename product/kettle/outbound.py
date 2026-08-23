@@ -28,9 +28,10 @@ real ones behind the same seam, each gated on a founder errand.
 
 from __future__ import annotations
 
+import asyncio
 import logging
-from collections.abc import Mapping
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, time, timedelta
 from typing import Any, Protocol
 from zoneinfo import ZoneInfo
@@ -46,7 +47,7 @@ from kettle.outbound_templates import (
     render,
     template,
 )
-from kettle.timeutil import effective_tz, to_local
+from kettle.timeutil import effective_tz, now_utc, to_local
 
 log = logging.getLogger("kettle.outbound")
 
@@ -154,6 +155,32 @@ def _mask(to: str) -> str:
     if not to:
         return "(no address on file)"
     return f"…{to[-4:]}" if len(to) > 4 else "…"
+
+
+#: Every transport the loop can be configured to use, by the name OUTBOUND_TRANSPORT
+#: carries. One entry until a wave adds another — and a new entry here is a spec
+#: change, not a deploy-time discovery: the registry is what makes a misconfigured
+#: name fail closed instead of falling through to something that can send.
+TRANSPORTS: dict[str, Callable[[], Transport]] = {
+    "console": LogTransport,
+}
+
+
+def transport_from_name(name: str) -> Transport:
+    """Build the configured transport, or refuse to boot.
+
+    Loud and at startup on purpose (DECISIONS 154): the alternative — defaulting
+    an unknown name to *anything* — is a path by which a typo in an env var
+    chooses who gets messaged. Known names are the registry's, nothing else.
+    """
+    try:
+        factory = TRANSPORTS[name]
+    except KeyError:
+        known = ", ".join(sorted(TRANSPORTS))
+        raise RuntimeError(
+            f"unknown outbound transport {name!r} — registered transports: {known}"
+        ) from None
+    return factory()
 
 
 # --- the evaluator (§2.1) ----------------------------------------------------
@@ -350,3 +377,49 @@ def record_parent_reply(
             _mask(number),
         )
     return matched
+
+
+# --- the loop (§2.5): Wave A running dark in production -----------------------
+
+
+@dataclass
+class OutboundState:
+    """In-process record of the last pass, for ops visibility.
+
+    Same shape as `HeartbeatState`: the dark run's whole point is that the
+    founder can see what the engine decided (the ledger is the durable record;
+    this is the cheap live one).
+    """
+
+    last_run_utc: datetime | None = None
+    decided: list[Decision] = field(default_factory=list)
+
+
+async def outbound_loop(
+    conn: psycopg.Connection,
+    transport: Transport,
+    settings: Any,
+    state: OutboundState,
+    interval_s: int = 60,
+) -> None:
+    """Background task: decide and record once a minute. Never exits on error.
+
+    Wave A IS this loop running dark (spec 007 §2.5): console transport, ledger
+    written, nothing sent — the 48-hour ledger review of §6.3 is a review of
+    what this loop wrote. `run_outbound` is idempotent through the ledger's
+    unique index, so a minutely cadence re-decides and re-records nothing.
+    `OUTBOUND_ENABLED` is read every pass, live: it is the kill switch on the
+    decisions, distinct from OUTBOUND_LOOP which merely runs the machinery.
+    """
+    while True:
+        try:
+            now = now_utc()
+            state.decided = await asyncio.to_thread(
+                run_outbound, conn, transport, now, enabled=settings.outbound_enabled
+            )
+            state.last_run_utc = now
+        except asyncio.CancelledError:
+            raise
+        except Exception:  # noqa: BLE001 - the engine must outlive any failure
+            log.exception("outbound pass failed")
+        await asyncio.sleep(interval_s)

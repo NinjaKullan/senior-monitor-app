@@ -29,6 +29,16 @@ class Settings:
     # exists writes a log line. Two switches rather than one because the wave
     # after this adds a transport that does not.
     outbound_enabled: bool
+    # Runs the scheduler as an in-process background task, same pattern as
+    # HEARTBEAT_LOOP (DECISIONS 154). The loop is the machinery; OUTBOUND_ENABLED
+    # stays the kill switch on the decisions themselves, so production can stop
+    # the engine deciding without restarting the process.
+    outbound_loop: bool
+    # Which registered transport the loop hands its messages to. "console" —
+    # the dark transport, a log line and a ledger row — is the only registered
+    # name until a wave adds another; anything else refuses to boot
+    # (`transport_from_name`), so a typo cannot fail open into a real sender.
+    outbound_transport: str
     # The shared secret the reply webhook requires. Empty — the default — means
     # the endpoint does not exist: an unauthenticated route that can cancel a
     # follow-on would let anyone who knows a number suppress an escalation.
@@ -62,6 +72,8 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         ),
         heartbeat_loop=_flag(src, "HEARTBEAT_LOOP", default=True),
         outbound_enabled=_flag(src, "OUTBOUND_ENABLED", default=False),
+        outbound_loop=_flag(src, "OUTBOUND_LOOP", default=False),
+        outbound_transport=src.get("OUTBOUND_TRANSPORT", "").strip() or "console",
         outbound_reply_token=src.get("OUTBOUND_REPLY_TOKEN", "").strip(),
         waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
     )
