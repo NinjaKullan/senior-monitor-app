@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 149.** This line is the one to update; the `Next number:` lines inside
+**Next number: 152.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1320,3 +1320,47 @@ browser — all three adopted as the standard for future surfaces.**
      `nginx -t` plus a grep for `default_server`) would have caught this before
      deploy; a post-deploy curl of the canonical host would have caught it after.
      Flagged for Claude Code to pick up with the next site pass.
+
+---
+
+## Outbound copy rulings (PM, from the founder, 2026-08-23)
+
+149. **Relationship labels, never names or pet names, in outbound copy.** Founder
+     ruling: templates never use a parent's given name or a family's own pet name
+     (Amma, Appa) — Kettle cannot know what a family calls their elders, and
+     guessing pretends an intimacy the product does not have. Every template that
+     references the parent uses a `{relationship}` label the child picks at setup
+     from a standard set: Mom, Dad, Grandma, Grandpa, Aunt, Uncle (extendable).
+     Pronouns are never guessed either: templates use singular they or are
+     restructured to need none. This supersedes `{parent_name}` in spec 007 §5 and
+     closes the DECISIONS 24 pronoun problem. Consistent with the US-market-default
+     ruling on customer-facing material.
+
+150. **The ask carries a universal icon; parent-language asks are planned, not
+     built.** The ask becomes English plus an icon a parent who reads no English
+     can still act on (see 151 for the verbatim string). Reply intake stays
+     content-blind: a thumbs-up, a voice note, or a sentence in any language all
+     count as "answered" — nothing parses content, per spec 007 §2.6. A per-parent
+     language field for native-language asks is planned for a later spec; the
+     English-only-surfaces rule stands until then. Founder ruling on scope: the
+     site's quoted ask string is NOT updated in this pass. Spec 007 §5's "verbatim
+     from the site's exemption" binding is relaxed to "the site's quote is
+     illustrative"; if any test asserts site/product string equality, loosen the
+     test, never the product copy.
+
+151. **The five outbound template bodies, verbatim (founder-approved 2026-08-23).**
+     Recorded here in full because the last approved set lived only in a chat
+     transcript and was lost (see 141, 145). These replace spec 007 §5's originals
+     and are what `product/outbound_templates.py` renders. No em dashes in any
+     body (DECISIONS 127).
+
+     1. Digest, morning, normal:
+        "{relationship}'s morning looked like a normal morning. Next note this evening."
+     2. Digest, evening, normal:
+        "An ordinary day, start to finish. Next note in the morning."
+     3. Digest, morning, quiet-so-far:
+        "Quiet so far this morning. Kettle will check in with {relationship} first if that continues."
+     4. The ask (to the parent):
+        "Everything okay today? Reply with a 👍 whenever suits."
+     5. Follow-on (to the child):
+        "{relationship}'s usual morning hasn't shown up today, and they haven't answered Kettle's note yet. You know their day best. A call from you beats anything Kettle can send."
