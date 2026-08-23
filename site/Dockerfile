@@ -5,4 +5,8 @@
 FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY dist/ /usr/share/nginx/html
+# The config-level half of DECISIONS 168: a conf that does not parse cannot
+# become an image, so `fly deploy` fails at build instead of at serve. The
+# behavioral half (host dispatch, the 148 loop) lives in the site suite.
+RUN nginx -t
 EXPOSE 8080
