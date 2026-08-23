@@ -938,3 +938,42 @@ def test_a_failing_loop_pass_alerts_the_founder_once_per_streak(notifier):
     asyncio.run(drive())
     assert state.failing is True
     assert len([m for m in notifier.messages if "pass failed" in m]) == 1
+
+
+def test_a_sent_row_cannot_be_downgraded(conn, family):
+    """'sent' is final (0015): a racing pass reporting failure after a
+    delivery must not un-send the message in the record."""
+    plan = schedule_for(at(11, 0), "Asia/Kolkata")
+    args = (
+        family.family_id,
+        family.parents[0].parent_id,
+        plan.local_date,
+        "ask",
+        "ask_parent",
+        "log",
+        at(11, 0),
+    )
+    assert db.record_sent_message(conn, *args, status="sent") is True
+    assert db.record_sent_message(conn, *args, status="failed") is False
+    assert statuses(conn)["ask"] == "sent"
+
+
+def test_a_skipped_ask_is_not_answerable(conn, family):
+    """Only a sent ask is an open question: a skipped one never reached the
+    parent, so a reply cannot match it and mark it answered."""
+    plan = schedule_for(at(11, 0), "Asia/Kolkata")
+    db.record_sent_message(
+        conn,
+        family.family_id,
+        family.parents[0].parent_id,
+        plan.local_date,
+        "ask",
+        "ask_parent",
+        "log",
+        at(11, 0),
+        status="skipped",
+    )
+    assert record_parent_reply(conn, WHATSAPP, at(11, 30)) is False
+    assert conn.execute(
+        "select replied_utc from sent_messages where kind = 'ask'"
+    ).fetchone()["replied_utc"] is None
