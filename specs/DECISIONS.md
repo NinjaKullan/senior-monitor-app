@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 161.** This line is the one to update; the `Next number:` lines inside
+**Next number: 163.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1631,3 +1631,35 @@ browser — all three adopted as the standard for future surfaces.**
      feeding the tripwire and setup surfaces — small, and the PM's to order.
      The window and limit are named constants (`PINGS_WINDOW_DAYS`,
      `PINGS_LIMIT_PER_PARENT`), one edit to overrule.
+
+---
+
+## Wave C copy and the prod cleanup (PM, from the founder, 2026-08-23)
+
+161. **Two new template bodies, verbatim (founder-approved 2026-08-23), joining
+     DECISIONS 151's five.** Recorded here in full, same reason as 151. Both
+     pronoun-free, no em dashes, {relationship} per DECISIONS 149.
+
+     6. All-clear (to the child, only after a follow-on has gone out, when the
+        parent's routine resumes):
+        "The shape of {relationship}'s usual day is back. Kettle returns to its twice-a-day notes."
+     7. Unreachable-phone follow-on (replaces the standard follow-on when the
+        phone has stopped reporting entirely, per DECISIONS 157's mechanism_ok
+        distinction):
+        "{relationship}'s phone has been silent today, which is different from a quiet morning. A phone that is off or out of battery looks exactly like this. A call from you settles it either way."
+
+     The standard follow-on (151 body 5) remains for the changed-morning case:
+     signals still arriving, routine absent. Which follow-on renders is the
+     engine's distinction to make; the two bodies never both send for the same
+     day.
+
+162. **Prod data cleanup, 2026-08-23 (founder-run via SQL editor, PM-authored).**
+     Deleted outright, history included: Kettle Demo Family (Demo Amma, Demo
+     Appa, Demo Wife) and the three provisioning-test "Patel" families (Dad
+     London, Mom Chicago x3). Kept: Rehearsal (TestDad, TestMom — the founder's
+     and his wife's instrumented phones, now labeled Dad/Mom) and Suryaprakasam
+     (Amma/Mom, Appa/Dad). Prod now holds exactly 2 families, 4 parents, 0
+     unlabeled. Ledger reviewers: rows before this date may reference families
+     that no longer exist; sent_messages/ops_alerts for the deleted families
+     were removed with them. The label-less-parent skip alerts stop as of this
+     cleanup.
