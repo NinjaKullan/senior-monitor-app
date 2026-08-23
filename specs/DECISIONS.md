@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 164.** This line is the one to update; the `Next number:` lines inside
+**Next number: 165.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1723,3 +1723,14 @@ browser — all three adopted as the standard for future surfaces.**
        carried a follow-on and an all-clear, since the evidence gate sees
        signals. Whether a followed-up day should close with that sentence is
        a copy ruling; the engine change is small once ruled.
+
+164. **(2026-08-23, Fable) A followed-up day gets no evening digest.** Answering
+     163's flagged question: "An ordinary day, start to finish" is a false
+     sentence on any day Kettle escalated, and no ordinary-day body belongs on
+     it. Ruling: when a follow-on (either body) has been sent for a parent's
+     day, that day's evening digest is withheld — not replaced, withheld. The
+     follow-on and, when earned, the all-clear already told the day's story;
+     the twice-a-day notes resume with the next morning digest. The withholding
+     is recorded in the ledger the same way the evidence gate records its own
+     (no silent absence), but it raises no ops alert — this absence is the
+     system working, not failing. Small build; goes into the next product pass.
