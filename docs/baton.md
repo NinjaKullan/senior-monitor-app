@@ -38,11 +38,11 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 277 + 1 xfail**, **`webapp` 117**, **`site` 174**.
+Current green: **`pytest` 278 + 1 xfail**, **`webapp` 117**, **`site` 174**.
 
 * The xfail is a **live bug**, not a skipped test (§5).
 * The product count fell from 401 to 270 when the digest and ladder suites went with
-  their engines (DECISIONS 141); it is 277 now.
+  their engines (DECISIONS 141); it is 278 now.
 * Postgres has died mid-session in this container. `KETTLE_REQUIRE_POSTGRES=1` turns
   that into 169 loud errors instead of a silent skip. Restart and re-run.
 * **Verify front-end changes on more than one Node.** The container has 22.22.2, the
@@ -65,11 +65,16 @@ Current green: **`pytest` 277 + 1 xfail**, **`webapp` 117**, **`site` 174**.
   the PM's call, not a migration.
 * **The waitlist form is CORS-dead** until `WAITLIST_ORIGINS` on kettle-api includes the
   serving origin. Unconfirmed whether it was ever set. See §4.
+* **kettle-site is serving a redirect loop in production right now.** The domain
+  cascade shipped a config in which `heykettle.com` matched no `server_name`, fell
+  into the fly.dev redirect block and 301'd to itself (DECISIONS 148 — my bug;
+  `server_name _` is not a default server). **The fix is committed and NOT deployed.**
+  Until `fly deploy` runs, the site is unreachable.
 
 **Deployed as of 2026-08-18 (founder-reported):** migration 0011 applied and verified in
 the live database; kettle-api healthy (`/healthz` → `{"db":true}`); kettle-site at
 `2f1f2f5`. **Migrations 0012 and 0013 are written but NOT applied.** The site runs a
-build that predates five unshipped passes (§4).
+build that predates six unshipped passes (§4).
 
 ## 4. Owed — by the founder
 
@@ -80,10 +85,12 @@ build that predates five unshipped passes (§4).
      WAITLIST_ORIGINS="https://heykettle.com,https://www.heykettle.com,https://kettle-site.fly.dev"
    ```
    Drop the fly.dev entry when the old host stops being used.
-2. **`fly deploy` kettle-site.** Five passes unshipped: DECISIONS 134 (presence), 135
-   (one-voice typography, field band, stir), 136 (illustrations, mobile tab row), 137
-   (floating CTA), 142 (domain cascade). Their acceptance test is the PM and the
-   founder looking at the live site.
+2. **`fly deploy` kettle-site — URGENT, the site is down.** It is serving a redirect
+   loop; DECISIONS 148's one-word fix is committed and unshipped. Six passes ride
+   along: 134 (presence), 135 (one-voice typography, field band, stir), 136
+   (illustrations, mobile tab row), 137 (floating CTA), 142 (domain cascade), 148.
+   **After deploying, curl the canonical host** — nothing in the suite reaches a
+   running server, which is how the loop got out (see §7).
 3. **`fly deploy` kettle-app.** Carries the 112 cache headers — until then deploys
    white-screen returning browsers — plus the login words, the Setup card, and now the
    session-restore fix (144).
@@ -104,15 +111,29 @@ build that predates five unshipped passes (§4).
 | **145** | **Open bug.** `record_parent_reply` matches the ask by local calendar day, so a parent who answers after local midnight cancels nothing and her family is escalated to anyway. Pinned as a `strict=True` xfail in `test_outbound.py` — when fixed, the marker fails as XPASS and must be removed. The repair is a spec choice: match the most recent *unanswered* ask, then bound "recent". |
 | **142** | Two cheap-to-overrule calls: `/healthz` answers on both hosts instead of redirecting; privacy.html has no canonical. |
 
-## 6. Owed — by the implementer, blocked on input
+Resolved since: **151** delivered the five template bodies (see §6), **149** ruled
+relationship labels over names, **150** ruled the ask's icon.
 
-**§5's five corrected template bodies (DECISIONS 141, re-flagged 146).** The ruling was
-to replace them with the founder's strings *verbatim*; that message has not reached a
-session yet, and `specs/007-outbound-channel.md` §5 still carries the originals. So
-`product/kettle/outbound_templates.py` is unchanged and still renders `"Appa's morning
-looked like her morning."` — the DECISIONS 24 pronoun problem and the 127 em dash are
-both live in product copy. **Ask for the five strings; it is a ten-minute pass**
-(registry, spec §5, the copy-law tests).
+## 6. The next build — the outbound copy pass (149, 150, 151)
+
+**Unblocked as of 2026-08-23, and no longer a ten-minute pass.** DECISIONS 151 records
+the five founder-approved bodies verbatim, ending the block that stood since 141.
+
+**DECISIONS 151 states that `outbound_templates.py` renders them. It does not yet** —
+the module still has `"{parent_name}'s morning looked like her morning."` The ruling is
+filed; the implementation is owed, and the entry reads as present tense, so do not
+trust it as a description of the code.
+
+It grew because 149 and 150 came with it. `{parent_name}` is superseded by a
+`{relationship}` label the child picks at setup from a standard set (Mom, Dad, Grandma,
+Grandpa, Aunt, Uncle, extendable) — Kettle cannot know what a family calls their elders.
+Pronouns are never guessed: singular they, or restructure to need none. So this touches
+the registry, spec 007 §5, the copy-law tests, **and** a new place to store and choose a
+relationship label per parent — which is schema, setup UI and a migration, not a string
+swap. **Read 149, 150 and 151 in full before scoping it.**
+
+This also closes the DECISIONS 24 pronoun problem and the 127 em dash, both still live
+in product copy until it lands.
 
 ## 7. Deliberate, and easy to "fix" by mistake
 
@@ -138,6 +159,10 @@ both live in product copy. **Ask for the five strings; it is a ten-minute pass**
   an exact `server_name` before `_`, so requests on the real domain never enter it and
   the caching contract is structurally unaffected. A test asserts there is no `if (` in
   the config (142).
+* **`site/nginx.conf`'s serving block carries `listen 8080 default_server`.** Not
+  cosmetic: `server_name _` is *not* a default, and without the flag nginx routes every
+  unmatched Host to the first block — the redirect — which took the site down (148). A
+  test now fails by name if it is removed.
 * **`docs/failure-families.md` sections are appended, never renumbered** — DECISIONS 145
   cites "family 5" by number.
 
