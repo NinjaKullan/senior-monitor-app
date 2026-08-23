@@ -38,13 +38,13 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 346, zero xfails**, **`webapp` 115**, **`site` 174**.
+Current green: **`pytest` 381, zero xfails**, **`webapp` 115**, **`site` 174**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
 * The webapp count moved 117 → 110 with the Digests screen's retirement (156), then
   to 115 with the 1000-row-cliff regression suite (160); the product count grew to
-  346 through the outbound passes (152/153/154/159).
+  381 through the outbound passes (152/153/154/159/163).
 * Postgres has died mid-session in this container. `KETTLE_REQUIRE_POSTGRES=1` turns
   that into 169 loud errors instead of a silent skip. Restart and re-run.
 * **Verify front-end changes on more than one Node.** The container has 22.22.2, the
@@ -124,9 +124,30 @@ The loop is wired as of this pass and starts, dark, with the next kettle-api dep
    default; `fly secrets unset -a kettle-api OUTBOUND_TRANSPORT` is the rollback.)
    Before flipping: Resend DNS verified on `send.heykettle.com` and open/click
    tracking OFF in the Resend dashboard (docs/auth-smtp-plan.md). After flipping:
-   digests go to the child's account email; asks and follow-ons record as skipped
-   with an ntfy alert each morning that is quiet — that is Wave C's gap, expected
-   and visible, not a bug.
+   digests, follow-ons and all-clears go to the child's account email; asks record
+   as skipped with an ntfy alert each quiet morning — that is the gap Wave C's
+   flip closes, expected and visible, not a bug.
+7. **The Wave C flip, when Twilio is ready (DECISIONS 163) — after (or with) the
+   Wave B flip:**
+   1. Twilio console: note the account SID, auth token and sandbox number; have
+      both parents send the sandbox join code once from their WhatsApp.
+   2. Point the sandbox's inbound webhook at
+      `https://kettle-api.fly.dev/outbound/reply` (POST). The route verifies
+      Twilio's request signature; no other credential is needed.
+   3. ```bash
+      fly secrets set -a kettle-api \
+        TWILIO_ACCOUNT_SID=AC... TWILIO_AUTH_TOKEN=... \
+        TWILIO_WHATSAPP_FROM="whatsapp:+14155238886" \
+        OUTBOUND_TRANSPORT="twilio_whatsapp,resend"
+      ```
+      The comma roster routes the ask by WhatsApp and everything child-facing by
+      email; one bad name or missing secret refuses the boot rather than partially
+      applying. Rollback: set OUTBOUND_TRANSPORT back to `resend` (or unset for
+      console).
+   4. Expect: a quiet morning asks the parent on WhatsApp; a 👍 (or anything)
+      cancels the follow-on; an unanswered ask escalates by email at the deadline
+      even if the WhatsApp send failed; an unjoined sandbox number surfaces as a
+      failed send with an ntfy alert.
 7. **The Resend DNS records** on `send.heykettle.com` before any non-founder family
    (`docs/auth-smtp-plan.md`).
 8. **Confirm Appa's charger automation has both edges ticked** (126).
@@ -203,7 +224,11 @@ run itself starts with the next kettle-api deploy, not before (155 — the runni
 build predates the loop). **Wave B is code-complete** (159): ledger statuses, founder
 ops alerts, staleness cutoff, evidence gate, and the `resend` transport, behind the
 console default until the founder flips it (§4 item 6). Waves C–D are each gated on a
-founder errand. Migrations through **0015**.
+founder errand — and **Wave C is code-complete too** (163): the ask by Twilio
+WhatsApp behind the comma roster, the signature-verified reply webhook, escalation
+on any-status asks, the unreachable-phone follow-on and the all-clear (161's
+bodies, migration 0016). Migrations through **0016**. Waves B and C flip on
+secrets alone; Wave D (registered WhatsApp sender) remains the long pole.
 
 **`site/`** — heykettle.com, live on Cloudflare DNS, hosted on Fly. One illustration set
 (six webps at unhashed stable names the cache contract depends on — there are no

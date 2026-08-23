@@ -67,8 +67,13 @@ Three message kinds, and nothing else speaks:
    noted (timestamp only), nothing is cancelled, nothing escalates because of it.
    Matching by the parent's local calendar day is the ruled-out shape: an ask
    answered just after local midnight is the same conversation, and escalating over
-   a parent who answered is worse than a missed message. Wave A: the endpoint +
-   ledger logic exist and are tested; nothing calls them until Wave C.
+   a parent who answered is worse than a missed message. **Wave C's inbound
+   credential is Twilio's own request signature** (DECISIONS 163): HMAC-SHA1 over
+   the public URL and sorted form params, constant-time compared, failing closed on
+   any missing piece; the shared secret stays as the break-glass path, and with
+   neither configured the route does not exist. The reply body participates in
+   signature verification and is then discarded — content-blind survives the
+   real channel.
 7. **The engine reports what it withholds (DECISIONS 157/159, built with Wave B).**
    The ledger row carries a status — 'sent' is final; 'failed' and 'skipped' claim
    the day's slot but stay retryable — and every non-sent outcome fires one founder
@@ -80,8 +85,11 @@ Three message kinds, and nothing else speaks:
    honest absence and stands); a relationship-bearing template with no label waits
    (DECISIONS 152); a kind the transport does not carry, or an address-requiring
    transport with no address, is a recorded skip, never an attempt. Only 'sent'
-   rows count anywhere a row means "Kettle spoke": the sent-once check, the
-   follow-on's precondition, the reply matcher.
+   rows count anywhere a row means "Kettle spoke" — the sent-once check and the
+   reply matcher — with one ruled exception (DECISIONS 163, amending 159): the
+   follow-on's precondition reads the ask's row at ANY status, so an ask that
+   could not be sent still escalates on the clock and a missing phone number can
+   never silently disable the ladder.
 
 ## 3. The transports (Waves B–D, each gated on one founder errand)
 
@@ -96,7 +104,16 @@ Three message kinds, and nothing else speaks:
   the Wave A ledger review (§6.3); the flip is two Fly secrets, no deploy.
 - **Wave C — WhatsApp via Twilio sandbox** (gated on: Twilio account, ~an hour). The
   sandbox lets named testers join with a code — good enough for the founder family.
-  The ask goes to the parent on WhatsApp; her reply hits the webhook. Rung 1 live.
+  The ask goes to the parent on WhatsApp; the reply hits the webhook. Rung 1 live.
+  **Code-complete (DECISIONS 163):** the `twilio_whatsapp` transport carries the ask
+  and nothing else (the sandbox is a parent-side channel; the follow-on and
+  all-clear travel by email — resend's kinds widened accordingly); the reply webhook
+  verifies Twilio's request signature against the public URL; the follow-on
+  escalates on the clock whatever became of the ask; the unreachable-phone
+  distinction and the all-clear (161's bodies 7 and 6) are live in the engine. The
+  flip is `OUTBOUND_TRANSPORT=twilio_whatsapp,resend` — a comma roster, first-match
+  by kind — plus the three Twilio secrets; console stays the deployed default until
+  the founder flips after the Wave A review.
 - **Wave D — WhatsApp Business sender** (gated on: display-name approval + template
   registration with WhatsApp, the long pole — start the founder errand early).
   Business-initiated WhatsApp messages outside a 24h session REQUIRE pre-approved

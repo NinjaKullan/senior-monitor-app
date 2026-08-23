@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 163.** This line is the one to update; the `Next number:` lines inside
+**Next number: 164.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1663,3 +1663,63 @@ browser — all three adopted as the standard for future surfaces.**
      that no longer exist; sent_messages/ops_alerts for the deleted families
      were removed with them. The label-less-parent skip alerts stop as of this
      cleanup.
+
+---
+
+## Wave C pass build notes (implementer, 2026-08-23)
+
+163. **The ask/reply rung and the Wave C tier are built; the calls inside, each
+     cheap to overrule.** Templates 6 and 7 verbatim from 161 (pinned against
+     the ruling's text); migration 0016 widens the kind check to 'all_clear';
+     the `twilio_whatsapp` transport carries the ask and only the ask; the
+     reply webhook verifies Twilio's request signature; escalation, the
+     unreachable distinction and the all-clear are live in the engine. Console
+     stays the deployed default; the flip steps are in the baton. All
+     guardrails plant-verified — and two all-clear tests initially PASSED
+     their plants, one because the ledger's unique index masks a re-SEND by
+     refusing only the re-record, one because a transport that cannot carry
+     the all-clear hides a wrongly-earned one behind its own skip. Both were
+     re-aimed at the real observable (the transport's send list) before the
+     plants failed properly. Failure family 2, working as intended.
+
+     * **The 159 amendment, filed as ordered.** The follow-on's precondition
+       reads the day's ask row at ANY status (`db.message_row`, the
+       escalation-clock lookup) — an ask that recorded skipped or failed still
+       starts the grace clock from the moment it was due, so a missing phone
+       number cannot silently disable the ladder. Everything else that treats
+       a row as "Kettle spoke" is unchanged and sent-only: the sent-once
+       check, the all-clear's follow-on precondition, and the reply matcher —
+       an undelivered ask is not an answerable question, and a test pins that
+       the amendment reaches the clock and nothing else. One knowing
+       consequence: an unsendable ask keeps retrying after the follow-on has
+       gone, so a late-recovering channel can deliver an ask post-escalation;
+       harmless (it is still a question to the parent) and noted rather than
+       special-cased.
+     * **Multi-channel is a comma, not a mode.** OUTBOUND_TRANSPORT accepts a
+       comma list building a first-match-by-kind roster in the order named;
+       one bad name or missing credential refuses the whole boot, and a list
+       never partially applies. Wave C's value is `twilio_whatsapp,resend`.
+       Pre-routing skips (staleness, evidence, label) record the stack's name
+       ("roster"); routed outcomes record the leaf carrier's.
+     * **The unreachable window is the local day from midnight**, any signal,
+       any grade, allowlist-blind: "has this device said anything at all
+       today". A 03:00 ping is not a morning but it IS a phone that reported,
+       so it selects the changed-morning body. This count never anchors
+       reassurance or alarm (law #6); it only chooses which follow-on reports
+       the silence honestly.
+     * **The all-clear's resolution record is its ledger row** — one per
+       (family, parent, day) under the existing unique index; no new table.
+       Sent follow-ons only: a skipped follow-on earns no all-clear, because
+       the family was never worried by Kettle in the first place.
+     * **The webhook keeps the shared secret as break-glass** beside the
+       Twilio signature; either credential admits, neither configured means
+       the route does not exist, and the signature is verified against
+       PUBLIC_BASE_URL + path — the URL Twilio signed, not Fly's proxied one.
+     * **`twilio_signature.py` returns from the retired list deliberately**:
+       rebuilt for /outbound/reply, written new, and the retirement guardrail
+       now records why it left.
+     * **Open question for the PM, flagged not built:** the evening-normal
+       digest ("An ordinary day, start to finish") still sends on a day that
+       carried a follow-on and an all-clear, since the evidence gate sees
+       signals. Whether a followed-up day should close with that sentence is
+       a copy ruling; the engine change is small once ruled.
