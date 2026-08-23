@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 156.** This line is the one to update; the `Next number:` lines inside
+**Next number: 159.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1491,3 +1491,52 @@ browser — all three adopted as the standard for future surfaces.**
      fails every pass, loudly in logs and invisibly in the product); and the
      post-deploy check that the logs show `outbound (dark):` lines at the
      expected local times.
+
+---
+
+## The four owed PM rulings (Fable, 2026-08-23)
+
+156. **The Digests screen retires; `digest_sends` follows once nothing reads it.**
+     Of DECISIONS 141's two ways out, the screen goes, not the ledger's privacy
+     posture. `sent_messages` stays RLS deny-all: it is the engine's own record,
+     and holding it unreadable from every client is a safety posture worth more
+     than a screen that duplicates the family's inbox — from Wave B onward the
+     digest IS the email; the family already has the record in their own hands.
+     Sequence: webapp drops the Digests screen and `digest_sends` leaves
+     `READ_SURFACE`; a later migration retires `digest_sends` the 0013 way
+     (row-count check, rename-if-holding-rows). A message-history screen can
+     return post-beta if families ask; it would read a purpose-built view, never
+     the raw ledger.
+
+157. **The sixteen missing capabilities (DECISIONS 141), ranked into waves.**
+     *Build with Wave B (blocking, next pass):* founder ops alerts on every
+     failed, unroutable, or skipped send — the DECISIONS 152 label-skip and a
+     failed loop pass included (law #3: founder-only, ntfy, like the pilot);
+     recorded delivery status (sent/failed) on the ledger row; the morning
+     staleness cutoff (a scheduler catching up late does not send "her morning
+     looked ordinary" at dinnertime — skip and ops-alert instead); the evidence
+     gate (a reassurance body never renders from an empty evidence window: a
+     zero-signal day sends no evening-normal digest and raises an ops alert —
+     absence of data is an ops condition, not a family message; the morning
+     quiet-so-far path is already honest absence and stands).
+     *Build with Wave C:* the ask_skipped equivalent (a transport with nobody to
+     reach records the skip and still escalates on the clock — a missing phone
+     number must never silently disable the ladder); all-clear on routine
+     resume and its resolution bookkeeping; the mechanism_ok unreachable-handset
+     distinction (dead battery must not read as a changed morning once real
+     follow-ons flow).
+     *Later, when more than one family exists:* per-recipient fan-out, the
+     aggregated per-family evening digest, staged escalation family_1 →
+     family_all, the per-family shadow/live schema interlock, per-parent
+     thresholds, and max_gap as a second daytime trigger.
+
+158. **Three accepted calls, made deliberate.** (a) `/healthz` answers on both
+     hosts and never redirects — a health endpoint that 301s reports on the
+     wrong machine (DECISIONS 142, confirmed). (b) privacy.html carries no
+     canonical link and no absolute URL of any kind: the fetch-nothing guarantee
+     outranks an SEO hint, and the 301 already collapses the duplicate address
+     (DECISIONS 142, the withdrawal is now the ruling). (c) The relationship
+     label stays founder-entered at provisioning while the onboarding pause
+     (QUESTIONS 126) holds; the child-facing picker joins the setup page
+     whenever that pause lifts, not before (closes DECISIONS 152's open
+     question).
