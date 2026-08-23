@@ -38,12 +38,13 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 346, zero xfails**, **`webapp` 110**, **`site` 174**.
+Current green: **`pytest` 346, zero xfails**, **`webapp` 115**, **`site` 174**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
-* The webapp count fell 117 → 110 with the Digests screen's retirement (156); the
-  product count grew to 346 through the outbound passes (152/153/154/159).
+* The webapp count moved 117 → 110 with the Digests screen's retirement (156), then
+  to 115 with the 1000-row-cliff regression suite (160); the product count grew to
+  346 through the outbound passes (152/153/154/159).
 * Postgres has died mid-session in this container. `KETTLE_REQUIRE_POSTGRES=1` turns
   that into 169 loud errors instead of a silent skip. Restart and re-run.
 * **Verify front-end changes on more than one Node.** The container has 22.22.2, the
@@ -154,6 +155,11 @@ retired (156), suite now 110.
 
 ## 7. Deliberate, and easy to "fix" by mistake
 
+* **The webapp's pings read is per-parent, windowed, ordered and limited on
+  purpose** (`webapp/src/lib/data.ts`, DECISIONS 160). "Simplifying" it back to a
+  plain select re-opens the 1000-row cliff: PostgREST silently caps unbounded
+  responses, and prod crossed the cap and showed a stale Today card. A test pins
+  the order, the limit, the window and the audit of every other table.
 * **privacy.html has no `<link rel="canonical">`.** It is held to a stricter law —
   stands alone, no `<link>`, no absolute URL — so a reader can verify it fetches
   nothing. The 301 already prevents the duplication a canonical would address (142).

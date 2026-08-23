@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 160.** This line is the one to update; the `Next number:` lines inside
+**Next number: 161.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1587,3 +1587,47 @@ browser — all three adopted as the standard for future surfaces.**
      * **`ops_alerts` gains `outbound_*` kinds** — same founder-only posture as
        the heartbeat's rows; the pilot-paths test now pins that every outbound
        write there carries the prefix rather than pinning the table empty.
+
+---
+
+## The 1000-row cliff (implementer, 2026-08-23)
+
+160. **Prod bug, fixed: the Today card showed a stale "Last routine seen" over
+     a parent who was actively pinging.** `loadSnapshot`'s `readAll("pings")`
+     selected with no order and no limit; PostgREST silently caps such a
+     response at 1000 rows, prod pings crossed 1000 today (1051 at diagnosis),
+     and the client computed "latest" from an arbitrary 1000-row subset that
+     the newest pings fell outside. Left alone it worsens daily and ends at
+     "Quiet so far" over someone mid-routine — the exact dishonesty the Glance
+     laws exist to prevent. Filed under failure family 1: the read *worked*,
+     the data was simply incomplete (bullet added to
+     `docs/failure-families.md`).
+
+     **The fix**: pings are fetched per parent — last 14 days, `ts_utc`
+     descending, limit 500. Descending order means truncation of any kind
+     drops the oldest rows, so the newest ping always survives; the per-parent
+     partition stops one prolific phone crowding a sibling out of a shared
+     cap. The `eq(parent_id)` is a shape filter over parents the snapshot
+     already holds, not an isolation filter — RLS still decides visibility,
+     `data.ts`'s no-family-filter law stands. Every other `readAll` table now
+     carries a written reason it cannot plausibly reach 1000 rows per family
+     (families: one; parents/members: a handful; parent_signals: people × a
+     fixed vocabulary; setup_links: manual founder issuances), and a test
+     asserts the set of unbounded reads is exactly that list, so a new table
+     re-runs the audit by failing. The regression suite runs against a
+     PostgREST-faithful fake that honours order/limit/filters and then caps at
+     1000 silently; planted reverts (the whole old read, and dropping only the
+     `.order`) fail by name.
+
+     **Two consequences of the 14-day window, flagged rather than hidden.**
+     Both surfaces that read pings for "has this ever happened" now see at
+     most 14 days: (a) a tripwire whose last ping is older than the window
+     renders as never-reported ("Not set up yet") instead of "N days ago" —
+     with daily-ish cadences a signal silent 14+ days has long since paged the
+     founder via heartbeat, but the label is still wrong about setup state;
+     (b) the Setup card's "first ping heard" check reverts to unheard if a
+     parent's only pings age out. If either matters before the next pass, the
+     repair is a per-(parent, signal) latest-row read (limit 1, no window)
+     feeding the tripwire and setup surfaces — small, and the PM's to order.
+     The window and limit are named constants (`PINGS_WINDOW_DAYS`,
+     `PINGS_LIMIT_PER_PARENT`), one edit to overrule.

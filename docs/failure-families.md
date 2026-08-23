@@ -37,6 +37,17 @@ than inserted.** Renumbering silently rewrites what an old ruling points at.
 - **`pytest | tail` returns tail's exit code, not pytest's.** Read the summary counts,
   and redirect long runs to a file rather than piping them.
 
+- **An unbounded PostgREST select caps at 1000 rows and calls it success.** No
+  error, no warning header anyone reads: the response is simply the first 1000
+  rows in arbitrary order. The webapp read `pings` whole, prod crossed 1000,
+  and the Today card computed "latest" from a subset the newest pings fell
+  outside (DECISIONS 160) — the read worked, the data was incomplete. The
+  countermeasure generalises: a read of a table that grows must state its
+  order and its limit, so truncation becomes a decision about *which* rows
+  survive instead of an accident about which happened to come back; and the
+  regression test must fake the cap itself, or it passes against the client
+  that caused the bug.
+
 ## 2. The test that passes for the wrong reason
 
 - **Verify a guardrail test by planting the regression it exists to catch**,
