@@ -34,13 +34,6 @@ export interface Ping {
   ts_utc: string;
 }
 
-export interface DigestSend {
-  parent_id: string;
-  kind: "morning" | "evening";
-  local_date: string;
-  ts_utc: string;
-}
-
 /**
  * A parent's setup-page link (spec 005b). The slug is the page's credential;
  * this app may *forward* it — that is the whole point of the row — but must

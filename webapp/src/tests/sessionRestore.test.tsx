@@ -178,7 +178,7 @@ describe("loading is bounded", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const snapshot = {
       family: { id: "f1", name: "Sharma", tz: "Asia/Kolkata" },
-      parents: [], members: [], signals: [], pings: [], digests: [], setupLinks: [],
+      parents: [], members: [], signals: [], pings: [], setupLinks: [],
     };
     await mount({
       claimMembership: vi.fn().mockResolvedValue(undefined),

@@ -9,7 +9,6 @@
 import { supabase } from "./supabase";
 import { READ_SURFACE } from "./queries";
 import type {
-  DigestSend,
   Family,
   Member,
   Parent,
@@ -30,7 +29,6 @@ export interface FamilySnapshot {
   members: Member[];
   signals: ParentSignal[];
   pings: Ping[];
-  digests: DigestSend[];
   setupLinks: SetupLink[];
 }
 
@@ -53,14 +51,13 @@ export async function claimMembership(): Promise<void> {
 }
 
 export async function loadSnapshot(): Promise<FamilySnapshot> {
-  const [families, parents, members, signals, pings, digests, setupLinks] =
+  const [families, parents, members, signals, pings, setupLinks] =
     await Promise.all([
       readAll<Family>("families"),
       readAll<Parent>("parents"),
       readAll<Member>("members"),
       readAll<ParentSignal>("parent_signals"),
       readAll<Ping>("pings"),
-      readAll<DigestSend>("digest_sends"),
       readAll<SetupLink>("setup_links"),
     ]);
   return {
@@ -69,7 +66,6 @@ export async function loadSnapshot(): Promise<FamilySnapshot> {
     members,
     signals,
     pings,
-    digests,
     setupLinks,
   };
 }

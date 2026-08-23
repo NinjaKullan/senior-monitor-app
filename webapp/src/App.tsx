@@ -7,7 +7,6 @@ import {
   sendMagicLink,
   type FamilySnapshot,
 } from "@/lib/data";
-import { buildDigestEntries } from "@/lib/digests";
 import { computeGlance } from "@/lib/glance";
 import { buildSetupEntries } from "@/lib/setupLinks";
 import {
@@ -17,7 +16,6 @@ import {
 } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { computeTripwires } from "@/lib/tripwires";
-import { Digests } from "@/screens/Digests";
 import { FamilyScreen } from "@/screens/Family";
 import { Glance } from "@/screens/Glance";
 import { Login } from "@/screens/Login";
@@ -32,11 +30,10 @@ import { TripwireDetail } from "@/screens/TripwireDetail";
  */
 const REFRESH_MS = 45_000;
 
-type Tab = "glance" | "digests" | "family";
+type Tab = "glance" | "family";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "glance", label: "Today" },
-  { id: "digests", label: "Digests" },
   { id: "family", label: "Family" },
 ];
 
@@ -168,14 +165,6 @@ export default function App() {
   const states = snapshot.parents.map((parent) =>
     computeGlance(parent, familyTz, snapshot.signals, snapshot.pings, now),
   );
-  const entries = buildDigestEntries(
-    snapshot.digests,
-    snapshot.parents,
-    familyTz,
-    snapshot.signals,
-    snapshot.pings,
-  );
-
   // The open parent survives a refresh only while they are still in the
   // snapshot; a parent removed from the family closes the detail rather than
   // leaving a stale one on screen.
@@ -215,7 +204,6 @@ export default function App() {
         ) : (
           <Glance states={states} onOpen={setOpenParentId} />
         ))}
-      {tab === "digests" && <Digests entries={entries} />}
       {tab === "family" && (
         <FamilyScreen
           parents={snapshot.parents}

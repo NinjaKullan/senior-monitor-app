@@ -26,17 +26,15 @@
  */
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Digests } from "@/screens/Digests";
 import { FamilyScreen } from "@/screens/Family";
 import { Glance } from "@/screens/Glance";
 import { NoFamily } from "@/screens/NoFamily";
 import { TripwireDetail } from "@/screens/TripwireDetail";
-import { buildDigestEntries } from "@/lib/digests";
 import { computeGlance } from "@/lib/glance";
 import { computeTripwires } from "@/lib/tripwires";
 import { SIGNAL_DISPLAY_NAMES } from "@/lib/signalNames";
 import { PRIVACY_FOOTER, SETUP_SEND_LABEL } from "@/lib/copy";
-import type { DigestSend, Member, Parent, ParentSignal, Ping } from "@/lib/types";
+import type { Member, Parent, ParentSignal, Ping } from "@/lib/types";
 
 const IST = "Asia/Kolkata";
 const CHICAGO = "America/Chicago";
@@ -89,11 +87,6 @@ const setupEntries = [
     expiresDate: null,
   },
 ];
-const sends: DigestSend[] = [
-  { parent_id: "p1", kind: "morning", local_date: "2026-08-03", ts_utc: "2026-08-03T03:00:00Z" },
-  { parent_id: "p1", kind: "evening", local_date: "2026-08-02", ts_utc: "2026-08-02T15:00:00Z" },
-];
-
 const glanceAt = (now: Date, given: Ping[] = pings) =>
   parents.map((p) => computeGlance(p, IST, signals, given, now, CHICAGO));
 
@@ -281,20 +274,6 @@ describe("rendered copy law", () => {
       <Glance states={glanceAt(NOON_IST, [10, 18, 25, 33, 42].map(morning))} />,
     );
     expect(strip(busy.container.innerHTML)).toBe(sparseHtml);
-  });
-
-  it("holds for the Digests screen", () => {
-    const entries = buildDigestEntries(sends, parents, IST, signals, pings);
-    render(<Digests entries={entries} />);
-    const text = renderedText();
-    expect(text).toContain("day started normally");
-    assertCopyLaw(text);
-  });
-
-  it("holds for the empty Digests state", () => {
-    render(<Digests entries={[]} />);
-    expect(renderedText()).toContain("Your daily digests will appear here.");
-    assertCopyLaw(renderedText());
   });
 
   it("holds for the Family screen, and carries the privacy line verbatim", () => {

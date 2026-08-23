@@ -24,7 +24,6 @@ export const READ_SURFACE = {
   members: "id, family_id, display_name, role, digest_channel",
   parent_signals: "parent_id, signal, alarm_grade, active",
   pings: "parent_id, signal, ts_utc",
-  digest_sends: "parent_id, kind, local_date, ts_utc",
   // Spec 005b: the family's own setup links, so the Family screen can offer
   // "Mom's setup" as a forwardable card. parent_id is on the row precisely so
   // this surface never has to read `devices` — tokens stay out of the browser.

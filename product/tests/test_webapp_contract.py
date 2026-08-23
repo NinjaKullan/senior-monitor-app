@@ -45,26 +45,23 @@ def _ts_consts(path: Path) -> dict[str, str]:
     return found
 
 
-def test_the_digest_screens_copy_still_exists_and_is_now_unowned():
-    """It used to be a parity test. Retiring spec 003 took the other half.
+def test_the_digest_screen_is_retired_and_its_copy_is_gone():
+    """DECISIONS 156: the Digests screen goes, and its copy goes with it.
 
-    `kettle/messages.py` held the backend originals and this asserted the app's
-    copy had not drifted from them. Spec 007 superseded 003 (DECISIONS 141) and
-    that module is gone, so these five strings now live in `copy.ts` and nowhere
-    else — the Digests screen recomposes messages from `digest_sends` rows using
-    them, and both the table and the screen are waiting on a decision about
-    where the screen reads from next.
-
-    What survives is the half that still means something: the constants must be
-    there, because a screen that renders `undefined` at a family is worse than
-    one that was deliberately retired. When the screen moves to spec 007's
-    template registry, this becomes a parity test again against that.
+    The five retired-spec-003 template strings must NOT reappear in `copy.ts`,
+    and `digest_sends` must stay out of the app's declared read surface — from
+    Wave B the digest IS the email, and a message-history screen, if families
+    ever ask for one, reads a purpose-built view, never the raw ledger. Dead
+    strings kept "just in case" are how retired copy leaks back onto a screen
+    (the `never` precedent, DECISIONS 68).
     """
     ts = _ts_consts(COPY_TS)
     assert ts, "no exported string constants found in copy.ts"
-
     for name in ("MORNING_TEMPLATE", "EVENING_ONE", "EVENING_TWO", "EVENING_MANY", "CLOCK_NEUTRAL"):
-        assert ts.get(name), f"the Digests screen lost {name}"
+        assert name not in ts, f"retired digest copy came back: {name}"
+    assert "digest_sends" not in _read_surface(), (
+        "digest_sends returned to the app's read surface (DECISIONS 156)"
+    )
 
 
 # The headline is the one string a family reads at an anxious moment, so it is
