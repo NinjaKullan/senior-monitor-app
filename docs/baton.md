@@ -104,12 +104,12 @@ The loop is wired as of this pass and starts, dark, with the next kettle-api dep
 3. **`fly deploy` kettle-app.** Carries the 112 cache headers — until then deploys
    white-screen returning browsers — plus the login words, the Setup card, and now the
    session-restore fix (144).
-4. **Apply migrations 0012, 0013 and 0015, then `fly deploy` kettle-api — this
-   deploy starts Wave A, dark** (DECISIONS 154/155/159). 0013 decides per-table at
-   apply time and prints notices saying what it did; read them. 0012 creates
-   `sent_messages`, which the loop writes — deploying before applying it means a
-   loop that fails every pass — and 0015 adds the status column the engine now
-   writes. (0014 and the relationship labels are already done — PM, 2026-08-23.)
+4. **Apply migrations 0012, 0013, 0015 and 0016, then `fly deploy` kettle-api —
+   this deploy starts Wave A, dark** (DECISIONS 154/155/159/163). 0013 decides
+   per-table at apply time and prints notices saying what it did; read them. 0012
+   creates `sent_messages`, which the loop writes — deploying before applying it
+   means a loop that fails every pass — 0015 adds the status column the engine
+   writes, and 0016 admits the all-clear kind. (0014 and the relationship labels are already done — PM, 2026-08-23.)
    After deploying, check the logs for `outbound (dark):` lines at the expected
    local times, and expect founder ntfy alerts for anything skipped or failed.
 5. **Run Wave A dark for 48 hours** and review the ledger against what actually
