@@ -1183,3 +1183,104 @@ def test_the_comma_config_builds_the_roster_and_fails_closed(settings, notifier)
     with pytest.raises(RuntimeError, match="TWILIO"):
         create_app(replace(live, outbound_transport="twilio_whatsapp,resend",
                            twilio_whatsapp_from=""), notifier)
+
+
+# --- DECISIONS 164: a followed-up day gets no evening digest -------------------
+
+
+def test_a_followed_up_day_gets_no_evening_digest_and_no_alert(conn, family, notifier):
+    """'An ordinary day, start to finish' is a false sentence on a day Kettle
+    escalated. Withheld, recorded like the evidence gate's withholding — and
+    silent to ops, because this absence is the system working. The quiet-day
+    shape also proves the ordering: the evidence gate would have withheld this
+    same evening loudly, and the 164 rule wins."""
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0), notifier=notifier)
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE, notifier=notifier)
+    assert ("follow_on", "follow_on_unreachable") in ledger(conn)
+    before = list(notifier.messages)
+
+    run_twice(conn, transport, at(20, 30), notifier=notifier)
+    assert not any(kind == "digest_evening" for kind, _ in ledger(conn))
+    assert statuses(conn)["digest_evening"] == "skipped"
+    assert "digest_evening_normal" not in [t for t, _ in transport.sent]
+    # No ops alert of any kind for it: ntfy silent, ops_alerts row absent.
+    assert notifier.messages == before
+    evening_alerts = conn.execute(
+        "select count(*) as n from ops_alerts where detail like '%evening%'"
+    ).fetchone()["n"]
+    assert evening_alerts == 0
+
+
+def test_an_asked_but_not_followed_up_day_keeps_its_evening_digest(conn, family):
+    """The ask alone does not end the day's notes: the parent answered, the
+    routine resumed, and the evening note goes as on any other day."""
+    parent_id = family.parents[0].parent_id
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0))
+    assert record_parent_reply(conn, WHATSAPP, at(11, 30)) is True
+    ping(conn, parent_id, "whatsapp", at(12, 0))
+
+    run_twice(conn, transport, at(20, 30))
+    assert ("digest_evening", "digest_evening_normal") in ledger(conn)
+
+
+def test_an_all_clear_day_still_withholds_the_evening(conn, family, notifier):
+    """The follow-on and the all-clear already told the day's story — the
+    evening stays withheld even though the evidence gate is satisfied, which
+    proves the 164 rule is doing the withholding, not the gate."""
+    parent_id = family.parents[0].parent_id
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0), notifier=notifier)
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE, notifier=notifier)
+    ping(conn, parent_id, "whatsapp", at(14, 0))
+    run_twice(conn, transport, at(14, 5), notifier=notifier)
+    assert ("all_clear", "all_clear_family") in ledger(conn)
+    before = list(notifier.messages)
+
+    run_twice(conn, transport, at(20, 30), notifier=notifier)
+    assert not any(kind == "digest_evening" for kind, _ in ledger(conn))
+    assert statuses(conn)["digest_evening"] == "skipped"
+    assert notifier.messages == before
+
+
+def test_a_skipped_follow_on_leaves_the_evening_alone(conn, family):
+    """SENT follow-ons only (the ruling's word): a follow-on the family never
+    received told them nothing, so their evening note still comes."""
+
+    class NoFollowOn(LogTransport):
+        name = "no-follow-on"
+        kinds = ("digest_morning", "digest_evening", "ask", "all_clear")
+
+    parent_id = family.parents[0].parent_id
+    transport = NoFollowOn()
+    run_twice(conn, transport, at(11, 0))
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
+    assert statuses(conn)["follow_on"] == "skipped"
+
+    ping(conn, parent_id, "whatsapp", at(14, 0))
+    run_twice(conn, transport, at(20, 30))
+    assert ("digest_evening", "digest_evening_normal") in ledger(conn)
+
+
+def test_the_notes_resume_with_the_next_morning(conn, family):
+    """The withholding is one day's, not a state: the next local day opens
+    with its morning digest as if nothing happened — because by then, nothing
+    is happening."""
+    parent_id = family.parents[0].parent_id
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0))
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
+    run_twice(conn, transport, at(20, 30))
+    assert statuses(conn)["digest_evening"] == "skipped"
+
+    next_day = timedelta(days=1)
+    ping(conn, parent_id, "whatsapp", at(7, 0) + next_day)
+    run_twice(conn, transport, at(8, 30) + next_day)
+    rows = conn.execute(
+        "select local_date, kind, template_id from sent_messages "
+        "where kind = 'digest_morning' and status = 'sent' order by id"
+    ).fetchall()
+    assert [(r["local_date"].isoformat(), r["template_id"]) for r in rows] == [
+        ("2026-08-22", "digest_morning_normal"),
+    ]
