@@ -83,6 +83,8 @@ def settings(database_url: str) -> Settings:
         # clocks; the loop has its own lifecycle tests.
         outbound_loop=False,
         outbound_transport="console",
+        resend_api_key="",
+        resend_from="Kettle <notes@send.heykettle.com>",
         outbound_reply_token="test-reply-token",
         # The landing page is the only browser that calls this API (spec 006).
         waitlist_origins=("https://heykettle.com",),

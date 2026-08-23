@@ -137,6 +137,13 @@ def test_the_ask_carries_the_icon_and_is_the_only_thing_a_parent_hears():
     assert parent_facing[0].body == "Everything okay today? Reply with a 👍 whenever suits."
 
 
+def test_the_email_subject_is_registry_copy_and_obeys_the_law():
+    """Wave B's one subject line is family-facing copy: it lives in the
+    registry module and goes through the same scan as every body."""
+    assert_outbound_copy_law(outbound_templates.EMAIL_SUBJECT)
+    assert outbound_templates.EMAIL_SUBJECT == "A note from Kettle"
+
+
 def test_the_follow_on_hands_off_rather_than_instructing():
     """The ladder's last sentence: Kettle stops where the family starts."""
     body = render("follow_on_family", {"relationship": "Mom"})

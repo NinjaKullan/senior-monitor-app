@@ -44,6 +44,11 @@ KIND_FOLLOW_ON = "follow_on"
 
 KINDS: tuple[str, ...] = (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING, KIND_ASK, KIND_FOLLOW_ON)
 
+#: The one email subject line (Wave B). Family-facing copy, so it lives in
+#: this module and goes through the same scan as every body: the registry's
+#: guarantee is that no string a family reads exists anywhere else.
+EMAIL_SUBJECT = "A note from Kettle"
+
 #: Who receives a kind. The ask is the only thing that ever reaches a parent,
 #: and law #6's ladder is that ordering: the parent hears from Kettle before
 #: anyone hears about them.

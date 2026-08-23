@@ -39,6 +39,13 @@ class Settings:
     # name until a wave adds another; anything else refuses to boot
     # (`transport_from_name`), so a typo cannot fail open into a real sender.
     outbound_transport: str
+    # Wave B's email transport (spec 007 §3). The key is read only when
+    # OUTBOUND_TRANSPORT=resend is selected — and then it must exist, or the
+    # app refuses to boot (fail closed, DECISIONS 154's rule extended to
+    # credentials). The from address defaults to the verified sending
+    # subdomain (docs/auth-smtp-plan.md); reply-to goes to a human.
+    resend_api_key: str
+    resend_from: str
     # The shared secret the reply webhook requires. Empty — the default — means
     # the endpoint does not exist: an unauthenticated route that can cancel a
     # follow-on would let anyone who knows a number suppress an escalation.
@@ -74,6 +81,11 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         outbound_enabled=_flag(src, "OUTBOUND_ENABLED", default=False),
         outbound_loop=_flag(src, "OUTBOUND_LOOP", default=False),
         outbound_transport=src.get("OUTBOUND_TRANSPORT", "").strip() or "console",
+        resend_api_key=src.get("RESEND_API_KEY", "").strip(),
+        resend_from=(
+            src.get("RESEND_FROM", "").strip()
+            or "Kettle <notes@send.heykettle.com>"
+        ),
         outbound_reply_token=src.get("OUTBOUND_REPLY_TOKEN", "").strip(),
         waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
     )

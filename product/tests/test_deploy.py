@@ -106,6 +106,8 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         outbound_enabled=False,
         outbound_loop=False,
         outbound_transport="console",
+        resend_api_key="",
+        resend_from="Kettle <notes@send.heykettle.com>",
         outbound_reply_token="",
         waitlist_origins=("https://heykettle.com",),
     )
