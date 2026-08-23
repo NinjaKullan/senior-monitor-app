@@ -703,24 +703,45 @@ def record_sent_message(
     return row is not None
 
 
-def record_reply(
-    conn: psycopg.Connection, parent_id: Any, local_date: str, when: datetime
-) -> bool:
-    """Mark that the parent answered the ask on her local day. Timestamp only.
+def record_reply(conn: psycopg.Connection, parent_id: Any, when: datetime) -> bool:
+    """Mark the parent's pending ask answered. Timestamp only.
 
-    Never the content: what she said is content, and this product does not hold
-    content. The first reply wins — a second one changes nothing, so a duplicate
-    webhook delivery cannot move the timestamp around.
+    The pending ask is the most recent one that was sent, is unanswered, and
+    whose follow-on has not gone yet, bounded to asks sent within the last 24
+    hours (spec 007 §2.6, DECISIONS 153). No calendar day in the match: keying
+    on the parent's local date is the DECISIONS 145 defect, where an answer
+    just after midnight matched nothing and the family was escalated to anyway.
+    The follow-on condition is per the ask's own ledger day — once the family
+    has been told, a late reply cannot un-tell them, so there is nothing left
+    for it to cancel.
+
+    Never the content: what the parent said is content, and this product does
+    not hold content. The first reply wins — a second one changes nothing, so a
+    duplicate webhook delivery cannot move the timestamp around.
     """
     row = conn.execute(
         """
         update sent_messages
         set replied_utc = %s
-        where parent_id = %s and local_date = %s and kind = 'ask'
-          and replied_utc is null
+        where id = (
+            select a.id
+            from sent_messages a
+            where a.parent_id = %s
+              and a.kind = 'ask'
+              and a.replied_utc is null
+              and a.sent_utc > %s - interval '24 hours'
+              and not exists (
+                  select 1 from sent_messages f
+                  where f.parent_id = a.parent_id
+                    and f.local_date = a.local_date
+                    and f.kind = 'follow_on'
+              )
+            order by a.sent_utc desc
+            limit 1
+        )
         returning id
         """,
-        (when, parent_id, local_date),
+        (when, parent_id, when),
     ).fetchone()
     return row is not None
 

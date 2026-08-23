@@ -563,28 +563,17 @@ def test_the_pilot_paths_are_untouched(conn, family):
         assert count == 0, f"the outbound channel wrote to {table}"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="DECISIONS 142: a reply after local midnight matches no ask and the "
-    "follow-on fires anyway. Needs a PM ruling on the matching rule, so this "
-    "pins the behaviour that is wanted rather than the behaviour that ships.",
-)
 def test_a_reply_just_after_local_midnight_still_cancels_the_follow_on(conn, family):
-    """The bug the clock seam uncovered, kept visible until it is ruled on.
+    """The DECISIONS 145 defect, fixed by ruling and asserted plainly.
 
-    `record_parent_reply` looks up the ask by the parent's **local calendar day**.
-    A parent asked at 11:00 who answers at 00:20 the next morning is answering on
-    a different local day, so no ask matches, nothing is marked replied, and the
-    follow-on to her family goes out at its appointed hour — after she has already
-    said she is fine. That is the exact failure spec 007 §2.6 exists to prevent,
-    and it is worse than a missed message: it escalates to the family over a
-    parent who answered.
-
-    Not fixed here because the repair is a spec-level choice, not a bug fix: match
-    the most recent *unanswered* ask instead of the day's, and then decide the
-    bound on "recent". Both are the PM's to rule. `strict=True` means the day this
-    is fixed, this test fails as XPASS and has to be turned into a normal
-    assertion — the marker cannot outlive the bug.
+    `record_parent_reply` used to look the ask up by the parent's local
+    calendar day, so an answer at 00:20 the next morning matched nothing and
+    the family was escalated to over a parent who had already said she is
+    fine. The match is now the parent's *pending* ask — sent, unanswered,
+    follow-on not yet gone — within the last 24 hours, and no calendar day
+    appears in it (spec 007 §2.6, DECISIONS 153). This was a `strict=True`
+    xfail from the day the clock seam uncovered it until the ruling landed;
+    the marker did not outlive the bug.
     """
     transport = CountingTransport()
     run_twice(conn, transport, at(11, 0))
@@ -592,3 +581,103 @@ def test_a_reply_just_after_local_midnight_still_cancels_the_follow_on(conn, fam
     # 00:20 IST the next morning: still the same night, a different local day.
     just_after_midnight = at(11, 0) + timedelta(hours=13, minutes=20)
     assert record_parent_reply(conn, WHATSAPP, just_after_midnight) is True
+    stored = conn.execute(
+        "select replied_utc from sent_messages where kind = 'ask'"
+    ).fetchone()
+    assert stored["replied_utc"] is not None
+
+
+# --- the pending-ask matching rule (§2.6, DECISIONS 153) ----------------------
+
+
+def plant_ask(conn, family, when: datetime) -> None:
+    """An ask row at an arbitrary instant, the way the scheduler would write it.
+
+    The scheduler only asks at 11:00, so the boundary cases around midnight and
+    the 24-hour window are planted straight into the ledger instead of driven
+    through a day; `record_sent_message` is the same write the scheduler uses.
+    """
+    plan = schedule_for(when, "Asia/Kolkata")
+    assert db.record_sent_message(
+        conn,
+        family.family_id,
+        family.parents[0].parent_id,
+        plan.local_date,
+        "ask",
+        "ask_parent",
+        "log",
+        when,
+    )
+
+
+def test_a_late_evening_ask_answered_after_midnight_matches(conn, family):
+    """Ask 23:00, reply 00:20: two calendar days, one conversation."""
+    plant_ask(conn, family, at(23, 0))
+    assert record_parent_reply(conn, WHATSAPP, at(23, 0) + timedelta(minutes=80)) is True
+    stored = conn.execute(
+        "select replied_utc from sent_messages where kind = 'ask'"
+    ).fetchone()
+    assert stored["replied_utc"] is not None
+
+
+def test_a_reply_with_no_pending_ask_is_noted_and_cancels_nothing(
+    conn, family, caplog
+):
+    """No open question of Kettle's: the arrival is a masked log line, timestamp
+    only, and nothing is marked answered."""
+    import logging
+
+    with caplog.at_level(logging.INFO, logger="kettle.outbound"):
+        assert record_parent_reply(conn, WHATSAPP, at(9, 0)) is False
+    logged = "\n".join(record.getMessage() for record in caplog.records)
+    assert "no pending ask" in logged
+    assert WHATSAPP not in logged
+    assert conn.execute("select count(*) as n from sent_messages").fetchone()["n"] == 0
+
+
+def test_a_reply_after_the_follow_on_went_is_noted_only(conn, family):
+    """Once the family has been told, a late reply cannot un-tell them.
+
+    The ask stays visibly unanswered in the ledger — marking it answered after
+    the escalation would rewrite what the family was told into something that
+    never needed saying.
+    """
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0))
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
+    assert ("follow_on", "follow_on_family") in ledger(conn)
+
+    late = at(11, 0) + FOLLOW_ON_GRACE + timedelta(minutes=30)
+    assert record_parent_reply(conn, WHATSAPP, late) is False
+    stored = conn.execute(
+        "select replied_utc from sent_messages where kind = 'ask'"
+    ).fetchone()
+    assert stored["replied_utc"] is None
+
+
+def test_an_ask_older_than_a_day_is_no_longer_answerable(conn, family):
+    """The 24-hour bound: a reply two days late answers no open question."""
+    plant_ask(conn, family, at(11, 0))
+    assert (
+        record_parent_reply(conn, WHATSAPP, at(11, 0) + timedelta(hours=24, minutes=1))
+        is False
+    )
+    stored = conn.execute(
+        "select replied_utc from sent_messages where kind = 'ask'"
+    ).fetchone()
+    assert stored["replied_utc"] is None
+
+
+def test_a_reply_matches_the_most_recent_pending_ask(conn, family):
+    """Two pending asks in the window: the newer one is the open question."""
+    plant_ask(conn, family, at(23, 0))
+    next_morning = at(23, 0) + timedelta(hours=12)  # 11:00 the next local day
+    plant_ask(conn, family, next_morning)
+
+    assert record_parent_reply(conn, WHATSAPP, next_morning + timedelta(minutes=30)) is True
+    rows = conn.execute(
+        "select sent_utc, replied_utc from sent_messages where kind = 'ask' "
+        "order by sent_utc"
+    ).fetchall()
+    assert rows[0]["replied_utc"] is None
+    assert rows[1]["replied_utc"] is not None

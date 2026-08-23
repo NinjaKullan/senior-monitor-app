@@ -46,7 +46,7 @@ from kettle.outbound_templates import (
     render,
     template,
 )
-from kettle.timeutil import effective_tz, local_day, to_local
+from kettle.timeutil import effective_tz, to_local
 
 log = logging.getLogger("kettle.outbound")
 
@@ -325,14 +325,28 @@ def _due_for_parent(
 def record_parent_reply(
     conn: psycopg.Connection, number: str, now: datetime
 ) -> bool:
-    """The parent answered. Cancels her pending follow-on; stores no content.
+    """The parent answered. Cancels the pending follow-on; stores no content.
 
-    Returns True only when a pending ask was actually marked answered — an
-    unknown number, or a reply on a day with no ask, changes nothing and says
-    nothing back. Nothing calls this until Wave C.
+    The reply matches the parent's **pending** ask — the most recent ask that
+    was sent, is unanswered, and whose follow-on has not gone yet — bounded to
+    asks sent within the last 24 hours (spec 007 §2.6, DECISIONS 153). Calendar
+    days do not appear in the match: an ask answered just after local midnight
+    is the same conversation, which is the defect DECISIONS 145 pinned.
+
+    Returns True only when a pending ask was actually marked answered. An
+    unknown number changes nothing and says nothing back; a known number with
+    no pending ask in the window is recorded as an arrival — a masked log
+    line, timestamp only, never content — and cancels nothing: whatever that
+    reply answers, it is not an open question of Kettle's, and un-answering
+    is not a thing a late reply can do. Nothing calls this until Wave C.
     """
     parent = db.parent_by_whatsapp(conn, number) if number else None
     if parent is None:
         return False
-    tz_name = effective_tz(parent["parent_tz"], parent["family_tz"])
-    return db.record_reply(conn, parent["parent_id"], local_day(now, tz_name), now)
+    matched = db.record_reply(conn, parent["parent_id"], now)
+    if not matched:
+        log.info(
+            "outbound: reply from %s with no pending ask; noted, nothing cancelled",
+            _mask(number),
+        )
+    return matched
