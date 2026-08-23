@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 386, zero xfails**, **`webapp` 119**, **`site` 174**.
+Current green: **`pytest` 386, zero xfails**, **`webapp` 119**, **`site` 181**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -100,8 +100,10 @@ The loop is wired as of this pass and starts, dark, with the next kettle-api dep
    loop; DECISIONS 148's one-word fix is committed and unshipped. Six passes ride
    along: 134 (presence), 135 (one-voice typography, field band, stir), 136
    (illustrations, mobile tab row), 137 (floating CTA), 142 (domain cascade), 148.
-   **After deploying, curl the canonical host** — nothing in the suite reaches a
-   running server, which is how the loop got out (see §7).
+   **After deploying, curl the canonical host.** The suite now asks the
+   Host-shaped questions (canonicalHost.test.ts, DECISIONS 168) and the image
+   build runs nginx -t, but a post-deploy curl of https://heykettle.com stays
+   the last word — nothing in any suite reaches the running server.
 3. **`fly deploy` kettle-app.** Carries the 112 cache headers — until then deploys
    white-screen returning browsers — plus the login words, the Setup card, and now the
    session-restore fix (144).

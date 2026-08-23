@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 168.** This line is the one to update; the `Next number:` lines inside
+**Next number: 169.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1805,3 +1805,41 @@ browser — all three adopted as the standard for future surfaces.**
      https://wa.me/14155238886?text=join%20leader-color — one tap, message
      pre-typed. Same family as the copy laws: the surface must work for the
      least-technical reader, not the author.
+
+---
+
+## Canonical-host coverage (implementer, 2026-08-23)
+
+168. **The test DECISIONS 148 flagged is built; how it earns trust is the part
+     worth reading.** `site/src/tests/canonicalHost.test.ts` parses the real
+     nginx.conf and simulates nginx's documented host dispatch — exact
+     server_name, else default_server, else the FIRST block in the file, the
+     rule whose absence from anyone's head caused the outage — then follows
+     redirects across hosts. Seven assertions: canonical 200 first try; old
+     host exactly one 301 to https://heykettle.com/ and no chain; www pinned
+     as production-correct (deliberately unnamed → default block → direct 200;
+     naming it someday fails the pin and forces a decision); default_server on
+     the serving block and only there; no Host can loop; /healthz on the old
+     host answers rather than redirects (142/158); and a config-shape pin.
+
+     * **The simulator is not trusted on its own word** — that would be 148's
+       "confident and wrong" comment wearing a test's clothes. It was
+       validated against a real nginx 1.24 running this exact config in this
+       container: healthy config produced 200/200/301+200/200 across
+       canonical/www/old/unknown hosts exactly as the simulation says, and
+       with `default_server` removed the real binary looped
+       (301 → itself) precisely as the simulation does. The test header
+       records this; the parser throws on any unrecognised config shape and a
+       shape-pin test routes restructures back through real-binary
+       validation instead of letting the simulation drift from reality.
+     * **Why simulate at all:** no nginx binary exists on the founder's
+       machine or in this suite's other hosts, and a test that skips without
+       one is the false green (family 1) while a test that requires one makes
+       the verdict machine-dependent (family 6). The simulation runs
+       everywhere; the binary check went where the binary lives instead —
+       `RUN nginx -t` in site/Dockerfile, so an unparseable conf fails
+       `fly deploy` at build, never at serve.
+     * Three plants, three named failure sets: default_server removed (the
+       outage itself — five tests fail, the loop among them), the old host's
+       redirect pointed back at itself, and www quietly added to the redirect
+       block. Test-only pass: no deploy owed for it.
