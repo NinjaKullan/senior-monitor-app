@@ -663,12 +663,19 @@ def parent_whatsapp(conn: psycopg.Connection, parent_id: Any) -> str | None:
 def sent_message(
     conn: psycopg.Connection, family_id: Any, parent_id: Any, local_date: str, kind: str
 ) -> Row | None:
-    """The ledger row for one family, parent, local day and kind — or None."""
+    """The SENT ledger row for one family, parent, local day and kind — or None.
+
+    Status-blind reads would make a skipped ask look sent to the follow-on's
+    precondition and a failed digest look done to the scheduler. Only 'sent'
+    rows are messages (0015); 'failed' and 'skipped' claim the slot but leave
+    the decision open for a later pass to retry.
+    """
     return conn.execute(
         """
         select id, template_id, transport, sent_utc, replied_utc
         from sent_messages
         where family_id = %s and parent_id = %s and local_date = %s and kind = %s
+          and status = 'sent'
         """,
         (family_id, parent_id, local_date, kind),
     ).fetchone()
@@ -683,22 +690,38 @@ def record_sent_message(
     template_id: str,
     transport: str,
     sent_utc: datetime,
+    status: str = "sent",
 ) -> bool:
-    """Write the ledger row. False means this one was already recorded.
+    """Write the ledger row. False means nothing new was recorded.
 
-    `on conflict do nothing` rather than a check-then-insert: two schedulers
-    racing on the same day is exactly what the unique index exists for, and a
-    read followed by a write leaves a window between them.
+    `on conflict` rather than a check-then-insert: two schedulers racing on the
+    same day is exactly what the unique index exists for, and a read followed
+    by a write leaves a window between them.
+
+    The transition rule (0015): 'sent' is final and is never overwritten — a
+    racing pass cannot downgrade a delivered message to 'failed'. 'failed' and
+    'skipped' rows may be upgraded by a later pass (a retry that succeeds, a
+    label set after a skip), and re-recording the *same* non-sent status is a
+    no-op — which is what keeps the minutely loop from re-alerting a standing
+    skip sixty times an hour. True means this call changed the ledger: a fresh
+    row, or a status transition. `replied_utc` is never touched here.
     """
     row = conn.execute(
         """
         insert into sent_messages
-            (family_id, parent_id, local_date, kind, template_id, transport, sent_utc)
-        values (%s, %s, %s, %s, %s, %s, %s)
-        on conflict (family_id, parent_id, local_date, kind) do nothing
+            (family_id, parent_id, local_date, kind, template_id, transport,
+             sent_utc, status)
+        values (%s, %s, %s, %s, %s, %s, %s, %s)
+        on conflict (family_id, parent_id, local_date, kind) do update
+            set status = excluded.status,
+                template_id = excluded.template_id,
+                transport = excluded.transport,
+                sent_utc = excluded.sent_utc
+            where sent_messages.status != 'sent'
+              and sent_messages.status is distinct from excluded.status
         returning id
         """,
-        (family_id, parent_id, local_date, kind, template_id, transport, sent_utc),
+        (family_id, parent_id, local_date, kind, template_id, transport, sent_utc, status),
     ).fetchone()
     return row is not None
 
@@ -728,13 +751,17 @@ def record_reply(conn: psycopg.Connection, parent_id: Any, when: datetime) -> bo
             from sent_messages a
             where a.parent_id = %s
               and a.kind = 'ask'
+              and a.status = 'sent'
               and a.replied_utc is null
               and a.sent_utc > %s - interval '24 hours'
               and not exists (
+                  -- Only a follow-on that actually reached the family closes
+                  -- the question; a skipped or failed one told them nothing.
                   select 1 from sent_messages f
                   where f.parent_id = a.parent_id
                     and f.local_date = a.local_date
                     and f.kind = 'follow_on'
+                    and f.status = 'sent'
               )
             order by a.sent_utc desc
             limit 1
