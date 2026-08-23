@@ -76,22 +76,32 @@ def ping(conn: psycopg.Connection, parent_id, signal: str, when: datetime) -> No
 
 
 def ledger(conn: psycopg.Connection) -> list[tuple[str, str]]:
-    """Every ledger row, as (kind, template_id), in the order Kettle spoke."""
+    """What Kettle actually said: SENT rows as (kind, template_id), in order.
+
+    Sent-only since 0015 — skipped and failed decisions also claim ledger rows
+    now, and `statuses()` below is how a test looks at those.
+    """
     # By id, not by sent_utc: everything one run decides shares an instant, so
     # a timestamp sort would report alphabetical order as if it were sequence.
     rows = conn.execute(
-        "select kind, template_id from sent_messages order by id"
+        "select kind, template_id from sent_messages where status = 'sent' order by id"
     ).fetchall()
     return [(r["kind"], r["template_id"]) for r in rows]
 
 
-def run_twice(conn: psycopg.Connection, transport, now: datetime) -> list:
+def statuses(conn: psycopg.Connection) -> dict[str, str]:
+    """Every ledger row's status, keyed by kind (one row per kind per day here)."""
+    rows = conn.execute("select kind, status from sent_messages order by id").fetchall()
+    return {r["kind"]: r["status"] for r in rows}
+
+
+def run_twice(conn: psycopg.Connection, transport, now: datetime, **kwargs) -> list:
     """Run the scheduler, then run it again at the same instant.
 
     The second run must record nothing. Returns what the *first* run decided.
     """
-    first = run_outbound(conn, transport, now)
-    second = run_outbound(conn, transport, now)
+    first = run_outbound(conn, transport, now, **kwargs)
+    second = run_outbound(conn, transport, now, **kwargs)
     assert second == [], f"the scheduler double-sent at {now}: {second}"
     return first
 
@@ -166,17 +176,19 @@ def test_a_signal_before_the_threshold_means_no_ask(conn, family):
 
 
 def test_charger_signals_never_make_a_morning_happen(conn, family):
-    """Law #6 at the evaluator: household plumbing cannot speak for a person."""
+    """Law #6 at the evaluator: household plumbing cannot speak for a person.
+
+    The first run lands at 11:00, past the staleness cutoff, so the morning
+    digest is withheld (its slot records 'skipped') — the ask is what goes.
+    """
     parent_id = family.parents[0].parent_id
     ping(conn, parent_id, "charge_on", at(6, 30))
     ping(conn, parent_id, "device_alive", at(7, 30))
     transport = CountingTransport()
 
     run_twice(conn, transport, at(11, 0))
-    assert ledger(conn) == [
-        ("digest_morning", "digest_morning_quiet"),
-        ("ask", "ask_parent"),
-    ]
+    assert ledger(conn) == [("ask", "ask_parent")]
+    assert statuses(conn)["digest_morning"] == "skipped"
 
 
 # --- §6.1 scenario 3: quiet past the threshold, then she replies --------------
@@ -363,11 +375,13 @@ def test_the_kill_switch_decides_nothing_at_all(conn, family):
 # --- the transport seam -------------------------------------------------------
 
 
-def test_wave_a_ships_one_transport_and_it_has_no_network_client():
-    """The engine runs dark because there is nothing here that could not.
+def test_the_decision_core_still_has_no_network_client():
+    """Wave B added a real transport; the decision core still cannot send.
 
-    Not a flag checked before sending: no transport in this module holds an
-    HTTP client, so there is no code path from a decision to a message.
+    `kettle/outbound.py` decides; `kettle/outbound_email.py` is the one module
+    with an HTTP client, loaded only when the resend transport is selected. A
+    network client appearing in the decision core would mean a code path from
+    a decision to a message that no registry gate stands in front of.
     """
     import inspect
 
@@ -383,24 +397,50 @@ def test_wave_a_ships_one_transport_and_it_has_no_network_client():
     assert transports == ["LogTransport"]
 
 
-def test_an_undeliverable_message_records_nothing(conn, family):
-    """A real transport says False, and the day's slot stays free for it."""
+def test_an_undeliverable_message_records_failed_and_stays_retryable(
+    conn, family, notifier
+):
+    """A real transport says False: the ledger says 'failed', the founder hears
+    once, and a later pass that succeeds upgrades the same slot (0015)."""
 
     class RefusingTransport(LogTransport):
         def send(self, to, template_id, variables):
-            return DeliveryResult(delivered=False, transport="refusing")
+            return DeliveryResult(delivered=False, transport="refusing", detail="down")
 
-    assert run_outbound(conn, RefusingTransport(), at(11, 0)) == []
+    assert run_twice(conn, RefusingTransport(), at(11, 0), notifier=notifier) == []
     assert ledger(conn) == []
+    assert statuses(conn)["ask"] == "failed"
+    assert len([m for m in notifier.messages if "failed" in m and "ask" in m]) == 1
+
+    # The transport recovers: the same slot is claimed by the real send.
+    run_twice(conn, CountingTransport(), at(11, 5), notifier=notifier)
+    assert ("ask", "ask_parent") in ledger(conn)
+    assert statuses(conn)["ask"] == "sent"
 
 
-def test_a_parent_without_a_label_waits_rather_than_rendering_a_blank(conn):
+def test_a_transport_that_raises_is_a_failed_send_not_a_dead_pass(
+    conn, family, notifier
+):
+    """One exploding send records 'failed' and the pass carries on."""
+
+    class ExplodingTransport(LogTransport):
+        def send(self, to, template_id, variables):
+            raise ConnectionError("socket reset")
+
+    assert run_twice(conn, ExplodingTransport(), at(11, 0), notifier=notifier) == []
+    assert statuses(conn)["ask"] == "failed"
+    assert any("ConnectionError" in m for m in notifier.messages)
+
+
+def test_a_parent_without_a_label_waits_rather_than_rendering_a_blank(conn, notifier):
     """Both live parents predate migration 0014 (DECISIONS 149/152).
 
     A relationship-bearing template must not render with a blank, so it is
-    skipped without recording — the day's slot stays free — while the ask,
-    which names nobody, still goes: a missing label never delays the parent
-    being asked first. Setting the label releases everything the slot held.
+    recorded as 'skipped' with one founder ops alert (157/159) — while the
+    ask, which names nobody, still goes: a missing label never delays the
+    parent being asked first. Setting the label upgrades the skipped slots on
+    the next pass; the morning digest alone stays withheld, because by then it
+    is past the staleness cutoff and "this morning" would be a lie.
     """
     provisioned = provision_family(
         conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
@@ -411,19 +451,23 @@ def test_a_parent_without_a_label_waits_rather_than_rendering_a_blank(conn):
     transport = CountingTransport()
 
     # Quiet morning: the digest and, later, the follow-on both need the label.
-    run_twice(conn, transport, at(8, 30))
+    run_twice(conn, transport, at(8, 30), notifier=notifier)
     assert ledger(conn) == []
+    assert statuses(conn) == {"digest_morning": "skipped"}
+    assert len([m for m in notifier.messages if "no relationship label" in m]) == 1
 
-    run_twice(conn, transport, at(11, 0))
+    run_twice(conn, transport, at(11, 0), notifier=notifier)
     assert ledger(conn) == [("ask", "ask_parent")]
 
-    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE, notifier=notifier)
     assert ledger(conn) == [("ask", "ask_parent")]
+    assert statuses(conn)["follow_on"] == "skipped"
 
     assert set_parent_relationship(conn, token, "Mom") == "Amma"
     run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE + timedelta(minutes=5))
-    kinds = [kind for kind, _ in ledger(conn)]
-    assert "digest_morning" in kinds and "follow_on" in kinds
+    assert ("follow_on", "follow_on_family") in ledger(conn)
+    assert statuses(conn)["follow_on"] == "sent"
+    assert statuses(conn)["digest_morning"] == "skipped"  # stale by now, stays withheld
     assert all("{" not in body and "Amma" not in body for _, body in transport.sent)
 
 
@@ -555,12 +599,22 @@ def test_the_ledger_is_service_only(conn, authed, family):
 
 
 def test_the_pilot_paths_are_untouched(conn, family):
-    """This engine writes to its own table and nothing else's."""
+    """This engine writes its ledger and the founder's ops log, nothing else.
+
+    `ops_alerts` joined the write set with DECISIONS 157 (law #3: it is the
+    founder's plumbing log, the same table the heartbeat writes) — and every
+    row this engine puts there carries its own kind prefix, so a family-facing
+    table gaining a row here still fails loudly.
+    """
     transport = CountingTransport()
     run_twice(conn, transport, at(11, 0))
-    for table in ("pings", "digest_sends", "ops_alerts"):
+    for table in ("pings", "digest_sends"):
         count = conn.execute(f"select count(*) as n from {table}").fetchone()["n"]
         assert count == 0, f"the outbound channel wrote to {table}"
+    kinds = {
+        r["kind"] for r in conn.execute("select kind from ops_alerts").fetchall()
+    }
+    assert all(k.startswith("outbound_") for k in kinds)
 
 
 def test_a_reply_just_after_local_midnight_still_cancels_the_follow_on(conn, family):
@@ -758,10 +812,129 @@ def test_fly_config_runs_the_dark_loop():
     assert "OUTBOUND_TRANSPORT" not in text
 
 
-def test_console_is_the_only_registered_transport():
-    """Wave A's registry: one name, and it is the dark one."""
+def test_the_registry_holds_console_and_resend_and_nothing_else(settings):
+    """Wave B's registry: the dark transport and the email one. Console stays
+    the default; resend is selected only by explicit config after the ledger
+    review (spec 007 §6.3)."""
     from kettle.outbound import TRANSPORTS, transport_from_name
 
-    assert set(TRANSPORTS) == {"console"}
-    built = transport_from_name("console")
-    assert isinstance(built, LogTransport)
+    assert set(TRANSPORTS) == {"console", "resend"}
+    assert isinstance(transport_from_name("console", settings), LogTransport)
+
+
+def test_resend_without_its_key_refuses_to_boot(settings, notifier):
+    """Fail closed extends to credentials: a selected transport missing its
+    secret is a startup crash, not a send-time surprise (DECISIONS 159)."""
+    from dataclasses import replace
+
+    from kettle.main import create_app
+    from kettle.outbound import transport_from_name
+
+    with pytest.raises(RuntimeError, match="RESEND_API_KEY"):
+        transport_from_name("resend", settings)
+    with pytest.raises(RuntimeError, match="RESEND_API_KEY"):
+        create_app(replace(settings, outbound_transport="resend"), notifier)
+    # With the key present it builds — and carries digests only.
+    built = transport_from_name("resend", replace(settings, resend_api_key="re_test"))
+    assert built.name == "resend"
+    assert set(built.kinds) == {"digest_morning", "digest_evening"}
+    assert built.requires_address is True
+
+
+# --- Wave B hardening (DECISIONS 157/159) -------------------------------------
+
+
+def test_a_morning_digest_is_never_sent_late(conn, family, notifier):
+    """Past the staleness cutoff the slot records 'skipped' and the founder
+    hears; "her morning looked ordinary" at dinnertime is the ruled-out lie."""
+    transport = CountingTransport()
+    run_twice(conn, transport, at(10, 31), notifier=notifier)
+    assert ledger(conn) == []
+    assert statuses(conn)["digest_morning"] == "skipped"
+    assert len([m for m in notifier.messages if "never sent late" in m]) == 1
+
+
+def test_a_morning_digest_inside_the_cutoff_still_goes(conn, family):
+    transport = CountingTransport()
+    run_twice(conn, transport, at(10, 29))
+    assert ledger(conn) == [("digest_morning", "digest_morning_quiet")]
+
+
+def test_a_zero_signal_day_sends_no_evening_reassurance(conn, family, notifier):
+    """The evidence gate: 'An ordinary day, start to finish' never renders
+    from a day that produced nothing alarm-grade. Ops condition, not copy."""
+    transport = CountingTransport()
+    run_twice(conn, transport, at(20, 30), notifier=notifier)
+    assert ("digest_evening", "digest_evening_normal") not in ledger(conn)
+    assert statuses(conn)["digest_evening"] == "skipped"
+    assert len([m for m in notifier.messages if "empty evidence window" in m]) == 1
+
+
+def test_one_alarm_grade_signal_is_evidence_enough_for_the_evening(conn, family):
+    ping(conn, family.parents[0].parent_id, "whatsapp", at(7, 0))
+    transport = CountingTransport()
+    run_twice(conn, transport, at(20, 30))
+    assert ("digest_evening", "digest_evening_normal") in ledger(conn)
+
+
+def test_a_digests_only_transport_never_carries_the_ask(conn, family, notifier):
+    """Asks and follow-ons have no channel until Wave C: recorded as skipped
+    with an ops alert, never silently absent and never attempted."""
+
+    class DigestsOnly(LogTransport):
+        name = "digests-only"
+        kinds = ("digest_morning", "digest_evening")
+
+    run_twice(conn, DigestsOnly(), at(11, 0), notifier=notifier)
+    assert statuses(conn)["ask"] == "skipped"
+    assert len([m for m in notifier.messages if "Wave C" in m]) == 1
+
+
+def test_no_address_on_an_address_requiring_transport_is_an_unroutable_skip(
+    conn, notifier
+):
+    """The dark transport sends without an address by design; a real one must
+    not — no child email means the digest records 'skipped' and alerts."""
+    provisioned = provision_family(
+        conn, "Sharma", "Asia/Kolkata", [("Amma", None, "Mom")], base_url=BASE_URL
+    )
+    assert provisioned  # no child email on purpose
+
+    class NeedsAddress(LogTransport):
+        name = "needs-address"
+        requires_address = True
+
+    run_twice(conn, NeedsAddress(), at(8, 30), notifier=notifier)
+    assert ledger(conn) == []
+    assert statuses(conn)["digest_morning"] == "skipped"
+    assert len([m for m in notifier.messages if "unroutable" in m]) == 1
+
+
+def test_a_failing_loop_pass_alerts_the_founder_once_per_streak(notifier):
+    """A stuck loop costs one ntfy, not one a minute; recovery re-arms it."""
+    import asyncio
+    from types import SimpleNamespace
+
+    from kettle.outbound import OutboundState, outbound_loop
+
+    class DeadConn:
+        def execute(self, *args, **kwargs):
+            raise RuntimeError("database gone away")
+
+    state = OutboundState()
+    cfg = SimpleNamespace(outbound_enabled=True)
+
+    async def drive() -> None:
+        task = asyncio.create_task(
+            outbound_loop(DeadConn(), LogTransport(), cfg, notifier, state, interval_s=0)
+        )
+        await asyncio.sleep(0.1)
+        task.cancel()
+        from contextlib import suppress
+
+        with suppress(asyncio.CancelledError):
+            await task
+
+    asyncio.run(drive())
+    assert state.failing is True
+    assert len([m for m in notifier.messages if "pass failed" in m]) == 1

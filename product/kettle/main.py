@@ -71,11 +71,12 @@ def create_app(
     """
     cfg = settings or settings_from_env()
 
-    # Fail closed before anything else exists: an unknown OUTBOUND_TRANSPORT
-    # refuses to build the app at all, loop flag on or off, so a typo in an env
-    # var can never fall through to something that sends (DECISIONS 154). The
-    # instance built here is thrown away; each boot's loop gets its own.
-    transport_from_name(cfg.outbound_transport)
+    # Fail closed before anything else exists: an unknown OUTBOUND_TRANSPORT —
+    # or resend selected without its API key — refuses to build the app at
+    # all, loop flag on or off, so a typo in an env var can never fall through
+    # to something that sends (DECISIONS 154/159). The instance built here is
+    # thrown away; each boot's loop gets its own.
+    transport_from_name(cfg.outbound_transport, cfg)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -115,8 +116,9 @@ def create_app(
                 asyncio.create_task(
                     outbound_loop(
                         ob_conn,
-                        transport_from_name(cfg.outbound_transport),
+                        transport_from_name(cfg.outbound_transport, cfg),
                         cfg,
+                        app.state.notifier,
                         app.state.outbound,
                     )
                 )

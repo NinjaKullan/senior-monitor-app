@@ -39,11 +39,13 @@ from zoneinfo import ZoneInfo
 import psycopg
 
 from kettle import db
+from kettle.notify import Notifier
 from kettle.outbound_templates import (
     KIND_ASK,
     KIND_DIGEST_EVENING,
     KIND_DIGEST_MORNING,
     KIND_FOLLOW_ON,
+    KINDS,
     render,
     template,
 )
@@ -63,6 +65,11 @@ FOLLOW_ON_GRACE = timedelta(hours=2)
 #: The two digests.
 MORNING_DIGEST = time(8, 30)
 EVENING_DIGEST = time(20, 30)
+#: How late a morning digest may be decided and still sent (DECISIONS 159's
+#: v1 constant: two hours, so nothing "about this morning" goes out after
+#: 10:30 local). Past it the slot is skipped with an ops alert — a scheduler
+#: catching up after downtime reports to the founder, not to the family.
+MORNING_STALE_CUTOFF = timedelta(hours=2)
 
 
 @dataclass(frozen=True)
@@ -112,9 +119,18 @@ class DeliveryResult:
 
 
 class Transport(Protocol):
-    """Anything that can deliver one rendered template to one recipient."""
+    """Anything that can deliver one rendered template to one recipient.
+
+    `kinds` declares which message kinds it carries — a kind outside it is
+    recorded as skipped, never attempted, which is how asks and follow-ons
+    stay visibly undeliverable until Wave C gives them a channel.
+    `requires_address` is False only for the dark transport: a real sender
+    with no address on file is an unroutable skip, not an attempt.
+    """
 
     name: str
+    kinds: tuple[str, ...]
+    requires_address: bool
 
     def send(
         self, to: str, template_id: str, variables: Mapping[str, str]
@@ -129,15 +145,19 @@ class LogTransport:
     It reports `delivered=True` even with no address on file, and that is the
     point rather than an oversight — a dark run's ledger is a record of the
     *decisions* Kettle made, which is what the founder reviews for two days
-    before anything real is wired up. A transport with a network client must do
-    the opposite: no address means `delivered=False`, no ledger row, and the
-    day's slot stays free for the day it can actually send.
+    before anything real is wired up. A transport with a network client does
+    the opposite (`requires_address`): no address is an unroutable skip
+    recorded as such, and the retryable slot waits for the day it can send.
 
     The address is masked on its way to the log. Logs do not need a family's
     phone number, and this one never gets it.
     """
 
     name = "log"
+    #: The dark run carries everything: its whole point is a ledger of every
+    #: decision, and it needs no address to write a log line.
+    kinds = KINDS
+    requires_address = False
 
     def __init__(self) -> None:
         self.sent: list[tuple[str, str]] = []
@@ -157,21 +177,38 @@ def _mask(to: str) -> str:
     return f"…{to[-4:]}" if len(to) > 4 else "…"
 
 
+def _console_transport(settings: Any) -> Transport:
+    return LogTransport()
+
+
+def _resend_transport(settings: Any) -> Transport:
+    # Imported here, not at module top: this module is the decision core and
+    # holds no network client (a test pins it); the HTTP-capable transport
+    # lives in kettle/outbound_email.py and is loaded only when selected.
+    from kettle.outbound_email import ResendTransport
+
+    return ResendTransport(settings.resend_api_key, settings.resend_from)
+
+
 #: Every transport the loop can be configured to use, by the name OUTBOUND_TRANSPORT
-#: carries. One entry until a wave adds another — and a new entry here is a spec
-#: change, not a deploy-time discovery: the registry is what makes a misconfigured
-#: name fail closed instead of falling through to something that can send.
-TRANSPORTS: dict[str, Callable[[], Transport]] = {
-    "console": LogTransport,
+#: carries. A new entry here is a spec change, not a deploy-time discovery: the
+#: registry is what makes a misconfigured name fail closed instead of falling
+#: through to something that can send. "console" is the default and stays the
+#: deployed value until the founder flips it after the Wave A ledger review.
+TRANSPORTS: dict[str, Callable[[Any], Transport]] = {
+    "console": _console_transport,
+    "resend": _resend_transport,
 }
 
 
-def transport_from_name(name: str) -> Transport:
+def transport_from_name(name: str, settings: Any) -> Transport:
     """Build the configured transport, or refuse to boot.
 
     Loud and at startup on purpose (DECISIONS 154): the alternative — defaulting
     an unknown name to *anything* — is a path by which a typo in an env var
-    chooses who gets messaged. Known names are the registry's, nothing else.
+    chooses who gets messaged. Known names are the registry's, nothing else —
+    and a known name missing its credential (resend without RESEND_API_KEY)
+    fails the same way, at the same moment.
     """
     try:
         factory = TRANSPORTS[name]
@@ -180,7 +217,7 @@ def transport_from_name(name: str) -> Transport:
         raise RuntimeError(
             f"unknown outbound transport {name!r} — registered transports: {known}"
         ) from None
-    return factory()
+    return factory(settings)
 
 
 # --- the evaluator (§2.1) ----------------------------------------------------
@@ -217,11 +254,56 @@ class Decision:
     template_id: str
 
 
+#: Ops alert kinds (`ops_alerts.kind`). Founder-only, law #3: nothing here has
+#: a path to a family, and the copy may name mechanisms because its reader
+#: operates them.
+OPS_SEND_FAILED = "outbound_failed"
+OPS_SEND_SKIPPED = "outbound_skipped"
+
+
+def _record_outcome(
+    conn: psycopg.Connection,
+    notifier: Notifier | None,
+    decision: Decision,
+    transport_name: str,
+    status: str,
+    detail: str,
+    now: datetime,
+) -> bool:
+    """Ledger row plus founder ops alert, once per transition.
+
+    The ledger write is the dedupe: `record_sent_message` returns True only for
+    a fresh row or a status transition, so a standing skip re-decided by the
+    minutely loop alerts once, not once a minute. Only non-sent outcomes alert —
+    a delivered message is the quiet case.
+    """
+    recorded = db.record_sent_message(
+        conn,
+        decision.family_id,
+        decision.parent_id,
+        decision.local_date,
+        decision.kind,
+        decision.template_id,
+        transport_name,
+        now,
+        status=status,
+    )
+    if recorded and status != "sent":
+        kind = OPS_SEND_FAILED if status == "failed" else OPS_SEND_SKIPPED
+        message = f"⚠️ outbound: {detail}"
+        db.insert_ops_alert(conn, decision.family_id, decision.parent_id, kind, message, now)
+        if notifier is not None:
+            notifier.send(message)
+        log.warning("outbound: %s %s: %s", decision.template_id, status, detail)
+    return recorded
+
+
 def run_outbound(
     conn: psycopg.Connection,
     transport: Transport,
     now: datetime,
     *,
+    notifier: Notifier | None = None,
     enabled: bool = True,
 ) -> list[Decision]:
     """Decide and record everything due for every parent, at instant `now`.
@@ -229,8 +311,28 @@ def run_outbound(
     Idempotent by construction: due-ness is a time comparison and sending goes
     through the ledger, so running twice at the same instant — or restarting
     after a crash — produces the same rows and the same messages. The returned
-    list is what *this* run recorded, which is why a double run returns an empty
-    second list rather than a duplicate of the first.
+    list is what *this* run recorded as SENT; skips and failures land in the
+    ledger with their status and raise a founder ops alert instead (DECISIONS
+    157/159), so nothing this engine declines to say is ever silently absent.
+
+    The withhold rules, in the order they are checked:
+
+    * **Staleness** — a morning digest decided more than `MORNING_STALE_CUTOFF`
+      past its slot is never sent late: "the morning looked ordinary" is a lie
+      at dinnertime, whatever the ledger says about why the scheduler was down.
+    * **Evidence** — the evening-normal body renders only from a day that
+      produced at least one alarm-grade signal. A zero-signal day is an ops
+      condition, not a family message; the morning quiet-so-far path already
+      reports absence honestly and stands.
+    * **The label** — a relationship-bearing template with no label renders
+      nothing (DECISIONS 152); the skip now claims the slot as 'skipped' and
+      the slot upgrades the moment the label is set.
+    * **Routing** — a kind the transport does not carry (asks and follow-ons
+      until Wave C), or an address-requiring transport with no address on
+      file, is a skip, never an attempt.
+
+    A transport that throws is a failed send for that one message; the rest of
+    the pass continues.
     """
     if not enabled:
         return []
@@ -241,13 +343,34 @@ def run_outbound(
         plan = schedule_for(now, tz_name)
         contacts = db.outbound_contacts(conn, parent["family_id"])
         child_address = (contacts or {}).get("child_email") or ""
+        label = f"{parent['family_name']} / {parent['parent_name']}"
 
         for decision in _due_for_parent(conn, parent, plan, now):
-            recipient = (
-                db.parent_whatsapp(conn, parent["parent_id"]) or ""
-                if decision.kind == KIND_ASK
-                else child_address
-            )
+            def skip(detail: str, decision: Decision = decision) -> None:
+                _record_outcome(
+                    conn, notifier, decision, transport.name, "skipped", detail, now
+                )
+
+            if (
+                decision.kind == KIND_DIGEST_MORNING
+                and now >= plan.morning_digest + MORNING_STALE_CUTOFF
+            ):
+                skip(
+                    f"morning digest for {label} decided past the staleness "
+                    f"cutoff ({decision.local_date}); withheld, never sent late"
+                )
+                continue
+
+            if decision.template_id == "digest_evening_normal" and is_quiet(
+                conn, decision.parent_id, plan.window_start, plan.evening_digest
+            ):
+                skip(
+                    f"evening digest for {label} withheld: zero alarm-grade "
+                    f"signals on {decision.local_date} — a reassurance body "
+                    "never renders from an empty evidence window"
+                )
+                continue
+
             # The template says which variables it takes; the caller does not
             # get to guess. A kind-based guess drifts the moment two templates
             # of one kind differ, which `digest_morning` already does.
@@ -256,31 +379,60 @@ def run_outbound(
                 name: available[name] for name in template(decision.template_id).variables
             }
             if any(not value for value in variables.values()):
-                # No relationship label on file (both live parents predate
-                # migration 0014). A message with a blank where the label goes
-                # is worse than one that waits, so skip without recording: the
-                # day's slot stays free for the run after the label is set.
-                log.warning(
-                    "outbound: %s skipped for parent %s: no relationship label on file",
-                    decision.template_id,
-                    decision.parent_id,
+                # DECISIONS 152: a message with a blank where the label goes is
+                # worse than one that waits. The skip claims the slot; setting
+                # the label upgrades it on the next pass.
+                skip(
+                    f"{decision.template_id} for {label} skipped: no "
+                    "relationship label on file (set one with "
+                    "scripts.provision --set-relationship)"
                 )
                 continue
-            result = transport.send(recipient, decision.template_id, variables)
-            if not result.delivered:
+
+            if decision.kind not in transport.kinds:
+                skip(
+                    f"{decision.template_id} for {label} skipped: the "
+                    f"{transport.name} transport does not carry "
+                    f"{decision.kind} until Wave C"
+                )
                 continue
-            recorded = db.record_sent_message(
-                conn,
-                decision.family_id,
-                decision.parent_id,
-                decision.local_date,
-                decision.kind,
-                decision.template_id,
-                result.transport,
-                now,
+
+            recipient = (
+                db.parent_whatsapp(conn, decision.parent_id) or ""
+                if decision.kind == KIND_ASK
+                else child_address
             )
-            if recorded:
-                decisions.append(decision)
+            if transport.requires_address and not recipient:
+                skip(
+                    f"{decision.template_id} for {label} skipped: unroutable, "
+                    f"no address on file for the {transport.name} transport"
+                )
+                continue
+
+            try:
+                result = transport.send(recipient, decision.template_id, variables)
+            except Exception as exc:  # noqa: BLE001 - one send must not kill the pass
+                log.exception("outbound: %s transport raised", transport.name)
+                result = DeliveryResult(
+                    delivered=False, transport=transport.name, detail=type(exc).__name__
+                )
+            if result.delivered:
+                if _record_outcome(
+                    conn, notifier, decision, result.transport, "sent", "", now
+                ):
+                    decisions.append(decision)
+            else:
+                why = f" ({result.detail})" if result.detail else ""
+                _record_outcome(
+                    conn,
+                    notifier,
+                    decision,
+                    result.transport,
+                    "failed",
+                    f"{decision.template_id} for {label} failed on the "
+                    f"{result.transport} transport{why}; slot stays retryable",
+                    now,
+                )
     return decisions
 
 
@@ -393,12 +545,17 @@ class OutboundState:
 
     last_run_utc: datetime | None = None
     decided: list[Decision] = field(default_factory=list)
+    #: True while the loop's passes are failing; the transition into a failing
+    #: streak is what alerts the founder, so a stuck loop costs one ntfy, not
+    #: one a minute (DECISIONS 157/159).
+    failing: bool = False
 
 
 async def outbound_loop(
     conn: psycopg.Connection,
     transport: Transport,
     settings: Any,
+    notifier: Notifier,
     state: OutboundState,
     interval_s: int = 60,
 ) -> None:
@@ -415,11 +572,23 @@ async def outbound_loop(
         try:
             now = now_utc()
             state.decided = await asyncio.to_thread(
-                run_outbound, conn, transport, now, enabled=settings.outbound_enabled
+                run_outbound,
+                conn,
+                transport,
+                now,
+                notifier=notifier,
+                enabled=settings.outbound_enabled,
             )
             state.last_run_utc = now
+            state.failing = False
         except asyncio.CancelledError:
             raise
         except Exception:  # noqa: BLE001 - the engine must outlive any failure
             log.exception("outbound pass failed")
+            if not state.failing:
+                state.failing = True
+                notifier.send(
+                    "⚠️ outbound: a scheduler pass failed and the loop is "
+                    "retrying every minute; see the kettle-api logs"
+                )
         await asyncio.sleep(interval_s)
