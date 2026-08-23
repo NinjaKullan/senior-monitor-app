@@ -150,6 +150,26 @@ def test_the_follow_on_hands_off_rather_than_instructing():
     assert body.endswith("A call from you beats anything Kettle can send.")
 
 
+def test_the_161_bodies_are_verbatim():
+    """DECISIONS 161's two bodies, character for character — the last approved
+    set that lived only in a chat transcript was lost (141/145), so the pin is
+    against the ruling's text, not against taste."""
+    assert render("all_clear_family", {"relationship": "Mom"}) == (
+        "The shape of Mom's usual day is back. Kettle returns to its "
+        "twice-a-day notes."
+    )
+    assert render("follow_on_unreachable", {"relationship": "Mom"}) == (
+        "Mom's phone has been silent today, which is different from a quiet "
+        "morning. A phone that is off or out of battery looks exactly like "
+        "this. A call from you settles it either way."
+    )
+    # Both follow-ons share a kind; which renders is the engine's distinction,
+    # and they never both send for the same day (a test in test_outbound.py
+    # holds that from the engine's side).
+    assert TEMPLATES["follow_on_unreachable"].kind == TEMPLATES["follow_on_family"].kind
+    assert TEMPLATES["all_clear_family"].audience == "child"
+
+
 def test_no_template_takes_a_name_or_says_one():
     """DECISIONS 149: `{relationship}` and nothing else, never a name.
 

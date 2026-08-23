@@ -14,8 +14,8 @@ retrofit:
    use pre-registered templates (§3, Wave D). A registry maps onto that
    requirement one-to-one; text assembled at the call site does not.
 
-The bodies are the founder-approved set, verbatim from DECISIONS 151. Three
-rulings bind every body here, and the copy-law scan enforces each:
+The bodies are the founder-approved set, verbatim from DECISIONS 151 and 161.
+Three rulings bind every body here, and the copy-law scan enforces each:
 
 * **`{relationship}`, never a name** (DECISIONS 149). Templates never use a
   parent's given name or a family's own pet name — Kettle cannot know what a
@@ -36,13 +36,21 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 
-#: The four things Kettle can say. A fifth is a spec change, not an edit.
+#: The five things Kettle can say. A sixth is a spec change, not an edit —
+#: the all-clear was exactly that (DECISIONS 157/161, migration 0016).
 KIND_DIGEST_MORNING = "digest_morning"
 KIND_DIGEST_EVENING = "digest_evening"
 KIND_ASK = "ask"
 KIND_FOLLOW_ON = "follow_on"
+KIND_ALL_CLEAR = "all_clear"
 
-KINDS: tuple[str, ...] = (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING, KIND_ASK, KIND_FOLLOW_ON)
+KINDS: tuple[str, ...] = (
+    KIND_DIGEST_MORNING,
+    KIND_DIGEST_EVENING,
+    KIND_ASK,
+    KIND_FOLLOW_ON,
+    KIND_ALL_CLEAR,
+)
 
 #: The one email subject line (Wave B). Family-facing copy, so it lives in
 #: this module and goes through the same scan as every body: the registry's
@@ -107,9 +115,11 @@ _REGISTRY: tuple[Template, ...] = (
         body="Everything okay today? Reply with a 👍 whenever suits.",
     ),
     Template(
-        # The only message that ever tells a child about a quiet day, and the
-        # ladder's handoff: it reports two facts and then stops, because the
-        # family knows things Kettle cannot.
+        # The changed-morning follow-on (DECISIONS 151 body 5): signals still
+        # arriving, routine absent. The ladder's handoff — it reports two facts
+        # and then stops, because the family knows things Kettle cannot. When
+        # the phone has stopped reporting entirely, `follow_on_unreachable`
+        # renders instead; the two never both send for the same day.
         id="follow_on_family",
         kind=KIND_FOLLOW_ON,
         audience=AUDIENCE_CHILD,
@@ -117,6 +127,34 @@ _REGISTRY: tuple[Template, ...] = (
             "{relationship}'s usual morning hasn't shown up today, and they "
             "haven't answered Kettle's note yet. You know their day best. "
             "A call from you beats anything Kettle can send."
+        ),
+        variables=("relationship",),
+    ),
+    Template(
+        # The unreachable-phone follow-on (DECISIONS 161 body 7, the 157
+        # mechanism_ok distinction): zero pings of ANY grade all day, so the
+        # honest report is about the phone, not the morning. A dead battery
+        # must not read as a changed morning.
+        id="follow_on_unreachable",
+        kind=KIND_FOLLOW_ON,
+        audience=AUDIENCE_CHILD,
+        body=(
+            "{relationship}'s phone has been silent today, which is different "
+            "from a quiet morning. A phone that is off or out of battery looks "
+            "exactly like this. A call from you settles it either way."
+        ),
+        variables=("relationship",),
+    ),
+    Template(
+        # The all-clear (DECISIONS 161 body 6): only ever after a follow-on has
+        # gone out, when the parent's routine resumes. Once per day, and the
+        # ledger row is the resolution record.
+        id="all_clear_family",
+        kind=KIND_ALL_CLEAR,
+        audience=AUDIENCE_CHILD,
+        body=(
+            "The shape of {relationship}'s usual day is back. Kettle returns "
+            "to its twice-a-day notes."
         ),
         variables=("relationship",),
     ),
