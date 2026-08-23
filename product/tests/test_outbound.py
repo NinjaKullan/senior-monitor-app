@@ -1079,10 +1079,12 @@ def test_the_all_clear_goes_once_after_routine_resumes(conn, family):
     assert ("all_clear", "all_clear_family") in ledger(conn)
     assert transport.sent[-1][1].startswith("The shape of Mom's usual day is back.")
 
-    # Once means once: more signals do not repeat it.
+    # Once means once — asserted against the transport, not just the ledger:
+    # the unique index would hide a re-SEND by refusing only the re-record.
     ping(conn, parent_id, "whatsapp", at(16, 0))
     run_twice(conn, transport, at(16, 5))
     assert [k for k, _ in ledger(conn)].count("all_clear") == 1
+    assert [t for t, _ in transport.sent].count("all_clear_family") == 1
 
 
 def test_no_follow_on_means_no_all_clear_ever(conn, family):
@@ -1101,14 +1103,16 @@ def test_no_follow_on_means_no_all_clear_ever(conn, family):
 
 def test_a_skipped_follow_on_earns_no_all_clear(conn, family):
     """Sent means sent: a follow-on the family never received cannot be
-    un-worried about."""
+    un-worried about. The transport here CAN carry the all-clear — only the
+    follow-on is undeliverable — so a wrongly-earned all-clear would send and
+    show, rather than being masked by its own skip."""
 
-    class DigestsOnly(LogTransport):
-        name = "digests-only"
-        kinds = ("digest_morning", "digest_evening")
+    class NoFollowOn(LogTransport):
+        name = "no-follow-on"
+        kinds = ("digest_morning", "digest_evening", "ask", "all_clear")
 
     parent_id = family.parents[0].parent_id
-    transport = DigestsOnly()
+    transport = NoFollowOn()
     run_twice(conn, transport, at(11, 0))
     run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
     assert statuses(conn)["follow_on"] == "skipped"
@@ -1116,6 +1120,7 @@ def test_a_skipped_follow_on_earns_no_all_clear(conn, family):
     ping(conn, parent_id, "whatsapp", at(14, 0))
     run_twice(conn, transport, at(14, 5))
     assert ("all_clear", "all_clear_family") not in ledger(conn)
+    assert "all_clear_family" not in [t for t, _ in transport.sent]
 
 
 # --- Wave C: the roster (DECISIONS 163) ---------------------------------------
