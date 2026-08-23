@@ -142,6 +142,36 @@ def test_the_old_fly_hostname_301s_to_the_canonical_domain():
     assert "$uri;" not in REDIRECT
 
 
+def test_the_serving_block_is_the_declared_default_server():
+    """The redirect loop of DECISIONS 148, held shut.
+
+    `server_name _;` looks like a default and is not one — it is simply a name no
+    Host header matches. nginx routes an unmatched Host to whichever block comes
+    FIRST on that listen address unless one is marked `default_server`. The
+    redirect block is written first in this file, so before 148 heykettle.com
+    matched nothing, fell into the redirect block, and 301'd to itself forever.
+    The founder found it by deploying; the site was down.
+
+    The original tests here asserted both server_names and passed happily through
+    all of it, because a server_name says nothing about which block is default.
+    This is the assertion that was missing.
+    """
+    # Directives, not prose: the config now explains this rule at length, and the
+    # explanation says "default_server" three times.
+    serving = re.sub(r"#[^\n]*", "", SERVING)
+    redirect = re.sub(r"#[^\n]*", "", REDIRECT)
+    assert "listen 8080 default_server;" in serving, (
+        "the serving block is not the default server: an unmatched Host falls into "
+        "whichever block is first, which is the redirect (DECISIONS 148)"
+    )
+    assert "default_server" not in redirect, (
+        "the redirect block must never be the default, or every unmatched Host "
+        "301s to heykettle.com — including heykettle.com"
+    )
+    # Exactly one default on this listen address; two is an nginx startup error.
+    assert DIRECTIVES.count("default_server") == 1
+
+
 def test_the_redirect_is_scoped_to_that_one_host():
     """Host-scoped by server_name, not by an `if` inside the serving block.
 
