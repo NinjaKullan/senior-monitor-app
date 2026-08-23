@@ -32,9 +32,12 @@ RETIRED_MODULES = (
     "kettle/ladder_messages.py",
     "kettle/messages.py",
     "kettle/channels.py",
-    "kettle/twilio_signature.py",
     "scripts/ladder.py",
 )
+# `kettle/twilio_signature.py` was on this list from the spec-004 retirement
+# until Wave C REBUILT it for /outbound/reply (DECISIONS 163) — a fresh module
+# doing the same job for a different route, written new rather than
+# resurrected. It leaves the retired set deliberately, not by drift.
 RETIRED_TABLES = ("ladder_candidates", "ladder_events", "family_contacts")
 
 
@@ -50,8 +53,7 @@ def test_nothing_imports_them():
         if "__pycache__" in str(path) or path.name == Path(__file__).name:
             continue
         source = path.read_text()
-        for module in ("digest", "ladder", "ladder_messages", "messages", "channels",
-                       "twilio_signature"):
+        for module in ("digest", "ladder", "ladder_messages", "messages", "channels"):
             for form in (f"from kettle.{module} import", f"from kettle import {module}"):
                 if form in source:
                     offenders.append(f"{path.relative_to(PRODUCT)}: {form}")
@@ -202,9 +204,9 @@ def test_the_retirement_migration_is_safe_to_run_twice(half_migrated: str):
 
 
 def test_every_migration_still_applies_in_order(conn: psycopg.Connection):
-    """0015 is the last one, and the numbering has no gap."""
+    """0016 is the last one, and the numbering has no gap."""
     names = [p.name for p in migration_files()]
-    assert names[-1].startswith("0015")
+    assert names[-1].startswith("0016")
     numbers = [int(name[:4]) for name in names]
     assert numbers == list(range(1, len(numbers) + 1))
     assert apply_migrations is not None
