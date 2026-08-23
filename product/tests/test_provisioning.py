@@ -9,9 +9,11 @@ import pytest
 
 from kettle.provisioning import (
     DEMO_FAMILY_NAME,
+    RELATIONSHIP_LABELS,
     provision_demo_family,
     provision_family,
     render_summary,
+    set_parent_relationship,
     set_parent_signals,
 )
 from kettle.signals import STANDARD_SIGNALS
@@ -218,9 +220,11 @@ def test_revoke_cannot_be_mixed_with_provisioning(database_url: str):
 
 
 def test_parse_parent_argument():
-    assert _parse_parent("Amma") == ("Amma", None)
-    assert _parse_parent("Appa:America/Chicago") == ("Appa", "America/Chicago")
-    assert _parse_parent(" Amma ") == ("Amma", None)
+    assert _parse_parent("Amma") == ("Amma", None, None)
+    assert _parse_parent("Appa:America/Chicago") == ("Appa", "America/Chicago", None)
+    assert _parse_parent(" Amma ") == ("Amma", None, None)
+    assert _parse_parent("Amma::Mom") == ("Amma", None, "Mom")
+    assert _parse_parent("Appa:America/Chicago:Dad") == ("Appa", "America/Chicago", "Dad")
 
 
 def test_cli_demo_flag(conn: psycopg.Connection, database_url: str, capsys):
@@ -333,3 +337,123 @@ def test_set_signals_on_a_revoked_or_unknown_token_changes_nothing(conn: psycopg
         (family.parents[0].parent_id,),
     ).fetchone()["n"]
     assert active == len(STANDARD_SIGNALS)
+
+
+# --- the relationship label (DECISIONS 149, migration 0014) -------------------
+
+
+def test_relationship_labels_are_stored_at_provisioning(conn: psycopg.Connection):
+    family = provision_family(
+        conn,
+        "Sharma",
+        "Asia/Kolkata",
+        [("Amma", None, "Mom"), ("Appa", "America/Chicago", "Dad")],
+        base_url=BASE_URL,
+    )
+    assert [p.relationship for p in family.parents] == ["Mom", "Dad"]
+    stored = conn.execute(
+        "select display_name, relationship from parents order by display_name"
+    ).fetchall()
+    assert stored == [
+        {"display_name": "Amma", "relationship": "Mom"},
+        {"display_name": "Appa", "relationship": "Dad"},
+    ]
+
+
+def test_a_parent_without_a_label_provisions_and_the_summary_says_so(
+    conn: psycopg.Connection,
+):
+    """Both live parents predate the column; the shape they are in must stay
+    provisionable — and visibly incomplete, so the operator knows what is owed."""
+    family = provision_family(
+        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
+    )
+    assert family.parents[0].relationship is None
+    assert "no relationship label" in render_summary(family)
+
+
+def test_an_unknown_label_fails_before_anything_is_written(conn: psycopg.Connection):
+    """The label renders into a family's messages, so a typo is loud, not stored."""
+    with pytest.raises(ValueError, match="Mum"):
+        provision_family(
+            conn, "Typo", "Asia/Kolkata", [("Amma", None, "Mum")], base_url=BASE_URL
+        )
+    assert conn.execute("select count(*) as n from families").fetchone()["n"] == 0
+
+
+def test_the_database_constraint_matches_the_python_set(conn: psycopg.Connection):
+    """Migration 0014's check constraint and RELATIONSHIP_LABELS are one list.
+
+    The constraint is what stops hand-written SQL storing free text; the Python
+    tuple is what the surfaces validate against. If either grows without the
+    other, one of these two loops fails by name.
+    """
+    family = provision_family(
+        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
+    )
+    parent_id = family.parents[0].parent_id
+    for label in RELATIONSHIP_LABELS:
+        conn.execute(
+            "update parents set relationship = %s where id = %s", (label, parent_id)
+        )
+    with pytest.raises(psycopg.errors.CheckViolation):
+        conn.execute(
+            "update parents set relationship = 'Mum' where id = %s", (parent_id,)
+        )
+
+
+def test_set_relationship_labels_a_live_parent_without_sql(conn: psycopg.Connection):
+    """The path for the two live parents, who predate migration 0014."""
+    family = provision_family(
+        conn, "Live", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
+    )
+    token = family.parents[0].device_token
+
+    assert set_parent_relationship(conn, token, "Mom") == "Amma"
+    stored = conn.execute(
+        "select relationship from parents where id = %s",
+        (family.parents[0].parent_id,),
+    ).fetchone()["relationship"]
+    assert stored == "Mom"
+
+    with pytest.raises(ValueError, match="Mum"):
+        set_parent_relationship(conn, token, "Mum")
+
+
+def test_set_relationship_on_a_revoked_or_unknown_token_changes_nothing(
+    conn: psycopg.Connection,
+):
+    family = provision_family(
+        conn, "Gone", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
+    )
+    token = family.parents[0].device_token
+    conn.execute("update devices set revoked_utc = now() where device_token = %s", (token,))
+
+    assert set_parent_relationship(conn, token, "Mom") is None
+    assert set_parent_relationship(conn, "no-such-token-anywhere1234", "Mom") is None
+    assert (
+        conn.execute(
+            "select relationship from parents where id = %s",
+            (family.parents[0].parent_id,),
+        ).fetchone()["relationship"]
+        is None
+    )
+
+
+def test_cli_set_relationship(conn: psycopg.Connection, database_url: str, capsys):
+    family = provision_family(
+        conn, "Live", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
+    )
+    token = family.parents[0].device_token
+
+    exit_code = provision_main(
+        ["--set-relationship", token, "--relationship", "Mom", "--database-url", database_url]
+    )
+    assert exit_code == 0
+    assert "[Mom]" in capsys.readouterr().out
+
+    exit_code = provision_main(
+        ["--set-relationship", token, "--relationship", "Mum", "--database-url", database_url]
+    )
+    assert exit_code == 1
+    assert "standard set" in capsys.readouterr().err

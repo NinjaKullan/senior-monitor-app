@@ -177,10 +177,16 @@ def parent_active_signals(conn: psycopg.Connection, parent_id: Any) -> list[Row]
 
 
 def parents_with_tz(conn: psycopg.Connection) -> list[Row]:
-    """Every monitored person, with the family context needed to pick a clock."""
+    """Every monitored person, with the family context needed to pick a clock.
+
+    `relationship` rides along for the outbound channel: it is the only thing
+    `{relationship}` ever renders (DECISIONS 149), and None means the parent is
+    skipped by relationship-bearing templates until the label is set.
+    """
     return conn.execute(
         """
         select p.id as parent_id, p.display_name as parent_name, p.tz as parent_tz,
+               p.relationship as relationship,
                f.id as family_id, f.name as family_name, f.tz as family_tz
         from parents p
         join families f on f.id = p.family_id

@@ -26,10 +26,34 @@ SETUP_LINK_TTL_DAYS = 7
 
 DEMO_FAMILY_NAME = "Kettle Demo Family"
 DEMO_TZ = "Asia/Kolkata"
-DEMO_PARENTS: tuple[tuple[str, str | None], ...] = (
-    ("Demo Amma", None),
-    ("Demo Appa", None),
+DEMO_PARENTS: tuple[tuple[str, str | None, str], ...] = (
+    ("Demo Amma", None, "Mom"),
+    ("Demo Appa", None, "Dad"),
 )
+
+#: The standard relationship labels a child picks from at setup (DECISIONS
+#: 149). Outbound copy renders this label and never a name: Kettle cannot know
+#: what a family calls their elders. The set is closed — extending it is a
+#: migration that widens `parents_relationship_known` (0014) plus an entry
+#: here, and a test holds the two identical. Free text is ruled out: it would
+#: be a family's private vocabulary stored server-side and rendered into
+#: messages.
+RELATIONSHIP_LABELS: tuple[str, ...] = ("Mom", "Dad", "Grandma", "Grandpa", "Aunt", "Uncle")
+
+
+def check_relationship(label: str | None) -> str | None:
+    """Validate a relationship label, or fail loudly before anything is written.
+
+    None is allowed — both live parents predate the column, and a parent
+    without a label is skipped by relationship-bearing templates rather than
+    rendered with a blank.
+    """
+    if label is None:
+        return None
+    if label not in RELATIONSHIP_LABELS:
+        known = ", ".join(RELATIONSHIP_LABELS)
+        raise ValueError(f"unknown relationship {label!r} — the standard set is: {known}")
+    return label
 
 
 def select_signals(keys: list[str] | None) -> tuple[tuple[str, bool], ...]:
@@ -67,6 +91,7 @@ class ProvisionedParent:
     parent_id: Any
     display_name: str
     tz: str | None
+    relationship: str | None
     device_id: Any
     device_token: str
     signals: list[ProvisionedSignal]
@@ -151,7 +176,7 @@ def provision_family(
     conn: psycopg.Connection,
     name: str,
     tz: str,
-    parents: list[tuple[str, str | None]],
+    parents: list[tuple[str, ...]],
     base_url: str,
     platform: str = "ios_shortcuts",
     owner_email: str | None = None,
@@ -160,10 +185,13 @@ def provision_family(
 ) -> ProvisionedFamily:
     """Create a family, its people, their devices and their signal allowlists.
 
-    `parents` is a list of (display_name, tz_or_None); a per-parent tz overrides
-    the family tz. An owner member is created only when an email is supplied —
-    the row's `auth_user_id` stays null until that person actually signs up
-    through Supabase Auth.
+    `parents` is a list of (display_name, tz_or_None) or (display_name,
+    tz_or_None, relationship); a per-parent tz overrides the family tz, and the
+    relationship is the label outbound copy renders (DECISIONS 149) — it must
+    come from `RELATIONSHIP_LABELS`, and omitting it leaves the parent out of
+    relationship-bearing messages until it is set. An owner member is created
+    only when an email is supplied — the row's `auth_user_id` stays null until
+    that person actually signs up through Supabase Auth.
 
     `signals` chooses the allowlist at provisioning time (DECISIONS 94) instead
     of seeding the standard set and editing afterwards. Keys must be in the
@@ -172,6 +200,10 @@ def provision_family(
     alarm-grade by typo. The set applies to every parent in this invocation.
     """
     chosen = select_signals(signals)
+    # Loud before anything is written, like the signal vocabulary above: a typo
+    # here would otherwise render into a family's messages.
+    for _name, _tz, *rest in parents:
+        check_relationship(rest[0] if rest else None)
     created = now_utc()
     family = conn.execute(
         "insert into families (name, tz, created_utc) values (%s, %s, %s) "
@@ -190,11 +222,12 @@ def provision_family(
         )
 
     provisioned: list[ProvisionedParent] = []
-    for display_name, parent_tz in parents:
+    for display_name, parent_tz, *rest in parents:
+        relationship = rest[0] if rest else None
         parent = conn.execute(
-            "insert into parents (family_id, display_name, tz, created_utc) "
-            "values (%s, %s, %s, %s) returning id",
-            (family_id, display_name, parent_tz, created),
+            "insert into parents (family_id, display_name, tz, relationship, created_utc) "
+            "values (%s, %s, %s, %s, %s) returning id",
+            (family_id, display_name, parent_tz, relationship, created),
         ).fetchone()
         parent_id = parent["id"]
 
@@ -231,6 +264,7 @@ def provision_family(
                 parent_id=parent_id,
                 display_name=display_name,
                 tz=parent_tz,
+                relationship=relationship,
                 device_id=device["id"],
                 device_token=token,
                 signals=signals,
@@ -309,6 +343,32 @@ def set_parent_signals(
     return row["display_name"], [signal for signal, _ in chosen]
 
 
+def set_parent_relationship(
+    conn: psycopg.Connection, device_token: str, label: str
+) -> str | None:
+    """Set an existing parent's relationship label (DECISIONS 149).
+
+    The path for the two live parents, who predate migration 0014, without
+    hand-written SQL. The label must come from the standard set — that is the
+    ruling, not a convenience — and until one is set the parent is skipped by
+    every relationship-bearing template. Returns the display name, or None
+    when no active device matches.
+    """
+    check_relationship(label)
+    row = conn.execute(
+        """
+        update parents set relationship = %s
+        where id = (
+            select parent_id from devices
+            where device_token = %s and revoked_utc is null
+        )
+        returning display_name
+        """,
+        (label, device_token),
+    ).fetchone()
+    return row["display_name"] if row else None
+
+
 def revoke_by_token(
     conn: psycopg.Connection, device_token: str, when: datetime
 ) -> RevokedDevice | None:
@@ -363,7 +423,12 @@ def render_summary(family: ProvisionedFamily) -> str:
     ]
     for parent in family.parents:
         tz_note = f" [tz {parent.tz}]" if parent.tz else ""
-        lines.append(f"  {parent.display_name}{tz_note}")
+        label_note = (
+            f" [{parent.relationship}]"
+            if parent.relationship
+            else " [no relationship label — relationship-bearing messages skip this parent]"
+        )
+        lines.append(f"  {parent.display_name}{tz_note}{label_note}")
         lines.append(f"    device token: {parent.device_token}")
         lines.append(
             f"    setup page:   {parent.setup_url}"

@@ -1,7 +1,7 @@
 """Provision a beta family, or revoke a lost phone (spec 002 §5).
 
-    python -m scripts.provision --family "Sharma" --parent "Amma" \
-        --parent "Appa:America/Chicago" --owner-email child@example.com
+    python -m scripts.provision --family "Sharma" --parent "Amma::Mom" \
+        --parent "Appa:America/Chicago:Dad" --owner-email child@example.com
 
     python -m scripts.provision --demo
 
@@ -32,22 +32,30 @@ from kettle.provisioning import (
     render_setup_link,
     render_summary,
     revoke_by_token,
+    set_parent_relationship,
     set_parent_signals,
 )
 from kettle.timeutil import now_utc
 
 
-def _parse_parent(value: str) -> tuple[str, str | None]:
-    """'Amma' or 'Amma:America/Chicago' -> (name, tz or None)."""
-    name, _, tz = value.partition(":")
+def _parse_parent(value: str) -> tuple[str, str | None, str | None]:
+    """'Amma', 'Amma:America/Chicago', 'Amma:America/Chicago:Mom' or 'Amma::Mom'.
+
+    Returns (name, tz or None, relationship or None). The second field is
+    always the timezone — a label with no tz needs the empty field ('Amma::Mom')
+    so that a mistyped position fails loudly in `check_relationship` instead of
+    being stored as a timezone.
+    """
+    name, _, rest = value.partition(":")
+    tz, _, relationship = rest.partition(":")
     name = name.strip()
     if not name:
         raise argparse.ArgumentTypeError("parent name cannot be empty")
-    return name, (tz.strip() or None)
+    return name, (tz.strip() or None), (relationship.strip() or None)
 
 
 #: Options whose value is a device token, and therefore may begin with a dash.
-TOKEN_OPTIONS = ("--revoke", "--setup-link", "--set-signals")
+TOKEN_OPTIONS = ("--revoke", "--setup-link", "--set-signals", "--set-relationship")
 
 
 def join_token_values(argv: list[str], known_options: set[str]) -> list[str]:
@@ -96,8 +104,10 @@ def main(argv: list[str] | None = None) -> int:
         "--parent",
         action="append",
         default=[],
-        metavar="NAME[:TZ]",
-        help="a monitored loved one; repeat per person. TZ overrides family tz",
+        metavar="NAME[:TZ][:REL]",
+        help="a monitored loved one; repeat per person. TZ overrides family tz; "
+        "REL is the relationship label outbound copy renders (DECISIONS 149), "
+        "e.g. 'Amma::Mom'",
     )
     parser.add_argument(
         "--platform",
@@ -121,6 +131,20 @@ def main(argv: list[str] | None = None) -> int:
         metavar="DEVICE_TOKEN",
         default=None,
         help="re-point an existing parent's allowlist to --signals (DECISIONS 107)",
+    )
+    parser.add_argument(
+        "--set-relationship",
+        metavar="DEVICE_TOKEN",
+        default=None,
+        help="set an existing parent's relationship label to --relationship "
+        "(DECISIONS 149); until set, relationship-bearing messages skip them",
+    )
+    parser.add_argument(
+        "--relationship",
+        default=None,
+        metavar="LABEL",
+        help="the label for --set-relationship, from the standard set "
+        "(Mom, Dad, Grandma, Grandpa, Aunt, Uncle)",
     )
     parser.add_argument(
         "--revoke",
@@ -159,20 +183,32 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--set-signals takes only --signals and a device token")
     if args.set_signals and not args.signals:
         parser.error("--set-signals needs --signals to say what the new set is")
-    if args.setup_link and (
+    if args.set_relationship and (
         args.demo or args.family or args.parent or args.revoke or args.set_signals
+    ):
+        parser.error("--set-relationship takes only --relationship and a device token")
+    if args.set_relationship and not args.relationship:
+        parser.error("--set-relationship needs --relationship to say what the label is")
+    if args.setup_link and (
+        args.demo
+        or args.family
+        or args.parent
+        or args.revoke
+        or args.set_signals
+        or args.set_relationship
     ):
         parser.error("--setup-link takes only a device token")
     if (
         not args.revoke
         and not args.set_signals
+        and not args.set_relationship
         and not args.setup_link
         and not args.demo
         and not (args.family and args.parent)
     ):
         parser.error(
             "--family and at least one --parent are required "
-            "(or --demo, --revoke, --set-signals, --setup-link)"
+            "(or --demo, --revoke, --set-signals, --set-relationship, --setup-link)"
         )
 
     chosen = (
@@ -195,6 +231,19 @@ def main(argv: list[str] | None = None) -> int:
         for signal in active:
             print(f"  {base}/p/{args.set_signals}/{signal}")
         print("Everything else is inactive (kept, not deleted). Re-forge before delivering.")
+        return 0
+
+    if args.set_relationship:
+        with db.connect(args.database_url) as conn:
+            try:
+                name = set_parent_relationship(conn, args.set_relationship, args.relationship)
+            except ValueError as exc:
+                print(str(exc), file=sys.stderr)
+                return 1
+        if name is None:
+            print("No active device matches that token — nothing changed.", file=sys.stderr)
+            return 1
+        print(f"{name} is now [{args.relationship}] in every message that names them.")
         return 0
 
     if args.setup_link:
