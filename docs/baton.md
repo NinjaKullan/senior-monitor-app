@@ -38,11 +38,13 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 315 + 1 xfail**, **`webapp` 117**, **`site` 174**.
+Current green: **`pytest` 321, zero xfails**, **`webapp` 117**, **`site` 174**.
 
-* The xfail is a **live bug**, not a skipped test (§5).
+* The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
+  ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
 * The product count fell from 401 to 270 when the digest and ladder suites went with
-  their engines (DECISIONS 141); the outbound copy pass brought it to 315.
+  their engines (DECISIONS 141); the outbound copy pass and the reply repair brought
+  it to 321.
 * Postgres has died mid-session in this container. `KETTLE_REQUIRE_POSTGRES=1` turns
   that into 169 loud errors instead of a silent skip. Restart and re-run.
 * **Verify front-end changes on more than one Node.** The container has 22.22.2, the
@@ -115,12 +117,14 @@ build that predates six unshipped passes (§4).
 |---|---|
 | **141** | `digest_sends`: give `sent_messages` a family-scoped read policy and move the Digests screen, or retire the screen? |
 | **141** | Sixteen capabilities 007 lacks that the retired engines had — founder ops alerts on delivery failure, `ask_skipped`, `mechanism_ok`, the evidence gate, the morning cutoff, the all-clear. None blocks Wave A; several are load-bearing before a message reaches a family. |
-| **145** | **Open bug.** `record_parent_reply` matches the ask by local calendar day, so a parent who answers after local midnight cancels nothing and her family is escalated to anyway. Pinned as a `strict=True` xfail in `test_outbound.py` — when fixed, the marker fails as XPASS and must be removed. The repair is a spec choice: match the most recent *unanswered* ask, then bound "recent". |
 | **142** | Two cheap-to-overrule calls: `/healthz` answers on both hosts instead of redirecting; privacy.html has no canonical. |
 | **152** | Where the *child* picks the relationship label. For beta it is founder-entered at provisioning (`--parent "Amma::Mom"`, `--set-relationship`); 149 says "the child picks at setup" without naming the surface, and onboarding investment is founder-PAUSED (126). |
 
 Resolved since: **151** delivered the five template bodies, **149** ruled relationship
 labels over names, **150** ruled the ask's icon — and **152** built all three (§6).
+**145's midnight-reply bug is fixed as ruled** (pending-ask match, 24-hour bound,
+no-pending-ask replies noted only — DECISIONS 153, spec 007 §2.6 amended); the
+suite's only xfail went with it.
 
 ## 6. The outbound copy pass (149, 150, 151) — built
 

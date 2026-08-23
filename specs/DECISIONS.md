@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 153.** This line is the one to update; the `Next number:` lines inside
+**Next number: 154.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1409,3 +1409,37 @@ browser — all three adopted as the standard for future surfaces.**
      * **The site's quoted ask string is untouched, per 150's explicit scope
        ruling.** The product test that pinned site/product equality now pins
        DECISIONS 151's string instead ("the site's quote is illustrative").
+
+---
+
+## Midnight-reply repair build notes (implementer, 2026-08-23)
+
+153. **The DECISIONS 145 defect is fixed as ruled; the three calls inside the
+     ruling's edges, each cheap to overrule.** A reply now matches the parent's
+     pending ask — most recent, sent, unanswered, follow-on not yet gone —
+     bounded to asks sent within the last 24 hours, no calendar day in the
+     match. Spec 007 §2.6 amended; the 145 strict xfail became a plain
+     assertion in the same commit as the fix, so the suite carries **zero
+     xfails** for the first time since 142. Boundary tests walk each edge:
+     23:00/00:20 matches, no-pending-ask notes only, after-follow-on notes
+     only, older-than-24h notes only, newest-of-two-pending wins. Every edge
+     verified by plant (oldest-wins, missing follow-on clause, missing bound,
+     narrowed window, silent arrival — five plants, five named failures).
+
+     * **"Record that a reply arrived" is a masked log line, not a row.** The
+       ruling says record the arrival; it does not say where. A stored-reply
+       table would be new schema holding per-person interaction data with no
+       consumer, and intake is content-blind (150) with nothing worth keeping
+       beyond "it happened" — so the arrival is `log.info` with the number
+       masked, timestamp only, and `record_parent_reply` still returns False.
+       If the PM wants arrivals queryable (e.g. for the Wave A ledger review),
+       that is a schema decision to make explicitly, not a side effect.
+     * **The 24-hour bound is exclusive at exactly 24h** (`sent_utc > now -
+       interval '24 hours'`): an ask precisely a day old is no longer
+       answerable. The ruling says "within the last 24 hours"; the fencepost
+       had to land somewhere and nothing real sits on it.
+     * **"Follow-on not yet sent" is judged per the ask's own ledger day, and
+       a late reply leaves the ask unanswered.** Once the family has been
+       told, marking the ask answered afterwards would rewrite the ledger into
+       a question that never needed escalating — the row stays as the family
+       experienced it, and the arrival is noted in the log only.

@@ -51,8 +51,18 @@ Three message kinds, and nothing else speaks:
    acceptance path: watch the ledger match reality for the founder family for two days
    before any real message goes out.
 6. **Reply intake (minimal).** A webhook endpoint that records "the parent replied"
-   (timestamp only, never content) and cancels a pending follow-on. Wave A: the
-   endpoint + ledger logic exist and are tested; nothing calls them until Wave C.
+   (timestamp only, never content) and cancels a pending follow-on. Intake is
+   content-blind: a thumbs-up, a voice note, or a sentence in any language all count
+   as "answered" — nothing parses content (DECISIONS 150). **The matching rule
+   (DECISIONS 153, repairing the 145 defect):** a reply matches the parent's
+   *pending* ask — the most recent ask that is (a) sent, (b) unanswered, (c) whose
+   follow-on has not yet been sent — regardless of calendar day, bounded to asks
+   sent within the last 24 hours. No pending ask in that window: the arrival is
+   noted (timestamp only), nothing is cancelled, nothing escalates because of it.
+   Matching by the parent's local calendar day is the ruled-out shape: an ask
+   answered just after local midnight is the same conversation, and escalating over
+   a parent who answered is worse than a missed message. Wave A: the endpoint +
+   ledger logic exist and are tested; nothing calls them until Wave C.
 
 ## 3. The transports (Waves B–D, each gated on one founder errand)
 
