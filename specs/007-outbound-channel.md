@@ -69,6 +69,19 @@ Three message kinds, and nothing else speaks:
    answered just after local midnight is the same conversation, and escalating over
    a parent who answered is worse than a missed message. Wave A: the endpoint +
    ledger logic exist and are tested; nothing calls them until Wave C.
+7. **The engine reports what it withholds (DECISIONS 157/159, built with Wave B).**
+   The ledger row carries a status — 'sent' is final; 'failed' and 'skipped' claim
+   the day's slot but stay retryable — and every non-sent outcome fires one founder
+   ops alert on the transition (ntfy + `ops_alerts`, law #3; alert copy is
+   operational and may name mechanisms). Four withhold rules: a morning digest
+   decided more than two hours past its slot is never sent late; the evening-normal
+   body renders only from a day with at least one alarm-grade signal (a zero-signal
+   day is an ops condition, not a family message — the morning quiet-so-far path is
+   honest absence and stands); a relationship-bearing template with no label waits
+   (DECISIONS 152); a kind the transport does not carry, or an address-requiring
+   transport with no address, is a recorded skip, never an attempt. Only 'sent'
+   rows count anywhere a row means "Kettle spoke": the sent-once check, the
+   follow-on's precondition, the reply matcher.
 
 ## 3. The transports (Waves B–D, each gated on one founder errand)
 
@@ -76,6 +89,11 @@ Three message kinds, and nothing else speaks:
   to their account email. SMTP/API keys via Fly secrets; delivery tracking off; the
   sending subdomain per the SMTP plan doc (which updates Postmark→Resend in this pass).
   This makes "you hear twice a day" TRUE for the founder family before WhatsApp exists.
+  **Code-complete (DECISIONS 159):** the `resend` transport is registered — digests
+  only, address-required, fail-closed without `RESEND_API_KEY` — and asks/follow-ons
+  record as skipped with a founder alert until Wave C gives them a channel. The
+  deployed config stays `console` until the founder flips `OUTBOUND_TRANSPORT` after
+  the Wave A ledger review (§6.3); the flip is two Fly secrets, no deploy.
 - **Wave C — WhatsApp via Twilio sandbox** (gated on: Twilio account, ~an hour). The
   sandbox lets named testers join with a code — good enough for the founder family.
   The ask goes to the parent on WhatsApp; her reply hits the webhook. Rung 1 live.

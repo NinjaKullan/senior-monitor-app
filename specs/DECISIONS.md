@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 159.** This line is the one to update; the `Next number:` lines inside
+**Next number: 160.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1540,3 +1540,50 @@ browser — all three adopted as the standard for future surfaces.**
      (QUESTIONS 126) holds; the child-facing picker joins the setup page
      whenever that pause lifts, not before (closes DECISIONS 152's open
      question).
+
+---
+
+## Wave B pass build notes (implementer, 2026-08-23)
+
+159. **Everything 157 ranked Wave B-blocking is built; the calls inside it, each
+     cheap to overrule.** Migration 0015 puts status on the ledger; the engine
+     ops-alerts every failed, unroutable and skipped send plus loop-pass
+     failures; the staleness cutoff and evidence gate withhold rather than lie;
+     the `resend` transport carries digests behind the same seam; the Digests
+     screen is retired per 156. Deployed config untouched: console transport,
+     nothing sent, flip steps in the baton §4. Every new guardrail verified by
+     plant — eleven plants, eleven named failures, including one that caught a
+     scanner reading its own comment and one that proved a masked-log test was
+     guarding the wrong call site until it was re-planted against the right one.
+
+     * **The status vocabulary is three, not two.** The task named sent/failed;
+       'skipped' is the third real outcome (label-skip, staleness, evidence
+       gate, unroutable, no-transport-for-kind) and folding it into 'failed'
+       would make "the transport tried" unfalsifiable in the ledger review.
+       'sent' is final; 'failed'/'skipped' claim the slot but stay upgradable,
+       and re-recording the same non-sent status is a no-op — that transition
+       rule IS the alert dedupe, so a standing skip costs one ntfy, not one a
+       minute. This supersedes 152's "skipped without recording" detail; the
+       property 152 actually ruled — the slot releases the moment the label is
+       set — survives as a status transition instead of an absent row.
+     * **MORNING_STALE_CUTOFF = 2 hours** (the flagged v1 constant): nothing
+       "about this morning" goes out after 10:30 local. Consequence accepted
+       and tested: a first pass at 11:00 sends the ask and never the morning
+       digest. Asks deliberately have no staleness — ask-clock semantics are
+       157's Wave C item.
+     * **The evidence window is 06:00 → evening digest**, the evaluator's own
+       `is_quiet` over the day. A day whose only events are charger plumbing
+       counts as zero evidence, which is law #6 agreeing with the gate.
+     * **Failed/skipped slots re-attempt once a minute** while due (bounded by
+       the cutoff for the morning digest, by midnight for the rest). Alerts do
+       not repeat; HTTP retries against a down Resend do. Accepted for one
+       family; backoff is a later-families concern.
+     * **Email shape:** subject "A note from Kettle" lives in the template
+       registry and passes the copy-law scan; from defaults to
+       `Kettle <notes@send.heykettle.com>` (RESEND_FROM overrides), reply-to
+       `hello@heykettle.com` — both per docs/auth-smtp-plan.md's pattern,
+       words are the founder's to change. Plain text only, so the tracking-off
+       rule has nothing to rewrite.
+     * **`ops_alerts` gains `outbound_*` kinds** — same founder-only posture as
+       the heartbeat's rows; the pilot-paths test now pins that every outbound
+       write there carries the prefix rather than pinning the table empty.

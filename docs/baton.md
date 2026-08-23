@@ -38,13 +38,12 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 321, zero xfails**, **`webapp` 117**, **`site` 174**.
+Current green: **`pytest` 346, zero xfails**, **`webapp` 110**, **`site` 174**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
-* The product count fell from 401 to 270 when the digest and ladder suites went with
-  their engines (DECISIONS 141); the outbound copy pass and the reply repair brought
-  it to 321.
+* The webapp count fell 117 → 110 with the Digests screen's retirement (156); the
+  product count grew to 346 through the outbound passes (152/153/154/159).
 * Postgres has died mid-session in this container. `KETTLE_REQUIRE_POSTGRES=1` turns
   that into 169 loud errors instead of a silent skip. Restart and re-run.
 * **Verify front-end changes on more than one Node.** The container has 22.22.2, the
@@ -60,11 +59,11 @@ Current green: **`pytest` 321, zero xfails**, **`webapp` 117**, **`site` 174**.
 * **Onboarding-surface investment is founder-PAUSED** (126). Beta families get
   handholding; page improvements queue behind real beta evidence. Do not build
   onboarding polish unprompted.
-* **`digest_sends` must stay in the schema.** Nothing writes to it since the retirement,
-  but the family app's Digests screen reads it (`webapp/src/lib/queries.ts`
-  `READ_SURFACE`), and 007's `sent_messages` is RLS deny-all so it cannot replace it.
-  Retiring it empties a screen in a live app. Two ways out in DECISIONS 141; both are
-  the PM's call, not a migration.
+* **`digest_sends` stays in the schema for now, and nothing reads OR writes it.**
+  DECISIONS 156 retired the Digests screen and took the table out of the app's
+  `READ_SURFACE` (built, DECISIONS 159); a later 0013-style migration retires the
+  table itself — that migration is now unblocked but not yet written. `sent_messages`
+  stays RLS deny-all; no client ever reads it.
 * **The waitlist form is CORS-dead** until `WAITLIST_ORIGINS` on kettle-api includes the
   serving origin. Unconfirmed whether it was ever set. See §4.
 * **kettle-site is serving a redirect loop in production right now.** The domain
@@ -104,50 +103,54 @@ The loop is wired as of this pass and starts, dark, with the next kettle-api dep
 3. **`fly deploy` kettle-app.** Carries the 112 cache headers — until then deploys
    white-screen returning browsers — plus the login words, the Setup card, and now the
    session-restore fix (144).
-4. **Apply migrations 0012 and 0013, then `fly deploy` kettle-api — this deploy
-   starts Wave A, dark** (DECISIONS 154/155). 0013 decides per-table at apply time
-   and prints notices saying what it did; read them. 0012 creates `sent_messages`,
-   which the loop writes: deploying before applying it means a loop that fails
-   every pass, loudly in logs and invisibly in the product. (0014 and the
-   relationship labels are already done — PM, 2026-08-23.) After deploying, check
-   the logs for `outbound (dark):` lines at the expected local times.
+4. **Apply migrations 0012, 0013 and 0015, then `fly deploy` kettle-api — this
+   deploy starts Wave A, dark** (DECISIONS 154/155/159). 0013 decides per-table at
+   apply time and prints notices saying what it did; read them. 0012 creates
+   `sent_messages`, which the loop writes — deploying before applying it means a
+   loop that fails every pass — and 0015 adds the status column the engine now
+   writes. (0014 and the relationship labels are already done — PM, 2026-08-23.)
+   After deploying, check the logs for `outbound (dark):` lines at the expected
+   local times, and expect founder ntfy alerts for anything skipped or failed.
 5. **Run Wave A dark for 48 hours** and review the ledger against what actually
-   happened (spec 007 §6.3). That review is the gate to Wave B. The clock starts
-   at the deploy in item 4, not at any earlier date (155).
-6. **The Resend DNS records** on `send.heykettle.com` before any non-founder family
+   happened (spec 007 §6.3) — statuses included: skipped and failed rows say why a
+   slot is empty. That review is the gate to Wave B. The clock starts at the deploy
+   in item 4, not at any earlier date (155).
+6. **The Wave B flip, AFTER the review — two secrets, no deploy, no code change:**
+   ```bash
+   fly secrets set -a kettle-api RESEND_API_KEY=re_... OUTBOUND_TRANSPORT=resend
+   ```
+   (Fly secrets override `[env]`, so fly.toml keeps `console` as the written
+   default; `fly secrets unset -a kettle-api OUTBOUND_TRANSPORT` is the rollback.)
+   Before flipping: Resend DNS verified on `send.heykettle.com` and open/click
+   tracking OFF in the Resend dashboard (docs/auth-smtp-plan.md). After flipping:
+   digests go to the child's account email; asks and follow-ons record as skipped
+   with an ntfy alert each morning that is quiet — that is Wave C's gap, expected
+   and visible, not a bug.
+7. **The Resend DNS records** on `send.heykettle.com` before any non-founder family
    (`docs/auth-smtp-plan.md`).
-7. **Confirm Appa's charger automation has both edges ticked** (126).
+8. **Confirm Appa's charger automation has both edges ticked** (126).
 
 ## 5. Owed — rulings from the PM
 
-| # | The question |
-|---|---|
-| **141** | `digest_sends`: give `sent_messages` a family-scoped read policy and move the Digests screen, or retire the screen? |
-| **141** | Sixteen capabilities 007 lacks that the retired engines had — founder ops alerts on delivery failure, `ask_skipped`, `mechanism_ok`, the evidence gate, the morning cutoff, the all-clear. None blocks Wave A; several are load-bearing before a message reaches a family. |
-| **142** | Two cheap-to-overrule calls: `/healthz` answers on both hosts instead of redirecting; privacy.html has no canonical. |
-| **152** | Where the *child* picks the relationship label. For beta it is founder-entered at provisioning (`--parent "Amma::Mom"`, `--set-relationship`); 149 says "the child picks at setup" without naming the surface, and onboarding investment is founder-PAUSED (126). |
+Nothing is currently owed. The four standing questions all closed on 2026-08-23:
+**156** retired the Digests screen (built, 159), **157** ranked the sixteen missing
+capabilities into waves (the Wave B tier is built, 159; the Wave C tier — ask_skipped
+escalation, the all-clear, mechanism_ok — is the next ruling-backed build), **158**
+confirmed the 142 calls and closed 152's open question (the child-facing label picker
+joins the setup page when the onboarding pause lifts, not before), **153** fixed the
+145 midnight-reply bug (zero xfails since).
 
-Resolved since: **151** delivered the five template bodies, **149** ruled relationship
-labels over names, **150** ruled the ask's icon — and **152** built all three (§6).
-**145's midnight-reply bug is fixed as ruled** (pending-ask match, 24-hour bound,
-no-pending-ask replies noted only — DECISIONS 153, spec 007 §2.6 amended); the
-suite's only xfail went with it.
+## 6. The Wave B pass (157 hardening + Resend transport + 156 retirement) — built
 
-## 6. The outbound copy pass (149, 150, 151) — built
-
-Landed 2026-08-23 (DECISIONS 152). The registry renders the five approved bodies
-verbatim; `{relationship}` superseded `{parent_name}`; the copy-law scan now enforces
-no-gendered-pronoun (149, closing 24) and no-em-dash (151, extending 127) as law, with
-plants. Migration 0014 adds `parents.relationship`, nullable, closed to the standard
-set by a check constraint that a test holds identical to
-`kettle.provisioning.RELATIONSHIP_LABELS`.
-
-**Live consequence until the founder acts (§4 item 4): both live parents have no
-label**, so their morning digests and follow-ons are skipped (slot left free, warning
-logged) while asks still go — parent-first survives the gap by construction. Template
-ids are unchanged, so the ledger and Wave D's future WhatsApp registration are
-unaffected. The site's quoted ask string is deliberately untouched (150's scope
-ruling).
+Landed 2026-08-23 (DECISIONS 159). The ledger records sent/failed/skipped per row
+(migration 0015; 'sent' final, the rest retryable); every non-sent outcome ops-alerts
+the founder once per transition (ntfy + `ops_alerts`, `outbound_*` kinds); a morning
+digest is never sent more than two hours late; the evening-normal body never renders
+from a zero-signal day; the `resend` transport carries digests to the child's email
+behind the same seam, fail-closed without its key; asks and follow-ons record as
+skipped until Wave C. **Deployed config stays console — the only thing between the
+ledger review and real digests is the two-secret flip in §4.** Webapp: Digests screen
+retired (156), suite now 110.
 
 ## 7. Deliberate, and easy to "fix" by mistake
 
@@ -188,10 +191,13 @@ retires their tables, dropping the empty and archiving the non-empty. Spec **007
 is built and wired to run dark** — evaluator, scheduler loop in the lifespan (154),
 sent-once ledger (0012 `sent_messages`), template registry (the DECISIONS 151 bodies,
 rendered by relationship label), console transport behind a closed registry that fails
-unknown names at boot, and a reply endpoint nothing calls. fly.toml now carries
-`OUTBOUND_LOOP = "1"` and `OUTBOUND_ENABLED = "1"`; the dark run itself starts with
-the next kettle-api deploy, not before (155 — the running build predates the loop).
-Waves B–D are each gated on a founder errand. Migrations through **0014**.
+unknown names — and missing credentials — at boot, and a reply endpoint nothing
+calls. fly.toml carries `OUTBOUND_LOOP = "1"` and `OUTBOUND_ENABLED = "1"`; the dark
+run itself starts with the next kettle-api deploy, not before (155 — the running
+build predates the loop). **Wave B is code-complete** (159): ledger statuses, founder
+ops alerts, staleness cutoff, evidence gate, and the `resend` transport, behind the
+console default until the founder flips it (§4 item 6). Waves C–D are each gated on a
+founder errand. Migrations through **0015**.
 
 **`site/`** — heykettle.com, live on Cloudflare DNS, hosted on Fly. One illustration set
 (six webps at unhashed stable names the cache contract depends on — there are no
