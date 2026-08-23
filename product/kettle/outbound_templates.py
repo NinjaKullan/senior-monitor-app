@@ -14,16 +14,21 @@ retrofit:
    use pre-registered templates (§3, Wave D). A registry maps onto that
    requirement one-to-one; text assembled at the call site does not.
 
-The bodies are the PM's draft, verbatim. Two things in them are the PM's to
-settle before Wave B sends anything, and both are recorded in DECISIONS rather
-than quietly edited here:
+The bodies are the founder-approved set, verbatim from DECISIONS 151. Three
+rulings bind every body here, and the copy-law scan enforces each:
 
-* They say "her" and "she". DECISIONS 24 is standing policy that nothing infers
-  a pronoun from a name, and `ladder_messages.py` carries a neutral clause for
-  exactly that reason. The founder's own family includes a father.
-* The follow-on carries an em dash, which DECISIONS 127 retired from
-  customer-facing *site* copy. Whether that ruling reaches product messages is
-  the PM's call.
+* **`{relationship}`, never a name** (DECISIONS 149). Templates never use a
+  parent's given name or a family's own pet name — Kettle cannot know what a
+  family calls their elders. The variable renders the label the child picked
+  at setup from the standard set (`kettle.provisioning.RELATIONSHIP_LABELS`).
+* **Pronouns are never guessed** (DECISIONS 149, closing 24): singular they,
+  or the sentence is restructured to need none.
+* **No em dashes in any body** (DECISIONS 151, extending 127 to product copy).
+
+The ask carries a universal icon (DECISIONS 150): English plus a 👍 a parent
+who reads no English can still act on. Reply intake stays content-blind — the
+icon is an affordance, never a parsed answer. The site's quoted ask string is
+deliberately not updated in this pass; its quote is illustrative (150).
 """
 
 from __future__ import annotations
@@ -40,8 +45,8 @@ KIND_FOLLOW_ON = "follow_on"
 KINDS: tuple[str, ...] = (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING, KIND_ASK, KIND_FOLLOW_ON)
 
 #: Who receives a kind. The ask is the only thing that ever reaches a parent,
-#: and law #6's ladder is that ordering: she hears from Kettle before anyone
-#: hears about her.
+#: and law #6's ladder is that ordering: the parent hears from Kettle before
+#: anyone hears about them.
 AUDIENCE_PARENT = "parent"
 AUDIENCE_CHILD = "child"
 
@@ -62,8 +67,8 @@ _REGISTRY: tuple[Template, ...] = (
         id="digest_morning_normal",
         kind=KIND_DIGEST_MORNING,
         audience=AUDIENCE_CHILD,
-        body="{parent_name}'s morning looked like her morning. Next note this evening.",
-        variables=("parent_name",),
+        body="{relationship}'s morning looked like a normal morning. Next note this evening.",
+        variables=("relationship",),
     ),
     Template(
         id="digest_evening_normal",
@@ -80,18 +85,21 @@ _REGISTRY: tuple[Template, ...] = (
         kind=KIND_DIGEST_MORNING,
         audience=AUDIENCE_CHILD,
         body=(
-            "Quiet so far this morning. Kettle will check in with her first if "
-            "that continues."
+            "Quiet so far this morning. Kettle will check in with {relationship} "
+            "first if that continues."
         ),
+        variables=("relationship",),
     ),
     Template(
-        # Verbatim from the site, which pins this exact string as its one
-        # allowed question about a person: it is addressed *to* her and asks
-        # rather than concludes.
+        # The one question the product asks about a person, addressed *to* the
+        # parent: it asks rather than concludes, which is why it survives the
+        # verdict ban. The 👍 is DECISIONS 150's universal icon — an affordance
+        # a parent who reads no English can act on, never a parsed answer.
+        # The site's older quote of this string is illustrative, not binding.
         id="ask_parent",
         kind=KIND_ASK,
         audience=AUDIENCE_PARENT,
-        body="Everything okay today? Reply whenever suits.",
+        body="Everything okay today? Reply with a 👍 whenever suits.",
     ),
     Template(
         # The only message that ever tells a child about a quiet day, and the
@@ -101,11 +109,11 @@ _REGISTRY: tuple[Template, ...] = (
         kind=KIND_FOLLOW_ON,
         audience=AUDIENCE_CHILD,
         body=(
-            "{parent_name}'s usual morning hasn't shown up today, and she hasn't "
-            "answered Kettle's note yet. You know her day best — a call from you "
-            "beats anything Kettle can send."
+            "{relationship}'s usual morning hasn't shown up today, and they "
+            "haven't answered Kettle's note yet. You know their day best. "
+            "A call from you beats anything Kettle can send."
         ),
-        variables=("parent_name",),
+        variables=("relationship",),
     ),
 )
 
@@ -124,7 +132,7 @@ def render(template_id: str, variables: Mapping[str, str] | None = None) -> str:
     """Fill a template's variables. Every variable it declares must be given.
 
     No partial renders and no silent blanks: a message that reaches a family
-    with `{parent_name}` still in it is worse than one that never sent.
+    with `{relationship}` still in it is worse than one that never sent.
     """
     found = template(template_id)
     values = dict(variables or {})

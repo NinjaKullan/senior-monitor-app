@@ -2,11 +2,13 @@
 
 The registry exists so this scan is possible: every string Kettle can say lives
 in one module, and this walks all of it. The law is the ladder's, plus the two
-rules this channel adds — no verdict about a person, and no mechanism.
+rules this channel adds — no verdict about a person, and no mechanism — plus
+the three DECISIONS 149–151 added: no gendered pronoun (singular they or none),
+no em dash in a body, and `{relationship}` rather than any name.
 
-The plants at the bottom are the point. Three of them, one per thing §6.2 names
-(a verdict, a count, a signal name), each pushed through the same scanner the
-real templates go through rather than a looser one written for the plant.
+The plants at the bottom are the point: one per thing the law names, each
+pushed through the same scanner the real templates go through rather than a
+looser one written for the plant.
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ import pytest
 
 from kettle import outbound_templates
 from kettle.outbound_templates import KINDS, TEMPLATES, render
+from kettle.provisioning import RELATIONSHIP_LABELS
 from kettle.signals import SIGNAL_LABELS, STANDARD_SIGNALS
 
 # Words that turn a note into an emergency.
@@ -67,6 +70,11 @@ VERDICT_PHRASES = (
 
 BANNED = URGENCY_WORDS + MEDICAL_WORDS + PROFILE_WORDS + MECHANISM_WORDS
 
+# DECISIONS 149, closing 24: pronouns are never guessed. Singular they, or the
+# sentence is restructured to need none — so no gendered pronoun survives the
+# scan, whichever parent it would have guessed about.
+GENDERED_PRONOUNS = ("she", "her", "hers", "herself", "he", "him", "his", "himself")
+
 NAMES = ("Amma", "Appa", "Ammachi", "Patti", "Kettle")
 
 
@@ -77,7 +85,7 @@ def assert_outbound_copy_law(message: str) -> None:
         scanned = scanned.replace(name, "«name»")
     lowered = scanned.lower()
 
-    for banned in BANNED:
+    for banned in BANNED + GENDERED_PRONOUNS:
         assert not re.search(rf"\b{re.escape(banned)}\b", lowered), (
             f"banned word {banned!r} in: {message}"
         )
@@ -85,13 +93,15 @@ def assert_outbound_copy_law(message: str) -> None:
         assert phrase not in lowered, f"banned phrase {phrase!r} in: {message}"
     assert not re.search(r"\d", lowered), f"a digit in: {message}"
     assert "!" not in message, f"an exclamation mark in: {message}"
+    # DECISIONS 151, extending 127 to product copy: no em dashes in any body.
+    assert "—" not in message, f"an em dash in: {message}"
 
 
-def rendered() -> list[tuple[str, str]]:
-    """Every template, rendered with a name where one is needed."""
+def rendered(label: str = "Mom") -> list[tuple[str, str]]:
+    """Every template, rendered with a relationship label where one is needed."""
     out = []
     for template_id, template in TEMPLATES.items():
-        variables = dict.fromkeys(template.variables, "Amma")
+        variables = dict.fromkeys(template.variables, label)
         out.append((template_id, render(template_id, variables)))
     return out
 
@@ -102,28 +112,52 @@ def test_the_registry_is_not_empty_and_covers_every_kind():
     assert {t.kind for t in TEMPLATES.values()} == set(KINDS)
 
 
+@pytest.mark.parametrize("label", RELATIONSHIP_LABELS)
 @pytest.mark.parametrize("template_id", sorted(TEMPLATES))
-def test_every_template_obeys_the_copy_law(template_id: str):
+def test_every_template_obeys_the_copy_law_under_every_label(
+    template_id: str, label: str
+):
+    """The whole standard set, not one lucky label: any label a child can pick
+    must render every template clean."""
     template = TEMPLATES[template_id]
-    variables = dict.fromkeys(template.variables, "Amma")
+    variables = dict.fromkeys(template.variables, label)
     assert_outbound_copy_law(render(template_id, variables))
 
 
-def test_the_ask_is_the_sites_own_string_and_the_only_thing_a_parent_hears():
-    """One string reaches a parent, and it is the one the site already shows.
+def test_the_ask_carries_the_icon_and_is_the_only_thing_a_parent_hears():
+    """One string reaches a parent, and it is DECISIONS 151's, verbatim.
 
-    It survives the verdict ban because it is a question addressed *to* her
-    rather than a claim *about* her — which is the same reason the site pins it.
+    It survives the verdict ban because it is a question addressed *to* the
+    parent rather than a claim *about* them. The 👍 is DECISIONS 150's
+    universal icon — the site's older quote of this string is illustrative,
+    not binding, so this asserts against the ruling and never the site.
     """
     parent_facing = [t for t in TEMPLATES.values() if t.audience == "parent"]
     assert [t.id for t in parent_facing] == ["ask_parent"]
-    assert parent_facing[0].body == "Everything okay today? Reply whenever suits."
+    assert parent_facing[0].body == "Everything okay today? Reply with a 👍 whenever suits."
 
 
 def test_the_follow_on_hands_off_rather_than_instructing():
     """The ladder's last sentence: Kettle stops where the family starts."""
-    body = render("follow_on_family", {"parent_name": "Amma"})
-    assert body.endswith("a call from you beats anything Kettle can send.")
+    body = render("follow_on_family", {"relationship": "Mom"})
+    assert body.endswith("A call from you beats anything Kettle can send.")
+
+
+def test_no_template_takes_a_name_or_says_one():
+    """DECISIONS 149: `{relationship}` and nothing else, never a name.
+
+    Three ways a name could sneak back in, each closed: a `parent_name`
+    variable (the shape 149 superseded), any other variable that is not
+    `relationship`, and a pet name written straight into a body.
+    """
+    for template in TEMPLATES.values():
+        assert set(template.variables) <= {"relationship"}, (
+            f"{template.id} takes {template.variables} — 149 allows only {{relationship}}"
+        )
+        for name in NAMES:
+            if name == "Kettle":
+                continue
+            assert name not in template.body, f"a name in {template.id}: {name}"
 
 
 def test_no_template_stores_or_names_a_signal():
@@ -136,13 +170,13 @@ def test_no_template_stores_or_names_a_signal():
 
 
 def test_a_template_cannot_render_with_a_variable_missing():
-    """A message with `{parent_name}` still in it is worse than no message."""
+    """A message with `{relationship}` still in it is worse than no message."""
     with pytest.raises(ValueError):
         render("digest_morning_normal", {})
     with pytest.raises(ValueError):
-        render("digest_morning_normal", {"parent_name": ""})
+        render("digest_morning_normal", {"relationship": ""})
     with pytest.raises(ValueError):
-        render("digest_evening_normal", {"parent_name": "Amma"})
+        render("digest_evening_normal", {"relationship": "Mom"})
 
 
 # --- the plants (§6.2) --------------------------------------------------------
@@ -167,6 +201,12 @@ def test_a_template_cannot_render_with_a_variable_missing():
         # And the shapes the ladder law already banned.
         ("urgency", "Please check on Amma immediately."),
         ("a digit", "Amma has not been seen for 5 hours."),
+        # DECISIONS 149's pronoun ban: the exact regressions 151 replaced, so a
+        # revert of either body fails by name rather than sailing through.
+        ("a guessed pronoun", "Mom's morning looked like her morning."),
+        ("a guessed pronoun in a handoff", "She hasn't answered Kettle's note yet."),
+        # DECISIONS 151's em dash ban, planted with the follow-on's old dash.
+        ("an em dash", "You know their day best — a call beats anything."),
     ],
 )
 def test_the_scan_would_catch(label: str, body: str):

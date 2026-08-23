@@ -182,7 +182,9 @@ class Decision:
 
     family_id: Any
     parent_id: Any
-    parent_name: str
+    #: The label the child picked at setup (DECISIONS 149) — the only thing
+    #: `{relationship}` ever renders, and None until the label is set.
+    relationship: str | None
     local_date: str
     kind: str
     template_id: str
@@ -222,12 +224,22 @@ def run_outbound(
             # The template says which variables it takes; the caller does not
             # get to guess. A kind-based guess drifts the moment two templates
             # of one kind differ, which `digest_morning` already does.
-            available = {"parent_name": parent["parent_name"]}
-            result = transport.send(
-                recipient,
-                decision.template_id,
-                {name: available[name] for name in template(decision.template_id).variables},
-            )
+            available = {"relationship": parent["relationship"] or ""}
+            variables = {
+                name: available[name] for name in template(decision.template_id).variables
+            }
+            if any(not value for value in variables.values()):
+                # No relationship label on file (both live parents predate
+                # migration 0014). A message with a blank where the label goes
+                # is worse than one that waits, so skip without recording: the
+                # day's slot stays free for the run after the label is set.
+                log.warning(
+                    "outbound: %s skipped for parent %s: no relationship label on file",
+                    decision.template_id,
+                    decision.parent_id,
+                )
+                continue
+            result = transport.send(recipient, decision.template_id, variables)
             if not result.delivered:
                 continue
             recorded = db.record_sent_message(
@@ -259,7 +271,7 @@ def _due_for_parent(
         return Decision(
             family_id=family_id,
             parent_id=parent_id,
-            parent_name=parent["parent_name"],
+            relationship=parent["relationship"],
             local_date=plan.local_date,
             kind=kind,
             template_id=template_id,

@@ -37,7 +37,7 @@ from kettle.outbound import (
     run_outbound,
     schedule_for,
 )
-from kettle.provisioning import provision_family
+from kettle.provisioning import provision_family, set_parent_relationship
 from testsupport import BASE_URL, add_child_email, set_parent_whatsapp
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -64,7 +64,7 @@ class CountingTransport(LogTransport):
 def family(conn: psycopg.Connection):
     """One family, one parent, a child with an email, a WhatsApp number."""
     provisioned = provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
+        conn, "Sharma", "Asia/Kolkata", [("Amma", None, "Mom")], base_url=BASE_URL
     )
     add_child_email(conn, provisioned.family_id)
     set_parent_whatsapp(conn, provisioned.parents[0].parent_id, WHATSAPP)
@@ -233,7 +233,10 @@ def test_no_reply_and_still_quiet_reaches_the_child_at_the_deadline(conn, family
 
     run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
     assert ledger(conn)[-1] == ("follow_on", "follow_on_family")
-    assert transport.sent[-1][1].startswith("Amma's usual morning hasn't shown up")
+    # The relationship label, never the display name (DECISIONS 149): the row
+    # says "Amma", the message says what the child calls her.
+    assert transport.sent[-1][1].startswith("Mom's usual morning hasn't shown up")
+    assert "Amma" not in transport.sent[-1][1]
 
 
 def test_a_signal_after_the_ask_stops_the_follow_on(conn, family):
@@ -297,7 +300,7 @@ def test_each_parent_gets_her_own_row(conn):
         conn,
         "Sharma",
         "Asia/Kolkata",
-        [("Amma", None), ("Appa", None)],
+        [("Amma", None, "Mom"), ("Appa", None, "Dad")],
         base_url=BASE_URL,
     )
     add_child_email(conn, provisioned.family_id)
@@ -389,6 +392,39 @@ def test_an_undeliverable_message_records_nothing(conn, family):
 
     assert run_outbound(conn, RefusingTransport(), at(11, 0)) == []
     assert ledger(conn) == []
+
+
+def test_a_parent_without_a_label_waits_rather_than_rendering_a_blank(conn):
+    """Both live parents predate migration 0014 (DECISIONS 149/152).
+
+    A relationship-bearing template must not render with a blank, so it is
+    skipped without recording — the day's slot stays free — while the ask,
+    which names nobody, still goes: a missing label never delays the parent
+    being asked first. Setting the label releases everything the slot held.
+    """
+    provisioned = provision_family(
+        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
+    )
+    add_child_email(conn, provisioned.family_id)
+    set_parent_whatsapp(conn, provisioned.parents[0].parent_id, WHATSAPP)
+    token = provisioned.parents[0].device_token
+    transport = CountingTransport()
+
+    # Quiet morning: the digest and, later, the follow-on both need the label.
+    run_twice(conn, transport, at(8, 30))
+    assert ledger(conn) == []
+
+    run_twice(conn, transport, at(11, 0))
+    assert ledger(conn) == [("ask", "ask_parent")]
+
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
+    assert ledger(conn) == [("ask", "ask_parent")]
+
+    assert set_parent_relationship(conn, token, "Mom") == "Amma"
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE + timedelta(minutes=5))
+    kinds = [kind for kind, _ in ledger(conn)]
+    assert "digest_morning" in kinds and "follow_on" in kinds
+    assert all("{" not in body and "Amma" not in body for _, body in transport.sent)
 
 
 def test_the_log_transport_never_logs_a_whole_number(conn, family, caplog):
