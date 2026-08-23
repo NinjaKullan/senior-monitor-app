@@ -236,6 +236,9 @@ def test_an_unknown_number_replies_for_nobody(conn, family):
 
 
 def test_no_reply_and_still_quiet_reaches_the_child_at_the_deadline(conn, family):
+    # A charger ping keeps the phone visibly alive: this is the changed-morning
+    # follow-on, not the unreachable one (those have their own tests below).
+    ping(conn, family.parents[0].parent_id, "charge_on", at(6, 30))
     transport = CountingTransport()
     run_twice(conn, transport, at(11, 0))
 
@@ -447,6 +450,7 @@ def test_a_parent_without_a_label_waits_rather_than_rendering_a_blank(conn, noti
     )
     add_child_email(conn, provisioned.family_id)
     set_parent_whatsapp(conn, provisioned.parents[0].parent_id, WHATSAPP)
+    ping(conn, provisioned.parents[0].parent_id, "charge_on", at(6, 30))
     token = provisioned.parents[0].device_token
     transport = CountingTransport()
 
@@ -696,6 +700,7 @@ def test_a_reply_after_the_follow_on_went_is_noted_only(conn, family):
     the escalation would rewrite what the family was told into something that
     never needed saying.
     """
+    ping(conn, family.parents[0].parent_id, "charge_on", at(6, 30))
     transport = CountingTransport()
     run_twice(conn, transport, at(11, 0))
     run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
@@ -812,13 +817,13 @@ def test_fly_config_runs_the_dark_loop():
     assert "OUTBOUND_TRANSPORT" not in text
 
 
-def test_the_registry_holds_console_and_resend_and_nothing_else(settings):
-    """Wave B's registry: the dark transport and the email one. Console stays
-    the default; resend is selected only by explicit config after the ledger
-    review (spec 007 §6.3)."""
+def test_the_registry_holds_exactly_the_three_transports(settings):
+    """Console (dark, the default), resend (child-facing email), and
+    twilio_whatsapp (the ask). Selection stays explicit config; the Wave C
+    flip is the comma roster, after the ledger review (spec 007 §6.3)."""
     from kettle.outbound import TRANSPORTS, transport_from_name
 
-    assert set(TRANSPORTS) == {"console", "resend"}
+    assert set(TRANSPORTS) == {"console", "resend", "twilio_whatsapp"}
     assert isinstance(transport_from_name("console", settings), LogTransport)
 
 
@@ -837,7 +842,8 @@ def test_resend_without_its_key_refuses_to_boot(settings, notifier):
     # With the key present it builds — and carries digests only.
     built = transport_from_name("resend", replace(settings, resend_api_key="re_test"))
     assert built.name == "resend"
-    assert set(built.kinds) == {"digest_morning", "digest_evening"}
+    # The Wave C channel ruling: everything child-facing travels by email.
+    assert set(built.kinds) == {"digest_morning", "digest_evening", "follow_on", "all_clear"}
     assert built.requires_address is True
 
 
@@ -887,7 +893,7 @@ def test_a_digests_only_transport_never_carries_the_ask(conn, family, notifier):
 
     run_twice(conn, DigestsOnly(), at(11, 0), notifier=notifier)
     assert statuses(conn)["ask"] == "skipped"
-    assert len([m for m in notifier.messages if "Wave C" in m]) == 1
+    assert len([m for m in notifier.messages if "does not carry" in m]) == 1
 
 
 def test_no_address_on_an_address_requiring_transport_is_an_unroutable_skip(
@@ -977,3 +983,198 @@ def test_a_skipped_ask_is_not_answerable(conn, family):
     assert conn.execute(
         "select replied_utc from sent_messages where kind = 'ask'"
     ).fetchone()["replied_utc"] is None
+
+
+# --- Wave C: the ladder cannot be silently disabled (DECISIONS 157/161/163) ---
+
+
+class ChildChannels(LogTransport):
+    """A resend-shaped transport: everything child-facing, never the ask."""
+
+    name = "child-channels"
+    kinds = ("digest_morning", "digest_evening", "follow_on", "all_clear")
+
+
+def test_a_skipped_ask_still_escalates_on_the_clock(conn, family, notifier):
+    """DECISIONS 163's amendment of 159: the follow-on precondition is an ask
+    row for the day, ANY status. An ask nobody could deliver must not quietly
+    turn the ladder off — the family hears at the deadline regardless."""
+    ping(conn, family.parents[0].parent_id, "charge_on", at(6, 30))
+    transport = ChildChannels()
+
+    run_twice(conn, transport, at(11, 0), notifier=notifier)
+    assert statuses(conn)["ask"] == "skipped"
+
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE, notifier=notifier)
+    assert ("follow_on", "follow_on_family") in ledger(conn)
+    assert statuses(conn)["ask"] == "skipped"  # still never reached the parent
+
+
+def test_a_failed_ask_still_escalates_on_the_clock(conn, family):
+    """Same amendment, other status: a transport that tried and failed."""
+    ping(conn, family.parents[0].parent_id, "charge_on", at(6, 30))
+    plan = schedule_for(at(11, 0), "Asia/Kolkata")
+    db.record_sent_message(
+        conn,
+        family.family_id,
+        family.parents[0].parent_id,
+        plan.local_date,
+        "ask",
+        "ask_parent",
+        "twilio_whatsapp",
+        at(11, 0),
+        status="failed",
+    )
+    run_twice(conn, ChildChannels(), at(11, 0) + FOLLOW_ON_GRACE)
+    assert ("follow_on", "follow_on_family") in ledger(conn)
+
+
+def test_a_skipped_ask_is_still_not_answerable_after_the_amendment(conn, family):
+    """The amendment reaches the follow-on's clock and nothing else: the reply
+    matcher still matches sent asks only (the 159 pin, deliberately kept)."""
+    run_twice(conn, ChildChannels(), at(11, 0))
+    assert statuses(conn)["ask"] == "skipped"
+    assert record_parent_reply(conn, WHATSAPP, at(11, 30)) is False
+
+
+def test_a_silent_phone_gets_the_unreachable_follow_on_and_never_both(conn, family):
+    """DECISIONS 161 body 7: zero pings of ANY grade all day means the report
+    is about the phone. One kind, one slot — the two bodies cannot both send."""
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0))
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
+
+    follow_ons = [t for k, t in ledger(conn) if k == "follow_on"]
+    assert follow_ons == ["follow_on_unreachable"]
+    assert transport.sent[-1][1].startswith("Mom's phone has been silent today")
+
+
+def test_a_reporting_phone_gets_the_changed_morning_follow_on(conn, family):
+    """Signals arriving, routine absent: the standard body, not the phone one.
+    A 03:00 ping is not a morning, but it IS a phone that reported today."""
+    ping(conn, family.parents[0].parent_id, "charge_on", at(3, 0))
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0))
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
+
+    follow_ons = [t for k, t in ledger(conn) if k == "follow_on"]
+    assert follow_ons == ["follow_on_family"]
+
+
+def test_the_all_clear_goes_once_after_routine_resumes(conn, family):
+    """DECISIONS 161 body 6: only after a sent follow-on, on the first
+    alarm-grade signal since, once — the ledger row is the resolution record."""
+    parent_id = family.parents[0].parent_id
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0))
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
+    assert ("follow_on", "follow_on_unreachable") in ledger(conn)
+
+    # Nothing yet: the day is still silent.
+    run_twice(conn, transport, at(14, 0))
+    assert ("all_clear", "all_clear_family") not in ledger(conn)
+
+    ping(conn, parent_id, "whatsapp", at(14, 30))
+    run_twice(conn, transport, at(14, 35))
+    assert ("all_clear", "all_clear_family") in ledger(conn)
+    assert transport.sent[-1][1].startswith("The shape of Mom's usual day is back.")
+
+    # Once means once: more signals do not repeat it.
+    ping(conn, parent_id, "whatsapp", at(16, 0))
+    run_twice(conn, transport, at(16, 5))
+    assert [k for k, _ in ledger(conn)].count("all_clear") == 1
+
+
+def test_no_follow_on_means_no_all_clear_ever(conn, family):
+    """A day that resolved before the family heard anything stays quiet: the
+    all-clear un-worries, and there is nothing to un-worry."""
+    parent_id = family.parents[0].parent_id
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0))  # ask goes; no follow-on yet
+
+    assert record_parent_reply(conn, WHATSAPP, at(11, 30)) is True
+    ping(conn, parent_id, "whatsapp", at(12, 0))
+    run_twice(conn, transport, at(14, 0))
+    assert ("follow_on", "follow_on_family") not in ledger(conn)
+    assert ("all_clear", "all_clear_family") not in ledger(conn)
+
+
+def test_a_skipped_follow_on_earns_no_all_clear(conn, family):
+    """Sent means sent: a follow-on the family never received cannot be
+    un-worried about."""
+
+    class DigestsOnly(LogTransport):
+        name = "digests-only"
+        kinds = ("digest_morning", "digest_evening")
+
+    parent_id = family.parents[0].parent_id
+    transport = DigestsOnly()
+    run_twice(conn, transport, at(11, 0))
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE)
+    assert statuses(conn)["follow_on"] == "skipped"
+
+    ping(conn, parent_id, "whatsapp", at(14, 0))
+    run_twice(conn, transport, at(14, 5))
+    assert ("all_clear", "all_clear_family") not in ledger(conn)
+
+
+# --- Wave C: the roster (DECISIONS 163) ---------------------------------------
+
+
+class AskChannel(LogTransport):
+    """A twilio-shaped transport: the ask and nothing else."""
+
+    name = "ask-channel"
+    kinds = ("ask",)
+    requires_address = True
+
+
+def test_the_roster_routes_each_kind_to_its_channel(conn, family, notifier):
+    """Wave C's shape: ask to the parent by one channel, everything
+    child-facing by another, behind the single seam the engine already has."""
+    from kettle.outbound import TransportRoster
+
+    ping(conn, family.parents[0].parent_id, "charge_on", at(6, 30))
+    roster = TransportRoster([AskChannel(), ChildChannels()])
+    run_twice(conn, roster, at(11, 0), notifier=notifier)
+    run_twice(conn, roster, at(11, 0) + FOLLOW_ON_GRACE, notifier=notifier)
+
+    rows = {
+        r["kind"]: r["transport"]
+        for r in conn.execute("select kind, transport from sent_messages").fetchall()
+    }
+    assert rows["ask"] == "ask-channel"
+    assert rows["follow_on"] == "child-channels"
+    # A pre-routing skip (this one is the staleness cutoff) records the
+    # configured stack's name: no carrier was ever chosen for it.
+    assert rows["digest_morning"] == "roster"
+
+
+def test_the_comma_config_builds_the_roster_and_fails_closed(settings, notifier):
+    """OUTBOUND_TRANSPORT='twilio_whatsapp,resend' is the Wave C flip. One bad
+    name or missing credential anywhere refuses the whole boot."""
+    from dataclasses import replace
+
+    from kettle.main import create_app
+    from kettle.outbound import TransportRoster, transport_from_name
+
+    live = replace(
+        settings,
+        resend_api_key="re_test",
+        twilio_account_sid="AC_test",
+        twilio_auth_token="tok_test",
+        twilio_whatsapp_from="whatsapp:+14155238886",
+    )
+    roster = transport_from_name("twilio_whatsapp,resend", live)
+    assert isinstance(roster, TransportRoster)
+    assert roster.for_kind("ask").name == "twilio_whatsapp"
+    assert roster.for_kind("follow_on").name == "resend"
+    assert roster.for_kind("all_clear").name == "resend"
+
+    with pytest.raises(RuntimeError, match="TWILIO"):
+        transport_from_name("twilio_whatsapp,resend", replace(live, twilio_auth_token=""))
+    with pytest.raises(RuntimeError, match="telegraph"):
+        transport_from_name("twilio_whatsapp,telegraph", live)
+    with pytest.raises(RuntimeError, match="TWILIO"):
+        create_app(replace(live, outbound_transport="twilio_whatsapp,resend",
+                           twilio_whatsapp_from=""), notifier)

@@ -681,6 +681,47 @@ def sent_message(
     ).fetchone()
 
 
+def message_row(
+    conn: psycopg.Connection, family_id: Any, parent_id: Any, local_date: str, kind: str
+) -> Row | None:
+    """The ledger row for one slot, ANY status — the escalation-clock read.
+
+    `sent_message` above answers "did Kettle actually say this"; this answers
+    "did the engine decide this today". The follow-on's precondition uses it
+    (DECISIONS 163): an ask that recorded skipped or failed still starts the
+    grace clock, because a missing phone number must never silently disable
+    the ladder. For a non-sent row `sent_utc` is when the outcome was
+    recorded — the moment the ask was due — and `replied_utc` is null by
+    construction, since only sent asks are answerable.
+    """
+    return conn.execute(
+        """
+        select id, template_id, transport, status, sent_utc, replied_utc
+        from sent_messages
+        where family_id = %s and parent_id = %s and local_date = %s and kind = %s
+        """,
+        (family_id, parent_id, local_date, kind),
+    ).fetchone()
+
+
+def count_pings_between(
+    conn: psycopg.Connection, parent_id: Any, start: datetime, end: datetime
+) -> int:
+    """Pings of ANY signal in [start, end) — the unreachable-phone read.
+
+    Deliberately not joined to the allowlist and not filtered by grade: the
+    question is "has this device said anything at all today", and a charger or
+    device_alive row answers it. This never anchors reassurance or alarm about
+    a person (law #6) — it only chooses which follow-on body reports the
+    silence honestly.
+    """
+    return conn.execute(
+        "select count(*) as n from pings "
+        "where parent_id = %s and ts_utc >= %s and ts_utc < %s",
+        (parent_id, start, end),
+    ).fetchone()["n"]
+
+
 def record_sent_message(
     conn: psycopg.Connection,
     family_id: Any,

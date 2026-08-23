@@ -41,6 +41,7 @@ import psycopg
 from kettle import db
 from kettle.notify import Notifier
 from kettle.outbound_templates import (
+    KIND_ALL_CLEAR,
     KIND_ASK,
     KIND_DIGEST_EVENING,
     KIND_DIGEST_MORNING,
@@ -83,6 +84,10 @@ class Schedule:
     """
 
     local_date: str
+    #: Local midnight — the "whole day" bound the unreachable distinction
+    #: reads (DECISIONS 161/163): a 03:00 ping is not a morning, but it IS a
+    #: phone that reported today.
+    day_start: datetime
     window_start: datetime
     morning_digest: datetime
     ask_threshold: datetime
@@ -99,6 +104,7 @@ def schedule_for(now: datetime, tz_name: str) -> Schedule:
 
     return Schedule(
         local_date=day.isoformat(),
+        day_start=at(time(0, 0)),
         window_start=at(MORNING_WINDOW_START),
         morning_digest=at(MORNING_DIGEST),
         ask_threshold=at(ASK_THRESHOLD),
@@ -183,11 +189,66 @@ def _console_transport(settings: Any) -> Transport:
 
 def _resend_transport(settings: Any) -> Transport:
     # Imported here, not at module top: this module is the decision core and
-    # holds no network client (a test pins it); the HTTP-capable transport
-    # lives in kettle/outbound_email.py and is loaded only when selected.
+    # holds no network client (a test pins it); the HTTP-capable transports
+    # live in their own modules and are loaded only when selected.
     from kettle.outbound_email import ResendTransport
 
     return ResendTransport(settings.resend_api_key, settings.resend_from)
+
+
+def _twilio_transport(settings: Any) -> Transport:
+    from kettle.outbound_whatsapp import TwilioWhatsAppTransport
+
+    return TwilioWhatsAppTransport(
+        settings.twilio_account_sid,
+        settings.twilio_auth_token,
+        settings.twilio_whatsapp_from,
+    )
+
+
+class TransportRoster:
+    """Several transports behind the one seam, first-match by kind.
+
+    Wave C runs two live channels at once — the ask to the parent by WhatsApp,
+    everything child-facing by email — and the engine still works against a
+    single object: `kinds` is the union, and `for_kind` hands back the first
+    listed transport that carries the kind, in the order OUTBOUND_TRANSPORT
+    named them. A kind nothing carries stays a recorded skip, exactly as with
+    a single transport.
+    """
+
+    name = "roster"
+    requires_address = False  # per-kind; the engine asks the carrier, not the roster
+
+    def __init__(self, transports: list[Transport]) -> None:
+        if not transports:  # pragma: no cover - transport_from_name guards
+            raise RuntimeError("a transport roster needs at least one transport")
+        self._transports = transports
+        self.kinds = tuple(
+            kind for kind in KINDS if any(kind in t.kinds for t in transports)
+        )
+
+    def for_kind(self, kind: str) -> Transport | None:
+        for transport in self._transports:
+            if kind in transport.kinds:
+                return transport
+        return None
+
+    def send(
+        self, to: str, template_id: str, variables: Mapping[str, str]
+    ) -> DeliveryResult:  # pragma: no cover - the engine sends via the carrier
+        carrier = self.for_kind(template(template_id).kind)
+        if carrier is None:
+            return DeliveryResult(delivered=False, transport=self.name, detail="no carrier")
+        return carrier.send(to, template_id, variables)
+
+
+def carrier_for(transport: Transport, kind: str) -> Transport | None:
+    """The leaf transport that will carry this kind, or None for a skip."""
+    for_kind = getattr(transport, "for_kind", None)
+    if for_kind is not None:
+        return for_kind(kind)
+    return transport if kind in transport.kinds else None
 
 
 #: Every transport the loop can be configured to use, by the name OUTBOUND_TRANSPORT
@@ -198,26 +259,41 @@ def _resend_transport(settings: Any) -> Transport:
 TRANSPORTS: dict[str, Callable[[Any], Transport]] = {
     "console": _console_transport,
     "resend": _resend_transport,
+    "twilio_whatsapp": _twilio_transport,
 }
 
 
 def transport_from_name(name: str, settings: Any) -> Transport:
-    """Build the configured transport, or refuse to boot.
+    """Build the configured transport(s), or refuse to boot.
 
     Loud and at startup on purpose (DECISIONS 154): the alternative — defaulting
     an unknown name to *anything* — is a path by which a typo in an env var
     chooses who gets messaged. Known names are the registry's, nothing else —
-    and a known name missing its credential (resend without RESEND_API_KEY)
-    fails the same way, at the same moment.
+    and a known name missing its credentials (resend without RESEND_API_KEY,
+    twilio_whatsapp without its three) fails the same way, at the same moment.
+
+    A comma-separated value builds a roster, first-match by kind in the order
+    named (DECISIONS 163): Wave C's flip is
+    `OUTBOUND_TRANSPORT=twilio_whatsapp,resend` — asks by WhatsApp, everything
+    child-facing by email. One bad name anywhere in the list refuses the whole
+    boot; a list never partially applies.
     """
-    try:
-        factory = TRANSPORTS[name]
-    except KeyError:
-        known = ", ".join(sorted(TRANSPORTS))
-        raise RuntimeError(
-            f"unknown outbound transport {name!r} — registered transports: {known}"
-        ) from None
-    return factory(settings)
+    names = [part.strip() for part in name.split(",") if part.strip()]
+    if not names:
+        raise RuntimeError("OUTBOUND_TRANSPORT is empty — name a registered transport")
+    built: list[Transport] = []
+    for part in names:
+        try:
+            factory = TRANSPORTS[part]
+        except KeyError:
+            known = ", ".join(sorted(TRANSPORTS))
+            raise RuntimeError(
+                f"unknown outbound transport {part!r} — registered transports: {known}"
+            ) from None
+        built.append(factory(settings))
+    if len(built) == 1:
+        return built[0]
+    return TransportRoster(built)
 
 
 # --- the evaluator (§2.1) ----------------------------------------------------
@@ -389,11 +465,11 @@ def run_outbound(
                 )
                 continue
 
-            if decision.kind not in transport.kinds:
+            carrier = carrier_for(transport, decision.kind)
+            if carrier is None:
                 skip(
                     f"{decision.template_id} for {label} skipped: the "
-                    f"{transport.name} transport does not carry "
-                    f"{decision.kind} until Wave C"
+                    f"{transport.name} transport does not carry {decision.kind}"
                 )
                 continue
 
@@ -402,19 +478,19 @@ def run_outbound(
                 if decision.kind == KIND_ASK
                 else child_address
             )
-            if transport.requires_address and not recipient:
+            if carrier.requires_address and not recipient:
                 skip(
                     f"{decision.template_id} for {label} skipped: unroutable, "
-                    f"no address on file for the {transport.name} transport"
+                    f"no address on file for the {carrier.name} transport"
                 )
                 continue
 
             try:
-                result = transport.send(recipient, decision.template_id, variables)
+                result = carrier.send(recipient, decision.template_id, variables)
             except Exception as exc:  # noqa: BLE001 - one send must not kill the pass
-                log.exception("outbound: %s transport raised", transport.name)
+                log.exception("outbound: %s transport raised", carrier.name)
                 result = DeliveryResult(
-                    delivered=False, transport=transport.name, detail=type(exc).__name__
+                    delivered=False, transport=carrier.name, detail=type(exc).__name__
                 )
             if result.delivered:
                 if _record_outcome(
@@ -469,27 +545,54 @@ def _due_for_parent(
             )
         )
 
-    # The ask, addressed to her, if the morning never showed up.
-    ask_row = already(KIND_ASK)
+    # The ask, addressed to the parent, if the morning never showed up. Due
+    # until a SENT ask exists: a skipped or failed slot keeps retrying.
     if (
         now >= plan.ask_threshold
-        and ask_row is None
+        and already(KIND_ASK) is None
         and is_quiet(conn, parent_id, plan.window_start, plan.ask_threshold)
     ):
-        # `ask_row` stays None, which is what stops a follow-on firing in the
-        # same run: the grace window is measured from a row that exists.
         due.append(decision(KIND_ASK, "ask_parent"))
 
-    # The follow-on. Reachable only through an ask row that exists, went
-    # unanswered, and is older than the grace window — parent-first as a query.
+    # The follow-on. Reachable only through an ask row that exists for the day
+    # — ANY status (DECISIONS 163, amending 159's sent-only reading here): an
+    # ask that could not be sent must still escalate on the clock, or a
+    # missing phone number silently disables the ladder. The reply matcher is
+    # unchanged and matches sent asks only; a skipped ask has replied_utc null
+    # by construction, so the grace clock runs from the moment the ask was
+    # due, whatever became of it. Fresh this run: an ask decided above has no
+    # row yet, so nothing fires in the same pass.
+    ask_record = db.message_row(conn, family_id, parent_id, plan.local_date, KIND_ASK)
     if (
-        ask_row is not None
-        and ask_row["replied_utc"] is None
-        and now >= ask_row["sent_utc"] + FOLLOW_ON_GRACE
+        ask_record is not None
+        and ask_record["replied_utc"] is None
+        and now >= ask_record["sent_utc"] + FOLLOW_ON_GRACE
         and is_quiet(conn, parent_id, plan.window_start, now)
         and not already(KIND_FOLLOW_ON)
     ):
-        due.append(decision(KIND_FOLLOW_ON, "follow_on_family"))
+        # Which follow-on is the mechanism_ok distinction (DECISIONS 157/161):
+        # zero pings of ANY grade all local day means the report is about the
+        # phone; signals arriving with routine absent means the changed-morning
+        # body. Never both — one kind, one slot, one template chosen at send.
+        unreachable = db.count_pings_between(conn, parent_id, plan.day_start, now) == 0
+        due.append(
+            decision(
+                KIND_FOLLOW_ON,
+                "follow_on_unreachable" if unreachable else "follow_on_family",
+            )
+        )
+
+    # The all-clear (DECISIONS 157/161): only after a follow-on actually
+    # reached the family, when the first alarm-grade signal of the day since
+    # then arrives. Once per day; the ledger row is the resolution record. No
+    # follow-on sent, no all-clear ever.
+    follow_row = already(KIND_FOLLOW_ON)
+    if (
+        follow_row is not None
+        and already(KIND_ALL_CLEAR) is None
+        and db.count_alarm_pings_between(conn, parent_id, follow_row["sent_utc"], now) > 0
+    ):
+        due.append(decision(KIND_ALL_CLEAR, "all_clear_family"))
 
     # The evening digest, last because the day is.
     if now >= plan.evening_digest and not already(KIND_DIGEST_EVENING):
