@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 167.** This line is the one to update; the `Next number:` lines inside
+**Next number: 168.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1786,3 +1786,22 @@ browser — all three adopted as the standard for future surfaces.**
      * **Cost accepted:** up to parents × signals extra limit-1 requests per
        45-second poll (≤ ~16 today). A per-family RPC or view collapses them
        if that ever matters; not built unprompted.
+
+167. **(2026-08-23, Fable) Phone numbers shown to a family are always full
+     international format, and the preferred form is a link that does the
+     typing.** Learned live: the founder's mother could not join the WhatsApp
+     sandbox because the number was given as a bare US-format string. WhatsApp
+     resolves a bare number using the READER'S country code — her Indian-numbered
+     account looked up +91-415-523-8886, which does not exist, and offered her
+     "invite to WhatsApp" dead ends. The founder's US phone resolved the same
+     string fine, which is exactly why this class of bug survives founder
+     testing. Rules, applying to every family-facing surface and instruction
+     (setup page, WhatsApp copy, emails, support replies): (1) numbers render in
+     full E.164 with the + and country code, always; (2) any step that asks a
+     person to message a number ships as a tap-to-act link with the message
+     pre-filled (wa.me/<E164-digits>?text=... style), never as "send X to Y"
+     prose; (3) anything a parent must do is walked through mentally on a
+     non-US, non-technical phone before it ships. The fix that worked:
+     https://wa.me/14155238886?text=join%20leader-color — one tap, message
+     pre-typed. Same family as the copy laws: the surface must work for the
+     least-technical reader, not the author.
