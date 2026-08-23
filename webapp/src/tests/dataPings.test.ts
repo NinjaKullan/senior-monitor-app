@@ -14,6 +14,11 @@
  * the way a table fills, so an unordered uncapped read loses exactly the
  * newest rows — which is what makes the regression test fail against the old
  * `readAll("pings")` and pass only against the bounded, ordered read.
+ *
+ * DECISIONS 166 joins it here: the unwindowed latest-row read per
+ * (parent, signal) that keeps tripwire ages and the Setup card's
+ * has-ever-pinged check honest past the 14-day window, inside the same
+ * explicit-order-and-limit discipline.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -157,13 +162,22 @@ describe("the bounded pings read", () => {
     tables.pings.push({ parent_id: "p1", signal: "whatsapp", ts_utc: iso(HOUR) });
 
     await loadSnapshot(NOW);
+    // Two shapes of pings read since DECISIONS 166: the windowed per-parent
+    // one (gte + limit 500) and the latest-row per-(parent, signal) one
+    // (limit 1, no window). Nothing else may read pings.
     const pingReads = executed.filter((call) => call.table === "pings");
-    expect(pingReads.length).toBe(2); // one bounded read per parent
-    for (const read of pingReads) {
+    const windowed = pingReads.filter((call) => "ts_utc" in call.gte);
+    const latest = pingReads.filter((call) => !("ts_utc" in call.gte));
+    expect(windowed.length).toBe(2); // one bounded read per parent
+    for (const read of windowed) {
       expect(read.order).toEqual({ column: "ts_utc", ascending: false });
       expect(read.limit).toBe(PINGS_LIMIT_PER_PARENT);
-      expect(Object.keys(read.gte)).toEqual(["ts_utc"]);
       expect("parent_id" in read.eq).toBe(true);
+    }
+    for (const read of latest) {
+      expect(read.order).toEqual({ column: "ts_utc", ascending: false });
+      expect(read.limit).toBe(1);
+      expect("parent_id" in read.eq && "signal" in read.eq).toBe(true);
     }
     // And the limit itself stays under the cliff it exists to avoid.
     expect(PINGS_LIMIT_PER_PARENT).toBeLessThanOrEqual(SERVER_CAP);
@@ -208,5 +222,103 @@ describe("the bounded pings read", () => {
     expect(new Set(unbounded.map((call) => call.table))).toEqual(
       new Set(["families", "parents", "members", "parent_signals", "setup_links"]),
     );
+  });
+});
+
+describe("the unwindowed latest-row reads (DECISIONS 166)", () => {
+  const twentyDaysAgo = () => iso(20 * DAY);
+
+  function seedOldSignal() {
+    seedFamily(["p1"]);
+    tables.parent_signals = [
+      { parent_id: "p1", signal: "whatsapp", alarm_grade: true, active: true },
+    ];
+    tables.pings.push({
+      parent_id: "p1",
+      signal: "whatsapp",
+      ts_utc: twentyDaysAgo(),
+    });
+  }
+
+  it("a 20-day-old last ping shows its true age, never 'never reported'", async () => {
+    seedOldSignal();
+    const snapshot = await loadSnapshot(NOW);
+
+    // The windowed set is honestly empty; the latest set reaches past it.
+    expect(snapshot.pings).toEqual([]);
+    expect(snapshot.latestPings.map((p) => p.ts_utc)).toEqual([twentyDaysAgo()]);
+
+    // Through the real surface: the tripwire carries an age, not "never".
+    const { computeTripwires } = await import("@/lib/tripwires");
+    const view = computeTripwires(
+      { id: "p1", family_id: "f1", display_name: "Amma", tz: null },
+      "Asia/Kolkata",
+      snapshot.signals,
+      snapshot.latestPings,
+      NOW,
+    );
+    const [row] = view.rows;
+    expect(row.health).toBe("stale");
+    expect(row.recency).not.toBeNull();
+  });
+
+  it("a parent whose pings all aged out still counts as heard on the Setup card", async () => {
+    seedOldSignal();
+    const snapshot = await loadSnapshot(NOW);
+
+    const { buildSetupEntries } = await import("@/lib/setupLinks");
+    const [entry] = buildSetupEntries(
+      [{ id: "p1", family_id: "f1", display_name: "Amma", tz: null }],
+      [],
+      snapshot.latestPings,
+      NOW,
+    );
+    expect(entry.status).toBe("reporting");
+  });
+
+  it("reads one latest row per (parent, signal), each with limit 1 and no window", async () => {
+    seedFamily(["p1", "p2"]);
+    tables.parent_signals = [
+      { parent_id: "p1", signal: "whatsapp", alarm_grade: true, active: true },
+      { parent_id: "p1", signal: "charge_on", alarm_grade: false, active: false },
+      { parent_id: "p2", signal: "routine", alarm_grade: true, active: true },
+    ];
+    await loadSnapshot(NOW);
+    const latest = executed.filter(
+      (call) => call.table === "pings" && !("ts_utc" in call.gte),
+    );
+    expect(
+      latest.map((call) => [call.eq.parent_id, call.eq.signal]).sort(),
+    ).toEqual([
+      ["p1", "charge_on"],
+      ["p1", "whatsapp"],
+      ["p2", "routine"],
+    ]);
+    for (const call of latest) {
+      expect(call.limit).toBe(1);
+      expect(call.order).toEqual({ column: "ts_utc", ascending: false });
+      expect(call.gte).toEqual({});
+    }
+  });
+
+  it("App feeds the two surfaces from latestPings and the glance from the window", async () => {
+    // Both sets are Ping[], so a swap back to the windowed set would compile
+    // cleanly and quietly reintroduce the false sentences. Pinned at the
+    // source, the way the product side pins queries.ts.
+    const fs = await import("node:fs");
+    // vitest runs with cwd = webapp/; jsdom rewrites import.meta.url, so the
+    // plain relative path is the reliable one.
+    const source = fs.readFileSync("src/App.tsx", "utf8");
+    const callOf = (name: string) => {
+      const start = source.indexOf(`${name}(`);
+      expect(start).toBeGreaterThan(-1);
+      return source.slice(start, source.indexOf(")}", start));
+    };
+    expect(callOf("computeTripwires")).toContain("snapshot.latestPings");
+    expect(callOf("computeTripwires")).not.toContain("snapshot.pings,");
+    expect(callOf("buildSetupEntries")).toContain("snapshot.latestPings");
+    expect(callOf("buildSetupEntries")).not.toContain("snapshot.pings,");
+    expect(callOf("computeGlance")).toContain("snapshot.pings");
+    expect(callOf("computeGlance")).not.toContain("latestPings");
   });
 });
