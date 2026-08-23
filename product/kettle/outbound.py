@@ -345,6 +345,7 @@ def _record_outcome(
     status: str,
     detail: str,
     now: datetime,
+    alert: bool = True,
 ) -> bool:
     """Ledger row plus founder ops alert, once per transition.
 
@@ -352,6 +353,11 @@ def _record_outcome(
     a fresh row or a status transition, so a standing skip re-decided by the
     minutely loop alerts once, not once a minute. Only non-sent outcomes alert —
     a delivered message is the quiet case.
+
+    `alert=False` is for the one withholding that is the system WORKING rather
+    than failing (DECISIONS 164, the followed-up day's evening digest): the
+    ledger still says why the slot is empty — no silent absence — but neither
+    ntfy nor `ops_alerts` hears about it, only an info log line.
     """
     recorded = db.record_sent_message(
         conn,
@@ -365,12 +371,17 @@ def _record_outcome(
         status=status,
     )
     if recorded and status != "sent":
-        kind = OPS_SEND_FAILED if status == "failed" else OPS_SEND_SKIPPED
-        message = f"⚠️ outbound: {detail}"
-        db.insert_ops_alert(conn, decision.family_id, decision.parent_id, kind, message, now)
-        if notifier is not None:
-            notifier.send(message)
-        log.warning("outbound: %s %s: %s", decision.template_id, status, detail)
+        if alert:
+            kind = OPS_SEND_FAILED if status == "failed" else OPS_SEND_SKIPPED
+            message = f"⚠️ outbound: {detail}"
+            db.insert_ops_alert(
+                conn, decision.family_id, decision.parent_id, kind, message, now
+            )
+            if notifier is not None:
+                notifier.send(message)
+            log.warning("outbound: %s %s: %s", decision.template_id, status, detail)
+        else:
+            log.info("outbound: %s %s: %s", decision.template_id, status, detail)
     return recorded
 
 
@@ -422,9 +433,18 @@ def run_outbound(
         label = f"{parent['family_name']} / {parent['parent_name']}"
 
         for decision in _due_for_parent(conn, parent, plan, now):
-            def skip(detail: str, decision: Decision = decision) -> None:
+            def skip(
+                detail: str, decision: Decision = decision, alert: bool = True
+            ) -> None:
                 _record_outcome(
-                    conn, notifier, decision, transport.name, "skipped", detail, now
+                    conn,
+                    notifier,
+                    decision,
+                    transport.name,
+                    "skipped",
+                    detail,
+                    now,
+                    alert=alert,
                 )
 
             if (
@@ -434,6 +454,30 @@ def run_outbound(
                 skip(
                     f"morning digest for {label} decided past the staleness "
                     f"cutoff ({decision.local_date}); withheld, never sent late"
+                )
+                continue
+
+            if decision.kind == KIND_DIGEST_EVENING and db.sent_message(
+                conn,
+                decision.family_id,
+                decision.parent_id,
+                decision.local_date,
+                KIND_FOLLOW_ON,
+            ) is not None:
+                # DECISIONS 164: a followed-up day gets no evening digest — the
+                # follow-on and, when earned, the all-clear already told the
+                # day's story, and an ordinary-day sentence would be a false
+                # one. Withheld, not replaced; recorded, not
+                # alerted: this absence is the system working. The twice-a-day
+                # notes resume with the next morning digest. SENT follow-ons
+                # only — a skipped one told the family nothing, so their
+                # evening note still comes. Checked before the evidence gate
+                # so a still-quiet followed-up day records this reason,
+                # quietly, rather than the gate's, loudly.
+                skip(
+                    f"evening digest for {label} withheld: a follow-on went "
+                    f"out on {decision.local_date} (DECISIONS 164)",
+                    alert=False,
                 )
                 continue
 
