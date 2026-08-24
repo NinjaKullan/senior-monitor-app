@@ -1,0 +1,76 @@
+/*
+ * Kettle v5 tokens (spec 008 §2) — lifted verbatim from docs/Kettle-Design.html,
+ * not re-derived by eye. Two sets: Day on body, Night under body[data-kt="night"];
+ * App.tsx sets the attribute from prefers-color-scheme so both ship (§5.1).
+ *
+ * Fonts: the design names Newsreader and Source Sans 3. The app's standing
+ * posture is no third-party requests (spec 008 §2 keeps it), so the stacks
+ * fall back to Georgia / system sans without a network fetch.
+ */
+
+body {
+  --stage: #EAE2D2; --paper: #F7F2E9; --card: #FDFBF6; --hover: #FBF7EE;
+  --ink: #2E2822; --ink2: #756B5C; --ink3: #A79B88; --inkmid: #5C5346;
+  --hair: rgba(46,40,34,.12); --arcline: rgba(46,40,34,.15);
+  --hoverbd: rgba(46,40,34,.3); --unk: rgba(46,40,34,.38);
+  --track: rgba(46,40,34,.2); --knob: #FDFBF6;
+  --copper: #B26D3F; --copperdeep: #96552D; --copperhover: #9E5D33;
+  --oncopper: #FDFBF6; --coppertint: rgba(178,109,63,.11);
+  --coppertinthover: rgba(178,109,63,.17); --copperbd: rgba(178,109,63,.35);
+  --ringfill: rgba(178,109,63,.2); --olive: #77854F; --mute: #9A968C;
+  --hearthfill: #E7EFD6; --hearthring: #D5E3B8; --cup: #7A4A26;
+  --steam: #A9B191; --fixbg: rgba(178,109,63,.07);
+  --dusk: #6F7396; --dusktext: #575B7E; --duskbd: rgba(111,115,150,.4);
+  --tabbg: rgba(247,242,233,.92); --framebd: rgba(46,40,34,.18);
+  --linkhover: #7C4423;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Source Sans 3', 'Helvetica Neue', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body[data-kt="night"] {
+  --stage: #14110C; --paper: #1D1A15; --card: #262219; --hover: #2C2820;
+  --ink: #F0E9DC; --ink2: #A89C89; --ink3: #7C7264; --inkmid: #CBC0AD;
+  --hair: rgba(240,233,220,.12); --arcline: rgba(240,233,220,.16);
+  --hoverbd: rgba(240,233,220,.34); --unk: rgba(240,233,220,.4);
+  --track: rgba(240,233,220,.22); --knob: #F0E9DC;
+  --copper: #C67F45; --copperdeep: #D89A62; --copperhover: #D28E55;
+  --oncopper: #1D1A15; --coppertint: rgba(210,138,80,.14);
+  --coppertinthover: rgba(210,138,80,.22); --copperbd: rgba(210,138,80,.42);
+  --ringfill: rgba(210,138,80,.24); --olive: #A2B370; --mute: #6E6A62;
+  --hearthfill: #2C3122; --hearthring: #3A4429; --cup: #D9A876;
+  --steam: #78816A; --fixbg: rgba(210,138,80,.09);
+  --dusk: #8A91B8; --dusktext: #AEB6D6; --duskbd: rgba(151,160,196,.5);
+  --tabbg: rgba(29,26,21,.92); --framebd: rgba(240,233,220,.18);
+  --linkhover: #E8B285;
+}
+
+.kt-serif { font-family: 'Newsreader', Georgia, serif; }
+
+::selection { background: rgba(178,109,63,.25); }
+
+/* Interactive surfaces — colour-only hovers, per the motion law. */
+.kt-cardbtn:hover { background: var(--hover); }
+.kt-copperbtn:hover { background: var(--coppertinthover); }
+.kt-rowbtn:hover { background: var(--hover); }
+a.kt-link { color: var(--copperdeep); text-decoration: none; }
+a.kt-link:hover { color: var(--linkhover); }
+
+/*
+ * Steam drifts only on the 200px hero glyph, and only for people who have not
+ * asked for reduced motion (spec 008 §3): the keyframes exist solely inside
+ * this media block, so with reduce set there is no animation to run. The 44px
+ * card glyph never animates — its steam class is deliberately absent there.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes kviewin { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes ksteambig {
+    0% { opacity: .5; transform: translateY(2px); }
+    50% { opacity: .85; transform: translateY(-3px); }
+    100% { opacity: .5; transform: translateY(2px); }
+  }
+  .kt-view { animation: kviewin .4s ease; }
+  .kt-steam-hero { animation: ksteambig 6s ease-in-out infinite both; }
+  .kt-steam-hero-late { animation: ksteambig 6s ease-in-out .6s infinite both; }
+}
