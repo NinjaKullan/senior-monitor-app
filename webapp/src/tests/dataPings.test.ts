@@ -119,6 +119,7 @@ function seedFamily(parentIds: string[]) {
     family_id: "f1",
     display_name: id,
     tz: null,
+    phone_e164: null,
   }));
   tables.members = [];
   tables.parent_signals = [];
@@ -251,7 +252,7 @@ describe("the unwindowed latest-row reads (DECISIONS 166)", () => {
     // Through the real surface: the tripwire carries an age, not "never".
     const { computeTripwires } = await import("@/lib/tripwires");
     const view = computeTripwires(
-      { id: "p1", family_id: "f1", display_name: "Amma", tz: null },
+      { id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null },
       "Asia/Kolkata",
       snapshot.signals,
       snapshot.latestPings,
@@ -268,7 +269,7 @@ describe("the unwindowed latest-row reads (DECISIONS 166)", () => {
 
     const { buildSetupEntries } = await import("@/lib/setupLinks");
     const [entry] = buildSetupEntries(
-      [{ id: "p1", family_id: "f1", display_name: "Amma", tz: null }],
+      [{ id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null }],
       [],
       snapshot.latestPings,
       NOW,
@@ -301,10 +302,14 @@ describe("the unwindowed latest-row reads (DECISIONS 166)", () => {
     }
   });
 
-  it("App feeds the two surfaces from latestPings and the glance from the window", async () => {
-    // Both sets are Ping[], so a swap back to the windowed set would compile
+  it("App hands computeParentToday both sets, windowed first, and Setup the latest set", async () => {
+    // Both sets are Ping[], so a swap back to a single set would compile
     // cleanly and quietly reintroduce the false sentences. Pinned at the
-    // source, the way the product side pins queries.ts.
+    // source, the way the product side pins queries.ts. Since spec 008 the
+    // two audiences meet inside one call — computeParentToday takes the
+    // windowed set (today's state, day rows, recent days) and the latest set
+    // (tripwire ages, last-heard) as separate parameters — so the pin is the
+    // parameter order: same types, and only this stops a silent swap.
     const fs = await import("node:fs");
     // vitest runs with cwd = webapp/; jsdom rewrites import.meta.url, so the
     // plain relative path is the reliable one.
@@ -314,11 +319,13 @@ describe("the unwindowed latest-row reads (DECISIONS 166)", () => {
       expect(start).toBeGreaterThan(-1);
       return source.slice(start, source.indexOf(")}", start));
     };
-    expect(callOf("computeTripwires")).toContain("snapshot.latestPings");
-    expect(callOf("computeTripwires")).not.toContain("snapshot.pings,");
+    const today = callOf("computeParentToday");
+    expect(today).toContain("snapshot.pings");
+    expect(today).toContain("snapshot.latestPings");
+    expect(today.indexOf("snapshot.pings,")).toBeLessThan(
+      today.indexOf("snapshot.latestPings"),
+    );
     expect(callOf("buildSetupEntries")).toContain("snapshot.latestPings");
     expect(callOf("buildSetupEntries")).not.toContain("snapshot.pings,");
-    expect(callOf("computeGlance")).toContain("snapshot.pings");
-    expect(callOf("computeGlance")).not.toContain("latestPings");
   });
 });

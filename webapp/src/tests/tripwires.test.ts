@@ -30,8 +30,8 @@ const HOUR = 3_600_000;
 /** 19:00 IST on 3 Aug. */
 const NOW = new Date("2026-08-03T13:30:00Z");
 
-const amma: Parent = { id: "p1", family_id: "f1", display_name: "Amma", tz: null };
-const appa: Parent = { id: "p2", family_id: "f1", display_name: "Appa", tz: null };
+const amma: Parent = { id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null };
+const appa: Parent = { id: "p2", family_id: "f1", display_name: "Appa", tz: null, phone_e164: null };
 
 const signals: ParentSignal[] = [
   { parent_id: "p1", signal: "whatsapp", alarm_grade: true, active: true },

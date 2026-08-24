@@ -22,8 +22,8 @@ import { SETUP_SEND_LABEL } from "@/lib/copy";
 
 const NOW = new Date("2026-08-16T12:00:00Z");
 const parents: Parent[] = [
-  { id: "p1", family_id: "f1", display_name: "Amma", tz: null },
-  { id: "p2", family_id: "f1", display_name: "Appa", tz: null },
+  { id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null },
+  { id: "p2", family_id: "f1", display_name: "Appa", tz: null, phone_e164: null },
 ];
 
 const liveLink = (parent_id: string, slug: string, created = "2026-08-15T00:00:00Z"): SetupLink => ({
@@ -93,8 +93,10 @@ describe("the Family screen's setup card", () => {
   );
 
   function renderCard() {
+    // The setup card is what these tests exercise; the parents list above it
+    // renders from precomputed states and gets an empty list here.
     return render(
-      <FamilyScreen parents={parents} members={[]} familyTz="Asia/Kolkata" setupEntries={entries} />,
+      <FamilyScreen parentStates={[]} members={[]} setupEntries={entries} onOpen={() => undefined} />,
     );
   }
 
@@ -124,9 +126,9 @@ describe("the Family screen's setup card", () => {
 
     render(
       <FamilyScreen
-        parents={[parents[0]]}
+        parentStates={[]}
         members={[]}
-        familyTz="Asia/Kolkata"
+        onOpen={() => undefined}
         setupEntries={buildSetupEntries(
           [parents[0]],
           [],
