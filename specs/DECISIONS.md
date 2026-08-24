@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 169.** This line is the one to update; the `Next number:` lines inside
+**Next number: 170.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1843,3 +1843,15 @@ browser — all three adopted as the standard for future surfaces.**
        outage itself — five tests fail, the loop among them), the old host's
        redirect pointed back at itself, and www quietly added to the redirect
        block. Test-only pass: no deploy owed for it.
+
+169. **(2026-08-23, Fable) Webapp restyle phase-1 scope, and two copy rulings
+     from the v5 design audit.** The locked v5 design (docs/Kettle-Design.html,
+     spec 008) ships in phase 1 as Today + Parent detail + Family-parents-list
+     only. Out: the Digests screen (156 still governs; when it returns its
+     notes are per-parent — v5's merged "ordinary day for Mom and Dad" bodies
+     are ruled out), per-member note toggles/invites (157's later tier), and
+     add-a-parent (onboarding pause, Q126). Copy: "She answered — all is well"
+     becomes "She answered." — the reply is content-blind and "all is well"
+     asserts knowledge Kettle does not hold. Otherwise the v5 strings passed
+     the full audit: no parent speech, no send-a-note, no counts or bars, no
+     mechanism words.
