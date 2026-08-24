@@ -14,7 +14,7 @@ import {
   DAY_TITLE,
   FIX_TITLE,
   RECENT_TITLE,
-  renderRepairNudge,
+  renderFixBody,
 } from "@/lib/copy";
 import type { ParentToday } from "@/lib/parentState";
 
@@ -194,7 +194,7 @@ export function ParentDetail({
             style={{ marginTop: 6, fontSize: 15, color: "var(--inkmid)", lineHeight: 1.55 }}
             data-testid="fix-body"
           >
-            {renderRepairNudge(state.name)}
+            {renderFixBody(state.name)}
           </div>
         </div>
       )}

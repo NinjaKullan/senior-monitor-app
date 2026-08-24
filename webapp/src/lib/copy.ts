@@ -66,7 +66,9 @@ export const PARENTS_LABEL = "Parents";
 export const FAMILY_CIRCLE_LABEL = "Family circle";
 export const TAGLINE = "For checking in, not checking up.";
 export const BACK_TO_TODAY = "Today";
-export const EMPTY_TODAY = "No one is being watched over yet.";
+/** DECISIONS 172's veto: "watched over" is the framing this product exists
+ *  to avoid, so the empty state says only what is true about setup. */
+export const EMPTY_TODAY = "No one is set up yet.";
 
 /**
  * Whose clock the first time belongs to. A gendered form is used only when a
@@ -85,15 +87,15 @@ export const CLOCK_BY_NAME = "{name}'s time";
 export const DAY_PARTS = ["Morning", "Afternoon", "Evening"] as const;
 
 /**
- * The repair nudge — the v5 fix card's body (spec 008 §5.2). It survived the
- * restyle because the v5 file's own fix copy described steps this product
- * does not have ("Open Kettle on the phone" — there is no app on the parent's
- * phone; the repair is a two-minute call). Signal names, the retired detail
- * rows' vocabulary, render nowhere any more — the copy-law scan holds that
- * with no allowlist at all now.
+ * The fix card's body (spec 008 §5.2, reworded by DECISIONS 172). It kept the
+ * honest FaceTime repair over the v5 file's steps for an app the parent does
+ * not have — and lost the word the old body opened with: "tripwire" is
+ * internal vocabulary, never customer-facing, and it joined the copy-law
+ * scan's mechanism bans so it cannot return. Internal identifiers, filenames
+ * and test names keep the word; rendered strings do not.
  */
-export const TRIPWIRE_REPAIR =
-  "A tripwire may need a quick fix on {name}'s phone. It's a two-minute FaceTime.";
+export const FIX_BODY =
+  "Something on {name}'s phone may need a quick fix. It's a two-minute FaceTime.";
 /** The card's accessible name for its tap target — it names the destination. */
 export const OPEN_PARENT_LABEL = "More about {name}'s day";
 
@@ -182,6 +184,6 @@ export function renderRecency(
   return RECENCY_DAYS.replace("{days}", String(days));
 }
 
-export function renderRepairNudge(name: string): string {
-  return TRIPWIRE_REPAIR.replace("{name}", name);
+export function renderFixBody(name: string): string {
+  return FIX_BODY.replace("{name}", name);
 }

@@ -163,7 +163,7 @@ describe("the parent detail's gates", () => {
 
     render(<ParentDetail state={{ ...base, needsFix: true }} onBack={() => undefined} />);
     expect(screen.getByTestId("fix-body").textContent).toBe(
-      "A tripwire may need a quick fix on Amma's phone. It's a two-minute FaceTime.",
+      "Something on Amma's phone may need a quick fix. It's a two-minute FaceTime.",
     );
   });
 

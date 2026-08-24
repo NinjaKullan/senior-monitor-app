@@ -113,6 +113,10 @@ const PROFILE = [
   "whatsapp", "youtube", "news", "charger", "charge_on", "charge_off", "device_alive",
   "app", "apps", "opened", "times", "count", "pings", "ping", "average", "streak",
   "trend", "score", "percent",
+  // DECISIONS 172: internal mechanism vocabulary, never customer-facing. The
+  // word lives on in identifiers, filenames and test names — those are not
+  // rendered text and this scan never sees them.
+  "tripwire", "tripwires",
 ];
 /**
  * The humanised signal names, banned with no surface exempted.
@@ -247,6 +251,17 @@ describe("rendered copy law", () => {
     expect(screen.getByTestId("detail-aside")).toBeInTheDocument();
     expect(screen.getByTestId("fix-card")).toBeInTheDocument();
     assertCopyLaw(renderedText(), [DAY_RECENCY]);
+  });
+
+  it("renders the empty state inside the law, and never as watching", () => {
+    // DECISIONS 172: "watched over" is the framing this product exists to
+    // avoid. The empty state renders only with no parents, so no other
+    // fixture in this file ever puts it on screen — scanned here on purpose.
+    render(<Today states={[]} dateLine="Sunday, August 3" onOpen={() => undefined} />);
+    const text = renderedText();
+    expect(text).toContain("No one is set up yet.");
+    expect(text.toLowerCase()).not.toContain("watch");
+    assertCopyLaw(text, [DATE_LINE]);
   });
 
   it("never renders anything darker than Quiet so far", () => {
@@ -399,6 +414,9 @@ describe("rendered copy law", () => {
   it("would catch a regression", () => {
     expect(() => assertCopyLaw("Kettle: this is urgent")).toThrow();
     expect(() => assertCopyLaw("Amma opened WhatsApp 4 times")).toThrow();
+    // DECISIONS 172: the word the fix card used to open with, banned so the
+    // vetoed body cannot come back.
+    expect(() => assertCopyLaw("A tripwire may need a quick fix")).toThrow();
   });
 });
 
