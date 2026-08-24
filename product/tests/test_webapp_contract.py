@@ -105,28 +105,30 @@ def test_webapp_state_copy_is_never_darker_than_quiet():
     assert STATE_SENTENCES["STATE_QUIET"].startswith("Quiet so far")
 
 
-def test_webapp_tripwire_copy_is_down_to_the_repair_nudge():
-    """005d's chips retired with the per-signal rows (spec 008, DECISIONS 170).
+def test_webapp_fix_copy_names_no_mechanism_and_stays_gentle():
+    """005d's chips retired with the rows (170); "tripwire" itself with 172.
 
-    Signal names now render nowhere in the app, so the health-chip vocabulary
-    is gone from the module, not merely unrendered. The fix card's body is
-    the one tripwire string left, and it still names a person only as the
-    owner of a phone that needs two minutes — a new TRIPWIRE_ constant fails
-    here until it is classified on purpose.
+    The word is internal vocabulary and never customer-facing, so no rendered
+    string may carry it and no TRIPWIRE_ constant may exist in the copy
+    module at all — identifiers elsewhere (lib/tripwires.ts, test names) keep
+    it, because those are not strings a family reads. The fix card's body is
+    pinned verbatim, and it still names a person only as the owner of a phone
+    that needs two minutes.
     """
     ts = _ts_consts(COPY_TS)
 
-    tripwire = {name for name in ts if name.startswith("TRIPWIRE_")}
-    assert tripwire == {"TRIPWIRE_REPAIR"}, (
-        f"classify or retire: {tripwire - {'TRIPWIRE_REPAIR'}}"
+    assert not {name for name in ts if name.startswith("TRIPWIRE_")}, (
+        "retired tripwire copy came back"
     )
-    assert ts["TRIPWIRE_REPAIR"] == (
-        "A tripwire may need a quick fix on {name}'s phone. "
+    for name, value in ts.items():
+        assert "tripwire" not in value.lower(), f"{name} leaks mechanism vocabulary: {value}"
+    assert ts["FIX_BODY"] == (
+        "Something on {name}'s phone may need a quick fix. "
         "It's a two-minute FaceTime."
     )
     for worrying in ("urgent", "emergency", "alarm", "danger", "unwell", "ill", "wrong"):
         # Whole words: "still" and "will" are not "ill".
-        assert not re.search(rf"\b{worrying}\b", ts["TRIPWIRE_REPAIR"].lower())
+        assert not re.search(rf"\b{worrying}\b", ts["FIX_BODY"].lower())
 
 
 def test_webapp_recency_copy_has_no_clock_variant_and_no_never():
