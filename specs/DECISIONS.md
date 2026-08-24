@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 172.** This line is the one to update; the `Next number:` lines inside
+**Next number: 173.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1930,3 +1930,19 @@ browser — all three adopted as the standard for future surfaces.**
      kettle's on." No existing customer copy changes; the site gains three
      evidence lines (title, footer, privacy sentence) in their own pass, then
      the display name is resubmitted as exactly "HeyKettle."
+
+172. **(2026-08-24, Fable) Restyle review verdict on DECISIONS 170's flagged
+     calls.** Accepted: the unreachable definition and its pinned edges; the
+     withheld learned-cadence aside and "quiet all day" dusk close (both
+     violate the inference ban / darkness floor — v5's copy, not ours); the
+     honest FaceTime fix body over v5's steps for an app the parent does not
+     have; request-free fonts; the day-row/recent-day vocabulary mapping.
+     Ruled: "She answered." is WITHHELD from the webapp until a purpose-built,
+     family-readable reply surface exists — it will ride with the post-beta
+     Digests-return view (156); the ledger stays deny-all. Two copy vetoes:
+     EMPTY_TODAY becomes "No one is set up yet." ("watched over" is the
+     framing this product exists to avoid), and FIX_BODY becomes "Something on
+     {name}'s phone may need a quick fix. It's a two-minute FaceTime."
+     ("tripwire" is internal vocabulary and never customer-facing; extend the
+     copy-law scan's mechanism-word list with "tripwire" so it cannot
+     return).
