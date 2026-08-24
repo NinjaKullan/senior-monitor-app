@@ -1,6 +1,7 @@
 import {
   FOOTER_CONTACT_HREF,
   FOOTER_CONTACT_LABEL,
+  FOOTER_LEGAL_LINE,
   FOOTER_LINE,
   FOOTER_PRIVACY_LABEL,
   FOOTER_WORDMARK,
@@ -27,6 +28,9 @@ export function Footer() {
             {FOOTER_CONTACT_LABEL}
           </a>
         </nav>
+        <p className="text-body text-secondary" data-testid="footer-legal">
+          {FOOTER_LEGAL_LINE}
+        </p>
       </div>
     </footer>
   );

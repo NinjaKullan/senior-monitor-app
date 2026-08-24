@@ -128,6 +128,12 @@ const ALLOW: (string | RegExp)[] = [
   OFF_NOTIF,
   // The founding rate: the page's one legitimate number.
   WAITLIST_BODY,
+  // The operating entity's registered name (DECISIONS 171). "AI" inside it is
+  // a proper noun, not a product claim — the inference ban exists to stop the
+  // page *sounding* like it models a parent, and a legal name in a footer
+  // makes no such sound. A literal, per DECISIONS 62: the word stays banned
+  // in every sentence that is not exactly this name, pinned by test below.
+  "LINKABIT AI LABS LLC",
 ];
 
 /** Digits allowed on the page: the price, and the three step numerals. */
@@ -304,6 +310,20 @@ describe("AC3 — the copy module obeys the marketing bans", () => {
     // Its neighbour, a claim about her, is not exempt by association.
     expect(() => assertCopyLaw("Everything okay today? She's fine.", ALLOW)).toThrow();
   });
+
+  it("exempts the entity's registered name without unbanning the word ai", () => {
+    // DECISIONS 171: both halves pinned, the DECISIONS-62 shape. The line is
+    // pinned so the exemption cannot be widened by rewriting the string the
+    // footer renders, and the allow entry is the bare registered name so no
+    // other sentence can ride in on it.
+    expect(copy.FOOTER_LEGAL_LINE).toBe("HeyKettle · a LINKABIT AI LABS LLC service");
+    expect(ALLOW).toContain("LINKABIT AI LABS LLC");
+    expect(() => assertCopyLaw(copy.FOOTER_LEGAL_LINE, ALLOW)).not.toThrow();
+    // "ai" anywhere that is not exactly the registered name is still the
+    // inference ban's business — the exemption is a name, not a word.
+    expect(() => assertCopyLaw("Kettle uses ai to notice her day", ALLOW)).toThrow();
+    expect(() => assertCopyLaw("a LINKABIT LABS service, with AI", ALLOW)).toThrow();
+  });
 });
 
 describe("AC12 — copy shape", () => {
@@ -433,6 +453,22 @@ describe("the privacy page obeys the same law", () => {
     expect(text).toContain("Last updated:");
     expect(text).toContain("Back to Kettle");
     expect(text).not.toContain("being written with counsel");
+    // DECISIONS 171: the operating entity, stated once at the top. Who runs
+    // the service, nothing about how it works.
+    expect(text).toContain(
+      'LINKABIT AI LABS LLC ("HeyKettle", "Kettle", "we") operates this service.',
+    );
+  });
+
+  it("carries the formal name in the tab title and the friendly one on the page", () => {
+    // DECISIONS 171: HeyKettle on legal-ish surfaces, Kettle everywhere the
+    // family reads. The title is brand evidence for the entity review; the
+    // hero wordmark must NOT follow it.
+    const index = readFileSync(join(SRC, "..", "index.html"), "utf8");
+    expect(copy.PAGE_TITLE_LABEL).toBe("HeyKettle — Know the day started normally.");
+    expect(index).toContain(`<title>${copy.PAGE_TITLE_LABEL}</title>`);
+    expect(copy.FOOTER_WORDMARK).toBe("Kettle");
+    expect(copy.HERO_H1).toBe("Know the day started normally.");
   });
 
   it("describes what is collected, never how — the full law, one pinned line", () => {
@@ -449,6 +485,9 @@ describe("the privacy page obeys the same law", () => {
     const PRIVACY_ALLOW = [
       "Turning off a parent's setup stops collection immediately.",
       "with delivery tracking turned off.",
+      // The operating entity's registered name (DECISIONS 171) — the same
+      // literal the page-wide allowlist carries, for the same reason.
+      "LINKABIT AI LABS LLC",
     ];
     expect(() => assertCopyLaw(privacyText(), PRIVACY_ALLOW)).not.toThrow();
   });

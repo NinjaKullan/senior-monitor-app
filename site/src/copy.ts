@@ -255,6 +255,15 @@ export const WAITLIST_ERROR = "That didn't go through. Check the address and try
 
 export const FOOTER_WORDMARK = "Kettle";
 export const FOOTER_LINE = "Three fields. Nothing else.";
+/**
+ * DECISIONS 171: "HeyKettle" is the formal public name and LINKABIT AI LABS
+ * LLC the operating entity — the evidence line Meta asked to see. It says who
+ * operates the service and nothing about how it works. The entity name is the
+ * copy-law scan's one legal-name exemption, pinned by literal in
+ * copyLaw.test.tsx; "AI" here is a registered name, not a product claim, and
+ * the inference ban stands everywhere else.
+ */
+export const FOOTER_LEGAL_LINE = "HeyKettle · a LINKABIT AI LABS LLC service";
 export const FOOTER_PRIVACY_LABEL = "Privacy";
 export const FOOTER_CONTACT_LABEL = "Say hello";
 export const FOOTER_CONTACT_HREF = "mailto:hello@heykettle.com";
@@ -278,6 +287,7 @@ export const PRIVACY_BODY =
 /* Chrome                                                                   */
 /* ---------------------------------------------------------------------- */
 
-export const PAGE_TITLE_LABEL = "Kettle. Know the day started normally.";
+/** DECISIONS 171: the formal name in the tab; the wordmark stays "Kettle". */
+export const PAGE_TITLE_LABEL = "HeyKettle — Know the day started normally.";
 export const NOTIF_TIMESTAMP_LABEL = "Today";
 export const NOTIF_APP_LABEL = "Kettle";
