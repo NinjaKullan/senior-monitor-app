@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 170.** This line is the one to update; the `Next number:` lines inside
+**Next number: 171.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1855,3 +1855,66 @@ browser — all three adopted as the standard for future surfaces.**
      asserts knowledge Kettle does not hold. Otherwise the v5 strings passed
      the full audit: no parent speech, no send-a-note, no counts or bars, no
      mechanism words.
+
+170. **(2026-08-24, Claude Code) Spec 008 built — the execution calls, filed
+     not guessed.** Webapp restyled to Kettle v5 (Today, Parent detail,
+     Family parents-list; nav is Today and Family only). Suite 119 → 101:
+     three glance-era suites retired with their screens, two suites added
+     (`parentState`, `kettleGlyph`). All calls below are reversible; PM veto
+     requested where marked.
+     * **"She answered." (169) does not render anywhere.** Not defiance of
+       the ruling — the client cannot know it: reply state lives in
+       `sent_messages`, which is RLS deny-all to the family app by design.
+       The ruled string is the right copy for whatever surface can see
+       replies (the founder digest, a future server-rendered note); no such
+       surface exists in the webapp. Needs a PM home, not a webapp hack.
+     * **Unreachable is defined as:** at least one tripwire has reported at
+       some point, every tripwire that ever reported is now stale, and none
+       is connected. A never-configured signal is a setup step, not silence
+       (005d's unconfigured ruling carried forward), and one connected
+       tripwire vetoes the state however stale the rest — both pinned by
+       test. The sentence is about the phone (law #6).
+     * **v5 strings that assert unobservables do not ship:** the
+       learned-cadence aside ("His mornings usually start around eight") is
+       trend inference (hard constraint 1 / DECISIONS 59 deferral), and the
+       dusk "Quiet all day" close is darker than the floor. "Quiet so far"
+       remains the darkest person-sentence in the app.
+     * **The fix card keeps the existing repair-nudge body.** The v5 file's
+       fix steps say "Open Kettle on the phone" — there is no app on the
+       parent's phone; the honest repair is the two-minute FaceTime the
+       nudge already describes. v5's "Text the steps" button is omitted with
+       it (fan-out tier, 157). Same gate as the nudge: a tripwire that
+       *stopped* reporting.
+     * **The About block renders only fields that exist:** no city field in
+       the schema, so no city line; the clock difference ships in words
+       ("Ten and a half hours ahead of you"), falling back to "A different
+       clock from yours." for shapes the word list cannot carry (Kathmandu
+       from Chicago). Setup month from the earliest setup link.
+     * **Family keeps its live surfaces** — the 005b setup card (122's CTA
+       pin intact) and the member roster — restyled under the v5 parents
+       list, though the spec's scope list names only the list. Deleting a
+       live forwarding surface needed a ruling; keeping it did not.
+     * **No third-party font requests.** The v5 stacks name Newsreader and
+       Source Sans 3; they are named in the stacks with Georgia/system
+       fallbacks, and nothing is fetched (hard constraint 4 posture).
+       Self-hosting the faces is a separate, PM-priced step.
+     * **Night is driven by `prefers-color-scheme`** onto `body[data-kt]`,
+       live on the OS toggle. No in-app switch until a spec asks.
+     * **Day-row and recent-day wording is my mapping from the v5
+       vocabulary** ("An ordinary morning — heard from at 8:15 am." /
+       "Quiet so far." for the stretch being stood in / "Quiet." only for a
+       finished one / "Still to come." / "Nothing has reached Kettle.";
+       recent days: "An ordinary day." / "A quiet day." / "Nothing reached
+       Kettle."). No verdicts on unfinished time. Veto welcome, strings are
+       one file (`webapp/src/lib/copy.ts`).
+     * **The copy law came out stronger:** the tripwire rows were the one
+       surface allowed signal names; rows gone, exemption deleted — no scan
+       carries a signal-name allowlist any more. Gendered pronouns joined
+       the rendered-surface ban (24/34): fixtures record no pronoun, so a
+       hardcoded she/her in any default string fails. Two allowances remain
+       beside 122's CTA: day-words recency ("6 days ago", the 005d §2
+       shape, now on the last-heard meta) and the Today date line.
+     * **`phone_e164` joined the parents read surface** (structure 48 +
+       DECISIONS 167): fetched to build the Call button's `tel:` href and
+       nothing else; a printed digit anywhere fails the law scan, and the
+       Call button renders only when a number exists.

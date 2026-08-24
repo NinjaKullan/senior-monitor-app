@@ -38,13 +38,15 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 386, zero xfails**, **`webapp` 119**, **`site` 181**.
+Current green: **`pytest` 386, zero xfails**, **`webapp` 101**, **`site` 181**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
 * The webapp count moved 117 → 110 with the Digests screen's retirement (156), to
-  115 with the 1000-row-cliff regression suite (160), and to 119 with the
-  latest-row reads (166); the product count grew to 386 through the outbound
+  115 with the 1000-row-cliff regression suite (160), to 119 with the
+  latest-row reads (166), and to 101 with the v5 restyle (spec 008, DECISIONS
+  170): three glance-era suites retired with their screens, `parentState` and
+  `kettleGlyph` arrived. The product count grew to 386 through the outbound
   passes (152/153/154/159/163/165).
 * Postgres has died mid-session in this container. `KETTLE_REQUIRE_POSTGRES=1` turns
   that into 169 loud errors instead of a silent skip. Restart and re-run.
@@ -241,7 +243,16 @@ photographs in the tree). One typeface, five type roles, three weights. Rhythm F
 built and tuned. Floating CTA. Domain cascade done. Everything since DECISIONS 134 is
 unshipped.
 
-**`webapp/`** — the family app. 005a/005c/005d built. Session restore hardened (144):
+**`webapp/`** — the family app. 005a/005c/005d built, then restyled whole to Kettle v5
+(spec 008, DECISIONS 169/170): Today card grid, parent detail with the 200px glyph
+hero and the phone-gated Call button, Family restyled around the surviving setup card
+and member roster. Glance/TripwireDetail/beacon are deleted, signal names render
+nowhere, and the copy-law scan runs with no signal-name allowlist. **Built and
+tested only — NOT deployed**; the founder's `fly deploy` of kettle-app is owed after
+PM review. `parents.phone_e164` has existed since migration 0007 and the family
+select policy is row-scoped, not column-scoped, so the Call button lights up
+wherever the founder has entered a number — no schema step owed. Session restore
+hardened (144) and untouched:
 a stored session the server rejects signs out, clears storage and lands on login;
 `restoring` is a named state; "Loading…" is bounded at 15s.
 
@@ -250,8 +261,9 @@ a stored session the server rejects signs out, clears storage and lands on login
 * **Commit WIP before destructive experiments.** `git checkout <file>` during a
   plant-and-revert has cost uncommitted work here **twice**, most recently in this
   session. Copy the file aside instead.
-* **`git rm` + a bare `git commit` sweeps unrelated deletions into your commit.** Also
-  twice.
+* **`git rm` + a bare `git commit` sweeps unrelated deletions into your commit.** Three
+  times now (caught before push in the 008 build — reset and re-split). Stage with
+  explicit paths at commit time; check `git show --stat` before moving on.
 * **Verify a guardrail by planting the regression it exists to catch.** In the last two
   sessions this moved the code three times — a guardrail that failed via a fixture
   instead of its own assertion, a claim-path guard nothing isolated, and a storage test
