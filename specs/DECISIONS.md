@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 173.** This line is the one to update; the `Next number:` lines inside
+**Next number: 174.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1946,3 +1946,45 @@ browser — all three adopted as the standard for future surfaces.**
      ("tripwire" is internal vocabulary and never customer-facing; extend the
      copy-law scan's mechanism-word list with "tripwire" so it cannot
      return).
+
+173. **(2026-08-24, Claude Code) DECISIONS 171/172 built — the execution calls.**
+     Site suite 181 → 183; webapp 101 → 102; product 386 unchanged. Nothing
+     deployed.
+     * **The entity name required an allowlist widening, done in the
+       DECISIONS-62 shape.** "LINKABIT AI LABS LLC" contains "AI", which the
+       site's inference ban word-bounds — the footer line and the privacy
+       sentence would have failed the scan. The allowlist (page-wide and the
+       privacy page's own) gains one literal: the bare registered name.
+       Pinned on both halves by test, with would-catch assertions proving
+       "ai" outside that exact string still fails. A proper noun in a legal
+       line is not the sound the ban exists to stop.
+     * **`PAGE_TITLE_LABEL` follows the title** — the existing prerender
+       tether caught the drift before any test did. Title is pinned as
+       "HeyKettle — Know the day started normally."; the hero H1 and footer
+       wordmark are pinned as staying "Kettle"/unchanged, so the formal name
+       cannot creep onto friendly surfaces.
+     * **The privacy sentence ships in the page's own typographic style**
+       (&ldquo;-entities, matching the rest of the file); the scan decodes
+       before comparing, and the fetch-nothing law was re-asserted: no
+       links, no absolute URLs, plain text.
+     * **The webapp constant renamed with its body**: TRIPWIRE_REPAIR →
+       FIX_BODY (aligning with FIX_TITLE), renderRepairNudge →
+       renderFixBody. The ruling's ban lands as "tripwire"/"tripwires" in
+       the rendered-surface mechanism list; identifiers, filenames
+       (lib/tripwires.ts) and test names keep the word — the scan walks
+       rendered text only, which is the exemption the ruling describes.
+     * **EMPTY_TODAY had no fixture rendering it** (it appears only with
+       zero parents), so the veto also added the first empty-state scan:
+       the new string pinned, "watch" vocabulary asserted absent, full law
+       over the render.
+     * **The product-side copy contract followed** (test-only; nothing the
+       pilot runs changed): the pin moves to FIX_BODY, asserts no TRIPWIRE_
+       constant exists in the copy module, and scans every exported webapp
+       string for "tripwire" — the Python half of the same ban. Flagging
+       because the task said "product/pilot untouched": leaving the
+       contract pinning a vetoed string would have been a red suite, and
+       the contract is the webapp copy's other half, not pilot code.
+     * Five plants, five named failures: extra "AI" smuggled beside the
+       entity name; the privacy sentence removed; the title reverted;
+       "tripwire" back in the fix body (caught by webapp scan AND product
+       contract); "watched over" back in the empty state.
