@@ -20,7 +20,11 @@
 
 export const READ_SURFACE = {
   families: "id, name, tz",
-  parents: "id, family_id, display_name, tz",
+  // phone_e164 joined in spec 008 (the detail hero's Call button) — a
+  // conscious widening under standing structure 48, sanctioned by DECISIONS
+  // 167: the number exists client-side solely to become a tel: href and is
+  // never rendered as text.
+  parents: "id, family_id, display_name, tz, phone_e164",
   members: "id, family_id, display_name, role, digest_channel",
   parent_signals: "parent_id, signal, alarm_grade, active",
   pings: "parent_id, signal, ts_utc",

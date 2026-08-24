@@ -9,31 +9,64 @@
  */
 
 /**
- * Glance headlines, chosen by the parent's local day-part and whether routine
- * has been seen (spec 005c §1).
+ * The v5 state vocabulary (spec 008 §4, from docs/Kettle-Design.html).
  *
- * Warmth rises; information stays coarse. Every one of these says the same
- * coarse thing the flat states said — routine seen, or not yet — in language a
- * person would actually use. None of them says more.
- *
- * `Quiet so far …` is still the floor. Nothing in this app is darker, because
- * anything darker belongs to the ladder and the ladder has no surface here.
+ * Three sentences for three states, and the floor has not moved: "Quiet so
+ * far" is still as dark as this app gets about a person; "unreachable" is a
+ * sentence about a phone. The v5 file's she/her forms are restructured here —
+ * nothing infers a pronoun from a name (items 24/34, standing policy), so
+ * strings parameterize on the name or need no pronoun at all.
  */
-export const GLANCE_SEEN_MORNING = "{name}'s morning started the usual way";
-export const GLANCE_SEEN_AFTERNOON = "A normal day so far";
-export const GLANCE_SEEN_EVENING = "A normal, gentle day";
-export const GLANCE_QUIET_MORNING = "Quiet so far this morning";
-export const GLANCE_QUIET_TODAY = "Quiet so far today";
+export const STATE_ORDINARY = "Today looks like an ordinary day.";
+export const STATE_QUIET = "Quiet so far today.";
+export const STATE_UNREACHABLE = "Kettle can't hear from {name}'s phone right now.";
+/** The unreachable state's one reassurance, de-pronouned from the v5 file. */
+export const UNREACHABLE_ASIDE =
+  "A call still works fine — this is only about the phone.";
 
-/** Shown before a parent has ever sent anything routine. */
-export const GLANCE_NO_ROUTINE_YET = "No routine seen yet";
+/** Last-heard metas. Clock times at day-or-yesterday reach; day words beyond. */
+export const META_HEARD_TODAY = "Heard from at {time} {clock}.";
+export const META_HEARD_YESTERDAY = "Last heard from yesterday at {time} {clock}.";
+export const META_HEARD_DAYS = "Last heard from {days} days ago.";
+export const META_NOTHING_SINCE = "Nothing has reached Kettle since {when}.";
+export const META_NOTHING_YET = "Nothing has reached Kettle yet.";
+export const LOCAL_LINE = "It's {time} {clock} right now.";
 
-/**
- * Dual-timezone subline: their clock and the viewer's, side by side, because
- * "8:36 pm" means nothing to a child in Texas until they know it was evening in
- * Chennai.
- */
-export const SUBLINE_TEMPLATE = "Last routine seen {time} {clock} · {viewerTime} yours";
+/** The day, in words (spec 008 §5.2). No verdicts on unfinished time: the
+ *  stretch being stood in says "so far", and only a finished stretch is
+ *  simply quiet. */
+export const DAY_TITLE = "The day";
+export const DAY_MORNING_HEARD = "An ordinary morning — heard from at {time}.";
+export const DAY_HEARD = "Heard from at {time}.";
+export const DAY_QUIET_SO_FAR = "Quiet so far.";
+export const DAY_QUIET = "Quiet.";
+export const DAY_STILL_TO_COME = "Still to come.";
+export const DAY_NOTHING = "Nothing has reached Kettle.";
+
+export const RECENT_TITLE = "Recent days";
+export const RECENT_ORDINARY = "An ordinary day.";
+export const RECENT_QUIET = "A quiet day.";
+export const RECENT_NOTHING = "Nothing reached Kettle.";
+
+export const ABOUT_TITLE = "About";
+export const TZ_SAME = "The same time as yours.";
+export const TZ_AHEAD = "{words} ahead of you.";
+export const TZ_BEHIND = "{words} behind you.";
+export const TZ_DIFFERENT = "A different clock from yours.";
+export const SETUP_MONTH = "The phone was set up in {month}.";
+
+export const CALL_LABEL = "Call {name}";
+export const FIX_TITLE = "A small thing to fix";
+
+export const TODAY_TITLE = "Today";
+export const FAMILY_TITLE = "Family";
+export const FAMILY_SUB =
+  "Everyone here sees the same Today screen and gets the same notes.";
+export const PARENTS_LABEL = "Parents";
+export const FAMILY_CIRCLE_LABEL = "Family circle";
+export const TAGLINE = "For checking in, not checking up.";
+export const BACK_TO_TODAY = "Today";
+export const EMPTY_TODAY = "No one is being watched over yet.";
 
 /**
  * Whose clock the first time belongs to. A gendered form is used only when a
@@ -48,38 +81,21 @@ export const CLOCK_BY_PRONOUN: Record<string, string> = {
 };
 export const CLOCK_BY_NAME = "{name}'s time";
 
-/** The day arc's three segments, in order. Names only — never counts. */
-export const ARC_SEGMENTS = ["Morning", "Afternoon", "Evening"] as const;
-export const ARC_LABEL_NONE = "No routine seen yet today";
-export const ARC_LABEL_PREFIX = "Routine seen: ";
-
-/** The beacon describes the handset, never the person (attribution law). */
-export const BEACON_LABEL = "phone";
+/** The day's three parts, in order. Names only — never counts. */
+export const DAY_PARTS = ["Morning", "Afternoon", "Evening"] as const;
 
 /**
- * The tripwire health view (spec 005d) — a maintenance surface, in equipment
- * tone throughout.
- *
- * Every string below describes plumbing. `Not heard in a while` is as dark as
- * this screen goes and it is amber, not red, because a tripwire that stopped
- * reporting is a Shortcuts problem until proven otherwise; the person it reports
- * on is not mentioned by any of it. The nudge is the one string that names the
- * parent, and it names them as the owner of a phone that needs two minutes.
+ * The repair nudge — the v5 fix card's body (spec 008 §5.2). It survived the
+ * restyle because the v5 file's own fix copy described steps this product
+ * does not have ("Open Kettle on the phone" — there is no app on the parent's
+ * phone; the repair is a two-minute call). Signal names, the retired detail
+ * rows' vocabulary, render nowhere any more — the copy-law scan holds that
+ * with no allowlist at all now.
  */
-export const TRIPWIRE_TITLE = "Tripwires";
-export const TRIPWIRE_CONNECTED = "Connected";
-export const TRIPWIRE_STALE = "Not heard in a while";
-/**
- * Never heard from. Neutral, not amber: absence of *ever* means nobody has
- * installed the shortcut yet, which is a setup step, not a fault (PM ruling on
- * DECISIONS 60).
- */
-export const TRIPWIRE_UNSET = "Not set up yet";
 export const TRIPWIRE_REPAIR =
   "A tripwire may need a quick fix on {name}'s phone. It's a two-minute FaceTime.";
-export const TRIPWIRE_BACK = "Back to today";
-/** The Glance card's accessible name for its tap target — it names the destination. */
-export const TRIPWIRE_OPEN_LABEL = "Tripwire health for {name}";
+/** The card's accessible name for its tap target — it names the destination. */
+export const OPEN_PARENT_LABEL = "More about {name}'s day";
 
 /**
  * Recency, at day granularity and no finer. There is no clock-time variant of
@@ -148,22 +164,6 @@ export const PRIVACY_FOOTER =
 export function renderClock(name: string, pronoun?: string | null): string {
   const recorded = CLOCK_BY_PRONOUN[(pronoun ?? "").toLowerCase()];
   return recorded ?? CLOCK_BY_NAME.replace("{name}", name);
-}
-
-export function renderSubline(
-  name: string,
-  theirTime: string,
-  viewerTime: string,
-  pronoun?: string | null,
-): string {
-  // One clock when both read the same — a child in Chennai does not need to be
-  // told twice.
-  if (theirTime === viewerTime) {
-    return `Last routine seen ${theirTime} ${renderClock(name, pronoun)}`;
-  }
-  return SUBLINE_TEMPLATE.replace("{time}", theirTime)
-    .replace("{clock}", renderClock(name, pronoun))
-    .replace("{viewerTime}", viewerTime);
 }
 
 /**

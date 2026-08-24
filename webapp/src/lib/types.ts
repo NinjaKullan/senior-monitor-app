@@ -11,6 +11,9 @@ export interface Parent {
   family_id: string;
   display_name: string;
   tz: string | null;
+  /** E.164, or null. Renders only inside a tel: href — never as visible text
+   *  (DECISIONS 167: family-facing numbers are tap-to-act links). */
+  phone_e164: string | null;
 }
 
 export interface Member {
