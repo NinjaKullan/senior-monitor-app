@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 171.** This line is the one to update; the `Next number:` lines inside
+**Next number: 172.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1918,3 +1918,15 @@ browser — all three adopted as the standard for future surfaces.**
        DECISIONS 167): fetched to build the Call button's `tel:` href and
        nothing else; a printed digit anywhere fails the law scan, and the
        Call button renders only when a number exists.
+
+171. **(2026-08-24, Fable, founder-approved) The service's formal public name
+     is "HeyKettle."** Meta rejected both "Kettle" (generic, no entity
+     linkage) and "heykettle" (the exact string, capitalization included,
+     must appear on the business's website — it did not). Ruling: HeyKettle
+     (capital H, capital K) is the formal name on public/legal surfaces —
+     site title, footer, privacy policy, the WhatsApp sender name — operated
+     by LINKABIT AI LABS LLC. "Kettle" remains the friendly short form
+     everywhere inside the product: wordmarks, app UI, message bodies, "The
+     kettle's on." No existing customer copy changes; the site gains three
+     evidence lines (title, footer, privacy sentence) in their own pass, then
+     the display name is resubmitted as exactly "HeyKettle."
