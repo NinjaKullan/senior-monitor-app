@@ -6,9 +6,10 @@ Two things a JS test cannot check for itself:
   live in two languages now, and drift would be silent);
 * that every table the app reads is RLS-protected and returns only the caller's
   family (AC1's isolation proof, at the app's actual read surface);
-* that the humanised signal names the tripwire view renders are still the names
-  of the shortcuts sitting on the parent's phone (005d, and the reason those
-  names are allowed to render at all).
+* that the humanised signal names in `signalNames.ts` are still the names of
+  the shortcuts sitting on the parent's phone (005d; since spec 008 the app
+  renders none of them, but the module still keys tripwire logic and a drift
+  would resurface the moment any repair surface names a shortcut again).
 """
 
 from __future__ import annotations
@@ -64,99 +65,68 @@ def test_the_digest_screen_is_retired_and_its_copy_is_gone():
     )
 
 
-# The headline is the one string a family reads at an anxious moment, so it is
-# the one the floor law governs. Sublines are captions on it and may state a
-# plain absence ("No routine seen yet"); a headline may not.
-GLANCE_HEADLINES = {
-    "GLANCE_SEEN_MORNING": "{name}'s morning started the usual way",
-    "GLANCE_SEEN_AFTERNOON": "A normal day so far",
-    "GLANCE_SEEN_EVENING": "A normal, gentle day",
-    "GLANCE_QUIET_MORNING": "Quiet so far this morning",
-    "GLANCE_QUIET_TODAY": "Quiet so far today",
-}
-GLANCE_SUBLINES = {"GLANCE_NO_ROUTINE_YET"}
-
-
-def test_webapp_glance_copy_is_never_darker_than_quiet():
-    """005a §3.1, carried into 005c: `Quiet so far` is still the floor."""
-    ts = _ts_consts(COPY_TS)
-
-    assert {k: ts[k] for k in GLANCE_HEADLINES} == GLANCE_HEADLINES
-
-    # A newly added GLANCE_ constant has to be classified rather than quietly
-    # escaping the scan below — that is how a floor rots.
-    unclassified = {
-        name
-        for name in ts
-        if name.startswith("GLANCE_")
-        and name not in GLANCE_HEADLINES
-        and name not in GLANCE_SUBLINES
-    }
-    assert not unclassified, f"classify these as headline or subline: {unclassified}"
-
-    for name, value in GLANCE_HEADLINES.items():
-        lowered = value.lower()
-        for worrying in ("no ", "not ", "unreachable", "silent", "concern", "alert"):
-            assert worrying not in lowered, f"{name} is darker than the floor: {value}"
-        if name.startswith("GLANCE_QUIET"):
-            assert value.startswith("Quiet so far"), f"{name} left the floor: {value}"
-
-
-# Spec 005d's copy, classified the way GLANCE_* is: chips are the two health
-# states, and everything else on that view is chrome. An unclassified TRIPWIRE_
-# constant fails below rather than quietly escaping the tone scan.
-TRIPWIRE_CHIPS = {
-    "TRIPWIRE_CONNECTED": "Connected",
-    "TRIPWIRE_STALE": "Not heard in a while",
-    # Never heard from is its own state, not the amber one: absence of *ever*
-    # means not-yet-configured (PM ruling on DECISIONS 60, the same principle as
-    # 001 item 4's "suppress the infra alert until the first ping arrives").
-    "TRIPWIRE_UNSET": "Not set up yet",
-}
-TRIPWIRE_CHROME = {
-    "TRIPWIRE_TITLE",
-    "TRIPWIRE_REPAIR",
-    "TRIPWIRE_BACK",
-    "TRIPWIRE_OPEN_LABEL",
+# The state sentence is the one string a family reads at an anxious moment
+# (spec 008 §4: it is the card AND the hero), so it is the one the floor law
+# governs. Three states, pinned verbatim: two about a person's day, and a
+# third that is a sentence about a phone — see the law-#6 test below.
+STATE_SENTENCES = {
+    "STATE_ORDINARY": "Today looks like an ordinary day.",
+    "STATE_QUIET": "Quiet so far today.",
+    "STATE_UNREACHABLE": "Kettle can't hear from {name}'s phone right now.",
 }
 
 
-def test_webapp_tripwire_copy_describes_equipment_not_the_person():
-    """005d §2: amber is the ceiling, and it refers to a tripwire, never a parent.
+def test_webapp_state_copy_is_never_darker_than_quiet():
+    """005a §3.1's floor, carried through 005c into spec 008's three states.
 
-    The health chips are the strings a family reads next to a signal name, which
-    makes them the place a person-claim would sneak in ("Amma may be unwell").
-    They are pinned exactly, and the rest of the view's copy is scanned for the
-    vocabulary of alarm — this screen escalates to `Not heard in a while` and no
-    further, because anything further belongs to the ladder.
+    `Quiet so far` is still as dark as this app ever gets about a *person*.
+    The glance vocabulary this test used to pin retired with its screen
+    (DECISIONS 169/170) and must stay gone — a dead constant is how retired
+    copy leaks back (the `never` precedent, DECISIONS 68).
     """
     ts = _ts_consts(COPY_TS)
 
-    assert {k: ts[k] for k in TRIPWIRE_CHIPS} == TRIPWIRE_CHIPS
+    assert {k: ts[k] for k in STATE_SENTENCES} == STATE_SENTENCES
+    assert not {name for name in ts if name.startswith("GLANCE_")}, (
+        "retired glance copy came back"
+    )
 
+    # A newly added STATE_ constant has to be classified rather than quietly
+    # escaping the scan below — that is how a floor rots.
     unclassified = {
-        name
-        for name in ts
-        if name.startswith("TRIPWIRE_")
-        and name not in TRIPWIRE_CHIPS
-        and name not in TRIPWIRE_CHROME
+        name for name in ts if name.startswith("STATE_") and name not in STATE_SENTENCES
     }
-    assert not unclassified, f"classify these as chip or chrome: {unclassified}"
+    assert not unclassified, f"classify these against the floor: {unclassified}"
 
-    for name in list(TRIPWIRE_CHIPS) + sorted(TRIPWIRE_CHROME):
-        lowered = ts[name].lower()
-        for worrying in ("urgent", "emergency", "alarm", "danger", "unwell", "ill", "wrong"):
-            # Whole words: "still" and "will" are not "ill".
-            assert not re.search(rf"\b{worrying}\b", lowered), (
-                f"{name} is darker than amber: {ts[name]}"
-            )
+    for name in ("STATE_ORDINARY", "STATE_QUIET"):
+        lowered = STATE_SENTENCES[name].lower()
+        for worrying in ("no ", "not ", "unreachable", "silent", "concern", "alert"):
+            assert worrying not in lowered, f"{name} is darker than the floor"
+    assert STATE_SENTENCES["STATE_QUIET"].startswith("Quiet so far")
 
-    # The nudge is the only string here that names a person, and it names them as
-    # the owner of a phone that needs two minutes.
+
+def test_webapp_tripwire_copy_is_down_to_the_repair_nudge():
+    """005d's chips retired with the per-signal rows (spec 008, DECISIONS 170).
+
+    Signal names now render nowhere in the app, so the health-chip vocabulary
+    is gone from the module, not merely unrendered. The fix card's body is
+    the one tripwire string left, and it still names a person only as the
+    owner of a phone that needs two minutes — a new TRIPWIRE_ constant fails
+    here until it is classified on purpose.
+    """
+    ts = _ts_consts(COPY_TS)
+
+    tripwire = {name for name in ts if name.startswith("TRIPWIRE_")}
+    assert tripwire == {"TRIPWIRE_REPAIR"}, (
+        f"classify or retire: {tripwire - {'TRIPWIRE_REPAIR'}}"
+    )
     assert ts["TRIPWIRE_REPAIR"] == (
         "A tripwire may need a quick fix on {name}'s phone. "
         "It's a two-minute FaceTime."
     )
+    for worrying in ("urgent", "emergency", "alarm", "danger", "unwell", "ill", "wrong"):
+        # Whole words: "still" and "will" are not "ill".
+        assert not re.search(rf"\b{worrying}\b", ts["TRIPWIRE_REPAIR"].lower())
 
 
 def test_webapp_recency_copy_has_no_clock_variant_and_no_never():
@@ -199,9 +169,27 @@ def test_webapp_signal_names_match_the_shortcuts_on_the_phone():
     assert {signal for signal, _ in signals.STANDARD_SIGNALS} <= set(rendered)
 
 
-def test_webapp_beacon_describes_the_handset_not_the_person():
-    """Law #6 at the pixel: a mechanism signal may never anchor a person claim."""
-    assert _ts_consts(COPY_TS)["BEACON_LABEL"] == "phone"
+def test_webapp_unreachable_copy_describes_the_handset_not_the_person():
+    """Law #6 at the pixel: a mechanism signal may never anchor a person claim.
+
+    The beacon and its `phone` label retired with the glance (spec 008); the
+    law now rides on the third state's sentences, which must stay about the
+    phone. The aside is pinned verbatim — it is the string that talks a
+    family down at the exact moment the temptation to say something darker
+    is strongest.
+    """
+    ts = _ts_consts(COPY_TS)
+    assert "BEACON_LABEL" not in ts, "the retired beacon's label came back"
+    assert "phone" in ts["STATE_UNREACHABLE"]
+    assert ts["UNREACHABLE_ASIDE"] == (
+        "A call still works fine — this is only about the phone."
+    )
+    worrying_words = ("urgent", "emergency", "alarm", "danger", "unwell", "ill", "wrong", "silent")
+    for name in ("STATE_UNREACHABLE", "UNREACHABLE_ASIDE"):
+        for worrying in worrying_words:
+            assert not re.search(rf"\b{worrying}\b", ts[name].lower()), (
+                f"{name} reaches past the phone: {ts[name]}"
+            )
 
 
 def test_privacy_footer_is_verbatim():
