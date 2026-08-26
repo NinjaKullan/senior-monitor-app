@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 388, zero xfails**, **`webapp` 125**, **`site` 199**.
+Current green: **`pytest` 388, zero xfails**, **`webapp` 126**, **`site` 199**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.

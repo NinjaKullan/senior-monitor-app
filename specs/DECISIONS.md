@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 182.** This line is the one to update; the `Next number:` lines inside
+**Next number: 184.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2151,3 +2151,23 @@ browser — all three adopted as the standard for future surfaces.**
      so the drift has a name. Deploy order per the baton: 0017 then 0018
      applied to prod by the PM via MCP before `cd webapp && fly deploy`
      (Hema).
+
+183. **(2026-08-26, Claude Code, PM-ordered correction to spec 009 §2) The
+     webapp renders display_name, never the relationship label.** The spec
+     put the relationship on the card kicker, and two parents who share one
+     render indistinguishable cards — TestDad and Appa both read "DAD" on
+     Today, in the rollup, on the Call pill, and in the notes prefixes.
+     Names disambiguate; labels do not. `labelFor()` now returns
+     `display_name`, and because every {Name} slot flows through it, one
+     change corrects the card and detail kickers, the rollup ("Quiet so far
+     for Appa."), "Call {display_name} ↗", "View {display_name}'s day →",
+     the "{display_name}'s time" fallback, the what-this-means bodies, and
+     the Family notes tag prefixes and composer picker. The relationship
+     vocabulary (149) remains the OUTBOUND channel's register by design —
+     email subjects and templates are untouched. Regression pinned: two
+     parents sharing a relationship render distinct card names, and the
+     plant (relationship restored in labelFor) fails eight tests by name.
+     Housekeeping: `parents.relationship` still rides in the read surface
+     un-rendered; the PM may narrow that read. Also: item 182 was filed
+     without bumping the counter line — this entry took 183 and the line
+     now says 184.
