@@ -320,9 +320,10 @@ def test_the_apps_own_queries_return_one_family_only(two_families, authed):
 
 
 def test_the_app_never_writes_outside_its_two_granted_paths(two_families, authed):
-    """Spec 009 opened exactly two write paths (journal inserts, the city
-    label column); everything the read-only contract used to refuse it still
-    refuses, display_name on the very table the column grant touches
+    """Spec 009 opened two write paths (journal inserts, the city label
+    column) and spec 010 widened the second to the place columns (tz,
+    tz_changed_utc); everything else the read-only contract used to refuse it
+    still refuses, display_name on the very table the column grant touches
     included."""
     as_user(authed, USER_A)
     for statement in (
@@ -378,7 +379,7 @@ def test_journal_writes_and_reads_stay_inside_the_family(two_families, authed):
     assert authed.execute("select count(*) as n from journal_entries").fetchone()["n"] == 0
 
 
-def test_city_label_is_the_one_writable_parents_column(two_families, authed, conn):
+def test_city_label_is_a_writable_parents_column(two_families, authed, conn):
     """Spec 009 §5: the update grant is COLUMN-scoped and RLS-bounded."""
     a = two_families["a"]
     as_user(authed, USER_A)
@@ -399,3 +400,30 @@ def test_city_label_is_the_one_writable_parents_column(two_families, authed, con
             "update parents set city_label = %s where id = %s",
             ("x" * 41, a.parents[0].parent_id),
         )
+
+
+def test_the_place_columns_are_writable_together_and_nothing_else_opened(
+    two_families, authed, conn
+):
+    """Spec 010 §2: 0019 widens the parents grant to (tz, tz_changed_utc).
+
+    The picker's whole write is one statement — label, zone, and the change
+    stamp land together or not at all. The same RLS policy that bounded 0018's
+    city_label bounds these, so a blanket update still cannot reach the
+    neighbour's rows, and display_name stays refused (asserted alongside the
+    other refusals in test_the_app_never_writes_outside_its_two_granted_paths).
+    """
+    a = two_families["a"]
+    as_user(authed, USER_A)
+    authed.execute(
+        "update parents set city_label = 'Dallas', tz = 'America/Chicago', "
+        "tz_changed_utc = now() where id = %s",
+        (a.parents[0].parent_id,),
+    )
+    # RLS bounds a blanket update to the caller's own family.
+    authed.execute("update parents set tz = 'America/Denver', tz_changed_utc = now()")
+    zones = {
+        r["display_name"]: (r["tz"], r["tz_changed_utc"] is not None)
+        for r in conn.execute("select display_name, tz, tz_changed_utc from parents").fetchall()
+    }
+    assert zones == {"Amma": ("America/Denver", True), "Patti": (None, False)}
