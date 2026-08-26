@@ -170,7 +170,7 @@ const PRONOUNS = ["she", "her", "hers", "he", "him", "his"];
 /** Spec 009 §7's phrase bans, scanned as phrases rather than words. */
 const PHRASES = ["checked in", "checking in on"];
 const BANNED = [...URGENCY, ...MEDICAL, ...PROFILE, ...SIGNAL_NAMES, ...PRONOUNS];
-const NAMES = ["Amma", "Appa", "Paati", "Hema", "Kettle", "Mom", "Dad", "Grandma", "Chennai"];
+const NAMES = ["Amma", "Appa", "Paati", "Hema", "Kettle", "Chennai"];
 
 const CLOCK = /\b\d{1,2}:\d{2}\s?[ap]m\b/gi;
 
@@ -262,7 +262,7 @@ describe("rendered copy law", () => {
     const text = renderedText();
     expect(text).toContain("Today looks like a normal day.");
     expect(text).toContain("Quiet so far today.");
-    expect(text).toContain("Kettle can't hear from Grandma's phone right now.");
+    expect(text).toContain("Kettle can't hear from Paati's phone right now.");
     assertCopyLaw(text, APP_ALLOW);
   });
 
@@ -360,6 +360,34 @@ describe("rendered copy law", () => {
   it("spends the channel exemption on one key with one value, and no wider", () => {
     expect(SETUP_SEND_LABEL).toBe("Send on WhatsApp");
     expect(SHARE_CTA_EXEMPTION).toEqual(["Send on WhatsApp"]);
+  });
+
+  it("keeps two same-relationship parents distinguishable by name (DECISIONS 183)", () => {
+    // The spec-009 error this corrects: cards carried the relationship
+    // label, so TestDad and Appa both read DAD. Names disambiguate.
+    const appa = parents[1];
+    const testDad: Parent = { ...appa, id: "p9", display_name: "TestDad", relationship: "Dad" };
+    const pings: Ping[] = [
+      { parent_id: "p2", signal: "whatsapp", ts_utc: "2026-08-03T02:42:00Z" },
+      { parent_id: "p9", signal: "whatsapp", ts_utc: "2026-08-03T02:42:00Z" },
+    ];
+    const twoDads = [appa, testDad].map((p) =>
+      computeParentToday(p, IST, [
+        { parent_id: "p2", signal: "whatsapp", alarm_grade: true, active: true },
+        { parent_id: "p9", signal: "whatsapp", alarm_grade: true, active: true },
+      ], pings, pings, NOON_IST, CHICAGO),
+    );
+    render(
+      <Today
+        states={twoDads}
+        rollup={computeRollup(twoDads, IST, NOON_IST)}
+        dateLine="Wednesday · August 26"
+        onOpen={() => undefined}
+      />,
+    );
+    const names = screen.getAllByTestId("card-name").map((n) => n.textContent);
+    expect(names).toEqual(["Appa", "TestDad"]);
+    expect(new Set(names).size).toBe(2);
   });
 
   it("holds for the no-family screen", () => {

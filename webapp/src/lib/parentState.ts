@@ -86,8 +86,8 @@ export interface RecentDot {
 
 export interface ParentToday {
   parentId: string;
-  /** The label the family uses — relationship where set (Mom), else the
-   *  display name. The card renders it uppercase via CSS. */
+  /** The parent's display name (DECISIONS 183: names disambiguate where a
+   *  shared relationship label cannot). The card renders it uppercase. */
   label: string;
   kind: ParentKind;
   /** The card and hero state line. */
@@ -100,7 +100,7 @@ export interface ParentToday {
   /** The card's second name line: "Chennai · 8:04 pm there now", or the
    *  clock fallback when no city label exists. */
   cityNow: string;
-  /** "Mom · Chennai" (label alone when no city). */
+  /** "Amma · Chennai" (label alone when no city). */
   heroKicker: string;
   /** The dual line joined with the offset-in-words clause, middots. */
   heroSub: string;
@@ -221,10 +221,15 @@ function weekdayAbbr(instant: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short" }).format(instant);
 }
 
-/** The family label: the relationship where the founder set one, else the
- *  display name (DECISIONS 149's vocabulary, on screen since spec 009). */
+/**
+ * The name every webapp surface renders (DECISIONS 183, correcting spec 009
+ * §2): the DISPLAY name, never the relationship label. Two parents can share
+ * a relationship — TestDad and Appa both read "DAD" — and duplicate cards
+ * cannot be told apart; display_name is unique to a person. The relationship
+ * vocabulary (149) remains the OUTBOUND channel's register by design.
+ */
 export function labelFor(parent: Parent): string {
-  return parent.relationship ?? parent.display_name;
+  return parent.display_name;
 }
 
 export function computeParentToday(

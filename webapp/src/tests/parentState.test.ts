@@ -84,10 +84,10 @@ describe("the three states, and the words they wear now", () => {
     expect(stateOf([YESTERDAY_PING]).sentence).toBe("Quiet so far today.");
   });
 
-  it("every tripwire gone stale: unreachable, named by the family label", () => {
+  it("every tripwire gone stale: unreachable, named by the display name", () => {
     const state = stateOf([OLD_WHATSAPP, OLD_DEVICE]);
     expect(state.kind).toBe("unreachable");
-    expect(state.sentence).toBe("Kettle can't hear from Mom's phone right now.");
+    expect(state.sentence).toBe("Kettle can't hear from Amma's phone right now.");
   });
 
   it("a phone the server has never heard from is quiet, not unreachable", () => {
@@ -144,15 +144,15 @@ describe("clocks and cities", () => {
   it("falls back to the name's clock when no city label exists", () => {
     const unlabeled = { ...amma, city_label: null };
     const state = stateOf([MORNING_PING], { parent: unlabeled });
-    expect(state.dualLine).toBe("8:12 am Mom's time · 9:42 pm your time");
-    expect(state.cityNow).toBe("12:00 pm Mom's time");
-    expect(state.heroKicker).toBe("Mom");
+    expect(state.dualLine).toBe("8:12 am Amma's time · 9:42 pm your time");
+    expect(state.cityNow).toBe("12:00 pm Amma's time");
+    expect(state.heroKicker).toBe("Amma");
   });
 
   it("says where and what time it is there now on the card", () => {
     const state = stateOf([MORNING_PING]);
     expect(state.cityNow).toBe("Chennai · 12:00 pm there now");
-    expect(state.heroKicker).toBe("Mom · Chennai");
+    expect(state.heroKicker).toBe("Amma · Chennai");
   });
 
   it("joins the hero sub with middots and the offset in lowercase words", () => {
@@ -217,12 +217,12 @@ describe("what this means, per state", () => {
   it("normal", () => {
     const state = stateOf([MORNING_PING]);
     expect(state.meansHead).toBe("No action needed.");
-    expect(state.meansBody).toBe("Mom's day looks like most days. Kettle will write if that changes.");
+    expect(state.meansBody).toBe("Amma's day looks like most days. Kettle will write if that changes.");
   });
   it("quiet", () => {
     const state = stateOf([YESTERDAY_PING]);
     expect(state.meansHead).toBe("Nothing to do yet.");
-    expect(state.meansBody).toBe("Kettle will check in with Mom first if the quiet continues.");
+    expect(state.meansBody).toBe("Kettle will check in with Amma first if the quiet continues.");
   });
   it("unreachable reuses the standing guidance", () => {
     const state = stateOf([OLD_WHATSAPP, OLD_DEVICE]);
@@ -243,8 +243,8 @@ describe("the call href ladder", () => {
       stateOf([MORNING_PING], { parent: { ...amma, phone_e164: null, whatsapp_e164: null } })
         .callHref,
     ).toBeNull();
-    expect(stateOf([MORNING_PING]).callLabel).toBe("Call Mom ↗");
-    expect(stateOf([MORNING_PING]).viewLabel).toBe("View Mom's day →");
+    expect(stateOf([MORNING_PING]).callLabel).toBe("Call Amma ↗");
+    expect(stateOf([MORNING_PING]).viewLabel).toBe("View Amma's day →");
   });
 });
 
@@ -268,15 +268,15 @@ describe("the rollup (spec 009 §2)", () => {
 
   it("names the quiet parent, and both when both are quiet", () => {
     const oneQuiet = pairAt([MORNING_PING, dadPing("2026-08-02T05:30:00Z")]);
-    expect(computeRollup(oneQuiet, IST, NOON).line).toBe("Quiet so far for Dad.");
+    expect(computeRollup(oneQuiet, IST, NOON).line).toBe("Quiet so far for Appa.");
     const bothQuiet = pairAt([YESTERDAY_PING, dadPing("2026-08-02T05:30:00Z")]);
-    expect(computeRollup(bothQuiet, IST, NOON).line).toBe("Quiet so far for Mom and Dad.");
+    expect(computeRollup(bothQuiet, IST, NOON).line).toBe("Quiet so far for Amma and Appa.");
   });
 
   it("lets unreachable outrank quiet", () => {
     const states = pairAt([OLD_WHATSAPP, OLD_DEVICE, dadPing("2026-08-02T05:30:00Z")]);
     expect(computeRollup(states, IST, NOON).line).toBe(
-      "Kettle can't hear from Mom's phone right now.",
+      "Kettle can't hear from Amma's phone right now.",
     );
   });
 

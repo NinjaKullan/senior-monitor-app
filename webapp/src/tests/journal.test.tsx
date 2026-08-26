@@ -168,17 +168,17 @@ describe("scoping (spec 009 §4)", () => {
       />,
     );
     const metas = screen.getAllByTestId("note-meta").map((n) => n.textContent ?? "");
-    expect(metas.some((m) => m.startsWith("Mom · "))).toBe(true);
-    expect(metas.some((m) => m.startsWith("Dad · "))).toBe(true);
+    expect(metas.some((m) => m.startsWith("Amma · "))).toBe(true);
+    expect(metas.some((m) => m.startsWith("Appa · "))).toBe(true);
     // The null tag renders as "Family".
     expect(metas.some((m) => m.startsWith("Family · "))).toBe(true);
-    // And the composer's tag is selectable: Mom / Dad / Family.
+    // And the composer's tag is selectable, by display name (DECISIONS 183).
     const tag = screen.getByTestId("note-input");
     fireEvent.focus(tag);
     const options = [...screen.getByTestId("note-tag").querySelectorAll("option")].map(
       (o) => o.textContent,
     );
-    expect(options).toEqual(["Mom", "Dad", "Family"]);
+    expect(options).toEqual(["Amma", "Appa", "Family"]);
   });
 
   it("a note added from a parent page defaults to that parent", async () => {

@@ -23,10 +23,11 @@ export const READ_SURFACE = {
   // phone_e164 joined in spec 008 (the detail hero's Call button) — a
   // conscious widening under standing structure 48, sanctioned by DECISIONS
   // 167: the number exists client-side solely to become a tel: href and is
-  // never rendered as text. Spec 009 widens three more, each named in its
-  // section: whatsapp_e164 (§2, the wa.me fallback href — same never-as-text
-  // law), relationship (§2, the card's name label), city_label (§5, the
-  // display-only city line).
+  // never rendered as text. Spec 009 widens three more: whatsapp_e164 (§2,
+  // the wa.me fallback href — same never-as-text law), relationship (§2 as
+  // written; since DECISIONS 183 the webapp renders display_name instead and
+  // the column rides along un-rendered — the PM may narrow this read), and
+  // city_label (§5, the display-only city line).
   parents: "id, family_id, display_name, tz, phone_e164, whatsapp_e164, relationship, city_label",
   members: "id, family_id, display_name, role, digest_channel",
   parent_signals: "parent_id, signal, alarm_grade, active",

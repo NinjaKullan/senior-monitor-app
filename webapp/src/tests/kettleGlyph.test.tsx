@@ -120,13 +120,13 @@ describe("the three-state glyph", () => {
  */
 const base: ParentToday = {
   parentId: "p1",
-  label: "Mom",
+  label: "Amma",
   kind: "ordinary",
   sentence: "Today looks like a normal day.",
   heard: "Heard from 12 minutes ago",
   dualLine: "7:52 pm in Chennai · 10:22 am your time",
   cityNow: "Chennai · 8:04 pm there now",
-  heroKicker: "Mom · Chennai",
+  heroKicker: "Amma · Chennai",
   heroSub: "7:52 pm in Chennai · 10:22 am your time · nine and a half hours ahead of you",
   arcFraction: 0.82,
   arcCells: [
@@ -144,10 +144,10 @@ const base: ParentToday = {
     { abbr: "Tue", kind: "normal" },
   ],
   meansHead: "No action needed.",
-  meansBody: "Mom's day looks like most days. Kettle will write if that changes.",
+  meansBody: "Amma's day looks like most days. Kettle will write if that changes.",
   callHref: null,
-  callLabel: "Call Mom ↗",
-  viewLabel: "View Mom's day →",
+  callLabel: "Call Amma ↗",
+  viewLabel: "View Amma's day →",
   aside: null,
   tzNote: "Nine and a half hours ahead of you.",
   famSub: "Nine and a half hours ahead of you",
@@ -174,7 +174,7 @@ describe("the parent detail's gates", () => {
     );
     const button = screen.getByTestId("call-button");
     expect(button.getAttribute("href")).toBe("tel:+919812345678");
-    expect(button.textContent).toBe("Call Mom ↗");
+    expect(button.textContent).toBe("Call Amma ↗");
   });
 
   it("shows the fix card only when something has actually stopped reporting", () => {
@@ -186,7 +186,7 @@ describe("the parent detail's gates", () => {
     // DECISIONS 172's body, split head/body at the sentence per the mockup —
     // nothing reworded in the split.
     expect(screen.getByTestId("fix-head").textContent).toBe(
-      "Something on Mom's phone may need a quick fix.",
+      "Something on Amma's phone may need a quick fix.",
     );
     expect(screen.getByTestId("fix-body").textContent).toBe("It's a two-minute FaceTime.");
     expect(screen.getByTestId("fix-steps").textContent).toBe("See the simple steps →");
