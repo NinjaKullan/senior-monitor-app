@@ -10,18 +10,30 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 
 import httpx
 import pytest
+from test_outbound_copy import assert_outbound_copy_law
 
 from kettle.outbound import run_outbound
 from kettle.outbound_email import REPLY_TO, ResendTransport
+from kettle.outbound_html import GLYPH_URL, render_email_html
 from kettle.outbound_templates import EMAIL_SUBJECT, render
 from kettle.provisioning import provision_family
 from testsupport import BASE_URL, add_child_email
 
 FROM = "Kettle <notes@send.heykettle.com>"
 CHILD_EMAIL = "child@example.test"
+
+
+def visible_text(html: str) -> str:
+    """The words a reader sees: tags stripped, entities decoded, whitespace
+    collapsed."""
+    from html import unescape
+
+    text = unescape(re.sub(r"<[^>]+>", " ", html))
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def transport_answering(handler) -> tuple[ResendTransport, list[httpx.Request]]:
@@ -42,7 +54,9 @@ def ok(request: httpx.Request) -> httpx.Response:
 
 def test_a_digest_becomes_one_resend_call_with_the_rendered_body():
     transport, seen = transport_answering(ok)
-    result = transport.send(CHILD_EMAIL, "digest_morning_normal", {"relationship": "Mom"})
+    result = transport.send(
+        CHILD_EMAIL, "digest_morning_normal", {"relationship": "Mom"}, relationship="Mom"
+    )
 
     assert result.delivered is True
     assert result.transport == "resend"
@@ -54,9 +68,76 @@ def test_a_digest_becomes_one_resend_call_with_the_rendered_body():
         "from": FROM,
         "to": [CHILD_EMAIL],
         "reply_to": REPLY_TO,
-        "subject": EMAIL_SUBJECT,
+        # Per-parent (email-polish pass): the subject names whose day it is.
+        "subject": "A note about Mom's day",
+        # Multipart, always: the registry body as text, the wrapper as HTML.
         "text": render("digest_morning_normal", {"relationship": "Mom"}),
+        "html": render_email_html(
+            "digest_morning_normal", {"relationship": "Mom"}, "Mom"
+        ),
     }
+
+
+def test_an_email_about_nobody_in_particular_keeps_the_plain_subject():
+    transport, seen = transport_answering(ok)
+    transport.send(CHILD_EMAIL, "digest_evening_normal", {})
+    [request] = seen
+    assert json.loads(request.content)["subject"] == EMAIL_SUBJECT
+
+
+def test_the_html_part_carries_exactly_one_image_the_hosted_glyph():
+    html = render_email_html("digest_evening_recovered", {}, "Mom")
+    images = re.findall(r"<img\b[^>]*>", html)
+    assert len(images) == 1
+    [img] = images
+    assert f'src="{GLYPH_URL}"' in img
+    assert 'width="44"' in img and 'height="44"' in img
+    assert 'alt="Kettle"' in img
+    # The glyph lives on the site at an unhashed stable name; nothing else is
+    # fetched from anywhere — no external CSS, no remote fonts.
+    assert html.count("http") == html.count("https://heykettle.com")
+
+
+def test_with_images_blocked_the_email_still_reads_complete():
+    """No text may exist only inside an image: strip the <img> and every word
+    of the message survives — chip, sentence, sub-line, footer."""
+    html = render_email_html("digest_morning_normal", {"relationship": "Mom"}, "Mom")
+    without_images = re.sub(r"<img\b[^>]*>", "", html)
+    text = visible_text(without_images)
+    assert "Mom" in text  # the chip
+    assert "Mom's morning looked like a normal morning." in text
+    assert "Next note this evening." in text
+    assert EMAIL_SUBJECT in text  # the footer line
+    assert "heykettle.com" in text  # the footer link text
+
+
+def test_the_plain_text_part_carries_the_same_words_as_the_html():
+    for template_id, variables, relationship in [
+        ("digest_morning_normal", {"relationship": "Mom"}, "Mom"),
+        ("digest_evening_normal", {}, "Mom"),
+        ("digest_evening_recovered", {}, "Dad"),
+        ("follow_on_family", {"relationship": "Mom"}, "Mom"),
+        ("all_clear_family", {"relationship": "Grandma"}, "Grandma"),
+    ]:
+        body = render(template_id, variables)
+        html = render_email_html(template_id, variables, relationship)
+        assert body in visible_text(html), template_id
+
+
+def test_the_html_obeys_the_copy_law_and_its_own_style_rules():
+    for relationship in ("Mom", None):
+        html = render_email_html("digest_evening_normal", {}, relationship)
+        # The visible words go through the same scanner every body does; the
+        # markup carries no em dash anywhere, visible or not, and no style
+        # arrives from outside the message.
+        assert_outbound_copy_law(visible_text(html))
+        assert "—" not in html
+        assert "<link" not in html and "@import" not in html
+        assert "font-family:Georgia, 'Times New Roman', serif" in html
+    # No chip renders when the engine has no label to put in it — and nothing
+    # else changes.
+    without = render_email_html("digest_evening_normal", {}, None)
+    assert "border-radius:999px" not in without
 
 
 def test_a_refusal_is_a_failed_result_with_the_status_code():
@@ -111,6 +192,11 @@ def test_through_the_engine_a_delivery_lands_in_the_ledger_as_sent(conn, notifie
     ).fetchone()
     assert (row["transport"], row["status"]) == ("resend", "sent")
     assert len(seen) == 1
+    # The engine told the transport whose day this is: per-parent subject,
+    # and the multipart body rode along.
+    payload = json.loads(seen[0].content)
+    assert payload["subject"] == "A note about Mom's day"
+    assert "html" in payload and "text" in payload
 
     at_ask = datetime(2026, 8, 21, 11, 0, tzinfo=ZoneInfo("Asia/Kolkata"))
     run_outbound(conn, transport, at_ask, notifier=notifier)

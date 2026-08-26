@@ -17,7 +17,6 @@ Two properties get asserted on every path rather than once:
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -52,12 +51,8 @@ def at(hour: int, minute: int = 0, tz: ZoneInfo = IST) -> datetime:
 
 
 class CountingTransport(LogTransport):
-    """The dark transport, with its calls kept for assertions."""
-
-    def send(
-        self, to: str, template_id: str, variables: Mapping[str, str]
-    ) -> DeliveryResult:
-        return super().send(to, template_id, variables)
+    """The dark transport, with its calls kept for assertions (LogTransport
+    already records them; the subclass keeps the tests' vocabulary)."""
 
 
 @pytest.fixture
@@ -407,7 +402,7 @@ def test_an_undeliverable_message_records_failed_and_stays_retryable(
     once, and a later pass that succeeds upgrades the same slot (0015)."""
 
     class RefusingTransport(LogTransport):
-        def send(self, to, template_id, variables):
+        def send(self, to, template_id, variables, relationship=None):
             return DeliveryResult(delivered=False, transport="refusing", detail="down")
 
     assert run_twice(conn, RefusingTransport(), at(11, 0), notifier=notifier) == []
@@ -427,7 +422,7 @@ def test_a_transport_that_raises_is_a_failed_send_not_a_dead_pass(
     """One exploding send records 'failed' and the pass carries on."""
 
     class ExplodingTransport(LogTransport):
-        def send(self, to, template_id, variables):
+        def send(self, to, template_id, variables, relationship=None):
             raise ConnectionError("socket reset")
 
     assert run_twice(conn, ExplodingTransport(), at(11, 0), notifier=notifier) == []
@@ -883,6 +878,50 @@ def test_one_alarm_grade_signal_is_evidence_enough_for_the_evening(conn, family)
     assert ("digest_evening", "digest_evening_normal") in ledger(conn)
 
 
+def test_the_evening_body_tells_a_recovered_day_from_a_normal_one(conn, family):
+    """The email-polish selection rule, all three arms in one place: a morning
+    quiet at the digest slot whose routine resumed by evening wears the
+    recovered body; a normal morning keeps the normal body; and a followed-up
+    day is still DECISIONS 164's, whichever body it would have worn."""
+    parent_id = family.parents[0].parent_id
+
+    # Arm 1: quiet at 08:30, routine resumes at 12:00 -> recovered.
+    transport = CountingTransport()
+    run_twice(conn, transport, at(8, 30))
+    ping(conn, parent_id, "whatsapp", at(10, 40))  # before the ask threshold
+    ping(conn, parent_id, "whatsapp", at(12, 0))
+    run_twice(conn, transport, at(20, 30))
+    assert ("digest_evening", "digest_evening_recovered") in ledger(conn)
+    assert ("digest_evening", "digest_evening_normal") not in ledger(conn)
+
+
+def test_a_normal_morning_keeps_the_normal_evening_body(conn, family):
+    parent_id = family.parents[0].parent_id
+    ping(conn, parent_id, "whatsapp", at(7, 0))
+    transport = CountingTransport()
+    run_twice(conn, transport, at(20, 30))
+    assert ("digest_evening", "digest_evening_normal") in ledger(conn)
+    assert "digest_evening_recovered" not in [t for t, _ in transport.sent]
+
+
+def test_a_recovered_shaped_day_that_was_followed_up_still_skips(
+    conn, family, notifier
+):
+    """DECISIONS 164 outranks the body choice: quiet morning, follow-on sent,
+    routine resumed — the evening stays withheld, recovered body or not."""
+    parent_id = family.parents[0].parent_id
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0), notifier=notifier)
+    run_twice(conn, transport, at(11, 0) + FOLLOW_ON_GRACE, notifier=notifier)
+    assert ("follow_on", "follow_on_unreachable") in ledger(conn)
+    ping(conn, parent_id, "whatsapp", at(16, 0))
+
+    run_twice(conn, transport, at(20, 30), notifier=notifier)
+    assert not any(kind == "digest_evening" for kind, _ in ledger(conn))
+    assert statuses(conn)["digest_evening"] == "skipped"
+    assert "digest_evening_recovered" not in [t for t, _ in transport.sent]
+
+
 def test_a_digests_only_transport_never_carries_the_ask(conn, family, notifier):
     """Asks and follow-ons have no channel until Wave C: recorded as skipped
     with an ops alert, never silently absent and never attempted."""
@@ -1214,7 +1253,9 @@ def test_a_followed_up_day_gets_no_evening_digest_and_no_alert(conn, family, not
 
 def test_an_asked_but_not_followed_up_day_keeps_its_evening_digest(conn, family):
     """The ask alone does not end the day's notes: the parent answered, the
-    routine resumed, and the evening note goes as on any other day."""
+    routine resumed, and the evening note goes — wearing the recovered body
+    (email-polish pass), because "start to finish" would be false for a day
+    whose morning was quiet at the digest slot."""
     parent_id = family.parents[0].parent_id
     transport = CountingTransport()
     run_twice(conn, transport, at(11, 0))
@@ -1222,7 +1263,7 @@ def test_an_asked_but_not_followed_up_day_keeps_its_evening_digest(conn, family)
     ping(conn, parent_id, "whatsapp", at(12, 0))
 
     run_twice(conn, transport, at(20, 30))
-    assert ("digest_evening", "digest_evening_normal") in ledger(conn)
+    assert ("digest_evening", "digest_evening_recovered") in ledger(conn)
 
 
 def test_an_all_clear_day_still_withholds_the_evening(conn, family, notifier):
@@ -1260,7 +1301,8 @@ def test_a_skipped_follow_on_leaves_the_evening_alone(conn, family):
 
     ping(conn, parent_id, "whatsapp", at(14, 0))
     run_twice(conn, transport, at(20, 30))
-    assert ("digest_evening", "digest_evening_normal") in ledger(conn)
+    # Quiet morning, resumed afternoon: the recovered body (email-polish pass).
+    assert ("digest_evening", "digest_evening_recovered") in ledger(conn)
 
 
 def test_the_notes_resume_with_the_next_morning(conn, family):

@@ -137,11 +137,27 @@ def test_the_ask_carries_the_icon_and_is_the_only_thing_a_parent_hears():
     assert parent_facing[0].body == "Everything okay today? Reply with a 👍 whenever suits."
 
 
-def test_the_email_subject_is_registry_copy_and_obeys_the_law():
-    """Wave B's one subject line is family-facing copy: it lives in the
-    registry module and goes through the same scan as every body."""
+def test_the_email_subjects_are_registry_copy_and_obey_the_law():
+    """The subject lines are family-facing copy: they live in the registry
+    module and go through the same scan as every body. Per-parent since the
+    email-polish pass; the plain subject stands for anything not about a
+    single parent (or a parent whose label is not set yet)."""
     assert_outbound_copy_law(outbound_templates.EMAIL_SUBJECT)
     assert outbound_templates.EMAIL_SUBJECT == "A note from Kettle"
+    assert outbound_templates.EMAIL_SUBJECT_PARENT == "A note about {relationship}'s day"
+    for label in RELATIONSHIP_LABELS:
+        subject = outbound_templates.subject_for(label)
+        assert subject == f"A note about {label}'s day"
+        assert_outbound_copy_law(subject)
+    assert outbound_templates.subject_for(None) == outbound_templates.EMAIL_SUBJECT
+    assert outbound_templates.subject_for("") == outbound_templates.EMAIL_SUBJECT
+
+
+def test_the_recovered_evening_body_is_the_ruled_string_verbatim():
+    """The email-polish pass's one new body, exactly as ruled."""
+    assert render("digest_evening_recovered", {}) == (
+        "A quiet start, then a normal day. Next note in the morning."
+    )
 
 
 def test_the_follow_on_hands_off_rather_than_instructing():
