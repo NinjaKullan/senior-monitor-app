@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog · HeyKettle</title>
+    <style>
+      /* Inlined rather than linked, the privacy.html posture: these pages must
+         stand alone even if the bundle is not built, and they make no request
+         to anything. The values are tokens.css's locked palette (spec 006 S2);
+         Newsreader is named for article text with Georgia standing in - no
+         font file is fetched (the DECISIONS 170 posture). */
+      body {
+        margin: 0 auto;
+        padding: 2.5rem 1.5rem 4rem;
+        max-width: 42rem;
+        background: #f6f2ec;
+        color: #403c36;
+        font: 16px/1.5 system-ui, sans-serif;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 3.5rem;
+      }
+      header a { text-decoration: none; font-weight: 600; }
+      header nav a { text-decoration: underline; text-underline-offset: 4px; font-weight: 400; }
+      a { color: inherit; }
+      h1 {
+        font-family: "Newsreader", Georgia, serif;
+        font-weight: 500;
+        font-size: 2rem;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.75rem;
+      }
+      .meta {
+        color: #6c665d;
+        font-size: 0.9375rem;
+        margin: 0 0 0.25rem;
+      }
+      article {
+        max-width: 66ch;
+      }
+      article p.body {
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 1.1875rem;
+        line-height: 1.7;
+        margin: 0 0 1.4em;
+      }
+      article p.body:first-of-type { margin-top: 2.25rem; }
+      .back { margin-top: 3rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="/">Kettle</a>
+      <nav><a href="/blog/">Blog</a></nav>
+    </header>
+    <main>
+      <h1>Blog</h1>
+      <ul style="list-style: none; margin: 2.25rem 0 0; padding: 0;">
+        <li>
+          <a href="/blog/the-call-ive-rehearsed-and-never-made/" style="font-family: 'Newsreader', Georgia, serif; font-size: 1.375rem; font-weight: 500; text-decoration: none;">The call I've rehearsed and never made</a>
+          <p class="meta" style="margin-top: 0.375rem;">August 26, 2026</p>
+          <p style="margin: 0.25rem 0 0; max-width: 66ch;">On the phone call every far-away child rehearses, and never wants to make.</p>
+        </li>
+      </ul>
+      <p class="back"><a href="/">Back to Kettle</a></p>
+    </main>
+  </body>
+</html>
