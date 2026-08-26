@@ -17,7 +17,10 @@ body {
   --copper: #B26D3F; --copperdeep: #96552D; --copperhover: #9E5D33;
   --oncopper: #FDFBF6; --coppertint: rgba(178,109,63,.11);
   --coppertinthover: rgba(178,109,63,.17); --copperbd: rgba(178,109,63,.35);
-  --ringfill: rgba(178,109,63,.2); --olive: #77854F; --mute: #9A968C;
+  /* --mute darkened from the v5 file's #9A968C to mockup v2's value (spec 009
+     §6): the v5 tone was 2.85:1 on --card, and spec 009 now sets metadata
+     TEXT in --mute under an AA law — #6E6A62 reads 5.2:1 on --card. */
+  --ringfill: rgba(178,109,63,.2); --olive: #77854F; --mute: #6E6A62;
   --hearthfill: #E7EFD6; --hearthring: #D5E3B8; --cup: #7A4A26;
   --steam: #A9B191; --fixbg: rgba(178,109,63,.07);
   --dusk: #6F7396; --dusktext: #575B7E; --duskbd: rgba(111,115,150,.4);
@@ -38,7 +41,11 @@ body[data-kt="night"] {
   --copper: #C67F45; --copperdeep: #D89A62; --copperhover: #D28E55;
   --oncopper: #1D1A15; --coppertint: rgba(210,138,80,.14);
   --coppertinthover: rgba(210,138,80,.22); --copperbd: rgba(210,138,80,.42);
-  --ringfill: rgba(210,138,80,.24); --olive: #A2B370; --mute: #6E6A62;
+  /* Night --mute lifted from #6E6A62 (2.9:1 on the night card — it was only
+     ever a glyph tone) to carry spec 009's metadata text at AA (4.6:1). The
+     mockup ships no Night set, so this value is an execution call, flagged
+     in DECISIONS. */
+  --ringfill: rgba(210,138,80,.24); --olive: #A2B370; --mute: #8F887C;
   --hearthfill: #2C3122; --hearthring: #3A4429; --cup: #D9A876;
   --steam: #78816A; --fixbg: rgba(210,138,80,.09);
   --dusk: #8A91B8; --dusktext: #AEB6D6; --duskbd: rgba(151,160,196,.5);

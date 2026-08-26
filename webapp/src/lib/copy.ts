@@ -1,62 +1,141 @@
 /**
  * Family-facing copy.
  *
- * The digest templates that used to open this file are gone with the Digests
- * screen (DECISIONS 156): from Wave B the digest IS the email, its copy lives
- * in the backend's template registry, and dead strings kept "just in case"
- * are how retired copy leaks back onto a screen. Deleted, not unrendered —
- * the same reasoning as `never` in the recency vocabulary.
+ * Spec 009 is the third vocabulary this file has carried, and the discipline
+ * is unchanged: strings the screens no longer render are DELETED, not left
+ * around (the `never` precedent, DECISIONS 68) — retired copy that still
+ * exists is how it leaks back. "normal" replaces "ordinary" in every rendered
+ * string (spec 009 §1); the internal state name stays `ordinary`.
  */
 
-/**
- * The v5 state vocabulary (spec 008 §4, from docs/Kettle-Design.html).
- *
- * Three sentences for three states, and the floor has not moved: "Quiet so
- * far" is still as dark as this app gets about a person; "unreachable" is a
- * sentence about a phone. The v5 file's she/her forms are restructured here —
- * nothing infers a pronoun from a name (items 24/34, standing policy), so
- * strings parameterize on the name or need no pronoun at all.
- */
-export const STATE_ORDINARY = "Today looks like an ordinary day.";
+/** The three state sentences (spec 009 §1/§2). "Quiet so far" is still as
+ *  dark as this app gets about a person; unreachable is about a phone. */
+export const STATE_ORDINARY = "Today looks like a normal day.";
 export const STATE_QUIET = "Quiet so far today.";
 export const STATE_UNREACHABLE = "Kettle can't hear from {name}'s phone right now.";
-/** The unreachable state's one reassurance, de-pronouned from the v5 file. */
+/** The unreachable reassurance — also the "Worth a look." card's body. */
 export const UNREACHABLE_ASIDE =
   "A call still works fine — this is only about the phone.";
 
-/** Last-heard metas. Clock times at day-or-yesterday reach; day words beyond. */
-export const META_HEARD_TODAY = "Heard from at {time} {clock}.";
-export const META_HEARD_YESTERDAY = "Last heard from yesterday at {time} {clock}.";
+/* ---------------------------------------------------------------------- */
+/* Today (spec 009 §2)                                                      */
+/* ---------------------------------------------------------------------- */
+
+export const ROLLUP_NORMAL = "Everything looks normal today.";
+export const ROLLUP_QUIET = "Quiet so far for {names}.";
+export const ROLLUP_SUB_EVENING = "Next note this evening.";
+export const ROLLUP_SUB_MORNING = "Next note in the morning.";
+/** The footer, rendered only when every parent is normal; the first sentence
+ *  carries the weight (bold at render, per the mockup). */
+export const TODAY_FOOT_STRONG = "Nothing needs you today.";
+export const TODAY_FOOT_REST = "Kettle will write if that changes.";
+
+/** Relative time leads everywhere — "heard from", never "checked in". */
+export const HEARD_MOMENTS = "Heard from moments ago";
+export const HEARD_MINUTES = "Heard from {n} minutes ago";
+export const HEARD_HOUR = "Heard from 1 hour ago";
+export const HEARD_HOURS = "Heard from {n} hours ago";
+export const HEARD_DAY = "Heard from 1 day ago";
+export const HEARD_DAYS = "Heard from {n} days ago";
+/** Beyond the 14-day window the DECISIONS 166 wording stands (spec 009 §2). */
 export const META_HEARD_DAYS = "Last heard from {days} days ago.";
-export const META_NOTHING_SINCE = "Nothing has reached Kettle since {when}.";
 export const META_NOTHING_YET = "Nothing has reached Kettle yet.";
-export const LOCAL_LINE = "It's {time} {clock} right now.";
+/** The unreachable duration (spec 009 §1): "in", never "since ... ago". */
+export const META_NOTHING_IN_DAY = "Nothing has reached Kettle in 1 day.";
+export const META_NOTHING_IN_DAYS = "Nothing has reached Kettle in {n} days.";
 
-/** The day, in words (spec 008 §5.2). No verdicts on unfinished time: the
- *  stretch being stood in says "so far", and only a finished stretch is
- *  simply quiet. */
-export const DAY_TITLE = "The day";
-export const DAY_MORNING_HEARD = "An ordinary morning — heard from at {time}.";
-export const DAY_HEARD = "Heard from at {time}.";
-export const DAY_QUIET_SO_FAR = "Quiet so far.";
-export const DAY_QUIET = "Quiet.";
-export const DAY_STILL_TO_COME = "Still to come.";
-export const DAY_NOTHING = "Nothing has reached Kettle.";
+/** The card's second name line, and the small dual-clock line. */
+export const CITY_NOW = "{city} · {time} there now";
+export const TIME_BY_CLOCK = "{time} {clock}";
+export const DUAL_CITY = "{ptime} in {city} · {vtime} your time";
+export const DUAL_CLOCK = "{ptime} {clock} · {vtime} your time";
 
-export const RECENT_TITLE = "Recent days";
-export const RECENT_ORDINARY = "An ordinary day.";
-export const RECENT_QUIET = "A quiet day.";
-export const RECENT_NOTHING = "Nothing reached Kettle.";
+export const CALL_LABEL = "Call {name} ↗";
+export const VIEW_DAY_LABEL = "View {name}'s day →";
 
-export const ABOUT_TITLE = "About";
+/** The clock difference, in words — the hero sub's closing clause and the
+ *  Family list's sub-line. Vague beats wrong: a shape the word list cannot
+ *  carry falls back to the plain sentence. */
 export const TZ_SAME = "The same time as yours.";
 export const TZ_AHEAD = "{words} ahead of you.";
 export const TZ_BEHIND = "{words} behind you.";
 export const TZ_DIFFERENT = "A different clock from yours.";
-export const SETUP_MONTH = "The phone was set up in {month}.";
 
-export const CALL_LABEL = "Call {name}";
-export const FIX_TITLE = "A small thing to fix";
+/* ---------------------------------------------------------------------- */
+/* Parent detail (spec 009 §3)                                              */
+/* ---------------------------------------------------------------------- */
+
+export const DAY_TITLE = "The day";
+/** The day's three parts, in order. Names only — never counts. */
+export const DAY_PARTS = ["Morning", "Afternoon", "Evening"] as const;
+export const ARC_HEARD = "Heard from {time}";
+export const ARC_QUIET = "Quiet";
+/** FLAGGED (DECISIONS): the spec captions past-with-none "Quiet" and future
+ *  "Still ahead" but is silent on the CURRENT segment with none. "Quiet" on
+ *  unfinished time would be a verdict (the standing spec-008 rule), so the
+ *  stretch being stood in keeps the floor's hedged form. PM may veto. */
+export const ARC_QUIET_SO_FAR = "Quiet so far";
+export const ARC_AHEAD = "Still ahead";
+
+export const RECENT_TITLE = "Recent days";
+export const LEGEND_NORMAL = "A normal day";
+export const LEGEND_QUIET = "A quiet start";
+export const LEGEND_UNHEARD = "Couldn't hear";
+
+export const MEANS_NORMAL_HEAD = "No action needed.";
+export const MEANS_NORMAL_BODY =
+  "{name}'s day looks like most days. Kettle will write if that changes.";
+export const MEANS_QUIET_HEAD = "Nothing to do yet.";
+export const MEANS_QUIET_BODY =
+  "Kettle will check in with {name} first if the quiet continues.";
+export const MEANS_UNREACHABLE_HEAD = "Worth a look.";
+
+/**
+ * The fix card (DECISIONS 172's body, verbatim and pinned product-side). The
+ * mockup splits it at the sentence boundary — head, then body — which the
+ * screen does at render so the constant stays one source of truth.
+ */
+export const FIX_BODY =
+  "Something on {name}'s phone may need a quick fix. It's a two-minute FaceTime.";
+export const FIX_STEPS_LABEL = "See the simple steps →";
+
+/* ---------------------------------------------------------------------- */
+/* Family notes (spec 009 §4)                                               */
+/* ---------------------------------------------------------------------- */
+
+export const NOTES_TITLE = "Family notes";
+export const NOTES_SUB = "The family's memory. Everyone in the family can read and add.";
+export const UPCOMING_LABEL = "Upcoming";
+/** "Upcoming · {first line} on {Weekday, Mon D} · added by {author}" is
+ *  assembled from these at render, middot-joined. */
+export const UPCOMING_ON = "{first} on {date}";
+export const ADDED_BY = "added by {author}";
+/** A past event date rides in the entry metadata: "for Aug 20". */
+export const EVENT_FOR = "for {date}";
+export const NOTE_PLACEHOLDER = "Add a note for the family…";
+export const DATE_CHIP_LABEL = "+ date";
+export const SIGNED_AS_LABEL = "Signed as";
+/** An empty author renders as the family itself, and the null parent tag
+ *  renders under the same word. */
+export const AUTHOR_FALLBACK = "Family";
+/** FLAGGED (DECISIONS): the spec names no submit control; a keyboard-only
+ *  Enter submit fails the accessibility law, so the composer carries the
+ *  smallest possible button. PM may reword. */
+export const NOTE_SUBMIT_LABEL = "Add";
+/** FLAGGED (DECISIONS): the Family screen's tag picker (Mom / Dad / Family)
+ *  needs an accessible name the spec does not provide. */
+export const NOTE_TAG_LABEL = "Who this note is about";
+
+/* ---------------------------------------------------------------------- */
+/* City label (spec 009 §5)                                                 */
+/* ---------------------------------------------------------------------- */
+
+export const CITY_FIELD_LABEL = "City";
+export const CITY_MAX_CHARS = 40;
+
+/* ---------------------------------------------------------------------- */
+/* Chrome                                                                   */
+/* ---------------------------------------------------------------------- */
 
 export const TODAY_TITLE = "Today";
 export const FAMILY_TITLE = "Family";
@@ -66,15 +145,14 @@ export const PARENTS_LABEL = "Parents";
 export const FAMILY_CIRCLE_LABEL = "Family circle";
 export const TAGLINE = "For checking in, not checking up.";
 export const BACK_TO_TODAY = "Today";
-/** DECISIONS 172's veto: "watched over" is the framing this product exists
- *  to avoid, so the empty state says only what is true about setup. */
+/** DECISIONS 172's veto: the empty state says only what is true about setup. */
 export const EMPTY_TODAY = "No one is set up yet.";
 
 /**
- * Whose clock the first time belongs to. A gendered form is used only when a
- * pronoun has actually been recorded — nothing is ever inferred from a name
- * (items 24/34, adopted as policy). With none recorded the parent's own name
- * carries it, which reads warmer than a pronoun would anyway.
+ * Whose clock the fallback time lines carry. A gendered form is used only
+ * when a pronoun has actually been recorded — nothing is ever inferred from a
+ * name (items 24/34, adopted as policy). With none recorded the parent's own
+ * name carries it.
  */
 export const CLOCK_BY_PRONOUN: Record<string, string> = {
   she: "her time",
@@ -83,43 +161,9 @@ export const CLOCK_BY_PRONOUN: Record<string, string> = {
 };
 export const CLOCK_BY_NAME = "{name}'s time";
 
-/** The day's three parts, in order. Names only — never counts. */
-export const DAY_PARTS = ["Morning", "Afternoon", "Evening"] as const;
-
-/**
- * The fix card's body (spec 008 §5.2, reworded by DECISIONS 172). It kept the
- * honest FaceTime repair over the v5 file's steps for an app the parent does
- * not have — and lost the word the old body opened with: "tripwire" is
- * internal vocabulary, never customer-facing, and it joined the copy-law
- * scan's mechanism bans so it cannot return. Internal identifiers, filenames
- * and test names keep the word; rendered strings do not.
- */
-export const FIX_BODY =
-  "Something on {name}'s phone may need a quick fix. It's a two-minute FaceTime.";
-/** The card's accessible name for its tap target — it names the destination. */
-export const OPEN_PARENT_LABEL = "More about {name}'s day";
-
-/**
- * Recency, at day granularity and no finer. There is no clock-time variant of
- * these on purpose: a precise timestamp against each app is ammunition, and the
- * repair question — is this thing still reporting? — is answered in days.
- *
- * There is no `never` either, as of the founder's on-device round: a tripwire
- * that has never reported renders its chip and no recency at all. `never` beside
- * `Not set up yet` was redundant, and it read as a verdict. The word is gone
- * from the module rather than merely unused at the call site — the same
- * discipline as the missing clock variant, since a string that does not exist
- * cannot come back by accident.
- */
-export const RECENCY_TODAY = "today";
-export const RECENCY_YESTERDAY = "yesterday";
-export const RECENCY_DAYS = "{days} days ago";
-
 /**
  * Login (DECISIONS 115). The mailer is equipment, so its failures are worded
- * like equipment — calm, specific, and with the next step in the sentence. A
- * rate limit surfacing as silence was the founder's lost hour: the screen said
- * "check your email" over a link that was never sent.
+ * like equipment — calm, specific, and with the next step in the sentence.
  */
 export const LOGIN_SENT =
   "Check your email for a sign-in link. It can take a minute — look in spam if it hasn't arrived.";
@@ -129,25 +173,13 @@ export const LOGIN_FAILED = "That didn't go through. Check the address and try a
 
 /**
  * The setup card (spec 005b §4.1) — the Family screen's forwarding surface.
- *
- * This copy renders on a surface the copy law scans with almost no allowlist:
- * it names no signal, and the only app name on it is the one the PM exempted
- * by ruling (DECISIONS 122) — `SETUP_SEND_LABEL`, and that key alone. The
- * rationale is the law's own shape: app names are banned where they would
- * describe *a parent's behaviour*, and this string describes the child's next
- * action. Navigation, not surveillance vocabulary.
- *
- * "Reach for on their phone" is the habits question (§4.5) phrased inside the
- * law; the answer guides which everyday things the routine watches, and it is
- * asked of the child, not the parent.
+ * The only app name on it is the one the PM exempted by ruling (DECISIONS
+ * 122): `SETUP_SEND_LABEL`, and that key alone.
  */
 export const SETUP_TITLE = "Setup";
 export const SETUP_READY = "Ready to send";
 export const SETUP_REPORTING = "Set up and reporting";
 export const SETUP_NEEDS_LINK = "Needs a fresh link";
-/** The one channel name this surface may carry, exempted by DECISIONS 122 and
- *  pinned by value in the copy-law test. The parent it belongs to is named on
- *  the line directly above it in the card. */
 export const SETUP_SEND_LABEL = "Send on WhatsApp";
 export const SETUP_EXPIRES = "Link works until {date}";
 export const SETUP_HOW = [
@@ -168,20 +200,25 @@ export function renderClock(name: string, pronoun?: string | null): string {
   return recorded ?? CLOCK_BY_NAME.replace("{name}", name);
 }
 
-/**
- * Day-granularity recency. The `days` argument is ignored unless kind is `days`.
- *
- * `never` is not in the parameter type: a tripwire that has never reported has
- * no recency to render, and the caller decides that by not calling. The type is
- * what stops a future caller reaching for a word that no longer exists.
- */
-export function renderRecency(
-  kind: "today" | "yesterday" | "days",
-  days: number = 0,
-): string {
-  if (kind === "today") return RECENCY_TODAY;
-  if (kind === "yesterday") return RECENCY_YESTERDAY;
-  return RECENCY_DAYS.replace("{days}", String(days));
+/** The relative last-heard line (spec 009 §2), bucket by bucket. Day words
+ *  and no finer beyond the hours — and past the 14-day window the DECISIONS
+ *  166 form takes over so the sentence stays honest at any age. */
+export function renderHeard(msAgo: number, windowDays: number = 14): string {
+  const minutes = Math.floor(msAgo / 60_000);
+  if (minutes < 2) return HEARD_MOMENTS;
+  if (minutes < 60) return HEARD_MINUTES.replace("{n}", String(minutes));
+  const hours = Math.floor(minutes / 60);
+  if (hours < 2) return HEARD_HOUR;
+  if (hours < 24) return HEARD_HOURS.replace("{n}", String(hours));
+  const days = Math.floor(hours / 24);
+  if (days > windowDays) return META_HEARD_DAYS.replace("{days}", String(days));
+  if (days < 2) return HEARD_DAY;
+  return HEARD_DAYS.replace("{n}", String(days));
+}
+
+export function renderNothingIn(days: number): string {
+  if (days < 2) return META_NOTHING_IN_DAY;
+  return META_NOTHING_IN_DAYS.replace("{n}", String(days));
 }
 
 export function renderFixBody(name: string): string {

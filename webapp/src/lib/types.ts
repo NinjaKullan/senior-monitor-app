@@ -14,6 +14,28 @@ export interface Parent {
   /** E.164, or null. Renders only inside a tel: href — never as visible text
    *  (DECISIONS 167: family-facing numbers are tap-to-act links). */
   phone_e164: string | null;
+  /** Same law as phone_e164: exists to build a wa.me href when no phone
+   *  number is set (spec 009 §2), never rendered as text. */
+  whatsapp_e164: string | null;
+  /** The label the family actually uses (Mom, Dad, …) — DECISIONS 149's
+   *  vocabulary, now the card's name line (spec 009 §2). Null falls back to
+   *  display_name. */
+  relationship: string | null;
+  /** Kid-entered, display-only orientation (spec 009 §5); the timezone is
+   *  not editable through it. */
+  city_label: string | null;
+}
+
+/** A family note (spec 009 §4): plain text, an optional date, an optional
+ *  parent tag. Insert-only in v1 — no edit, no delete. */
+export interface JournalEntry {
+  id: number;
+  family_id: string;
+  parent_id: string | null;
+  author_label: string;
+  body: string;
+  event_date: string | null;
+  created_utc: string;
 }
 
 export interface Member {

@@ -28,6 +28,7 @@ import { supabase } from "./supabase";
 import { READ_SURFACE } from "./queries";
 import type {
   Family,
+  JournalEntry,
   Member,
   Parent,
   ParentSignal,
@@ -114,6 +115,67 @@ async function readRecentPings(parentIds: string[], now: Date): Promise<Ping[]> 
   return perParent.flat();
 }
 
+/**
+ * The bounded journal reads (spec 009 §4, under the DECISIONS 160 rule): the
+ * table grows without bound, so every scope is its own newest-first read with
+ * an explicit limit — one for the Family screen's consolidated list, one per
+ * parent for the detail panel. Ordering matters like it does for pings: with
+ * created_utc descending, truncation drops the OLDEST notes, never the one
+ * the family just wrote.
+ */
+export const JOURNAL_LIMIT_PER_SCOPE = 50;
+
+async function readJournalFamily(): Promise<JournalEntry[]> {
+  const { data, error } = await supabase
+    .from("journal_entries")
+    .select(READ_SURFACE.journal_entries)
+    .order("created_utc", { ascending: false })
+    .limit(JOURNAL_LIMIT_PER_SCOPE);
+  if (error) throw error;
+  return (data ?? []) as JournalEntry[];
+}
+
+async function readJournalByParent(
+  parentIds: string[],
+): Promise<Record<string, JournalEntry[]>> {
+  const perParent = await Promise.all(
+    parentIds.map(async (parentId) => {
+      const { data, error } = await supabase
+        .from("journal_entries")
+        .select(READ_SURFACE.journal_entries)
+        .eq("parent_id", parentId)
+        .order("created_utc", { ascending: false })
+        .limit(JOURNAL_LIMIT_PER_SCOPE);
+      if (error) throw error;
+      return [parentId, (data ?? []) as JournalEntry[]] as const;
+    }),
+  );
+  return Object.fromEntries(perParent);
+}
+
+/** The app's first own write path (spec 009 §4): one insert, RLS-scoped to
+ *  the caller's family server-side; v1 has no edit and no delete. */
+export async function addJournalEntry(entry: {
+  family_id: string;
+  parent_id: string | null;
+  author_label: string;
+  body: string;
+  event_date: string | null;
+}): Promise<void> {
+  const { error } = await supabase.from("journal_entries").insert(entry);
+  if (error) throw error;
+}
+
+/** The display-only city label (spec 009 §5). The grant is column-scoped
+ *  server-side: nothing else on parents is writable from here. */
+export async function saveCityLabel(parentId: string, cityLabel: string | null): Promise<void> {
+  const { error } = await supabase
+    .from("parents")
+    .update({ city_label: cityLabel })
+    .eq("id", parentId);
+  if (error) throw error;
+}
+
 export interface FamilySnapshot {
   family: Family | null;
   parents: Parent[];
@@ -125,6 +187,10 @@ export interface FamilySnapshot {
    * ages and the Setup card's has-ever-pinged check, and nothing else. */
   latestPings: Ping[];
   setupLinks: SetupLink[];
+  /** The Family screen's consolidated notes: newest 50, family-wide. */
+  journal: JournalEntry[];
+  /** The detail panels' notes: newest 50 per parent, keyed by parent id. */
+  journalByParent: Record<string, JournalEntry[]>;
 }
 
 /**
@@ -153,9 +219,10 @@ export async function loadSnapshot(now: Date = new Date()): Promise<FamilySnapsh
     readAll<ParentSignal>("parent_signals"),
     readAll<SetupLink>("setup_links"),
   ]);
-  // Ping reads wait for the earlier rows: the windowed read is per parent,
-  // the latest-row read is per (parent, signal) from the allowlist.
-  const [pings, latestPings] = await Promise.all([
+  // The bounded reads wait for the earlier rows: pings per parent and per
+  // (parent, signal), journal per family and per parent — every one ordered
+  // and limited.
+  const [pings, latestPings, journal, journalByParent] = await Promise.all([
     readRecentPings(
       parents.map((parent) => parent.id),
       now,
@@ -163,6 +230,8 @@ export async function loadSnapshot(now: Date = new Date()): Promise<FamilySnapsh
     readLatestPings(
       signals.map(({ parent_id, signal }) => ({ parent_id, signal })),
     ),
+    readJournalFamily(),
+    readJournalByParent(parents.map((parent) => parent.id)),
   ]);
   return {
     family: families[0] ?? null,
@@ -172,5 +241,7 @@ export async function loadSnapshot(now: Date = new Date()): Promise<FamilySnapsh
     pings,
     latestPings,
     setupLinks,
+    journal,
+    journalByParent,
   };
 }

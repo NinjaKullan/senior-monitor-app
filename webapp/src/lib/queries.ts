@@ -23,8 +23,11 @@ export const READ_SURFACE = {
   // phone_e164 joined in spec 008 (the detail hero's Call button) — a
   // conscious widening under standing structure 48, sanctioned by DECISIONS
   // 167: the number exists client-side solely to become a tel: href and is
-  // never rendered as text.
-  parents: "id, family_id, display_name, tz, phone_e164",
+  // never rendered as text. Spec 009 widens three more, each named in its
+  // section: whatsapp_e164 (§2, the wa.me fallback href — same never-as-text
+  // law), relationship (§2, the card's name label), city_label (§5, the
+  // display-only city line).
+  parents: "id, family_id, display_name, tz, phone_e164, whatsapp_e164, relationship, city_label",
   members: "id, family_id, display_name, role, digest_channel",
   parent_signals: "parent_id, signal, alarm_grade, active",
   pings: "parent_id, signal, ts_utc",
@@ -32,6 +35,10 @@ export const READ_SURFACE = {
   // "Mom's setup" as a forwardable card. parent_id is on the row precisely so
   // this surface never has to read `devices` — tokens stay out of the browser.
   setup_links: "parent_id, slug, created_utc, expires_utc, revoked_utc",
+  // Spec 009 §4: the family's notes. Grows without bound, so it NEVER rides
+  // readAll — every read is newest-first with an explicit limit (the
+  // DECISIONS 160 discipline), one bounded read per scope.
+  journal_entries: "id, family_id, parent_id, author_label, body, event_date, created_utc",
 } as const;
 
 export type ReadTable = keyof typeof READ_SURFACE;
