@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 184.** This line is the one to update; the `Next number:` lines inside
+**Next number: 185.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2171,3 +2171,49 @@ browser — all three adopted as the standard for future surfaces.**
      un-rendered; the PM may narrow that read. Also: item 182 was filed
      without bumping the counter line — this entry took 183 and the line
      now says 184.
+
+184. **(2026-08-26, Claude Code, PM-ordered) Email polish: per-parent
+     subjects, the recovered evening, the HTML wrapper.** Product suite
+     388 → 403; site 199 (one hosted asset added); nothing deployed.
+     * **Subjects.** An email about one parent carries
+       "A note about {relationship}'s day" (e.g. "A note about Mom's
+       day"), from `subject_for()` in the registry module so the string
+       lives with every other family-facing string and passes the same
+       scan under every label. Anything not about a single parent — and a
+       parent whose label is not set yet, since the evening bodies can
+       send label-less — keeps "A note from Kettle". The relationship
+       rides beside the template variables through every transport's
+       send() (render() rejects undeclared variables); WhatsApp accepts
+       and ignores it.
+     * **The recovered evening.** New template
+       `digest_evening_recovered`, body verbatim: "A quiet start, then a
+       normal day. Next note in the morning." Selection, at the evening
+       slot: the morning was quiet at the morning-digest slot (the same
+       window that chose digest_morning_quiet and armed the ask) AND
+       routine pings resumed between the morning and evening slots. A
+       normal morning keeps `digest_evening_normal`; the followed-up-day
+       skip (164) and the evidence gate are unchanged and 164 outranks
+       the body choice (tested). Every other recorded body stays
+       verbatim.
+     * **The wrapper.** Every outbound email is MULTIPART: the registry
+       body as plain text plus the outbound_html wrapper carrying the
+       same words. Laws, each held by a test: table layout with every
+       style inline; no external CSS and no remote fonts (Georgia,
+       'Times New Roman', serif); EXACTLY one <img> — the 44px hearth
+       glyph at the stable unhashed URL
+       https://heykettle.com/email-glyph.png, width/height set,
+       alt="Kettle"; no text exists only inside an image (stripping the
+       img leaves chip, sentence, sub-line and footer whole); the v5
+       palette inline (#F7F2E9 / #FDFBF6 / #2E2822, chip #E7EFD6 /
+       #D5E3B8 / #7A4A26, rule #D5E3B8, link #96552D); no em dashes
+       anywhere in the markup. The footer reuses EMAIL_SUBJECT verbatim
+       plus the site domain as link text, so the wrapper adds no string
+       the registry does not hold.
+     * **Deploy order:** the SITE ships the glyph asset, so
+       `cd site && npm run ci && fly deploy` goes before
+       `cd product && fly deploy` — recorded in the baton.
+     * **Flag:** the ordered design reference
+       docs/mockups/email-polish-mockup-v1.html does not exist in the
+       repo; the build followed the order's own written layout and
+       palette. If the PM's mockup differs, the wrapper is one module
+       (`kettle/outbound_html.py`) to restyle.

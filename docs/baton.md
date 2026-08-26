@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 388, zero xfails**, **`webapp` 126**, **`site` 199**.
+Current green: **`pytest` 403, zero xfails**, **`webapp` 126**, **`site` 199**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -53,6 +53,12 @@ Current green: **`pytest` 388, zero xfails**, **`webapp` 126**, **`site` 199**.
 * **Verify front-end changes on more than one Node.** The container has 22.22.2, the
   founder runs 24.18.1, and a suite that disagreed between them is what DECISIONS 146
   was about.
+
+**Owed deploys (email polish, DECISIONS 184):** the site ships the email glyph
+asset FIRST (`cd site && npm run ci && fly deploy` — the wrapper's one image is
+https://heykettle.com/email-glyph.png), then the product
+(`cd product && fly deploy`) for per-parent subjects, the recovered evening
+body, and multipart HTML emails.
 
 ## 3. Live state — do not break
 
