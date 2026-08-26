@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 174.** This line is the one to update; the `Next number:` lines inside
+**Next number: 175.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -1988,3 +1988,37 @@ browser — all three adopted as the standard for future surfaces.**
        entity name; the privacy sentence removed; the title reverted;
        "tripwire" back in the fix body (caught by webapp scan AND product
        contract); "watched over" back in the empty state.
+
+174. **(2026-08-26, Claude Code, PM-ordered) The blog exists, and post #1 is
+     published verbatim.** Site only; suite 183 → 196; nothing deployed.
+     * **Post #1** is `docs/blog-post-1-draft.md`'s body, shipped verbatim
+       between sentinel comments and diffed paragraph-for-paragraph against
+       the draft by test — the Editor's notes and title-options block
+       stripped, nothing else touched. Title: "The call I've rehearsed and
+       never made". Slug: `/blog/the-call-ive-rehearsed-and-never-made`
+       (canonical form carries the trailing slash; the slash-less form is
+       one relative 301 away).
+     * **Teaser, verbatim:** "On the phone call every far-away child
+       rehearses, and never wants to make."
+     * **Meta description, verbatim:** "My parents live in Chennai and I
+       live in the US. This is about the call I hope I never have to make."
+     * **Byline** is "Hema · Founder, HeyKettle" — the middot form, since
+       the copy this pass authors carries no em dashes (the body, being
+       final, is exempt from every scan; a test proves the exemption is an
+       excision, not a lax rule).
+     * **Form:** two standalone pages in the privacy.html posture — locked
+       palette inlined, Newsreader named for article text with Georgia
+       standing in and no font fetched, 66ch measure, no scripts, no links
+       out, no absolute URLs. No og:image yet.
+     * **The site's first header:** wordmark plus one quiet Blog link, and
+       the same link in the footer nav. Deliberately not a second CTA; the
+       hero still offers exactly one next step.
+     * **nginx learned `absolute_redirect off`,** because the blog is the
+       config's first directory-shaped content and the index module's
+       trailing-slash 301 would otherwise be written absolute from nginx's
+       own view — `http://<host>:8080/blog/`, wrong scheme, unreachable
+       port behind Fly's TLS proxy. Validated against a real nginx 1.24
+       over the real layout (the 168 discipline) in both the healthy and
+       the planted state; the canonical-host simulator gained the same
+       file model and reproduces both redirect shapes, so removing the
+       directive fails the suite the way it would fail production.
