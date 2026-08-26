@@ -23,6 +23,7 @@ TABLES = (
     "digest_sends",
     "waitlist",
     "sent_messages",
+    "journal_entries",
 )
 
 

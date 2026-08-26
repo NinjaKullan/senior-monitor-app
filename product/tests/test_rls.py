@@ -229,9 +229,19 @@ def test_anon_holds_no_privileges_on_anything(conn: psycopg.Connection):
 def test_authenticated_holds_exactly_select_on_the_family_tables(
     conn: psycopg.Connection,
 ):
-    """0004: one privilege, six tables, nothing else anywhere."""
+    """0004's baseline, plus the two grants later specs added on purpose.
+
+    Reads only — except where a ruling says otherwise: spec 009 §4 gives the
+    app select+insert on journal_entries (and usage on its identity
+    sequence), and §5 an UPDATE on parents scoped to the city_label COLUMN,
+    which lives in pg_attribute rather than relacl and is asserted in
+    test_webapp_contract.py. Anything else appearing here is a leak.
+    """
     held = object_privileges(conn, ["authenticated"])
-    assert held == {("authenticated", table): {"SELECT"} for table in FAMILY_TABLES}
+    expected = {("authenticated", table): {"SELECT"} for table in FAMILY_TABLES}
+    expected[("authenticated", "journal_entries")] = {"SELECT", "INSERT"}
+    expected[("authenticated", "journal_entries_id_seq")] = {"USAGE"}
+    assert held == expected
 
     # Spelled out, because these are the ones the bootstrap left behind.
     for table in FAMILY_TABLES:

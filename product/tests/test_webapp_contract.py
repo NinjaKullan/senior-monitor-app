@@ -70,7 +70,8 @@ def test_the_digest_screen_is_retired_and_its_copy_is_gone():
 # governs. Three states, pinned verbatim: two about a person's day, and a
 # third that is a sentence about a phone — see the law-#6 test below.
 STATE_SENTENCES = {
-    "STATE_ORDINARY": "Today looks like an ordinary day.",
+    # Spec 009 §1: "normal", never "ordinary", in every rendered string.
+    "STATE_ORDINARY": "Today looks like a normal day.",
     "STATE_QUIET": "Quiet so far today.",
     "STATE_UNREACHABLE": "Kettle can't hear from {name}'s phone right now.",
 }
@@ -132,25 +133,27 @@ def test_webapp_fix_copy_names_no_mechanism_and_stays_gentle():
 
 
 def test_webapp_recency_copy_has_no_clock_variant_and_no_never():
-    """005d §1: day granularity is a property of the vocabulary, not of a caller.
+    """Day-or-coarser granularity is a property of the vocabulary, not a caller.
 
-    There is no template here a future caller could pass a time into, which is
-    the point — the constraint holds because the words to break it do not exist.
-    `never` was deleted the same way (founder's on-device round, DECISIONS 68):
-    a tripwire that has never reported renders its chip and no recency at all,
-    and the word is gone from the module rather than merely uncalled.
+    The RECENCY_ vocabulary retired whole with the tripwire rows (spec 009);
+    the relative forms live in the HEARD_ family now, and none of them can
+    carry a clock time — the constraint holds because the words to break it
+    do not exist. `never` stays gone the same way (DECISIONS 68), and so does
+    the "since ... ago" duration shape (spec 009 §1).
     """
     ts = _ts_consts(COPY_TS)
-    recency = {name: value for name, value in ts.items() if name.startswith("RECENCY_")}
-
-    assert recency == {
-        "RECENCY_TODAY": "today",
-        "RECENCY_YESTERDAY": "yesterday",
-        "RECENCY_DAYS": "{days} days ago",
-    }
-    for name, value in recency.items():
+    assert not {name for name in ts if name.startswith("RECENCY_")}, (
+        "retired recency copy came back"
+    )
+    heard = {name: value for name, value in ts.items() if name.startswith("HEARD_")}
+    assert heard, "the relative-time vocabulary is missing"
+    for name, value in heard.items():
         assert ":" not in value, f"{name} looks like it carries a clock: {value}"
-    assert "never" not in {v.lower() for v in ts.values()}
+    lowered = {v.lower() for v in ts.values()}
+    assert "never" not in lowered
+    assert not any("since" in v and "ago" in v for v in lowered), (
+        "the retired since-ago duration shape came back"
+    )
 
 
 def test_webapp_signal_names_match_the_shortcuts_on_the_phone():
@@ -316,14 +319,83 @@ def test_the_apps_own_queries_return_one_family_only(two_families, authed):
     } == {patti}
 
 
-def test_the_app_never_writes(two_families, authed):
-    """Read-only means read-only, and the grants say so."""
+def test_the_app_never_writes_outside_its_two_granted_paths(two_families, authed):
+    """Spec 009 opened exactly two write paths (journal inserts, the city
+    label column); everything the read-only contract used to refuse it still
+    refuses, display_name on the very table the column grant touches
+    included."""
     as_user(authed, USER_A)
     for statement in (
         "insert into pings (parent_id, signal, ts_utc) "
         "select id, 'whatsapp', now() from parents limit 1",
         "update parents set display_name = 'x'",
         "delete from digest_sends",
+        # v1 notes are insert-only: no edit, no delete (spec 009 §4).
+        "update journal_entries set body = 'x'",
+        "delete from journal_entries",
     ):
         with pytest.raises(psycopg.errors.InsufficientPrivilege):
             authed.execute(statement)
+
+
+def test_journal_writes_and_reads_stay_inside_the_family(two_families, authed):
+    """Spec 009 §4: RLS mirrors the 0002 shape on the app's first own table.
+
+    Verified live against the migration before this test existed (the
+    2026-08-26 probe); pinned here so it stays true: a member inserts and
+    reads their own family's notes, cannot write into the neighbour's family,
+    and cannot tag the neighbour's parent onto their own family's note.
+    """
+    a = two_families["a"]
+    b = two_families["b"]
+    as_user(authed, USER_A)
+    authed.execute(
+        "insert into journal_entries (family_id, parent_id, author_label, body, event_date) "
+        "values (%s, %s, 'Hema', 'hearing aid batteries', '2026-09-01')",
+        (a.family_id, a.parents[0].parent_id),
+    )
+    authed.execute(
+        "insert into journal_entries (family_id, body) values (%s, 'a family note')",
+        (a.family_id,),
+    )
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        authed.execute(
+            "insert into journal_entries (family_id, body) values (%s, 'sneak')",
+            (b.family_id,),
+        )
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        authed.execute(
+            "insert into journal_entries (family_id, parent_id, body) values (%s, %s, 'sneak')",
+            (a.family_id, b.parents[0].parent_id),
+        )
+    rows = authed.execute(
+        "select body from journal_entries order by created_utc desc limit 50"
+    ).fetchall()
+    assert {r["body"] for r in rows} == {"hearing aid batteries", "a family note"}
+
+    # The neighbour sees none of it.
+    as_user(authed, USER_B)
+    assert authed.execute("select count(*) as n from journal_entries").fetchone()["n"] == 0
+
+
+def test_city_label_is_the_one_writable_parents_column(two_families, authed, conn):
+    """Spec 009 §5: the update grant is COLUMN-scoped and RLS-bounded."""
+    a = two_families["a"]
+    as_user(authed, USER_A)
+    authed.execute(
+        "update parents set city_label = 'Chennai' where id = %s",
+        (a.parents[0].parent_id,),
+    )
+    # A blanket update only ever reaches the caller's own family's rows.
+    authed.execute("update parents set city_label = 'Elsewhere'")
+    labels = {
+        r["display_name"]: r["city_label"]
+        for r in conn.execute("select display_name, city_label from parents").fetchall()
+    }
+    assert labels == {"Amma": "Elsewhere", "Patti": None}
+    # The 40-character bound holds at the schema.
+    with pytest.raises(psycopg.errors.CheckViolation):
+        authed.execute(
+            "update parents set city_label = %s where id = %s",
+            ("x" * 41, a.parents[0].parent_id),
+        )
