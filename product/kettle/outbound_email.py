@@ -19,8 +19,12 @@ What this transport will and will not do:
 * **Logs get a masked address and no body.** The body reaches the family's
   inbox and the ledger stores only the template id, same as every transport.
 
-Tracking is off at the Resend domain level (docs/auth-smtp-plan.md) and this
-sends plain text only, so there is nothing for a tracker to rewrite.
+Tracking is off at the Resend domain level (docs/auth-smtp-plan.md). Since the
+email-polish pass every send is MULTIPART: the registry body as plain text,
+plus the outbound_html wrapper carrying the same words — with images or HTML
+blocked the message degrades to itself, never to a different one. The subject
+is per-parent ("A note about Mom's day") when the engine says whose day the
+message is about, and the plain fallback otherwise.
 """
 
 from __future__ import annotations
@@ -31,13 +35,14 @@ from collections.abc import Mapping
 import httpx
 
 from kettle.outbound import DeliveryResult
+from kettle.outbound_html import render_email_html
 from kettle.outbound_templates import (
-    EMAIL_SUBJECT,
     KIND_ALL_CLEAR,
     KIND_DIGEST_EVENING,
     KIND_DIGEST_MORNING,
     KIND_FOLLOW_ON,
     render,
+    subject_for,
     template,
 )
 
@@ -83,7 +88,11 @@ class ResendTransport:
         self._client = client or httpx.Client(timeout=10.0)
 
     def send(
-        self, to: str, template_id: str, variables: Mapping[str, str]
+        self,
+        to: str,
+        template_id: str,
+        variables: Mapping[str, str],
+        relationship: str | None = None,
     ) -> DeliveryResult:
         found = template(template_id)
         if found.kind not in self.kinds:  # pragma: no cover - engine routes first
@@ -99,8 +108,14 @@ class ResendTransport:
                     "from": self._from,
                     "to": [to],
                     "reply_to": REPLY_TO,
-                    "subject": EMAIL_SUBJECT,
+                    # Per-parent when the engine says whose day this is about;
+                    # the plain subject otherwise (email-polish pass).
+                    "subject": subject_for(relationship),
+                    # Multipart, always: the same words as text and as the
+                    # wrapped HTML, so blocked HTML degrades to the message
+                    # itself.
                     "text": body,
+                    "html": render_email_html(template_id, variables, relationship),
                 },
             )
         except httpx.HTTPError as exc:

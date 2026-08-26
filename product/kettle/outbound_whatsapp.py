@@ -69,8 +69,14 @@ class TwilioWhatsAppTransport:
         self._client = client or httpx.Client(timeout=10.0)
 
     def send(
-        self, to: str, template_id: str, variables: Mapping[str, str]
+        self,
+        to: str,
+        template_id: str,
+        variables: Mapping[str, str],
+        relationship: str | None = None,
     ) -> DeliveryResult:
+        # `relationship` is the email transport's subject/chip concern; a
+        # WhatsApp message has no subject line, so it is accepted and unused.
         found = template(template_id)
         if found.kind not in self.kinds:  # pragma: no cover - engine routes first
             return DeliveryResult(

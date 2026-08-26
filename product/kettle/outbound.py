@@ -139,9 +139,20 @@ class Transport(Protocol):
     requires_address: bool
 
     def send(
-        self, to: str, template_id: str, variables: Mapping[str, str]
+        self,
+        to: str,
+        template_id: str,
+        variables: Mapping[str, str],
+        relationship: str | None = None,
     ) -> DeliveryResult:
-        """Deliver, and say whether it happened."""
+        """Deliver, and say whether it happened.
+
+        `relationship` is whose day the message is about — the email
+        transport's subject line and name chip (email-polish pass). It rides
+        beside `variables` rather than inside them because the registry's
+        render() rejects variables a template does not declare, and the
+        evening bodies declare none.
+        """
         ...
 
 
@@ -169,7 +180,11 @@ class LogTransport:
         self.sent: list[tuple[str, str]] = []
 
     def send(
-        self, to: str, template_id: str, variables: Mapping[str, str]
+        self,
+        to: str,
+        template_id: str,
+        variables: Mapping[str, str],
+        relationship: str | None = None,
     ) -> DeliveryResult:
         body = render(template_id, variables)
         self.sent.append((template_id, body))
@@ -235,12 +250,16 @@ class TransportRoster:
         return None
 
     def send(
-        self, to: str, template_id: str, variables: Mapping[str, str]
+        self,
+        to: str,
+        template_id: str,
+        variables: Mapping[str, str],
+        relationship: str | None = None,
     ) -> DeliveryResult:  # pragma: no cover - the engine sends via the carrier
         carrier = self.for_kind(template(template_id).kind)
         if carrier is None:
             return DeliveryResult(delivered=False, transport=self.name, detail="no carrier")
-        return carrier.send(to, template_id, variables)
+        return carrier.send(to, template_id, variables, relationship=relationship)
 
 
 def carrier_for(transport: Transport, kind: str) -> Transport | None:
@@ -530,7 +549,12 @@ def run_outbound(
                 continue
 
             try:
-                result = carrier.send(recipient, decision.template_id, variables)
+                result = carrier.send(
+                    recipient,
+                    decision.template_id,
+                    variables,
+                    relationship=decision.relationship,
+                )
             except Exception as exc:  # noqa: BLE001 - one send must not kill the pass
                 log.exception("outbound: %s transport raised", carrier.name)
                 result = DeliveryResult(
@@ -638,9 +662,25 @@ def _due_for_parent(
     ):
         due.append(decision(KIND_ALL_CLEAR, "all_clear_family"))
 
-    # The evening digest, last because the day is.
+    # The evening digest, last because the day is. Which body is decided here
+    # (email-polish pass): a morning that was quiet at the digest slot — the
+    # same window that chose digest_morning_quiet and armed the ask — but
+    # whose routine resumed by evening is a recovered day, and "start to
+    # finish" would be a false sentence for it. Every withhold rule around
+    # the slot (164's followed-up skip, the evidence gate) is unchanged.
     if now >= plan.evening_digest and not already(KIND_DIGEST_EVENING):
-        due.append(decision(KIND_DIGEST_EVENING, "digest_evening_normal"))
+        morning_quiet = is_quiet(
+            conn, parent_id, plan.window_start, plan.morning_digest
+        )
+        recovered = morning_quiet and not is_quiet(
+            conn, parent_id, plan.morning_digest, plan.evening_digest
+        )
+        due.append(
+            decision(
+                KIND_DIGEST_EVENING,
+                "digest_evening_recovered" if recovered else "digest_evening_normal",
+            )
+        )
 
     return due
 

@@ -52,10 +52,22 @@ KINDS: tuple[str, ...] = (
     KIND_ALL_CLEAR,
 )
 
-#: The one email subject line (Wave B). Family-facing copy, so it lives in
-#: this module and goes through the same scan as every body: the registry's
-#: guarantee is that no string a family reads exists anywhere else.
+#: The email subjects (Wave B, per-parent since the email-polish pass).
+#: Family-facing copy, so they live in this module and go through the same
+#: scan as every body: the registry's guarantee is that no string a family
+#: reads exists anywhere else. An email about one parent carries their
+#: relationship label in the subject; anything else (or a parent whose label
+#: is not set yet) keeps the plain subject. `EMAIL_SUBJECT` is also the HTML
+#: wrapper's footer line, so the two stay one string.
 EMAIL_SUBJECT = "A note from Kettle"
+EMAIL_SUBJECT_PARENT = "A note about {relationship}'s day"
+
+
+def subject_for(relationship: str | None) -> str:
+    """The subject line for one email, given whose day it is about."""
+    if relationship:
+        return EMAIL_SUBJECT_PARENT.format(relationship=relationship)
+    return EMAIL_SUBJECT
 
 #: Who receives a kind. The ask is the only thing that ever reaches a parent,
 #: and law #6's ladder is that ordering: the parent hears from Kettle before
@@ -88,6 +100,19 @@ _REGISTRY: tuple[Template, ...] = (
         kind=KIND_DIGEST_EVENING,
         audience=AUDIENCE_CHILD,
         body="An ordinary day, start to finish. Next note in the morning.",
+    ),
+    Template(
+        # The recovered day (email-polish pass): the morning was quiet at the
+        # digest slot — the same condition that chose digest_morning_quiet and
+        # armed the ask — but routine pings resumed later and the day ends
+        # normal. "Start to finish" would be false for this day; this body
+        # tells the same day's true story. Chosen at the evening slot by
+        # _due_for_parent; every withhold rule (164's followed-up skip, the
+        # evidence gate) is unchanged around it.
+        id="digest_evening_recovered",
+        kind=KIND_DIGEST_EVENING,
+        audience=AUDIENCE_CHILD,
+        body="A quiet start, then a normal day. Next note in the morning.",
     ),
     Template(
         # Sent only when the digest time lands before the ask threshold on a day
