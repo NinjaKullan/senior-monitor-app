@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 403, zero xfails**, **`webapp` 126**, **`site` 199**.
+Current green: **`pytest` 410, zero xfails**, **`webapp` 145**, **`site` 199**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -59,6 +59,14 @@ asset FIRST (`cd site && npm run ci && fly deploy` — the wrapper's one image i
 https://heykettle.com/email-glyph.png), then the product
 (`cd product && fly deploy`) for per-parent subjects, the recovered evening
 body, and multipart HTML emails.
+
+**Owed deploys (spec 010, DECISIONS 185), in this order:** (1) the PM applies
+`product/migrations/0019_tz_changed.sql` via MCP — the webapp's pick writes tz
+and tz_changed_utc, so the picker must not ship before the grant exists; (2)
+`cd product && fly deploy` — the engine's transition honesty (fresh zone reads,
+changeover conservatism, the move alert) lives in outbound.py; (3)
+`cd webapp && fly deploy` (with the build-arg fly.toml, DECISIONS 114) for the
+city picker, the auto journal note, and the changeover-day dot.
 
 ## 3. Live state — do not break
 

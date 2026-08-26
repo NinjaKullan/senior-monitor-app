@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 185.** This line is the one to update; the `Next number:` lines inside
+**Next number: 186.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2217,3 +2217,59 @@ browser — all three adopted as the standard for future surfaces.**
        repo; the build followed the order's own written layout and
        palette. If the PM's mockup differs, the wrapper is one module
        (`kettle/outbound_html.py`) to restyle.
+
+
+185. **(2026-08-26, Claude Code, PM-ordered) Spec 010: the city picker
+     that moves a parent.** Product suite 403 → 410; webapp 126 → 145;
+     migration 0019 written, NOT applied (PM applies via MCP before the
+     webapp deploy); nothing deployed. Spec-verbatim strings shipped:
+     placeholder "Where {name} lives", escape hatch "Can't find it? Pick
+     the nearest big city.", auto note "{name}'s city changed to
+     {city}." authored "Kettle" (§4 ruled BUILD), ops alert
+     "{display_name}: timezone changed {old} → {new} (city {city_label})
+     via webapp." Judgement calls the PM should check, each flagged in
+     the report too:
+     * **The changeover stamp compares the EFFECTIVE zone.** §1 says the
+       stamp is written "only when the tz value actually changed". A
+       parent starts with tz null and inherits the family zone, so
+       "actually changed" is read against `parent.tz ?? family.tz`:
+       picking a city in the inherited zone writes label + tz and NO
+       stamp — a clock that never moved must not open a conservatism
+       window. (`placeUpdate` in webapp/src/lib/data.ts, pure and
+       pinned.)
+     * **The changeover skips go through the ALERTING skip path.** §3
+       asks for a skipped ledger row "whose detail names the timezone
+       change" — but sent_messages has no detail column (0012), so the
+       detail lives where details live: the ops_alerts row the alerting
+       path writes, plus ntfy. A relocation day carries at most a
+       handful of them. The 164 precedent (alert=False) was considered
+       and rejected: that withholding is routine; this one is a
+       once-per-move event the founder is already being told about.
+     * **The old zone in the move alert.** Nothing stores the previous
+       tz. First move: the old zone is the family's (what the engine was
+       actually using). Later moves: parsed from the engine's OWN
+       previous tz_changed ops_alert message — a pinned format
+       round-tripped by test. A cleared city label renders "(city
+       unset)", never blank.
+     * **"Either zone's version of the day" is implemented as ANY
+       zone's.** The webapp cannot read the old zone (it only holds the
+       new tz), so the changeover dot reads normal if any routine ping
+       landed in the widest UTC span the calendar date can occupy
+       (UTC+14 through UTC−12, date 00:00Z − 14h to + 36h). Wider than
+       either real zone's day, and can only UPGRADE the dot — the ruled
+       direction (never "quiet", couldn't-hear only if truly nothing).
+     * **A quiet morning inside the window records `skipped`.** §3 says
+       digests still send "chosen from data actually seen" and the
+       morning-quiet template is not used in the window. A morning WITH
+       data sends digest_morning_normal on time; a morning with nothing
+       has no honest body left, so the slot records skipped with the tz
+       named in the alert detail, and neither body sends.
+     * **The auto note skips a no-op pick.** Re-picking the standing
+       city+zone writes (idempotently) but journals nothing — "{name}'s
+       city changed" would be false.
+     * **Structural:** cities.json (354 entries, every zone swept
+       through zoneinfo AND Postgres in the product suite) lives under
+       webapp/src/data/, which the root .gitignore's `data/` rule
+       (pilot pings) silently swallowed — a scoped `!webapp/src/data/`
+       exception is part of the build, or a fresh clone cannot compile
+       the picker.
