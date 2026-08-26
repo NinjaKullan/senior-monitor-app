@@ -1,101 +1,200 @@
 /**
- * Today (spec 008 §5.1): one card per parent — glyph, name eyebrow, local
- * time, the state sentence, the last-heard line. The whole card is the tap
- * target into the parent's detail. Warmth rises; information stays coarse —
- * nothing here says more than the three-state model knows.
+ * Today (spec 009 §2): the screen answers "is everyone okay?" in one line
+ * before anything else. Kicker date, family rollup by precedence
+ * unreachable > quiet > normal, one card per parent, and a footer only when
+ * every parent is normal — when anyone is quiet or unreachable the rollup
+ * already carries it, and repeating it would be a scoreboard.
  */
 import { KettleGlyph } from "@/components/KettleGlyph";
-import { EMPTY_TODAY, OPEN_PARENT_LABEL, TODAY_TITLE } from "@/lib/copy";
+import {
+  EMPTY_TODAY,
+  TODAY_FOOT_REST,
+  TODAY_FOOT_STRONG,
+} from "@/lib/copy";
 import type { ParentToday } from "@/lib/parentState";
 
 export function Today({
   states,
+  rollup,
   dateLine,
   onOpen,
 }: {
   states: ParentToday[];
-  /** "Friday, August 22" in the viewer's zone. */
+  rollup: { line: string; sub: string };
+  /** "Wednesday · August 26" in the viewer's zone — middot, never a dash. */
   dateLine: string;
   onOpen: (parentId: string) => void;
 }) {
+  const allNormal = states.length > 0 && states.every((s) => s.kind === "ordinary");
   return (
-    <div className="kt-view" data-testid="today-screen">
-      <h1
-        className="kt-serif"
-        style={{ margin: 0, fontWeight: 500, fontSize: 38, letterSpacing: "-.01em" }}
+    <div className="kt-view" data-testid="today-screen" style={{ maxWidth: "40rem", margin: "0 auto" }}>
+      <div
+        style={{
+          fontSize: "0.6875rem",
+          letterSpacing: ".14em",
+          textTransform: "uppercase",
+          color: "var(--mute)",
+          fontWeight: 700,
+        }}
       >
-        {TODAY_TITLE}
-      </h1>
-      <div style={{ marginTop: 7, fontSize: 15, color: "var(--ink2)" }}>{dateLine}</div>
+        {dateLine}
+      </div>
       {states.length === 0 ? (
-        <p style={{ marginTop: 24, color: "var(--ink2)" }}>{EMPTY_TODAY}</p>
+        <p style={{ marginTop: "1.5rem", color: "var(--ink2)" }}>{EMPTY_TODAY}</p>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: 16,
-            marginTop: 24,
-          }}
-        >
+        <>
+          <h1
+            className="kt-serif"
+            data-testid="rollup"
+            style={{
+              fontWeight: 500,
+              fontSize: "1.875rem",
+              lineHeight: 1.15,
+              margin: "0.625rem 0 0.25rem",
+            }}
+          >
+            {rollup.line}
+          </h1>
+          <div
+            style={{ color: "var(--inkmid)", fontSize: "0.875rem", marginBottom: "1.125rem" }}
+            data-testid="rollup-sub"
+          >
+            {rollup.sub}
+          </div>
+
           {states.map((state) => (
-            <button
+            <div
               key={state.parentId}
-              type="button"
               data-testid="today-card"
-              className="kt-cardbtn"
-              aria-label={OPEN_PARENT_LABEL.replace("{name}", state.name)}
-              onClick={() => onOpen(state.parentId)}
               style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 18,
-                boxSizing: "border-box",
-                textAlign: "left",
                 background: "var(--card)",
                 border: "1px solid var(--hair)",
-                borderRadius: 22,
-                padding: "22px 24px",
-                cursor: "pointer",
+                borderRadius: "1.125rem",
+                padding: "1rem 1rem 0.875rem",
+                marginBottom: "0.875rem",
               }}
             >
-              <span style={{ flex: "0 0 auto", marginTop: 2 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                 <KettleGlyph state={state.kind} size={44} />
-              </span>
-              <span style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
-                <span style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                  <span
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
                     style={{
-                      fontSize: 12.5,
-                      fontWeight: 600,
-                      letterSpacing: ".09em",
+                      fontSize: "0.75rem",
+                      letterSpacing: ".1em",
                       textTransform: "uppercase",
-                      color: "var(--ink2)",
+                      fontWeight: 700,
+                      color: "var(--inkmid)",
+                    }}
+                    data-testid="card-name"
+                  >
+                    {state.label}
+                  </div>
+                  <div
+                    style={{ fontSize: "0.75rem", color: "var(--mute)", marginTop: "0.0625rem" }}
+                    data-testid="card-city"
+                  >
+                    {state.cityNow}
+                  </div>
+                </div>
+              </div>
+              <div
+                className="kt-serif"
+                style={{
+                  fontSize: "1.1875rem",
+                  fontWeight: 500,
+                  margin: "0.625rem 0 0.125rem",
+                  lineHeight: 1.25,
+                }}
+                data-testid="card-line"
+              >
+                {state.sentence}
+              </div>
+              <div
+                style={{ fontSize: "0.875rem", fontWeight: 600, marginTop: "0.375rem" }}
+                data-testid="card-heard"
+              >
+                {state.heard}
+              </div>
+              {state.dualLine && (
+                <div
+                  style={{ fontSize: "0.78125rem", color: "var(--mute)", marginTop: "0.125rem" }}
+                  data-testid="card-dual"
+                >
+                  {state.dualLine}
+                </div>
+              )}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "0.75rem",
+                  marginTop: "0.875rem",
+                  flexWrap: "wrap",
+                }}
+              >
+                {state.callHref ? (
+                  <a
+                    href={state.callHref}
+                    data-testid="call-button"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.4375rem",
+                      background: "var(--copperdeep)",
+                      color: "var(--oncopper)",
+                      borderRadius: "999px",
+                      padding: "0.5625rem 1.125rem",
+                      fontWeight: 700,
+                      fontSize: "0.875rem",
+                      textDecoration: "none",
+                      minHeight: "2.75rem",
+                      boxSizing: "border-box",
                     }}
                   >
-                    {state.name}
-                  </span>
-                  <span style={{ fontSize: 13, color: "var(--ink3)" }} data-testid="today-local">
-                    {state.localTime}
-                  </span>
-                </span>
-                <span
-                  className="kt-serif"
-                  data-testid="today-sentence"
-                  style={{ fontWeight: 500, fontSize: 23, lineHeight: 1.25, letterSpacing: "-.01em" }}
+                    {state.callLabel}
+                  </a>
+                ) : (
+                  <span />
+                )}
+                <button
+                  type="button"
+                  onClick={() => onOpen(state.parentId)}
+                  data-testid="view-day"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.375rem",
+                    color: "var(--copperdeep)",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                    background: "none",
+                    border: "none",
+                    padding: "0.5rem 0",
+                    minHeight: "2.75rem",
+                    cursor: "pointer",
+                  }}
                 >
-                  {state.sentence}
-                </span>
-                <span
-                  style={{ fontSize: 14.5, color: "var(--ink2)", lineHeight: 1.45 }}
-                  data-testid="today-meta"
-                >
-                  {state.meta}
-                </span>
-              </span>
-            </button>
+                  {state.viewLabel}
+                </button>
+              </div>
+            </div>
           ))}
-        </div>
+
+          {allNormal && (
+            <div
+              style={{
+                marginTop: "0.375rem",
+                color: "var(--inkmid)",
+                fontSize: "0.84375rem",
+                lineHeight: 1.5,
+              }}
+              data-testid="today-foot"
+            >
+              <b style={{ color: "var(--ink)" }}>{TODAY_FOOT_STRONG}</b> {TODAY_FOOT_REST}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

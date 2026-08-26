@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
+  addJournalEntry,
   claimMembership,
   loadSnapshot,
+  saveCityLabel,
   sendMagicLink,
   type FamilySnapshot,
 } from "@/lib/data";
 import { TAGLINE } from "@/lib/copy";
-import { computeParentToday, type ParentToday } from "@/lib/parentState";
+import { computeParentToday, computeRollup, type ParentToday } from "@/lib/parentState";
 import { buildSetupEntries } from "@/lib/setupLinks";
+import { localDate } from "@/lib/time";
+import type { NoteDraft } from "@/components/NotesPanel";
 import {
   RESTORE_TIMEOUT_MS,
   clearStoredSession,
@@ -186,6 +190,7 @@ export default function App() {
   }
 
   const familyTz = snapshot.family.tz;
+  const familyId = snapshot.family.id;
   // The two ping sets keep their audiences (DECISIONS 160/166): the windowed
   // set feeds today's state, the unwindowed latest rows feed the tripwire ages
   // inside computeParentToday and the setup card's has-ever-pinged check.
@@ -196,20 +201,34 @@ export default function App() {
       snapshot.signals,
       snapshot.pings,
       snapshot.latestPings,
-      snapshot.setupLinks,
       now,
     ),
   );
+  const rollup = computeRollup(states, familyTz, now);
   // The open parent survives a refresh only while they are still in the
   // snapshot; a parent removed from the family closes the detail rather than
   // leaving a stale one on screen.
   const openState = states.find((s) => s.parentId === openParentId) ?? null;
 
-  const dateLine = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  }).format(now);
+  // "Wednesday · August 26" (spec 009 §2): middot, never a dash.
+  const dateLine = `${new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(now)} · ${new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" }).format(now)}`;
+  const todayDate = localDate(now, Intl.DateTimeFormat().resolvedOptions().timeZone);
+
+  const addNote = async (draft: NoteDraft) => {
+    await addJournalEntry({
+      family_id: familyId,
+      parent_id: draft.parentId,
+      author_label: draft.authorLabel,
+      body: draft.body,
+      event_date: draft.eventDate,
+    });
+    await refresh();
+  };
+
+  const saveCity = async (parentId: string, city: string | null) => {
+    await saveCityLabel(parentId, city);
+    await refresh();
+  };
 
   const navigate = (next: Tab) => {
     setTab(next);
@@ -225,13 +244,23 @@ export default function App() {
     >
       {tab === "today" &&
         (openState ? (
-          <ParentDetail state={openState} onBack={() => setOpenParentId(null)} />
+          <ParentDetail
+            state={openState}
+            notes={snapshot.journalByParent[openState.parentId] ?? []}
+            todayDate={todayDate}
+            onBack={() => setOpenParentId(null)}
+            onAddNote={addNote}
+            onSteps={() => navigate("family")}
+          />
         ) : (
-          <Today states={states} dateLine={dateLine} onOpen={setOpenParentId} />
+          <Today states={states} rollup={rollup} dateLine={dateLine} onOpen={setOpenParentId} />
         ))}
       {tab === "family" && (
         <FamilyScreen
           parentStates={states}
+          cities={Object.fromEntries(
+            snapshot.parents.map((parent) => [parent.id, parent.city_label ?? ""]),
+          )}
           members={snapshot.members}
           setupEntries={buildSetupEntries(
             snapshot.parents,
@@ -241,10 +270,14 @@ export default function App() {
             snapshot.latestPings,
             now,
           )}
+          journal={snapshot.journal}
+          todayDate={todayDate}
           onOpen={(id) => {
             setTab("today");
             setOpenParentId(id);
           }}
+          onAddNote={addNote}
+          onSaveCity={saveCity}
         />
       )}
     </Shell>
