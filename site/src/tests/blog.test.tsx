@@ -115,6 +115,41 @@ describe("post #1 ships verbatim (DECISIONS 174)", () => {
     // The link carries the trailing slash so no reader pays the 301.
     expect(html).toContain('href="/blog/the-call-ive-rehearsed-and-never-made/"');
   });
+
+  /**
+   * DECISIONS 175: the founder read the entry as static text ("I had to
+   * think about where the entire article was"), so the whole block became
+   * the link. These pins hold the affordance, not just the destination.
+   */
+  it("the whole entry is one link to the article, named by the title", () => {
+    const entry = index().match(/<a\s+class="entry"[\s\S]*?<\/a>/);
+    expect(entry, "the entry block link is gone").not.toBeNull();
+    expect(entry![0]).toContain('href="/blog/the-call-ive-rehearsed-and-never-made/"');
+    // Title, date, teaser and the read line all ride inside the one anchor.
+    expect(entry![0]).toContain(TITLE);
+    expect(entry![0]).toContain(DATE);
+    expect(entry![0]).toContain(TEASER);
+    expect(entry![0]).toContain("Read the post →");
+    // The accessible name is the post title, via the labelledby pair.
+    expect(entry![0]).toContain('aria-labelledby="post-1-title"');
+    expect(entry![0]).toContain('id="post-1-title"');
+  });
+
+  it("nests no link inside the entry link", () => {
+    const entry = index().match(/<a\s+class="entry"([\s\S]*?)<\/a>/);
+    expect(entry).not.toBeNull();
+    expect(/<a[\s>]/.test(entry![1]), "an anchor inside the entry anchor").toBe(false);
+  });
+
+  it("reads as clickable at rest, not only on hover", () => {
+    const html = index();
+    // The title carries the site's link treatment before the mouse moves,
+    // and the block declares its hover and focus states.
+    expect(html).toMatch(/\.entry-title\s*\{[^}]*text-decoration:\s*underline/);
+    expect(html).toMatch(/a\.entry:hover\s*\{[^}]*background/);
+    expect(html).toMatch(/a\.entry:focus-visible\s*\{[^}]*outline/);
+    expect(html).toMatch(/a\.entry\s*\{[^}]*cursor:\s*pointer/);
+  });
 });
 
 describe("the chrome obeys the site's laws — the body alone is exempt", () => {

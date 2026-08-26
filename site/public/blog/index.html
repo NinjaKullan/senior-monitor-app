@@ -51,6 +51,39 @@
       }
       article p.body:first-of-type { margin-top: 2.25rem; }
       .back { margin-top: 3rem; }
+      /* The entry is ONE link (DECISIONS 175): the founder read the old list
+         as static text and had to hunt for the way in. The whole block is the
+         way in now: title underlined at rest in the site's link treatment,
+         a background tint on hover, a focus ring for keyboards, and nothing
+         nested inside it that is itself a link. */
+      a.entry {
+        display: block;
+        margin: 0 -0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      a.entry:hover { background: rgba(64, 60, 54, 0.06); }
+      a.entry:focus-visible { outline: 2px solid #403c36; outline-offset: 2px; }
+      .entry-title {
+        display: block;
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 1.375rem;
+        font-weight: 500;
+        line-height: 1.3;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+      .entry-date { display: block; margin-top: 0.375rem; }
+      .entry-teaser { display: block; margin-top: 0.25rem; max-width: 66ch; }
+      .entry-read {
+        display: block;
+        margin-top: 0.625rem;
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
     </style>
   </head>
   <body>
@@ -62,9 +95,16 @@
       <h1>Blog</h1>
       <ul style="list-style: none; margin: 2.25rem 0 0; padding: 0;">
         <li>
-          <a href="/blog/the-call-ive-rehearsed-and-never-made/" style="font-family: 'Newsreader', Georgia, serif; font-size: 1.375rem; font-weight: 500; text-decoration: none;">The call I've rehearsed and never made</a>
-          <p class="meta" style="margin-top: 0.375rem;">August 26, 2026</p>
-          <p style="margin: 0.25rem 0 0; max-width: 66ch;">On the phone call every far-away child rehearses, and never wants to make.</p>
+          <a
+            class="entry"
+            href="/blog/the-call-ive-rehearsed-and-never-made/"
+            aria-labelledby="post-1-title"
+          >
+            <span class="entry-title" id="post-1-title">The call I've rehearsed and never made</span>
+            <span class="entry-date meta">August 26, 2026</span>
+            <span class="entry-teaser">On the phone call every far-away child rehearses, and never wants to make.</span>
+            <span class="entry-read">Read the post →</span>
+          </a>
         </li>
       </ul>
       <p class="back"><a href="/">Back to Kettle</a></p>
