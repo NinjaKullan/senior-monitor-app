@@ -253,6 +253,15 @@ export const WAITLIST_ERROR = "That didn't go through. Check the address and try
 /* Footer                                                                   */
 /* ---------------------------------------------------------------------- */
 
+/* ---------------------------------------------------------------------- */
+/* Header (DECISIONS 174)                                                   */
+/* ---------------------------------------------------------------------- */
+
+/** The page's first chrome: the wordmark and one quiet link to the blog. Not
+ *  a second CTA — the hero still offers exactly one next step. */
+export const HEADER_WORDMARK = "Kettle";
+export const NAV_BLOG_LABEL = "Blog";
+
 export const FOOTER_WORDMARK = "Kettle";
 export const FOOTER_LINE = "Three fields. Nothing else.";
 /**

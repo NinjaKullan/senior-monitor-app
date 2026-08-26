@@ -1,3 +1,4 @@
+import { Header } from "@/sections/Header";
 import { Hero } from "@/sections/Hero";
 import { Scenarios } from "@/sections/Scenarios";
 import { KettleStory } from "@/sections/KettleStory";
@@ -18,6 +19,7 @@ import { FloatingCta } from "@/components/FloatingCta";
 export default function App() {
   return (
     <main className="bg-canvas font-sans text-ink">
+      <Header />
       <Hero />
       <Scenarios />
       <KettleStory />
