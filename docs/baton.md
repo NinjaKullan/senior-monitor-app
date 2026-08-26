@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 386, zero xfails**, **`webapp` 102**, **`site` 199**.
+Current green: **`pytest` 388, zero xfails**, **`webapp` 125**, **`site` 199**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -243,15 +243,17 @@ photographs in the tree). One typeface, five type roles, three weights. Rhythm F
 built and tuned. Floating CTA. Domain cascade done. Everything since DECISIONS 134 is
 unshipped.
 
-**`webapp/`** — the family app. 005a/005c/005d built, then restyled whole to Kettle v5
-(spec 008, DECISIONS 169/170): Today card grid, parent detail with the 200px glyph
-hero and the phone-gated Call button, Family restyled around the surviving setup card
-and member roster. Glance/TripwireDetail/beacon are deleted, signal names render
-nowhere, and the copy-law scan runs with no signal-name allowlist. **Built and
-tested only — NOT deployed**; the founder's `fly deploy` of kettle-app is owed after
-PM review. `parents.phone_e164` has existed since migration 0007 and the family
-select policy is row-scoped, not column-scoped, so the Call button lights up
-wherever the founder has entered a number — no schema step owed. Session restore
+**`webapp/`** — the family app. 005a/005c/005d built, restyled to Kettle v5 (008),
+then redesigned to spec 009 (DECISIONS 176–181): Today with the family rollup and
+per-parent cards, the detail with the day arc, seven dots, what-this-means and the
+restyled fix card, Family notes v1 (the app's first write paths: journal inserts
+and the city_label column), and the accessibility law (rem, AA computed from the
+tokens). "normal" replaced "ordinary" everywhere rendered. **Built and tested
+only — NOT deployed**, and migrations 0017/0018 are written but NOT applied to
+prod: the PM applies them via MCP after review, and they must land BEFORE the
+webapp deploy (the app reads journal_entries and three new parents columns at
+startup; against an unmigrated prod the snapshot load fails). Then Hema:
+`cd webapp && fly deploy`. Session restore
 hardened (144) and untouched:
 a stored session the server rejects signs out, clears storage and lands on login;
 `restoring` is a named state; "Loading…" is bounded at 15s.

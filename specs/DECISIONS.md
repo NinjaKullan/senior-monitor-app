@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 176.** This line is the one to update; the `Next number:` lines inside
+**Next number: 182.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2038,3 +2038,97 @@ browser — all three adopted as the standard for future surfaces.**
      pin the affordance itself: one anchor carrying all four lines, the
      at-rest underline plus hover/focus declarations, the read line
      verbatim, and the no-nested-anchors rule. Site suite 196 → 199.
+
+176. **(2026-08-26, Claude Code) Spec 009 §1 built — "normal" everywhere,
+     "in N days".** `STATE_ORDINARY` renders "Today looks like a normal
+     day." (internal name unchanged); the unreachable duration is "Nothing
+     has reached Kettle in {n} days." / "…in 1 day." The webapp copy scan
+     now bans "ordinary" as a rendered word, "checked in" as a phrase, and
+     the "since N days ago" shape (checked against unmasked text so no
+     allowance can hide it); the product-side contract pins the same three.
+     The RECENCY_ vocabulary retired whole with the old rows — relative
+     forms live in `renderHeard`, which has no clock variant by
+     construction.
+
+177. **(2026-08-26, Claude Code) Spec 009 §2 built — Today.** All strings
+     verbatim from the spec: rollup "Everything looks normal today." /
+     "Quiet so far for {names}." (names joined "Mom, Dad and Grandma" —
+     words, never a count) / the unreachable sentence; sub-line "Next note
+     this evening." / "Next note in the morning."; footer "Nothing needs
+     you today." + "Kettle will write if that changes." (bold first
+     sentence, only when every parent is normal); card lines "{city} ·
+     {time} there now" / "{time} {Name}'s time", "Heard from moments/N
+     minutes/1 hour/N hours/1 day/N days ago" with the DECISIONS 166 form
+     past the window, dual line "{time} in {city} · {time} your time";
+     "Call {Name} ↗", "View {Name}'s day →". Execution calls, flagged:
+     * **The Call pill ships on `--copperdeep`, not the mockup's
+       `--copper`.** White-on-copper at the mockup's 14px bold reads
+       3.94:1 — below §6's own 4.5:1 law, which this spec makes a tested
+       law. Copperdeep reads 5.6:1 (6.9:1 Night). The mockup's copper
+       CHOICE (over green) is honored — same family, one shade deeper —
+       but the PM should ratify or re-spec the size upward (18.7px bold
+       would make copper lawful as large text).
+     * **The evening-digest hour is a mirrored constant**
+       (`EVENING_DIGEST_MINUTES` = 20:30, from outbound.py's v1 value,
+       family-local). An engine retune must touch both sides.
+     * The name in every {Name} slot is the relationship label where set
+       (149's vocabulary), else display_name.
+
+178. **(2026-08-26, Claude Code) Spec 009 §3 built — the detail.** Arc:
+     one quadratic drawn twice (identical `d`, pinned), reveal via
+     pathLength/dasharray, dot computed on the same curve at the same t
+     (the mockup's own 82% point is the test fixture). Segments at
+     noon/six with the LAST heard time per segment; dots are seven,
+     oldest left, today right, fill-vs-outline plus an always-visible
+     legend ("A normal day" / "A quiet start" / "Couldn't hear"), no
+     digits anywhere in the panel (tested). What-this-means verbatim per
+     state; unreachable's body is the standing aside. Flagged calls:
+     * **The CURRENT segment with no pings reads "Quiet so far"** — the
+       spec captions only past-with-none ("Quiet") and future ("Still
+       ahead"); a bare "Quiet" on unfinished time would be a verdict
+       (the standing spec-008 rule), so the hedged form fills the gap.
+     * **"See the simple steps →" routes to the Family screen's setup
+       card** — the only steps surface that exists; a dead link would
+       break the never-a-dead-button law. PM may re-point it.
+     * The hero is the 44px glyph per the mockup (the 200px hero was
+       spec 008's; geometry untouched, from KettleGlyph only).
+
+179. **(2026-08-26, Claude Code) Spec 009 §4 built — Family notes v1.**
+     Migration 0017: table as specced, RLS mirroring 0002 exactly
+     (deny-all; family select+insert; a tagged parent must belong to the
+     same family; no update/delete), select+insert plus identity-sequence
+     usage granted — verified against a real local postgres in every
+     direction before tests pinned it, and the weakened-policy plant
+     fails the isolation test. Scoping as ruled: parent page filters,
+     Family consolidates with tag prefixes, null renders "Family". The
+     Upcoming strip and entry metadata verbatim. Linkification is
+     escape-then-build: bodies render as text nodes and panel-built
+     anchors only (target=_blank, rel=noopener noreferrer, copper
+     underline); a body containing <script> renders inert, by test. Both
+     read scopes are newest-50 with explicit order and limit (160
+     discipline), audited beside the ping reads. Flagged strings the
+     spec was silent on: the composer's submit button "Add" (keyboard-
+     only Enter would fail §6) and the tag picker's accessible name
+     "Who this note is about". "Signed as" persists via localStorage,
+     empty renders as "Family".
+
+180. **(2026-08-26, Claude Code) Spec 009 §5 built — the city label.**
+     Migration 0018: `parents.city_label text` with a 40-char check; the
+     update grant is COLUMN-scoped so `display_name` stays refused on the
+     same table (pinned product-side), and RLS bounds a blanket update to
+     the caller's own family (tested live, then pinned). The Family
+     screen's parent row carries the "City" field; where absent every
+     surface falls back to "{Name}'s time". Timezone stays uneditable.
+
+181. **(2026-08-26, Claude Code) Spec 009 §6 built — accessibility as
+     law.** Every fontSize in the spec-009 surfaces is a rem string,
+     enforced by a source scan (px zoom-breaks fail by name); AA contrast
+     is computed from kettle.css's own token values for both palettes over
+     the exact ink-on-surface pairs the screens use, with the chip
+     outlines held to 3:1; no state rests on color alone (fill-vs-outline
+     plus legend, tested). Token consequences, flagged: Day `--mute`
+     darkened to mockup v2's #6E6A62 (the v5 value read 2.85:1 and §6
+     puts metadata text in it); Night `--mute` lifted to #8F887C by the
+     same law — an execution call, since the mockup ships no Night set.
+     Reduced-motion gating is unchanged from spec 008 (the keyframes
+     exist only inside the media block).
