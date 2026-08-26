@@ -2132,3 +2132,22 @@ browser — all three adopted as the standard for future surfaces.**
      same law — an execution call, since the mockup ships no Night set.
      Reduced-motion gating is unchanged from spec 008 (the keyframes
      exist only inside the media block).
+
+182. **(2026-08-26, Fable) Spec 009 review verdict: PASS. All six build
+     flags ratified.** Checked the report against spec 009 section by
+     section; every ordered surface, migration, law, and test is present,
+     and the eight plant drills fired by name. Rulings: (1) the Call pill
+     ships on `--copperdeep` — the contrast law outranks the mockup's
+     exact shade, and copper-the-choice survives; (2) the Day `--mute`
+     darkening and the Night `--mute` #8F887C stand, with the Night
+     palette to be eyeballed on a real phone after deploy; (3) the
+     current-with-no-pings arc segment caption "Quiet so far" is adopted
+     into the state vocabulary; (4) "See the simple steps →" routing to
+     the Family screen's setup card stands until a dedicated steps
+     surface exists; (5) the composer strings "Add" and "Who this note
+     is about" are adopted verbatim; (6) the mirrored
+     `EVENING_DIGEST_MINUTES` constant is accepted with a standing note
+     that any change to the outbound slot must touch both, recorded here
+     so the drift has a name. Deploy order per the baton: 0017 then 0018
+     applied to prod by the PM via MCP before `cd webapp && fly deploy`
+     (Hema).
