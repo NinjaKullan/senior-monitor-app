@@ -204,9 +204,9 @@ def test_the_retirement_migration_is_safe_to_run_twice(half_migrated: str):
 
 
 def test_every_migration_still_applies_in_order(conn: psycopg.Connection):
-    """0018 is the last one, and the numbering has no gap."""
+    """0019 is the last one, and the numbering has no gap."""
     names = [p.name for p in migration_files()]
-    assert names[-1].startswith("0018")
+    assert names[-1].startswith("0019")
     numbers = [int(name[:4]) for name in names]
     assert numbers == list(range(1, len(numbers) + 1))
     assert apply_migrations is not None
