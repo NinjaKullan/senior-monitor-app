@@ -27,6 +27,7 @@ const bare = {
   whatsapp_e164: null,
   relationship: null,
   city_label: null,
+  tz_changed_utc: null,
 };
 const parents: Parent[] = [
   { id: "p1", family_id: "f1", display_name: "Amma", ...bare },
@@ -107,7 +108,8 @@ describe("the Family screen's setup card", () => {
     todayDate: "2026-08-16",
     onOpen: () => undefined,
     onAddNote: async () => undefined,
-    onSaveCity: async () => undefined,
+    onPickCity: async () => undefined,
+    onClearCity: async () => undefined,
   };
 
   function renderCard() {

@@ -124,6 +124,7 @@ function seedFamily(parentIds: string[]) {
     whatsapp_e164: null,
     relationship: null,
     city_label: null,
+    tz_changed_utc: null,
   }));
   tables.members = [];
   tables.parent_signals = [];
@@ -276,7 +277,7 @@ describe("the unwindowed latest-row reads (DECISIONS 166)", () => {
     // Through the real surface: the tripwire carries an age, not "never".
     const { computeTripwires } = await import("@/lib/tripwires");
     const view = computeTripwires(
-      { id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null, whatsapp_e164: null, relationship: null, city_label: null },
+      { id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null, whatsapp_e164: null, relationship: null, city_label: null, tz_changed_utc: null },
       "Asia/Kolkata",
       snapshot.signals,
       snapshot.latestPings,
@@ -293,7 +294,7 @@ describe("the unwindowed latest-row reads (DECISIONS 166)", () => {
 
     const { buildSetupEntries } = await import("@/lib/setupLinks");
     const [entry] = buildSetupEntries(
-      [{ id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null, whatsapp_e164: null, relationship: null, city_label: null }],
+      [{ id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null, whatsapp_e164: null, relationship: null, city_label: null, tz_changed_utc: null }],
       [],
       snapshot.latestPings,
       NOW,

@@ -39,6 +39,7 @@ const amma: Parent = {
   whatsapp_e164: null,
   relationship: "Mom",
   city_label: "Chennai",
+  tz_changed_utc: null,
 };
 
 const signals: ParentSignal[] = [
@@ -210,6 +211,50 @@ describe("seven dots, today on the right", () => {
     expect(dots.map((d) => d.kind)).toEqual([
       "none", "none", "none", "none", "quiet", "normal", "normal",
     ]);
+  });
+});
+
+describe("the changeover day's dot (spec 010 §3)", () => {
+  /**
+   * A parent moved to Chicago on 2 Aug, seen at 01:30 Chicago on 3 Aug.
+   * "Quiet" on the changeover day would be an artifact of the moved clock,
+   * so that day has exactly two readings: normal if any routine ping landed
+   * in ANY zone's version of the date, couldn't-hear if none did.
+   */
+  const moved: Parent = {
+    ...amma,
+    tz: CHICAGO,
+    tz_changed_utc: "2026-08-02T20:00:00Z", // 15:00 Chicago, 2 Aug
+  };
+  const dotsOf = (pings: Ping[]) =>
+    computeParentToday(moved, IST, signals, pings, latestOf(pings), NOON, CHICAGO)
+      .recentDots;
+  /** Yesterday in Chicago at NOON's instant — the changeover day's dot. */
+  const CHANGE_DOT = 5;
+
+  it("is never merely quiet: a non-alarm ping cannot soften the day", () => {
+    // On any other day this device_alive ping would read "a quiet start".
+    const dots = dotsOf([ping("device_alive", "2026-08-02T18:00:00Z")]);
+    expect(dots[CHANGE_DOT].kind).toBe("none");
+  });
+
+  it("reads normal from a routine ping in ANY zone's version of the date", () => {
+    // 01:00 Chicago on 3 Aug — outside the Chicago-local 2 Aug, inside the
+    // widest UTC span the calendar date can occupy. The widened window can
+    // only upgrade the day, the ruled direction.
+    const dots = dotsOf([ping("whatsapp", "2026-08-03T06:00:00Z")]);
+    expect(dots[CHANGE_DOT].kind).toBe("normal");
+  });
+
+  it("stays couldn't-hear when no routine ping landed anywhere", () => {
+    expect(dotsOf([])[CHANGE_DOT].kind).toBe("none");
+  });
+
+  it("leaves every other day's three-way reading alone", () => {
+    // The same device_alive ping, one day earlier: not the changeover day,
+    // so the ordinary "a quiet start" reading still applies there.
+    const dots = dotsOf([ping("device_alive", "2026-08-01T18:00:00Z")]);
+    expect(dots[CHANGE_DOT - 1].kind).toBe("quiet");
   });
 });
 

@@ -27,6 +27,7 @@ const REM_LAW_FILES = [
   "src/components/DayArc.tsx",
   "src/components/RecentDots.tsx",
   "src/components/NotesPanel.tsx",
+  "src/components/CityPicker.tsx",
 ];
 
 describe("all typography in rem (spec 009 §6)", () => {

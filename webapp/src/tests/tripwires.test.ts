@@ -35,6 +35,7 @@ const bare = {
   whatsapp_e164: null,
   relationship: null,
   city_label: null,
+  tz_changed_utc: null,
 };
 const amma: Parent = { id: "p1", family_id: "f1", display_name: "Amma", ...bare };
 const appa: Parent = { id: "p2", family_id: "f1", display_name: "Appa", ...bare };

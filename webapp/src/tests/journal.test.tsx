@@ -131,6 +131,7 @@ describe("scoping (spec 009 §4)", () => {
     whatsapp_e164: null,
     relationship: null,
     city_label: null,
+    tz_changed_utc: null,
   };
   const mom: Parent = { id: "p1", family_id: "f1", display_name: "Amma", ...bare, relationship: "Mom" };
   const dad: Parent = { id: "p2", family_id: "f1", display_name: "Appa", ...bare, relationship: "Dad" };
@@ -164,7 +165,8 @@ describe("scoping (spec 009 §4)", () => {
         todayDate={TODAY}
         onOpen={() => undefined}
         onAddNote={noop}
-        onSaveCity={noop}
+        onPickCity={noop}
+        onClearCity={noop}
       />,
     );
     const metas = screen.getAllByTestId("note-meta").map((n) => n.textContent ?? "");

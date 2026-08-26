@@ -16,13 +16,15 @@
  * family-authored content and are exempt the way the blog body is — the
  * fixtures here keep them benign so the scan exercises the chrome.
  */
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FamilyScreen } from "@/screens/Family";
 import { NoFamily } from "@/screens/NoFamily";
 import { ParentDetail } from "@/screens/ParentDetail";
 import { Today } from "@/screens/Today";
 import { computeParentToday, computeRollup } from "@/lib/parentState";
+import { CityPicker } from "@/components/CityPicker";
+import { CITIES, displayOf } from "@/lib/cities";
 import { SIGNAL_DISPLAY_NAMES } from "@/lib/signalNames";
 import { PRIVACY_FOOTER, SETUP_SEND_LABEL, STATE_QUIET } from "@/lib/copy";
 import type { JournalEntry, Member, Parent, ParentSignal, Ping } from "@/lib/types";
@@ -47,6 +49,7 @@ const parents: Parent[] = [
     whatsapp_e164: null,
     relationship: "Mom",
     city_label: "Chennai",
+    tz_changed_utc: null,
   },
   {
     id: "p2",
@@ -57,6 +60,7 @@ const parents: Parent[] = [
     whatsapp_e164: "+919876500000",
     relationship: "Dad",
     city_label: null,
+    tz_changed_utc: null,
   },
   {
     id: "p3",
@@ -67,6 +71,7 @@ const parents: Parent[] = [
     whatsapp_e164: null,
     relationship: "Grandma",
     city_label: null,
+    tz_changed_utc: null,
   },
 ];
 const members: Member[] = [
@@ -344,7 +349,8 @@ describe("rendered copy law", () => {
         todayDate={TODAY_DATE}
         onOpen={() => undefined}
         onAddNote={noop}
-        onSaveCity={noop}
+        onPickCity={noop}
+        onClearCity={noop}
       />,
     );
     const text = renderedText();
@@ -393,6 +399,17 @@ describe("rendered copy law", () => {
   it("holds for the no-family screen", () => {
     render(<NoFamily />);
     assertCopyLaw(renderedText());
+  });
+
+  it("holds for the open city picker, and for every option it could offer", () => {
+    // The rendered surface first: a typed query with the results open, the
+    // escape hatch included.
+    render(<CityPicker name="Amma" committed="" onPick={() => undefined} onClear={() => undefined} />);
+    fireEvent.change(screen.getByTestId("city-input"), { target: { value: "che" } });
+    assertCopyLaw(renderedText());
+    // Then the whole curated list, so a future city addition cannot smuggle a
+    // banned word or a digit past the one query a test happened to type.
+    assertCopyLaw(CITIES.map(displayOf).join(" "));
   });
 
   it("would catch a regression", () => {
