@@ -354,6 +354,69 @@ class Decision:
 #: operates them.
 OPS_SEND_FAILED = "outbound_failed"
 OPS_SEND_SKIPPED = "outbound_skipped"
+#: Spec 010 §3: a move must never be silent. One row per change, and the row
+#: doubles as the restart-proof dedupe and the next move's "old zone".
+OPS_TZ_CHANGED = "tz_changed"
+
+
+def first_new_zone_midnight(changed: datetime, tz_name: str) -> datetime:
+    """The first local midnight in the NEW zone after the change instant.
+
+    The changeover-conservatism window (spec 010 §3) ends here: until then a
+    shifted clock can fabricate a quiet morning, so the ask ladder holds its
+    tongue and the morning-quiet body is not used.
+    """
+    zone = ZoneInfo(tz_name)
+    next_day = changed.astimezone(zone).date() + timedelta(days=1)
+    return datetime(next_day.year, next_day.month, next_day.day, tzinfo=zone)
+
+
+def _previous_zone(last_alert: Any, family_tz: str) -> str:
+    """The old zone for the move alert's message.
+
+    A parent starts with tz null and inherits the family zone, so the first
+    move's old zone is the family's. Every later move reads the previous
+    alert's own message — the engine authored it in a pinned format, so the
+    parse is of our own writing, and a test holds the round trip.
+    """
+    if last_alert is None:
+        return family_tz
+    detail = last_alert["detail"]
+    if " → " in detail and " (city" in detail:
+        return detail.split(" → ", 1)[1].split(" (city", 1)[0]
+    return family_tz  # pragma: no cover - only our own format exists
+
+
+def _alert_tz_change_once(
+    conn: psycopg.Connection,
+    notifier: Notifier | None,
+    parent: Any,
+    tz_name: str,
+    now: datetime,
+) -> None:
+    """Spec 010 §3's founder alert, exactly once per change.
+
+    Deduped through ops_alerts rather than loop memory, so a scheduler
+    restart between the webapp write and the next cycle cannot swallow it.
+    """
+    changed = parent["tz_changed_utc"]
+    if changed is None:
+        return
+    last = db.latest_ops_alert(conn, parent["parent_id"], OPS_TZ_CHANGED)
+    if last is not None and last["ts_utc"] >= changed:
+        return
+    old = _previous_zone(last, parent["family_tz"])
+    city = parent["city_label"] or "unset"
+    message = (
+        f"{parent['parent_name']}: timezone changed {old} → {tz_name} "
+        f"(city {city}) via webapp."
+    )
+    db.insert_ops_alert(
+        conn, parent["family_id"], parent["parent_id"], OPS_TZ_CHANGED, message, now
+    )
+    if notifier is not None:
+        notifier.send(message)
+    log.warning("outbound: %s", message)
 
 
 def _record_outcome(
@@ -445,11 +508,20 @@ def run_outbound(
 
     decisions: list[Decision] = []
     for parent in db.parents_with_tz(conn):
+        # Read fresh from this cycle's query, never cached (spec 010 §3): the
+        # zone is load-bearing for every slot below, and a moved parent's
+        # digests fire at the NEW zone's clock from the next cycle onward.
         tz_name = effective_tz(parent["parent_tz"], parent["family_tz"])
         plan = schedule_for(now, tz_name)
         contacts = db.outbound_contacts(conn, parent["family_id"])
         child_address = (contacts or {}).get("child_email") or ""
         label = f"{parent['family_name']} / {parent['parent_name']}"
+
+        _alert_tz_change_once(conn, notifier, parent, tz_name, now)
+        tz_changed = parent["tz_changed_utc"]
+        in_changeover = tz_changed is not None and now < first_new_zone_midnight(
+            tz_changed, tz_name
+        )
 
         for decision in _due_for_parent(conn, parent, plan, now):
             def skip(
@@ -465,6 +537,31 @@ def run_outbound(
                     now,
                     alert=alert,
                 )
+
+            # Changeover conservatism (spec 010 §3): from the change until the
+            # first local midnight in the new zone, a shifted clock can
+            # fabricate a quiet morning. The ask ladder is suppressed whole,
+            # and the morning-quiet body is never chosen from moved-clock
+            # absence — digests still send when they report data actually
+            # seen. The skip goes through the standard alerting path on
+            # purpose: sent_messages has no detail column, so the ops_alerts
+            # row IS the durable detail the spec wants naming the timezone
+            # change, and a relocation day carries at most a handful of them.
+            if in_changeover and decision.kind in (KIND_ASK, KIND_FOLLOW_ON):
+                skip(
+                    f"{decision.template_id} for {label} suppressed until the "
+                    f"first local midnight in the new zone after the timezone "
+                    f"change to {tz_name} (spec 010)"
+                )
+                continue
+
+            if in_changeover and decision.template_id == "digest_morning_quiet":
+                skip(
+                    f"morning digest for {label} withheld: a quiet verdict "
+                    f"under a clock moved to {tz_name} is not evidence "
+                    f"(timezone change, spec 010)"
+                )
+                continue
 
             if (
                 decision.kind == KIND_DIGEST_MORNING

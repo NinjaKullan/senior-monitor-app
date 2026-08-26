@@ -187,6 +187,7 @@ def parents_with_tz(conn: psycopg.Connection) -> list[Row]:
         """
         select p.id as parent_id, p.display_name as parent_name, p.tz as parent_tz,
                p.relationship as relationship,
+               p.city_label as city_label, p.tz_changed_utc as tz_changed_utc,
                f.id as family_id, f.name as family_name, f.tz as family_tz
         from parents p
         join families f on f.id = p.family_id
@@ -576,6 +577,27 @@ def insert_ops_alert(
         """,
         (family_id, parent_id, kind, detail, ts_utc),
     )
+
+
+def latest_ops_alert(
+    conn: psycopg.Connection, parent_id: Any, kind: str
+) -> Row | None:
+    """The newest ops alert of one kind for one parent, or None.
+
+    Spec 010 §3's move alert reads this twice over: whether the change at
+    `tz_changed_utc` has already been announced (dedupe that survives a
+    restart, unlike loop memory), and what the previous announcement said the
+    zone became (the old zone of the next move).
+    """
+    return conn.execute(
+        """
+        select kind, detail, ts_utc from ops_alerts
+        where parent_id = %s and kind = %s
+        order by ts_utc desc, id desc
+        limit 1
+        """,
+        (parent_id, kind),
+    ).fetchone()
 
 
 def ops_alert_exists(
