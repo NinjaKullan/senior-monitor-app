@@ -120,55 +120,80 @@ describe("the three-state glyph", () => {
  */
 const base: ParentToday = {
   parentId: "p1",
-  name: "Amma",
+  label: "Mom",
   kind: "ordinary",
-  sentence: "Today looks like an ordinary day.",
-  meta: "Heard from at 8:12 am Amma's time.",
-  localTime: "12:00 pm",
-  localLine: "It's 12:00 pm Amma's time right now.",
-  aside: null,
-  dayRows: [
-    { part: "Morning", text: "An ordinary morning — heard from at 8:12 am.", dim: false },
-    { part: "Afternoon", text: "Quiet so far.", dim: false },
-    { part: "Evening", text: "Still to come.", dim: true },
+  sentence: "Today looks like a normal day.",
+  heard: "Heard from 12 minutes ago",
+  dualLine: "7:52 pm in Chennai · 10:22 am your time",
+  cityNow: "Chennai · 8:04 pm there now",
+  heroKicker: "Mom · Chennai",
+  heroSub: "7:52 pm in Chennai · 10:22 am your time · nine and a half hours ahead of you",
+  arcFraction: 0.82,
+  arcCells: [
+    { part: "Morning", text: "Heard from 7:19 am", dim: false },
+    { part: "Afternoon", text: "Heard from 12:07 pm", dim: false },
+    { part: "Evening", text: "Heard from 7:52 pm", dim: false },
   ],
-  recentDays: [{ day: "Yesterday", line: "An ordinary day." }],
-  tzNote: "The same time as yours.",
-  famSub: "The same time as yours",
-  setupLine: null,
-  tel: null,
-  callLabel: "Call Amma",
+  recentDots: [
+    { abbr: "Wed", kind: "normal" },
+    { abbr: "Thu", kind: "normal" },
+    { abbr: "Fri", kind: "normal" },
+    { abbr: "Sat", kind: "quiet" },
+    { abbr: "Sun", kind: "none" },
+    { abbr: "Mon", kind: "normal" },
+    { abbr: "Tue", kind: "normal" },
+  ],
+  meansHead: "No action needed.",
+  meansBody: "Mom's day looks like most days. Kettle will write if that changes.",
+  callHref: null,
+  callLabel: "Call Mom ↗",
+  viewLabel: "View Mom's day →",
+  aside: null,
+  tzNote: "Nine and a half hours ahead of you.",
+  famSub: "Nine and a half hours ahead of you",
   needsFix: false,
   timeZone: "Asia/Kolkata",
 };
 
+const detailProps = {
+  notes: [],
+  todayDate: "2026-08-26",
+  onBack: () => undefined,
+  onAddNote: async () => undefined,
+  onSteps: () => undefined,
+};
+
 describe("the parent detail's gates", () => {
   it("renders the Call button only when a number exists — never a dead button", () => {
-    const without = render(<ParentDetail state={base} onBack={() => undefined} />);
+    const without = render(<ParentDetail state={base} {...detailProps} />);
     expect(screen.queryByTestId("call-button")).toBeNull();
     without.unmount();
 
     render(
-      <ParentDetail state={{ ...base, tel: "tel:+919812345678" }} onBack={() => undefined} />,
+      <ParentDetail state={{ ...base, callHref: "tel:+919812345678" }} {...detailProps} />,
     );
     const button = screen.getByTestId("call-button");
     expect(button.getAttribute("href")).toBe("tel:+919812345678");
-    expect(button.textContent).toBe("Call Amma");
+    expect(button.textContent).toBe("Call Mom ↗");
   });
 
-  it("shows the fix card only when a tripwire has actually stopped reporting", () => {
-    const calm = render(<ParentDetail state={base} onBack={() => undefined} />);
+  it("shows the fix card only when something has actually stopped reporting", () => {
+    const calm = render(<ParentDetail state={base} {...detailProps} />);
     expect(screen.queryByTestId("fix-card")).toBeNull();
     calm.unmount();
 
-    render(<ParentDetail state={{ ...base, needsFix: true }} onBack={() => undefined} />);
-    expect(screen.getByTestId("fix-body").textContent).toBe(
-      "Something on Amma's phone may need a quick fix. It's a two-minute FaceTime.",
+    render(<ParentDetail state={{ ...base, needsFix: true }} {...detailProps} />);
+    // DECISIONS 172's body, split head/body at the sentence per the mockup —
+    // nothing reworded in the split.
+    expect(screen.getByTestId("fix-head").textContent).toBe(
+      "Something on Mom's phone may need a quick fix.",
     );
+    expect(screen.getByTestId("fix-body").textContent).toBe("It's a two-minute FaceTime.");
+    expect(screen.getByTestId("fix-steps").textContent).toBe("See the simple steps →");
   });
 
   it("keeps the unreachable aside out of the other states", () => {
-    const ordinary = render(<ParentDetail state={base} onBack={() => undefined} />);
+    const ordinary = render(<ParentDetail state={base} {...detailProps} />);
     expect(screen.queryByTestId("detail-aside")).toBeNull();
     ordinary.unmount();
 
@@ -179,12 +204,53 @@ describe("the parent detail's gates", () => {
           kind: "unreachable",
           aside: "A call still works fine — this is only about the phone.",
         }}
-        onBack={() => undefined}
+        {...detailProps}
       />,
     );
     expect(screen.getByTestId("detail-aside")).toBeInTheDocument();
     expect(screen.getByTestId("kettle-glyph").getAttribute("data-glyph-state")).toBe(
       "unreachable",
     );
+  });
+
+  it("draws the arc as one curve twice, with the dot on the reveal's end", () => {
+    // Spec 009 §3: never two different curves — both path elements carry an
+    // identical d, the reveal uses pathLength/dasharray, and the dot's
+    // coordinates come from the same quadratic at the same t.
+    render(<ParentDetail state={base} {...detailProps} />);
+    const svg = screen.getByTestId("day-arc-svg");
+    const paths = [...svg.querySelectorAll("path")];
+    expect(paths).toHaveLength(2);
+    expect(paths[0].getAttribute("d")).toBe(paths[1].getAttribute("d"));
+    expect(paths[1].getAttribute("pathLength")).toBe("100");
+    expect(paths[1].getAttribute("stroke-dasharray")).toBe("82.0 100");
+    const dot = svg.querySelector("circle")!;
+    // The mockup's own 82% point, to one decimal: (254.7, 35.3).
+    expect(dot.getAttribute("cx")).toBe("254.7");
+    expect(dot.getAttribute("cy")).toBe("35.3");
+  });
+
+  it("keeps every digit out of the dots panel — chips carry no tally", () => {
+    render(<ParentDetail state={base} {...detailProps} />);
+    const panel = screen.getByTestId("recent-panel");
+    expect(panel.textContent ?? "").not.toMatch(/\d/);
+    expect(screen.getAllByTestId("recent-dot")).toHaveLength(7);
+    // The legend is always visible, in words.
+    expect(panel.textContent).toContain("A normal day");
+    expect(panel.textContent).toContain("A quiet start");
+    expect(panel.textContent).toContain("Couldn't hear");
+  });
+
+  it("keeps the normal dot the only filled chip — never color alone", () => {
+    render(<ParentDetail state={base} {...detailProps} />);
+    for (const cell of screen.getAllByTestId("recent-dot")) {
+      const chip = cell.querySelector("span")!;
+      const style = chip.getAttribute("style") ?? "";
+      if (cell.getAttribute("data-dot-kind") === "normal") {
+        expect(style).toContain("background: var(--hearthfill)");
+      } else {
+        expect(style).toContain("background: none");
+      }
+    }
   });
 });

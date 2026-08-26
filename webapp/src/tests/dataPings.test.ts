@@ -101,6 +101,7 @@ vi.mock("@/lib/supabase", () => ({
 }));
 
 import {
+  JOURNAL_LIMIT_PER_SCOPE,
   PINGS_LIMIT_PER_PARENT,
   PINGS_WINDOW_DAYS,
   loadSnapshot,
@@ -120,11 +121,15 @@ function seedFamily(parentIds: string[]) {
     display_name: id,
     tz: null,
     phone_e164: null,
+    whatsapp_e164: null,
+    relationship: null,
+    city_label: null,
   }));
   tables.members = [];
   tables.parent_signals = [];
   tables.setup_links = [];
   tables.pings = [];
+  tables.journal_entries = [];
 }
 
 beforeEach(() => {
@@ -215,14 +220,33 @@ describe("the bounded pings read", () => {
   it("no other read grows past the cap, by construction or by bound", async () => {
     // The audit, as an assertion: every table the snapshot reads either has a
     // written cannot-grow reason in data.ts (families, parents, members,
-    // parent_signals, setup_links) or is the bounded pings read. A new table
-    // appearing here means the audit has to happen again.
+    // parent_signals, setup_links) or is a bounded read (pings, and since
+    // spec 009 journal_entries). A new table appearing here means the audit
+    // has to happen again.
     seedFamily(["p1"]);
     await loadSnapshot(NOW);
     const unbounded = executed.filter((call) => call.limit === null);
     expect(new Set(unbounded.map((call) => call.table))).toEqual(
       new Set(["families", "parents", "members", "parent_signals", "setup_links"]),
     );
+  });
+
+  it("reads the journal bounded per scope: family-wide and per parent, newest first", async () => {
+    // Spec 009 §4 under the DECISIONS 160 rule: journal_entries grows without
+    // bound, so its two scopes are each an ordered, limited read — truncation
+    // drops the OLDEST notes, never the one the family just wrote.
+    seedFamily(["p1", "p2"]);
+    await loadSnapshot(NOW);
+    const journalReads = executed.filter((call) => call.table === "journal_entries");
+    const familyWide = journalReads.filter((call) => !("parent_id" in call.eq));
+    const perParent = journalReads.filter((call) => "parent_id" in call.eq);
+    expect(familyWide).toHaveLength(1);
+    expect(perParent.map((call) => call.eq.parent_id).sort()).toEqual(["p1", "p2"]);
+    for (const read of journalReads) {
+      expect(read.order).toEqual({ column: "created_utc", ascending: false });
+      expect(read.limit).toBe(JOURNAL_LIMIT_PER_SCOPE);
+    }
+    expect(JOURNAL_LIMIT_PER_SCOPE).toBeLessThanOrEqual(SERVER_CAP);
   });
 });
 
@@ -252,7 +276,7 @@ describe("the unwindowed latest-row reads (DECISIONS 166)", () => {
     // Through the real surface: the tripwire carries an age, not "never".
     const { computeTripwires } = await import("@/lib/tripwires");
     const view = computeTripwires(
-      { id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null },
+      { id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null, whatsapp_e164: null, relationship: null, city_label: null },
       "Asia/Kolkata",
       snapshot.signals,
       snapshot.latestPings,
@@ -269,7 +293,7 @@ describe("the unwindowed latest-row reads (DECISIONS 166)", () => {
 
     const { buildSetupEntries } = await import("@/lib/setupLinks");
     const [entry] = buildSetupEntries(
-      [{ id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null }],
+      [{ id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null, whatsapp_e164: null, relationship: null, city_label: null }],
       [],
       snapshot.latestPings,
       NOW,

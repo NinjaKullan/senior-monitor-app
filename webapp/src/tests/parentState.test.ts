@@ -5,25 +5,29 @@
  * pure logic, no DOM — node says so out loud.
  */
 /**
- * The v5 state model (spec 008 §4) — computeParentToday as pure logic.
- *
- * The mapping under test: ordinary is an alarm-grade ping on the parent's
- * local today; quiet is none yet while the plumbing still reports; and
- * unreachable is *every* tripwire that ever reported gone stale — a sentence
- * about the phone, never the person. The edges that matter most are the ones
- * a lazy mapping would get wrong: a never-configured signal is a setup step
- * and must not read as silence, and one connected tripwire vetoes
- * unreachable however stale the others are.
+ * The spec 009 state model — computeParentToday and computeRollup as pure
+ * logic. The edges a lazy mapping would get wrong stay pinned from spec 008
+ * (never-configured is quiet, one connected tripwire vetoes unreachable),
+ * and the new surfaces get theirs: relative-time buckets including the
+ * 14-day boundary, the dual-clock line, rollup precedence, the arc's
+ * segments and fraction, seven dots with today on the right, and the call
+ * href's tel-then-wa.me-then-nothing ladder.
  */
 import { describe, expect, it } from "vitest";
-import { computeParentToday, tzNoteFor } from "@/lib/parentState";
-import type { Parent, ParentSignal, Ping, SetupLink } from "@/lib/types";
+import {
+  computeParentToday,
+  computeRollup,
+  joinNames,
+  tzNoteFor,
+} from "@/lib/parentState";
+import { renderHeard } from "@/lib/copy";
+import type { Parent, ParentSignal, Ping } from "@/lib/types";
 
 const IST = "Asia/Kolkata";
 const CHICAGO = "America/Chicago";
 /** 12:00 IST, Monday 3 August. */
 const NOON = new Date("2026-08-03T06:30:00Z");
-/** 20:00 IST the same day — every day part begun, evening unfinished. */
+/** 20:00 IST the same day — evening begun, not over. */
 const EVENING = new Date("2026-08-03T14:30:00Z");
 
 const amma: Parent = {
@@ -32,6 +36,9 @@ const amma: Parent = {
   display_name: "Amma",
   tz: null,
   phone_e164: "+919812345678",
+  whatsapp_e164: null,
+  relationship: "Mom",
+  city_label: "Chennai",
 };
 
 const signals: ParentSignal[] = [
@@ -39,7 +46,6 @@ const signals: ParentSignal[] = [
   { parent_id: "p1", signal: "device_alive", alarm_grade: false, active: true },
 ];
 
-/** Newest per (parent, signal) — the shape the snapshot's latest set carries. */
 function latestOf(pings: Ping[]): Ping[] {
   const newest = new Map<string, Ping>();
   for (const ping of pings) {
@@ -54,13 +60,8 @@ const ping = (signal: string, ts_utc: string): Ping => ({ parent_id: "p1", signa
 
 const stateOf = (
   pings: Ping[],
-  {
-    now = NOON,
-    parent = amma,
-    links = [] as SetupLink[],
-    viewerTz = CHICAGO,
-  } = {},
-) => computeParentToday(parent, IST, signals, pings, latestOf(pings), links, now, viewerTz);
+  { now = NOON, parent = amma, viewerTz = CHICAGO } = {},
+) => computeParentToday(parent, IST, signals, pings, latestOf(pings), now, viewerTz);
 
 /** This morning, 8:12 am IST. */
 const MORNING_PING = ping("whatsapp", "2026-08-03T02:42:00Z");
@@ -71,160 +72,227 @@ const OLD_WHATSAPP = ping("whatsapp", "2026-07-24T05:30:00Z");
 /** Three days stale against device_alive's 26-hour cadence. */
 const OLD_DEVICE = ping("device_alive", "2026-07-31T06:30:00Z");
 
-describe("the three states", () => {
-  it("an alarm-grade ping today is an ordinary day", () => {
+describe("the three states, and the words they wear now", () => {
+  it("an alarm-grade ping today is a normal day", () => {
     const state = stateOf([MORNING_PING]);
     expect(state.kind).toBe("ordinary");
-    expect(state.sentence).toBe("Today looks like an ordinary day.");
+    expect(state.sentence).toBe("Today looks like a normal day.");
     expect(state.aside).toBeNull();
   });
 
   it("nothing yet today, tripwires still reporting: quiet", () => {
-    const state = stateOf([YESTERDAY_PING]);
-    expect(state.kind).toBe("quiet");
-    expect(state.sentence).toBe("Quiet so far today.");
+    expect(stateOf([YESTERDAY_PING]).sentence).toBe("Quiet so far today.");
   });
 
-  it("every tripwire that ever reported gone stale: unreachable, about the phone", () => {
+  it("every tripwire gone stale: unreachable, named by the family label", () => {
     const state = stateOf([OLD_WHATSAPP, OLD_DEVICE]);
     expect(state.kind).toBe("unreachable");
-    expect(state.sentence).toBe("Kettle can't hear from Amma's phone right now.");
-    expect(state.aside).toBe("A call still works fine — this is only about the phone.");
+    expect(state.sentence).toBe("Kettle can't hear from Mom's phone right now.");
   });
 
   it("a phone the server has never heard from is quiet, not unreachable", () => {
-    // Never-configured is a setup step (spec 005d's ruling, carried forward):
-    // a family's first minutes in the app must not open with the darkest state.
     const state = stateOf([]);
     expect(state.kind).toBe("quiet");
-    expect(state.meta).toBe("Nothing has reached Kettle yet.");
+    expect(state.heard).toBe("Nothing has reached Kettle yet.");
     expect(state.needsFix).toBe(false);
   });
 
   it("one connected tripwire vetoes unreachable, however stale the rest", () => {
     const state = stateOf([OLD_WHATSAPP, ping("device_alive", "2026-08-03T01:00:00Z")]);
     expect(state.kind).toBe("quiet");
-    // The stale one still asks for its two-minute fix.
     expect(state.needsFix).toBe(true);
   });
 });
 
-describe("the last-heard meta", () => {
-  it("today, with a clock time on the parent's clock", () => {
-    expect(stateOf([MORNING_PING]).meta).toBe("Heard from at 8:12 am Amma's time.");
+describe("the relative-time buckets (spec 009 §2)", () => {
+  const MIN = 60_000;
+  it("moments, minutes, hours, days, then the DECISIONS 166 form", () => {
+    expect(renderHeard(0)).toBe("Heard from moments ago");
+    expect(renderHeard(1 * MIN + 59_000)).toBe("Heard from moments ago");
+    expect(renderHeard(2 * MIN)).toBe("Heard from 2 minutes ago");
+    expect(renderHeard(59 * MIN)).toBe("Heard from 59 minutes ago");
+    expect(renderHeard(60 * MIN)).toBe("Heard from 1 hour ago");
+    expect(renderHeard(2 * 60 * MIN)).toBe("Heard from 2 hours ago");
+    expect(renderHeard(23 * 60 * MIN)).toBe("Heard from 23 hours ago");
+    expect(renderHeard(24 * 60 * MIN)).toBe("Heard from 1 day ago");
+    expect(renderHeard(6 * 24 * 60 * MIN)).toBe("Heard from 6 days ago");
+    // The 14-day boundary: the window's last day keeps the relative form,
+    // one past it moves to the standing beyond-window wording.
+    expect(renderHeard(14 * 24 * 60 * MIN)).toBe("Heard from 14 days ago");
+    expect(renderHeard(15 * 24 * 60 * MIN)).toBe("Last heard from 15 days ago.");
   });
 
-  it("yesterday, still at clock grain", () => {
-    expect(stateOf([YESTERDAY_PING]).meta).toBe(
-      "Last heard from yesterday at 11:00 am Amma's time.",
+  it("dates the unreachable silence as in-N-days, singular included", () => {
+    expect(stateOf([OLD_WHATSAPP, OLD_DEVICE]).heard).toBe(
+      "Nothing has reached Kettle in 3 days.",
+    );
+    const oneDay = [
+      ping("whatsapp", "2026-07-24T05:30:00Z"),
+      ping("device_alive", "2026-08-02T04:00:00Z"),
+    ];
+    expect(stateOf(oneDay).heard).toBe("Nothing has reached Kettle in 1 day.");
+  });
+});
+
+describe("clocks and cities", () => {
+  it("writes the dual line from the heard instant on both clocks", () => {
+    // 02:42Z is 8:12 am in Chennai and 9:42 pm the previous evening in
+    // Chicago (CDT, UTC-5).
+    expect(stateOf([MORNING_PING]).dualLine).toBe("8:12 am in Chennai · 9:42 pm your time");
+  });
+
+  it("falls back to the name's clock when no city label exists", () => {
+    const unlabeled = { ...amma, city_label: null };
+    const state = stateOf([MORNING_PING], { parent: unlabeled });
+    expect(state.dualLine).toBe("8:12 am Mom's time · 9:42 pm your time");
+    expect(state.cityNow).toBe("12:00 pm Mom's time");
+    expect(state.heroKicker).toBe("Mom");
+  });
+
+  it("says where and what time it is there now on the card", () => {
+    const state = stateOf([MORNING_PING]);
+    expect(state.cityNow).toBe("Chennai · 12:00 pm there now");
+    expect(state.heroKicker).toBe("Mom · Chennai");
+  });
+
+  it("joins the hero sub with middots and the offset in lowercase words", () => {
+    expect(stateOf([MORNING_PING]).heroSub).toBe(
+      "8:12 am in Chennai · 9:42 pm your time · ten and a half hours ahead of you",
     );
   });
 
-  it("beyond yesterday, day words only — no clock time to argue over", () => {
-    // A connected device_alive keeps this quiet rather than unreachable; the
-    // meta still reaches back to the last *alarm-grade* word.
-    const state = stateOf([OLD_WHATSAPP, ping("device_alive", "2026-08-03T01:00:00Z")]);
-    expect(state.meta).toBe("Last heard from 10 days ago.");
-  });
-
-  it("unreachable dates the silence from the newest ping of any grade", () => {
-    expect(stateOf([OLD_WHATSAPP, OLD_DEVICE]).meta).toBe(
-      "Nothing has reached Kettle since 3 days ago.",
-    );
-  });
-});
-
-describe("the day in words", () => {
-  it("names the heard stretch, hedges the current one, dims the future", () => {
-    const rows = stateOf([MORNING_PING]).dayRows;
-    expect(rows).toEqual([
-      { part: "Morning", text: "An ordinary morning — heard from at 8:12 am.", dim: false },
-      { part: "Afternoon", text: "Quiet so far.", dim: false },
-      { part: "Evening", text: "Still to come.", dim: true },
-    ]);
-  });
-
-  it("passes verdicts only on finished stretches", () => {
-    // 8 pm, nothing all day: morning and afternoon are over and simply quiet;
-    // the evening is still being stood in and only gets "so far".
-    const rows = stateOf([YESTERDAY_PING], { now: EVENING }).dayRows;
-    expect(rows.map((r) => r.text)).toEqual(["Quiet.", "Quiet.", "Quiet so far."]);
-  });
-
-  it("keeps the morning's warmer sentence for the morning alone", () => {
-    // 1:00 pm IST ping, read in the evening: the afternoon row carries the
-    // plain form, not "An ordinary morning".
-    const rows = stateOf([ping("whatsapp", "2026-08-03T07:30:00Z")], { now: EVENING }).dayRows;
-    expect(rows[1].text).toBe("Heard from at 1:00 pm.");
-  });
-
-  it("says only that nothing reached Kettle when the phone is unreachable", () => {
-    const rows = stateOf([OLD_WHATSAPP, OLD_DEVICE]).dayRows;
-    expect(rows[0]).toEqual({ part: "Morning", text: "Nothing has reached Kettle.", dim: true });
-    expect(rows[2]).toEqual({ part: "Evening", text: "Still to come.", dim: true });
-  });
-});
-
-describe("recent days", () => {
-  it("renders five days back, each in one of three honest lines", () => {
-    const recent = stateOf([
-      MORNING_PING,
-      YESTERDAY_PING, // alarm-grade: an ordinary day
-      ping("device_alive", "2026-08-01T06:30:00Z"), // pings, no routine: quiet
-      // 31 July and 30 July: nothing at all
-    ]).recentDays;
-    expect(recent).toEqual([
-      { day: "Yesterday", line: "An ordinary day." },
-      { day: "Saturday", line: "A quiet day." },
-      { day: "Friday", line: "Nothing reached Kettle." },
-      { day: "Thursday", line: "Nothing reached Kettle." },
-      { day: "Wednesday", line: "Nothing reached Kettle." },
-    ]);
-  });
-});
-
-describe("the clock difference, in words", () => {
-  it("says nothing numeric in either direction", () => {
+  it("keeps the offset-in-words fallback vague rather than wrong", () => {
     expect(tzNoteFor(IST, IST, NOON)).toBe("The same time as yours.");
-    expect(tzNoteFor(IST, CHICAGO, NOON)).toBe("Ten and a half hours ahead of you.");
-    expect(tzNoteFor(CHICAGO, IST, NOON)).toBe("Ten and a half hours behind you.");
-  });
-
-  it("falls back to a plain sentence rather than a wrong word", () => {
-    // Kathmandu is +5:45 — 10¾ hours from Chicago, a shape the word list
-    // cannot carry. The fallback is vague on purpose; vague beats wrong.
     expect(tzNoteFor("Asia/Kathmandu", CHICAGO, NOON)).toBe("A different clock from yours.");
   });
+});
 
-  it("drops the full stop for the Family list's sub-line", () => {
-    expect(stateOf([MORNING_PING]).famSub).toBe("Ten and a half hours ahead of you");
+describe("the day as a shape (spec 009 §3)", () => {
+  it("reveals the fraction of the parent's local day elapsed", () => {
+    // 12:00 noon local is exactly half the day.
+    expect(stateOf([MORNING_PING]).arcFraction).toBeCloseTo(0.5, 5);
+    expect(stateOf([MORNING_PING], { now: EVENING }).arcFraction).toBeCloseTo(20 / 24, 5);
+  });
+
+  it("captions segments with the LAST heard time, hedges the current, dims the future", () => {
+    const twoMorning = [MORNING_PING, ping("whatsapp", "2026-08-03T01:40:00Z")];
+    const cells = stateOf(twoMorning).arcCells;
+    expect(cells).toEqual([
+      { part: "Morning", text: "Heard from 8:12 am", dim: false },
+      { part: "Afternoon", text: "Quiet so far", dim: false },
+      { part: "Evening", text: "Still ahead", dim: true },
+    ]);
+  });
+
+  it("calls only a finished stretch simply quiet", () => {
+    const cells = stateOf([YESTERDAY_PING], { now: EVENING }).arcCells;
+    expect(cells.map((c) => c.text)).toEqual(["Quiet", "Quiet", "Quiet so far"]);
+  });
+
+  it("splits afternoon from evening at six, not five", () => {
+    // 5:30 pm IST ping lands in the AFTERNOON cell (spec 009 moved the
+    // boundary to 6 pm from spec 005c's five).
+    const cells = stateOf([ping("whatsapp", "2026-08-03T12:00:00Z")], { now: EVENING }).arcCells;
+    expect(cells[1].text).toBe("Heard from 5:30 pm");
+    expect(cells[2].text).toBe("Quiet so far");
   });
 });
 
-describe("about and the call button", () => {
-  const link = (created_utc: string): SetupLink => ({
-    parent_id: "p1",
-    slug: "slug000000000000000000A1",
-    created_utc,
-    expires_utc: "2026-08-01T00:00:00Z",
-    revoked_utc: null,
+describe("seven dots, today on the right", () => {
+  it("classifies each of the seven days and never counts", () => {
+    const dots = stateOf([
+      MORNING_PING, // today: normal
+      YESTERDAY_PING, // yesterday: normal
+      ping("device_alive", "2026-08-01T06:30:00Z"), // Saturday: a quiet start
+    ]).recentDots;
+    expect(dots).toHaveLength(7);
+    expect(dots.map((d) => d.abbr)).toEqual(["Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Mon"]);
+    expect(dots.map((d) => d.kind)).toEqual([
+      "none", "none", "none", "none", "quiet", "normal", "normal",
+    ]);
+  });
+});
+
+describe("what this means, per state", () => {
+  it("normal", () => {
+    const state = stateOf([MORNING_PING]);
+    expect(state.meansHead).toBe("No action needed.");
+    expect(state.meansBody).toBe("Mom's day looks like most days. Kettle will write if that changes.");
+  });
+  it("quiet", () => {
+    const state = stateOf([YESTERDAY_PING]);
+    expect(state.meansHead).toBe("Nothing to do yet.");
+    expect(state.meansBody).toBe("Kettle will check in with Mom first if the quiet continues.");
+  });
+  it("unreachable reuses the standing guidance", () => {
+    const state = stateOf([OLD_WHATSAPP, OLD_DEVICE]);
+    expect(state.meansHead).toBe("Worth a look.");
+    expect(state.meansBody).toBe("A call still works fine — this is only about the phone.");
+  });
+});
+
+describe("the call href ladder", () => {
+  it("tel: first, wa.me when only WhatsApp exists, nothing when neither", () => {
+    expect(stateOf([MORNING_PING]).callHref).toBe("tel:+919812345678");
+    expect(
+      stateOf([MORNING_PING], {
+        parent: { ...amma, phone_e164: null, whatsapp_e164: "+91 98765 00000" },
+      }).callHref,
+    ).toBe("https://wa.me/919876500000");
+    expect(
+      stateOf([MORNING_PING], { parent: { ...amma, phone_e164: null, whatsapp_e164: null } })
+        .callHref,
+    ).toBeNull();
+    expect(stateOf([MORNING_PING]).callLabel).toBe("Call Mom ↗");
+    expect(stateOf([MORNING_PING]).viewLabel).toBe("View Mom's day →");
+  });
+});
+
+describe("the rollup (spec 009 §2)", () => {
+  const dad: Parent = { ...amma, id: "p2", display_name: "Appa", relationship: "Dad" };
+  const dadSignals: ParentSignal[] = [
+    { parent_id: "p2", signal: "whatsapp", alarm_grade: true, active: true },
+  ];
+  const both = [...signals, ...dadSignals];
+  const dadPing = (ts: string): Ping => ({ parent_id: "p2", signal: "whatsapp", ts_utc: ts });
+
+  const pairAt = (pings: Ping[], now = NOON) =>
+    [amma, dad].map((p) =>
+      computeParentToday(p, IST, both, pings, latestOf(pings), now, CHICAGO),
+    );
+
+  it("says everything looks normal only when everyone does", () => {
+    const states = pairAt([MORNING_PING, dadPing("2026-08-03T03:00:00Z")]);
+    expect(computeRollup(states, IST, NOON).line).toBe("Everything looks normal today.");
   });
 
-  it("dates the setup from the earliest link, month only", () => {
-    const state = stateOf([MORNING_PING], {
-      links: [link("2026-07-02T00:00:00Z"), link("2026-05-10T00:00:00Z")],
-    });
-    expect(state.setupLine).toBe("The phone was set up in May.");
+  it("names the quiet parent, and both when both are quiet", () => {
+    const oneQuiet = pairAt([MORNING_PING, dadPing("2026-08-02T05:30:00Z")]);
+    expect(computeRollup(oneQuiet, IST, NOON).line).toBe("Quiet so far for Dad.");
+    const bothQuiet = pairAt([YESTERDAY_PING, dadPing("2026-08-02T05:30:00Z")]);
+    expect(computeRollup(bothQuiet, IST, NOON).line).toBe("Quiet so far for Mom and Dad.");
   });
 
-  it("says nothing about setup when no link ever existed", () => {
-    expect(stateOf([MORNING_PING]).setupLine).toBeNull();
+  it("lets unreachable outrank quiet", () => {
+    const states = pairAt([OLD_WHATSAPP, OLD_DEVICE, dadPing("2026-08-02T05:30:00Z")]);
+    expect(computeRollup(states, IST, NOON).line).toBe(
+      "Kettle can't hear from Mom's phone right now.",
+    );
   });
 
-  it("builds the tel: href only when a number exists (DECISIONS 167)", () => {
-    expect(stateOf([MORNING_PING]).tel).toBe("tel:+919812345678");
-    expect(stateOf([MORNING_PING]).callLabel).toBe("Call Amma");
-    const unlisted = stateOf([MORNING_PING], { parent: { ...amma, phone_e164: null } });
-    expect(unlisted.tel).toBeNull();
+  it("flips the next-note line on the family-local evening digest slot", () => {
+    const states = pairAt([MORNING_PING, dadPing("2026-08-03T03:00:00Z")]);
+    // 12:00 IST: the evening note is still ahead.
+    expect(computeRollup(states, IST, NOON).sub).toBe("Next note this evening.");
+    // 21:00 IST: past 20:30, the next note is the morning's.
+    expect(computeRollup(states, IST, new Date("2026-08-03T15:30:00Z")).sub).toBe(
+      "Next note in the morning.",
+    );
+  });
+
+  it("joins names in words, never a count", () => {
+    expect(joinNames(["Mom"])).toBe("Mom");
+    expect(joinNames(["Mom", "Dad"])).toBe("Mom and Dad");
+    expect(joinNames(["Mom", "Dad", "Grandma"])).toBe("Mom, Dad and Grandma");
   });
 });

@@ -22,7 +22,6 @@ import {
   recencyFor,
 } from "@/lib/tripwires";
 import * as copy from "@/lib/copy";
-import { renderRecency } from "@/lib/copy";
 import type { Parent, ParentSignal, Ping } from "@/lib/types";
 
 const IST = "Asia/Kolkata";
@@ -30,8 +29,15 @@ const HOUR = 3_600_000;
 /** 19:00 IST on 3 Aug. */
 const NOW = new Date("2026-08-03T13:30:00Z");
 
-const amma: Parent = { id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null };
-const appa: Parent = { id: "p2", family_id: "f1", display_name: "Appa", tz: null, phone_e164: null };
+const bare = {
+  tz: null,
+  phone_e164: null,
+  whatsapp_e164: null,
+  relationship: null,
+  city_label: null,
+};
+const amma: Parent = { id: "p1", family_id: "f1", display_name: "Amma", ...bare };
+const appa: Parent = { id: "p2", family_id: "f1", display_name: "Appa", ...bare };
 
 const signals: ParentSignal[] = [
   { parent_id: "p1", signal: "whatsapp", alarm_grade: true, active: true },
@@ -87,8 +93,10 @@ describe("health against the expected cadence", () => {
   it("keeps an app signal connected at three days — a quiet app is not a broken one", () => {
     const row = rowFor([ago("news", 72)], "news");
     expect(row.health).toBe("connected");
+    // Day granularity and no finer: the recency itself is the fact. (Its
+    // rendered form retired with the tripwire rows; spec 009's relative
+    // vocabulary lives in copy.renderHeard now.)
     expect(row.recency).toEqual({ kind: "days", days: 3 });
-    expect(renderRecency("days", row.recency.days)).toBe("3 days ago");
   });
 
   it("calls an app signal stale past its generous window", () => {
@@ -104,15 +112,11 @@ describe("health against the expected cadence", () => {
   });
 
   it("has no word for never — the vocabulary cannot render one", () => {
-    // The founder's on-device round removed it: `never` beside `Not set up yet`
-    // was redundant and read as a verdict. Deleted from copy.ts rather than left
-    // uncalled, and the parameter type is what keeps it deleted — a caller that
-    // reaches for it fails to compile, so this is asserted at the module.
-    expect(Object.keys(copy).filter((name) => name.startsWith("RECENCY_"))).toEqual([
-      "RECENCY_TODAY",
-      "RECENCY_YESTERDAY",
-      "RECENCY_DAYS",
-    ]);
+    // The founder's on-device round removed `never` (it read as a verdict),
+    // and spec 009 retired the RECENCY_ vocabulary whole with the tripwire
+    // rows — the relative forms live in renderHeard now. Both stay deleted
+    // from the module rather than merely uncalled.
+    expect(Object.keys(copy).filter((name) => name.startsWith("RECENCY_"))).toEqual([]);
     expect(Object.values(copy)).not.toContain("never");
   });
 

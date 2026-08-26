@@ -21,9 +21,16 @@ import type { Parent, Ping, SetupLink } from "@/lib/types";
 import { SETUP_SEND_LABEL } from "@/lib/copy";
 
 const NOW = new Date("2026-08-16T12:00:00Z");
+const bare = {
+  tz: null,
+  phone_e164: null,
+  whatsapp_e164: null,
+  relationship: null,
+  city_label: null,
+};
 const parents: Parent[] = [
-  { id: "p1", family_id: "f1", display_name: "Amma", tz: null, phone_e164: null },
-  { id: "p2", family_id: "f1", display_name: "Appa", tz: null, phone_e164: null },
+  { id: "p1", family_id: "f1", display_name: "Amma", ...bare },
+  { id: "p2", family_id: "f1", display_name: "Appa", ...bare },
 ];
 
 const liveLink = (parent_id: string, slug: string, created = "2026-08-15T00:00:00Z"): SetupLink => ({
@@ -92,12 +99,21 @@ describe("the Family screen's setup card", () => {
     NOW,
   );
 
+  const shared = {
+    parentStates: [],
+    cities: {},
+    members: [],
+    journal: [],
+    todayDate: "2026-08-16",
+    onOpen: () => undefined,
+    onAddNote: async () => undefined,
+    onSaveCity: async () => undefined,
+  };
+
   function renderCard() {
     // The setup card is what these tests exercise; the parents list above it
     // renders from precomputed states and gets an empty list here.
-    return render(
-      <FamilyScreen parentStates={[]} members={[]} setupEntries={entries} onOpen={() => undefined} />,
-    );
+    return render(<FamilyScreen {...shared} setupEntries={entries} />);
   }
 
   it("labels each parent's state and offers the share link", () => {
@@ -126,9 +142,7 @@ describe("the Family screen's setup card", () => {
 
     render(
       <FamilyScreen
-        parentStates={[]}
-        members={[]}
-        onOpen={() => undefined}
+        {...shared}
         setupEntries={buildSetupEntries(
           [parents[0]],
           [],
