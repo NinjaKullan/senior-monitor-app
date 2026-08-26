@@ -166,13 +166,46 @@ export async function addJournalEntry(entry: {
   if (error) throw error;
 }
 
-/** The display-only city label (spec 009 §5). The grant is column-scoped
+/** Clearing the field clears the label ONLY and never touches tz
+ *  (spec 010 §1); also the spec-009 label write. Column-scoped grants
  *  server-side: nothing else on parents is writable from here. */
 export async function saveCityLabel(parentId: string, cityLabel: string | null): Promise<void> {
   const { error } = await supabase
     .from("parents")
     .update({ city_label: cityLabel })
     .eq("id", parentId);
+  if (error) throw error;
+}
+
+/**
+ * The one write a pick performs (spec 010 §1): label and zone together, and
+ * tz_changed_utc stamped when — and only when — the zone actually changed.
+ * Pure, so the only-when-changed rule is testable without a client: the
+ * "current" zone is the EFFECTIVE one (parent.tz, else the family's), so
+ * picking a city in the zone a parent already inherits does not fabricate a
+ * changeover window over a clock that never moved.
+ */
+export function placeUpdate(
+  currentTz: string | null,
+  familyTz: string,
+  entry: { city: string; iana: string },
+  nowIso: string,
+): { city_label: string; tz: string; tz_changed_utc?: string } {
+  const changed = entry.iana !== (currentTz ?? familyTz);
+  return {
+    city_label: entry.city,
+    tz: entry.iana,
+    ...(changed ? { tz_changed_utc: nowIso } : {}),
+  };
+}
+
+/** Apply one pick. The zone is validated against the shipped list by the
+ *  caller (cities.isKnownIana) before this is ever reached. */
+export async function savePlace(
+  parentId: string,
+  update: { city_label: string; tz: string; tz_changed_utc?: string },
+): Promise<void> {
+  const { error } = await supabase.from("parents").update(update).eq("id", parentId);
   if (error) throw error;
 }
 

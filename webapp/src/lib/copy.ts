@@ -132,6 +132,14 @@ export const NOTE_TAG_LABEL = "Who this note is about";
 
 export const CITY_FIELD_LABEL = "City";
 export const CITY_MAX_CHARS = 40;
+/** Spec 010 §1, verbatim: the picker's placeholder and its quiet escape
+ *  hatch. No raw timezone name is ever shown anywhere. */
+export const CITY_PLACEHOLDER = "Where {name} lives";
+export const CITY_ESCAPE_HATCH = "Can't find it? Pick the nearest big city.";
+/** Spec 010 §4 (ruled BUILD): the journal remembers the move, authored by
+ *  the product itself. */
+export const AUTO_NOTE_AUTHOR = "Kettle";
+export const CITY_CHANGED_NOTE = "{name}'s city changed to {city}.";
 
 /* ---------------------------------------------------------------------- */
 /* Chrome                                                                   */

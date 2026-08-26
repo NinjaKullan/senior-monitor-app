@@ -21,9 +21,13 @@ export interface Parent {
    *  vocabulary, now the card's name line (spec 009 §2). Null falls back to
    *  display_name. */
   relationship: string | null;
-  /** Kid-entered, display-only orientation (spec 009 §5); the timezone is
-   *  not editable through it. */
+  /** The city picked for this parent (spec 010: the city IS the timezone
+   *  control — picking one writes label and tz together). */
   city_label: string | null;
+  /** When the zone last actually changed (spec 010): the engine's
+   *  changeover-conservatism clock, and the webapp's changeover-day marker
+   *  for the Recent-days dots. */
+  tz_changed_utc: string | null;
 }
 
 /** A family note (spec 009 §4): plain text, an optional date, an optional

@@ -6,6 +6,9 @@
 *.db
 *.sqlite*
 data/
+# …but the webapp's curated city list is SOURCE, not pilot data (spec 010):
+# without this exception a fresh clone cannot build the picker.
+!webapp/src/data/
 
 # Python
 __pycache__/

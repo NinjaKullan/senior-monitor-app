@@ -1,0 +1,1772 @@
+[
+{
+"city": "Mumbai",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Delhi",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Bengaluru",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Chennai",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Hyderabad",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Kolkata",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Pune",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Ahmedabad",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Jaipur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Surat",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Lucknow",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Kanpur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Nagpur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Indore",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Thane",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Bhopal",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Visakhapatnam",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Patna",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Vadodara",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Ghaziabad",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Ludhiana",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Agra",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Nashik",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Faridabad",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Meerut",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Rajkot",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Varanasi",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Srinagar",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Aurangabad",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Dhanbad",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Amritsar",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Navi Mumbai",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Prayagraj",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Ranchi",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Coimbatore",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Jabalpur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Gwalior",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Vijayawada",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Jodhpur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Madurai",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Raipur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Kota",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Guwahati",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Chandigarh",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Thiruvananthapuram",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Solapur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Hubballi",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Tiruchirappalli",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Bareilly",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Mysuru",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Tiruppur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Gurugram",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Noida",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Jalandhar",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Bhubaneswar",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Salem",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Warangal",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Kochi",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Gorakhpur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Guntur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Bhiwandi",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Saharanpur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Bikaner",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Amravati",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Jamshedpur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Bhilai",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Cuttack",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Firozabad",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Kozhikode",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Dehradun",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Durgapur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Ajmer",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Ulhasnagar",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Siliguri",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Jhansi",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Jammu",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Mangaluru",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Erode",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Belagavi",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Tirunelveli",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Malegaon",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Gaya",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Udaipur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Kollam",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Puducherry",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Shimla",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Vellore",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Thanjavur",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Tirupati",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Nellore",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Kurnool",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Rajahmundry",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Kakinada",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Panaji",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Shillong",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Imphal",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Aizawl",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Agartala",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Gangtok",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Kohima",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "Itanagar",
+"country": "India",
+"iana": "Asia/Kolkata"
+},
+{
+"city": "New York",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Los Angeles",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Chicago",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Houston",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Phoenix",
+"country": "United States",
+"iana": "America/Phoenix"
+},
+{
+"city": "Philadelphia",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "San Antonio",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "San Diego",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Dallas",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Austin",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Jacksonville",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Fort Worth",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Columbus",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Charlotte",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "San Francisco",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Indianapolis",
+"country": "United States",
+"iana": "America/Indiana/Indianapolis"
+},
+{
+"city": "Seattle",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Denver",
+"country": "United States",
+"iana": "America/Denver"
+},
+{
+"city": "Washington",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Boston",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "El Paso",
+"country": "United States",
+"iana": "America/Denver"
+},
+{
+"city": "Nashville",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Detroit",
+"country": "United States",
+"iana": "America/Detroit"
+},
+{
+"city": "Oklahoma City",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Portland",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Las Vegas",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Memphis",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Louisville",
+"country": "United States",
+"iana": "America/Kentucky/Louisville"
+},
+{
+"city": "Baltimore",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Milwaukee",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Albuquerque",
+"country": "United States",
+"iana": "America/Denver"
+},
+{
+"city": "Tucson",
+"country": "United States",
+"iana": "America/Phoenix"
+},
+{
+"city": "Fresno",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Sacramento",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Mesa",
+"country": "United States",
+"iana": "America/Phoenix"
+},
+{
+"city": "Kansas City",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Atlanta",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Omaha",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Colorado Springs",
+"country": "United States",
+"iana": "America/Denver"
+},
+{
+"city": "Raleigh",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Miami",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Long Beach",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Virginia Beach",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Oakland",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Minneapolis",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Tampa",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Tulsa",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Arlington",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "New Orleans",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Wichita",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Cleveland",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Bakersfield",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Aurora",
+"country": "United States",
+"iana": "America/Denver"
+},
+{
+"city": "Anaheim",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Honolulu",
+"country": "United States",
+"iana": "Pacific/Honolulu"
+},
+{
+"city": "Santa Ana",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Riverside",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Corpus Christi",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Lexington",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Stockton",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Henderson",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "St. Paul",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "St. Louis",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Cincinnati",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Pittsburgh",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Greensboro",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Anchorage",
+"country": "United States",
+"iana": "America/Anchorage"
+},
+{
+"city": "Plano",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Lincoln",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Orlando",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Irvine",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Newark",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Durham",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Chula Vista",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Toledo",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Fort Wayne",
+"country": "United States",
+"iana": "America/Indiana/Indianapolis"
+},
+{
+"city": "St. Petersburg",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Laredo",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Jersey City",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Chandler",
+"country": "United States",
+"iana": "America/Phoenix"
+},
+{
+"city": "Madison",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Lubbock",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Scottsdale",
+"country": "United States",
+"iana": "America/Phoenix"
+},
+{
+"city": "Reno",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Buffalo",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Gilbert",
+"country": "United States",
+"iana": "America/Phoenix"
+},
+{
+"city": "Glendale",
+"country": "United States",
+"iana": "America/Phoenix"
+},
+{
+"city": "North Las Vegas",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Winston-Salem",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Chesapeake",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Norfolk",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Fremont",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Garland",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Irving",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Hialeah",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Richmond",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Boise",
+"country": "United States",
+"iana": "America/Boise"
+},
+{
+"city": "Spokane",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Baton Rouge",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Tacoma",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "San Jose",
+"country": "United States",
+"iana": "America/Los_Angeles"
+},
+{
+"city": "Frisco",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "McKinney",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Cary",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Salt Lake City",
+"country": "United States",
+"iana": "America/Denver"
+},
+{
+"city": "Hartford",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Providence",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Des Moines",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Little Rock",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Birmingham",
+"country": "United States",
+"iana": "America/Chicago"
+},
+{
+"city": "Charleston",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Savannah",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "Knoxville",
+"country": "United States",
+"iana": "America/New_York"
+},
+{
+"city": "London",
+"country": "United Kingdom",
+"iana": "Europe/London"
+},
+{
+"city": "Paris",
+"country": "France",
+"iana": "Europe/Paris"
+},
+{
+"city": "Berlin",
+"country": "Germany",
+"iana": "Europe/Berlin"
+},
+{
+"city": "Madrid",
+"country": "Spain",
+"iana": "Europe/Madrid"
+},
+{
+"city": "Rome",
+"country": "Italy",
+"iana": "Europe/Rome"
+},
+{
+"city": "Lisbon",
+"country": "Portugal",
+"iana": "Europe/Lisbon"
+},
+{
+"city": "Dublin",
+"country": "Ireland",
+"iana": "Europe/Dublin"
+},
+{
+"city": "Amsterdam",
+"country": "Netherlands",
+"iana": "Europe/Amsterdam"
+},
+{
+"city": "Brussels",
+"country": "Belgium",
+"iana": "Europe/Brussels"
+},
+{
+"city": "Vienna",
+"country": "Austria",
+"iana": "Europe/Vienna"
+},
+{
+"city": "Zurich",
+"country": "Switzerland",
+"iana": "Europe/Zurich"
+},
+{
+"city": "Geneva",
+"country": "Switzerland",
+"iana": "Europe/Zurich"
+},
+{
+"city": "Stockholm",
+"country": "Sweden",
+"iana": "Europe/Stockholm"
+},
+{
+"city": "Oslo",
+"country": "Norway",
+"iana": "Europe/Oslo"
+},
+{
+"city": "Copenhagen",
+"country": "Denmark",
+"iana": "Europe/Copenhagen"
+},
+{
+"city": "Helsinki",
+"country": "Finland",
+"iana": "Europe/Helsinki"
+},
+{
+"city": "Warsaw",
+"country": "Poland",
+"iana": "Europe/Warsaw"
+},
+{
+"city": "Prague",
+"country": "Czechia",
+"iana": "Europe/Prague"
+},
+{
+"city": "Budapest",
+"country": "Hungary",
+"iana": "Europe/Budapest"
+},
+{
+"city": "Athens",
+"country": "Greece",
+"iana": "Europe/Athens"
+},
+{
+"city": "Bucharest",
+"country": "Romania",
+"iana": "Europe/Bucharest"
+},
+{
+"city": "Sofia",
+"country": "Bulgaria",
+"iana": "Europe/Sofia"
+},
+{
+"city": "Belgrade",
+"country": "Serbia",
+"iana": "Europe/Belgrade"
+},
+{
+"city": "Zagreb",
+"country": "Croatia",
+"iana": "Europe/Zagreb"
+},
+{
+"city": "Kyiv",
+"country": "Ukraine",
+"iana": "Europe/Kyiv"
+},
+{
+"city": "Istanbul",
+"country": "Turkiye",
+"iana": "Europe/Istanbul"
+},
+{
+"city": "Moscow",
+"country": "Russia",
+"iana": "Europe/Moscow"
+},
+{
+"city": "Reykjavik",
+"country": "Iceland",
+"iana": "Atlantic/Reykjavik"
+},
+{
+"city": "Edinburgh",
+"country": "United Kingdom",
+"iana": "Europe/London"
+},
+{
+"city": "Manchester",
+"country": "United Kingdom",
+"iana": "Europe/London"
+},
+{
+"city": "Munich",
+"country": "Germany",
+"iana": "Europe/Berlin"
+},
+{
+"city": "Frankfurt",
+"country": "Germany",
+"iana": "Europe/Berlin"
+},
+{
+"city": "Hamburg",
+"country": "Germany",
+"iana": "Europe/Berlin"
+},
+{
+"city": "Barcelona",
+"country": "Spain",
+"iana": "Europe/Madrid"
+},
+{
+"city": "Milan",
+"country": "Italy",
+"iana": "Europe/Rome"
+},
+{
+"city": "Toronto",
+"country": "Canada",
+"iana": "America/Toronto"
+},
+{
+"city": "Vancouver",
+"country": "Canada",
+"iana": "America/Vancouver"
+},
+{
+"city": "Montreal",
+"country": "Canada",
+"iana": "America/Toronto"
+},
+{
+"city": "Calgary",
+"country": "Canada",
+"iana": "America/Edmonton"
+},
+{
+"city": "Ottawa",
+"country": "Canada",
+"iana": "America/Toronto"
+},
+{
+"city": "Edmonton",
+"country": "Canada",
+"iana": "America/Edmonton"
+},
+{
+"city": "Winnipeg",
+"country": "Canada",
+"iana": "America/Winnipeg"
+},
+{
+"city": "Mexico City",
+"country": "Mexico",
+"iana": "America/Mexico_City"
+},
+{
+"city": "Guadalajara",
+"country": "Mexico",
+"iana": "America/Mexico_City"
+},
+{
+"city": "Havana",
+"country": "Cuba",
+"iana": "America/Havana"
+},
+{
+"city": "Kingston",
+"country": "Jamaica",
+"iana": "America/Jamaica"
+},
+{
+"city": "Panama City",
+"country": "Panama",
+"iana": "America/Panama"
+},
+{
+"city": "Bogota",
+"country": "Colombia",
+"iana": "America/Bogota"
+},
+{
+"city": "Lima",
+"country": "Peru",
+"iana": "America/Lima"
+},
+{
+"city": "Quito",
+"country": "Ecuador",
+"iana": "America/Guayaquil"
+},
+{
+"city": "Caracas",
+"country": "Venezuela",
+"iana": "America/Caracas"
+},
+{
+"city": "Santiago",
+"country": "Chile",
+"iana": "America/Santiago"
+},
+{
+"city": "Buenos Aires",
+"country": "Argentina",
+"iana": "America/Argentina/Buenos_Aires"
+},
+{
+"city": "Montevideo",
+"country": "Uruguay",
+"iana": "America/Montevideo"
+},
+{
+"city": "Sao Paulo",
+"country": "Brazil",
+"iana": "America/Sao_Paulo"
+},
+{
+"city": "Rio de Janeiro",
+"country": "Brazil",
+"iana": "America/Sao_Paulo"
+},
+{
+"city": "Brasilia",
+"country": "Brazil",
+"iana": "America/Sao_Paulo"
+},
+{
+"city": "Cairo",
+"country": "Egypt",
+"iana": "Africa/Cairo"
+},
+{
+"city": "Lagos",
+"country": "Nigeria",
+"iana": "Africa/Lagos"
+},
+{
+"city": "Abuja",
+"country": "Nigeria",
+"iana": "Africa/Lagos"
+},
+{
+"city": "Accra",
+"country": "Ghana",
+"iana": "Africa/Accra"
+},
+{
+"city": "Nairobi",
+"country": "Kenya",
+"iana": "Africa/Nairobi"
+},
+{
+"city": "Addis Ababa",
+"country": "Ethiopia",
+"iana": "Africa/Addis_Ababa"
+},
+{
+"city": "Johannesburg",
+"country": "South Africa",
+"iana": "Africa/Johannesburg"
+},
+{
+"city": "Cape Town",
+"country": "South Africa",
+"iana": "Africa/Johannesburg"
+},
+{
+"city": "Casablanca",
+"country": "Morocco",
+"iana": "Africa/Casablanca"
+},
+{
+"city": "Tunis",
+"country": "Tunisia",
+"iana": "Africa/Tunis"
+},
+{
+"city": "Algiers",
+"country": "Algeria",
+"iana": "Africa/Algiers"
+},
+{
+"city": "Dar es Salaam",
+"country": "Tanzania",
+"iana": "Africa/Dar_es_Salaam"
+},
+{
+"city": "Kampala",
+"country": "Uganda",
+"iana": "Africa/Kampala"
+},
+{
+"city": "Kigali",
+"country": "Rwanda",
+"iana": "Africa/Kigali"
+},
+{
+"city": "Dakar",
+"country": "Senegal",
+"iana": "Africa/Dakar"
+},
+{
+"city": "Dubai",
+"country": "United Arab Emirates",
+"iana": "Asia/Dubai"
+},
+{
+"city": "Abu Dhabi",
+"country": "United Arab Emirates",
+"iana": "Asia/Dubai"
+},
+{
+"city": "Sharjah",
+"country": "United Arab Emirates",
+"iana": "Asia/Dubai"
+},
+{
+"city": "Doha",
+"country": "Qatar",
+"iana": "Asia/Qatar"
+},
+{
+"city": "Riyadh",
+"country": "Saudi Arabia",
+"iana": "Asia/Riyadh"
+},
+{
+"city": "Jeddah",
+"country": "Saudi Arabia",
+"iana": "Asia/Riyadh"
+},
+{
+"city": "Kuwait City",
+"country": "Kuwait",
+"iana": "Asia/Kuwait"
+},
+{
+"city": "Manama",
+"country": "Bahrain",
+"iana": "Asia/Bahrain"
+},
+{
+"city": "Muscat",
+"country": "Oman",
+"iana": "Asia/Muscat"
+},
+{
+"city": "Amman",
+"country": "Jordan",
+"iana": "Asia/Amman"
+},
+{
+"city": "Beirut",
+"country": "Lebanon",
+"iana": "Asia/Beirut"
+},
+{
+"city": "Jerusalem",
+"country": "Israel",
+"iana": "Asia/Jerusalem"
+},
+{
+"city": "Tel Aviv",
+"country": "Israel",
+"iana": "Asia/Jerusalem"
+},
+{
+"city": "Baghdad",
+"country": "Iraq",
+"iana": "Asia/Baghdad"
+},
+{
+"city": "Tehran",
+"country": "Iran",
+"iana": "Asia/Tehran"
+},
+{
+"city": "Kabul",
+"country": "Afghanistan",
+"iana": "Asia/Kabul"
+},
+{
+"city": "Karachi",
+"country": "Pakistan",
+"iana": "Asia/Karachi"
+},
+{
+"city": "Lahore",
+"country": "Pakistan",
+"iana": "Asia/Karachi"
+},
+{
+"city": "Islamabad",
+"country": "Pakistan",
+"iana": "Asia/Karachi"
+},
+{
+"city": "Dhaka",
+"country": "Bangladesh",
+"iana": "Asia/Dhaka"
+},
+{
+"city": "Chattogram",
+"country": "Bangladesh",
+"iana": "Asia/Dhaka"
+},
+{
+"city": "Colombo",
+"country": "Sri Lanka",
+"iana": "Asia/Colombo"
+},
+{
+"city": "Kandy",
+"country": "Sri Lanka",
+"iana": "Asia/Colombo"
+},
+{
+"city": "Kathmandu",
+"country": "Nepal",
+"iana": "Asia/Kathmandu"
+},
+{
+"city": "Thimphu",
+"country": "Bhutan",
+"iana": "Asia/Thimphu"
+},
+{
+"city": "Male",
+"country": "Maldives",
+"iana": "Indian/Maldives"
+},
+{
+"city": "Yangon",
+"country": "Myanmar",
+"iana": "Asia/Yangon"
+},
+{
+"city": "Bangkok",
+"country": "Thailand",
+"iana": "Asia/Bangkok"
+},
+{
+"city": "Chiang Mai",
+"country": "Thailand",
+"iana": "Asia/Bangkok"
+},
+{
+"city": "Hanoi",
+"country": "Vietnam",
+"iana": "Asia/Bangkok"
+},
+{
+"city": "Ho Chi Minh City",
+"country": "Vietnam",
+"iana": "Asia/Ho_Chi_Minh"
+},
+{
+"city": "Phnom Penh",
+"country": "Cambodia",
+"iana": "Asia/Phnom_Penh"
+},
+{
+"city": "Vientiane",
+"country": "Laos",
+"iana": "Asia/Vientiane"
+},
+{
+"city": "Kuala Lumpur",
+"country": "Malaysia",
+"iana": "Asia/Kuala_Lumpur"
+},
+{
+"city": "Singapore",
+"country": "Singapore",
+"iana": "Asia/Singapore"
+},
+{
+"city": "Jakarta",
+"country": "Indonesia",
+"iana": "Asia/Jakarta"
+},
+{
+"city": "Bali",
+"country": "Indonesia",
+"iana": "Asia/Makassar"
+},
+{
+"city": "Manila",
+"country": "Philippines",
+"iana": "Asia/Manila"
+},
+{
+"city": "Cebu",
+"country": "Philippines",
+"iana": "Asia/Manila"
+},
+{
+"city": "Hong Kong",
+"country": "Hong Kong",
+"iana": "Asia/Hong_Kong"
+},
+{
+"city": "Macau",
+"country": "Macau",
+"iana": "Asia/Macau"
+},
+{
+"city": "Taipei",
+"country": "Taiwan",
+"iana": "Asia/Taipei"
+},
+{
+"city": "Shanghai",
+"country": "China",
+"iana": "Asia/Shanghai"
+},
+{
+"city": "Beijing",
+"country": "China",
+"iana": "Asia/Shanghai"
+},
+{
+"city": "Shenzhen",
+"country": "China",
+"iana": "Asia/Shanghai"
+},
+{
+"city": "Guangzhou",
+"country": "China",
+"iana": "Asia/Shanghai"
+},
+{
+"city": "Seoul",
+"country": "South Korea",
+"iana": "Asia/Seoul"
+},
+{
+"city": "Busan",
+"country": "South Korea",
+"iana": "Asia/Seoul"
+},
+{
+"city": "Tokyo",
+"country": "Japan",
+"iana": "Asia/Tokyo"
+},
+{
+"city": "Osaka",
+"country": "Japan",
+"iana": "Asia/Tokyo"
+},
+{
+"city": "Kyoto",
+"country": "Japan",
+"iana": "Asia/Tokyo"
+},
+{
+"city": "Ulaanbaatar",
+"country": "Mongolia",
+"iana": "Asia/Ulaanbaatar"
+},
+{
+"city": "Tashkent",
+"country": "Uzbekistan",
+"iana": "Asia/Tashkent"
+},
+{
+"city": "Almaty",
+"country": "Kazakhstan",
+"iana": "Asia/Almaty"
+},
+{
+"city": "Astana",
+"country": "Kazakhstan",
+"iana": "Asia/Almaty"
+},
+{
+"city": "Baku",
+"country": "Azerbaijan",
+"iana": "Asia/Baku"
+},
+{
+"city": "Tbilisi",
+"country": "Georgia",
+"iana": "Asia/Tbilisi"
+},
+{
+"city": "Yerevan",
+"country": "Armenia",
+"iana": "Asia/Yerevan"
+},
+{
+"city": "Sydney",
+"country": "Australia",
+"iana": "Australia/Sydney"
+},
+{
+"city": "Melbourne",
+"country": "Australia",
+"iana": "Australia/Melbourne"
+},
+{
+"city": "Brisbane",
+"country": "Australia",
+"iana": "Australia/Brisbane"
+},
+{
+"city": "Perth",
+"country": "Australia",
+"iana": "Australia/Perth"
+},
+{
+"city": "Adelaide",
+"country": "Australia",
+"iana": "Australia/Adelaide"
+},
+{
+"city": "Canberra",
+"country": "Australia",
+"iana": "Australia/Sydney"
+},
+{
+"city": "Auckland",
+"country": "New Zealand",
+"iana": "Pacific/Auckland"
+},
+{
+"city": "Wellington",
+"country": "New Zealand",
+"iana": "Pacific/Auckland"
+},
+{
+"city": "Christchurch",
+"country": "New Zealand",
+"iana": "Pacific/Auckland"
+},
+{
+"city": "Suva",
+"country": "Fiji",
+"iana": "Pacific/Fiji"
+}
+]

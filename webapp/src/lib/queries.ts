@@ -27,8 +27,10 @@ export const READ_SURFACE = {
   // the wa.me fallback href — same never-as-text law), relationship (§2 as
   // written; since DECISIONS 183 the webapp renders display_name instead and
   // the column rides along un-rendered — the PM may narrow this read), and
-  // city_label (§5, the display-only city line).
-  parents: "id, family_id, display_name, tz, phone_e164, whatsapp_e164, relationship, city_label",
+  // city_label (§5, the city line; the tz control since spec 010). Spec 010
+  // adds tz_changed_utc: the changeover-day marker the Recent-days dots
+  // classify by — an instant, never rendered as text.
+  parents: "id, family_id, display_name, tz, phone_e164, whatsapp_e164, relationship, city_label, tz_changed_utc",
   members: "id, family_id, display_name, role, digest_channel",
   parent_signals: "parent_id, signal, alarm_grade, active",
   pings: "parent_id, signal, ts_utc",
