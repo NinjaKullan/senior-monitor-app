@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kettle glance redesign · mockup v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F2E9; --card:#FDFBF6; --stage:#EAE2D2;
+    --ink:#2E2822; --inkmid:#5C5346; --mute:#6E6A62;
+    --copper:#B26D3F; --copperdeep:#96552D; --coppertint:rgba(178,109,63,.11);
+    --cup:#7A4A26; --steam:#78816A; --olive:#77854F;
+    --hearthfill:#E7EFD6; --hearthring:#D5E3B8;
+    --hair:rgba(46,40,34,.12); --fixbg:rgba(178,109,63,.07);
+    --oncopper:#FDFBF6;
+    --serif:'Newsreader', Georgia, serif;
+    --sans:'Source Sans 3', -apple-system, 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--stage); font-family:var(--sans); color:var(--ink); padding:36px 20px 60px;}
+  .stagehead{max-width:900px; margin:0 auto 26px;}
+  .stagehead h1{font-family:var(--serif); font-weight:600; font-size:26px;}
+  .stagehead p{color:var(--inkmid); font-size:14px; margin-top:6px; max-width:64ch; line-height:1.5;}
+  .frames{display:flex; gap:34px; justify-content:center; flex-wrap:wrap; align-items:flex-start;}
+  .framewrap{width:390px;}
+  .framelabel{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--inkmid); margin:0 0 10px 6px; font-weight:700;}
+  .frame{background:var(--paper); border:1px solid var(--hair); border-radius:26px; overflow:hidden; box-shadow:0 10px 30px rgba(46,40,34,.10);}
+  .screen{padding:24px 20px 30px;}
+
+  /* ---------- shared bits ---------- */
+  .kicker{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); font-weight:700;}
+  .btn-copper{display:inline-flex; align-items:center; gap:7px; background:var(--copper); color:var(--oncopper);
+    border-radius:999px; padding:9px 18px; font-weight:700; font-size:14px; text-decoration:none;}
+  .btn-quiet{display:inline-flex; align-items:center; gap:6px; color:var(--copperdeep); font-weight:600; font-size:14px; text-decoration:none;}
+  .hairline{border:0; border-top:1px solid var(--hair);}
+
+  /* ---------- TODAY screen ---------- */
+  .today-date{margin-top:2px; color:var(--inkmid); font-size:13px;}
+  .rollup{font-family:var(--serif); font-weight:500; font-size:30px; line-height:1.15; margin:10px 0 4px;}
+  .rollup-sub{color:var(--inkmid); font-size:14px; margin-bottom:18px;}
+  .pcard{background:var(--card); border:1px solid var(--hair); border-radius:18px; padding:16px 16px 14px; margin-bottom:14px;}
+  .pcard-top{display:flex; align-items:center; gap:12px;}
+  .pcard-who{flex:1;}
+  .pcard-name{font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; color:var(--inkmid);}
+  .pcard-city{font-size:12px; color:var(--mute); margin-top:1px;}
+  .pcard-line{font-family:var(--serif); font-size:19px; font-weight:500; margin:10px 0 2px; line-height:1.25;}
+  .pcard-when{font-size:14px; color:var(--ink); font-weight:600; margin-top:6px;}
+  .pcard-when-sub{font-size:12.5px; color:var(--mute); margin-top:2px;}
+  .pcard-actions{display:flex; align-items:center; justify-content:space-between; margin-top:14px;}
+  .today-foot{margin-top:6px; color:var(--inkmid); font-size:13.5px; line-height:1.5;}
+  .today-foot b{color:var(--ink);}
+
+  /* ---------- PARENT DETAIL screen ---------- */
+  .back{font-size:13px; color:var(--inkmid); text-decoration:none; font-weight:600;}
+  .hero{display:flex; align-items:center; gap:14px; margin:16px 0 4px;}
+  .hero-line{font-family:var(--serif); font-size:26px; font-weight:500; line-height:1.15;}
+  .hero-when{margin:10px 0 0;}
+  .hero-when .big{font-size:16px; font-weight:700;}
+  .hero-when .sub{font-size:13px; color:var(--mute); margin-top:2px;}
+  .hero-cta{margin:14px 0 20px;}
+
+  .panel{background:var(--card); border:1px solid var(--hair); border-radius:18px; padding:16px; margin-bottom:14px;}
+  .panel h3{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); font-weight:700; margin-bottom:10px;}
+
+  .arcrow{display:flex; justify-content:space-between; margin-top:8px;}
+  .arccell{text-align:center; width:33%;}
+  .arccell .t{font-family:var(--serif); font-size:15px; font-weight:600;}
+  .arccell .c{font-size:12px; color:var(--mute); margin-top:2px;}
+
+  .dots{display:flex; justify-content:space-between; align-items:flex-end; margin-top:4px;}
+  .dotcell{text-align:center; flex:1;}
+  .dotcell .d{font-size:10.5px; color:var(--mute); margin-top:6px; letter-spacing:.02em;}
+  .legend{display:flex; gap:14px; margin-top:12px; font-size:11.5px; color:var(--mute);}
+  .legend span{display:inline-flex; align-items:center; gap:5px;}
+  .chip{width:10px; height:10px; border-radius:50%; display:inline-block;}
+  .chip.n{background:var(--hearthfill); border:2px solid var(--hearthring);}
+  .chip.q{background:none; border:2px solid var(--copper);}
+  .chip.u{background:none; border:2px solid var(--mute);}
+
+  .means{background:var(--card); border:1px solid var(--hair); border-radius:18px; padding:16px; margin-bottom:14px;}
+  .means .head{font-family:var(--serif); font-size:17px; font-weight:600;}
+  .means p{font-size:13.5px; color:var(--inkmid); margin-top:4px; line-height:1.5;}
+
+  .fix{background:var(--fixbg); border:1px solid rgba(178,109,63,.25); border-radius:18px; padding:16px; margin-bottom:14px;}
+  .fix .head{font-family:var(--serif); font-size:16px; font-weight:600; color:var(--copperdeep);}
+  .fix p{font-size:13px; color:var(--inkmid); margin:4px 0 8px; line-height:1.5;}
+
+  /* journal */
+  .up{background:var(--coppertint); border-radius:12px; padding:10px 12px; font-size:13px; margin-bottom:12px;}
+  .up b{color:var(--copperdeep);}
+  .entry{padding:10px 0; border-top:1px solid var(--hair);}
+  .entry:first-of-type{border-top:0;}
+  .entry .meta{font-size:11.5px; color:var(--mute); letter-spacing:.03em; font-weight:600;}
+  .entry p{font-size:14px; line-height:1.5; margin-top:3px;}
+  .entry a{color:var(--copperdeep); text-decoration:underline; text-underline-offset:3px;}
+  .notebox{display:flex; gap:8px; margin-top:12px;}
+  .notebox .field{flex:1; background:var(--paper); border:1px solid var(--hair); border-radius:999px; padding:9px 14px; font-size:13.5px; color:var(--mute);}
+  .notebox .datechip{border:1px solid var(--hair); border-radius:999px; padding:9px 12px; font-size:13px; color:var(--inkmid); background:var(--card); white-space:nowrap;}
+  .journal-sub{font-size:12.5px; color:var(--mute); margin:-6px 0 10px;}
+
+  .annos{max-width:900px; margin:34px auto 0; font-size:13.5px; color:var(--inkmid); line-height:1.65;}
+  .annos h2{font-family:var(--serif); font-size:19px; color:var(--ink); margin-bottom:8px;}
+  .annos p{margin-bottom:8px; max-width:78ch;}
+  .annos b{color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="stagehead">
+  <h1>Kettle glance redesign · mockup v1</h1>
+  <p>Two screens, Day palette, real copy laws applied. Sample names and notes are placeholders. Everything here reads in under a minute; that was the test for every element.</p>
+</div>
+
+<div class="frames">
+
+  <!-- ============ TODAY ============ -->
+  <div class="framewrap">
+    <div class="framelabel">Today</div>
+    <div class="frame"><div class="screen">
+      <div class="kicker">Wednesday · August 26</div>
+      <div class="rollup">Everything looks normal today.</div>
+      <div class="rollup-sub">Next note this evening.</div>
+
+      <!-- Mom card -->
+      <div class="pcard">
+        <div class="pcard-top">
+          <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+            <circle cx="22" cy="22" r="18" fill="var(--hearthfill)" stroke="var(--hearthring)" stroke-width="2.5"/>
+            <rect x="17.8" y="11.4" width="1.9" height="5" rx="0.95" fill="var(--steam)"/>
+            <rect x="22.2" y="12.8" width="1.9" height="3.6" rx="0.95" fill="var(--steam)"/>
+            <path d="M14.8 20.6 L25.2 20.6 L25.2 26.2 A2.6 2.6 0 0 1 22.6 28.8 L17.4 28.8 A2.6 2.6 0 0 1 14.8 26.2 Z" fill="none" stroke="var(--cup)" stroke-width="2.2" stroke-linejoin="round"/>
+            <path d="M25.2 22 L26.6 22 A2.3 2.3 0 0 1 26.6 26.6 L25.2 26.6" fill="none" stroke="var(--cup)" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <div class="pcard-who">
+            <div class="pcard-name">Mom</div>
+            <div class="pcard-city">Chennai · 8:04 pm there now</div>
+          </div>
+        </div>
+        <div class="pcard-line">Today looks like a normal day.</div>
+        <div class="pcard-when">Heard from 12 minutes ago</div>
+        <div class="pcard-when-sub">7:52 pm in Chennai · 10:22 am your time</div>
+        <div class="pcard-actions">
+          <a class="btn-copper" href="#">Call Mom ↗</a>
+          <a class="btn-quiet" href="#">View Mom&rsquo;s day →</a>
+        </div>
+      </div>
+
+      <!-- Dad card -->
+      <div class="pcard">
+        <div class="pcard-top">
+          <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+            <circle cx="22" cy="22" r="18" fill="var(--hearthfill)" stroke="var(--hearthring)" stroke-width="2.5"/>
+            <rect x="17.8" y="11.4" width="1.9" height="5" rx="0.95" fill="var(--steam)"/>
+            <rect x="22.2" y="12.8" width="1.9" height="3.6" rx="0.95" fill="var(--steam)"/>
+            <path d="M14.8 20.6 L25.2 20.6 L25.2 26.2 A2.6 2.6 0 0 1 22.6 28.8 L17.4 28.8 A2.6 2.6 0 0 1 14.8 26.2 Z" fill="none" stroke="var(--cup)" stroke-width="2.2" stroke-linejoin="round"/>
+            <path d="M25.2 22 L26.6 22 A2.3 2.3 0 0 1 26.6 26.6 L25.2 26.6" fill="none" stroke="var(--cup)" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <div class="pcard-who">
+            <div class="pcard-name">Dad</div>
+            <div class="pcard-city">Chennai · 8:04 pm there now</div>
+          </div>
+        </div>
+        <div class="pcard-line">Today looks like a normal day.</div>
+        <div class="pcard-when">Heard from 2 hours ago</div>
+        <div class="pcard-when-sub">6:11 pm in Chennai · 8:41 am your time</div>
+        <div class="pcard-actions">
+          <a class="btn-copper" href="#">Call Dad ↗</a>
+          <a class="btn-quiet" href="#">View Dad&rsquo;s day →</a>
+        </div>
+      </div>
+
+      <div class="today-foot"><b>Nothing needs you today.</b> Kettle will write if that changes.</div>
+    </div></div>
+  </div>
+
+  <!-- ============ PARENT DETAIL ============ -->
+  <div class="framewrap">
+    <div class="framelabel">Parent detail · Mom</div>
+    <div class="frame"><div class="screen">
+      <a class="back" href="#">← Today</a>
+
+      <div class="hero">
+        <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+          <circle cx="22" cy="22" r="18" fill="var(--hearthfill)" stroke="var(--hearthring)" stroke-width="2.5"/>
+          <rect x="17.8" y="11.4" width="1.9" height="5" rx="0.95" fill="var(--steam)"/>
+          <rect x="22.2" y="12.8" width="1.9" height="3.6" rx="0.95" fill="var(--steam)"/>
+          <path d="M14.8 20.6 L25.2 20.6 L25.2 26.2 A2.6 2.6 0 0 1 22.6 28.8 L17.4 28.8 A2.6 2.6 0 0 1 14.8 26.2 Z" fill="none" stroke="var(--cup)" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M25.2 22 L26.6 22 A2.3 2.3 0 0 1 26.6 26.6 L25.2 26.6" fill="none" stroke="var(--cup)" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div class="pcard-name">Mom · Chennai</div>
+          <div class="hero-line">Today looks like a normal day.</div>
+        </div>
+      </div>
+
+      <div class="hero-when">
+        <div class="big">Heard from 12 minutes ago</div>
+        <div class="sub">7:52 pm in Chennai · 10:22 am your time · nine and a half hours ahead of you</div>
+      </div>
+      <div class="hero-cta"><a class="btn-copper" href="#">Call Mom ↗</a></div>
+
+      <!-- the day as a shape -->
+      <div class="panel">
+        <h3>The day</h3>
+        <svg viewBox="0 0 320 64" width="100%" aria-hidden="true">
+          <path d="M12 56 Q160 -14 308 56" fill="none" stroke="var(--hearthring)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M12 56 Q86 22 172 12" fill="none" stroke="var(--olive)" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="172" cy="12" r="6" fill="var(--olive)"/>
+        </svg>
+        <div class="arcrow">
+          <div class="arccell"><div class="t">Morning</div><div class="c">Heard from 7:19 am</div></div>
+          <div class="arccell"><div class="t">Afternoon</div><div class="c">Heard from 12:07 pm</div></div>
+          <div class="arccell"><div class="t">Evening</div><div class="c">Heard from 7:52 pm</div></div>
+        </div>
+      </div>
+
+      <!-- recent days as dots -->
+      <div class="panel">
+        <h3>Recent days</h3>
+        <div class="dots">
+          <div class="dotcell"><span class="chip n" style="width:16px;height:16px;"></span><div class="d">Wed</div></div>
+          <div class="dotcell"><span class="chip n" style="width:16px;height:16px;"></span><div class="d">Thu</div></div>
+          <div class="dotcell"><span class="chip n" style="width:16px;height:16px;"></span><div class="d">Fri</div></div>
+          <div class="dotcell"><span class="chip q" style="width:16px;height:16px;"></span><div class="d">Sat</div></div>
+          <div class="dotcell"><span class="chip n" style="width:16px;height:16px;"></span><div class="d">Sun</div></div>
+          <div class="dotcell"><span class="chip n" style="width:16px;height:16px;"></span><div class="d">Mon</div></div>
+          <div class="dotcell"><span class="chip n" style="width:16px;height:16px;"></span><div class="d">Tue</div></div>
+        </div>
+        <div class="legend">
+          <span><span class="chip n"></span>A normal day</span>
+          <span><span class="chip q"></span>A quiet start</span>
+          <span><span class="chip u"></span>Couldn&rsquo;t hear</span>
+        </div>
+      </div>
+
+      <!-- what this means -->
+      <div class="means">
+        <div class="head">No action needed.</div>
+        <p>Mom&rsquo;s day looks like most of her days. Kettle will write if that changes.</p>
+      </div>
+
+      <!-- housekeeping -->
+      <div class="fix">
+        <div class="head">Something on Mom&rsquo;s phone may need a quick fix.</div>
+        <p>It&rsquo;s a two-minute FaceTime.</p>
+        <a class="btn-quiet" href="#">See the simple steps →</a>
+      </div>
+
+      <!-- family notes -->
+      <div class="panel">
+        <h3>Family notes</h3>
+        <div class="journal-sub">The family&rsquo;s memory. Everyone in the family can read and add.</div>
+        <div class="up"><b>Upcoming</b> · Eye doctor on Tue, Sep 1 · added by Hema</div>
+        <div class="entry">
+          <div class="meta">Aug 24 · Hema</div>
+          <p>Called about the hearing aid battery. New ones arrive Thursday. <a href="#">amazon.in/gp/order/2841</a></p>
+        </div>
+        <div class="entry">
+          <div class="meta">Aug 20 · Ravi</div>
+          <p>Dr. Raman moved the review to Sep 1. Portal notes here: <a href="#">apollo247.com/visit/8823</a></p>
+        </div>
+        <div class="notebox">
+          <div class="field">Add a note for the family…</div>
+          <div class="datechip">+ date</div>
+        </div>
+      </div>
+
+    </div></div>
+  </div>
+</div>
+
+<div class="annos">
+  <h2>What changed, and why</h2>
+  <p><b>Every screen answers a question first.</b> Today answers &ldquo;is everyone okay?&rdquo; in one line before anything else. The parent page answers &ldquo;do I need to do anything?&rdquo; in a literal box. Details exist, but they are optional reading.</p>
+  <p><b>No mental math.</b> Relative time leads everywhere (&ldquo;Heard from 12 minutes ago&rdquo;), with both clocks as the quiet second line. The words are &ldquo;heard from&rdquo;, never &ldquo;checked in&rdquo;, because Mom does nothing.</p>
+  <p><b>Worry becomes action.</b> The Call button sits on the card, one tap from the feeling to the phone.</p>
+  <p><b>The day is a shape, the week is dots.</b> The arc replaces three prose rows; seven dots replace five sentences. The dots reuse the three hearth states and carry no tally, so one odd day is information, not a scoreboard.</p>
+  <p><b>Family notes are the family&rsquo;s memory.</b> Plain text, a name, a date when one matters, links that work. Future dates surface in Upcoming. Nothing here asks anything of Mom, and nothing turns into a chore.</p>
+</div>
+
+</body>
+</html>
