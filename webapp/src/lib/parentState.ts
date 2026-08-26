@@ -347,16 +347,40 @@ export function computeParentToday(
   // Seven dots, oldest left, today right (spec 009 §3), from the windowed
   // set: alarm-grade ping = a normal day, any ping = a quiet start, none =
   // couldn't hear. No tally, no counts — the chips carry no digits.
+  //
+  // The changeover day (spec 010 §3) is never "a quiet start": under a moved
+  // clock, "quiet" is an artifact of the move, not evidence. It reads normal
+  // if any routine ping arrived in either zone's version of that day, and
+  // couldn't-hear only if none did. The OLD zone is not readable client-side,
+  // so "either zone's version" is implemented as ANY zone's version — the
+  // widest UTC span the calendar date can occupy (UTC+14 through UTC-12),
+  // which can only ever upgrade the changeover day, the ruled direction.
+  const changeDate = parent.tz_changed_utc
+    ? localDate(new Date(parent.tz_changed_utc), timeZone)
+    : null;
   const recentDots: RecentDot[] = [];
   for (let back = 6; back >= 0; back--) {
     const dayInstant = new Date(now.getTime() - back * MS_DAY);
     const date = localDate(dayInstant, timeZone);
-    const dayPings = mine.filter((p) => localDate(new Date(p.ts_utc), timeZone) === date);
-    const dotKind: DotKind = dayPings.some((p) => alarm.has(p.signal))
-      ? "normal"
-      : dayPings.length > 0
-        ? "quiet"
-        : "none";
+    let dotKind: DotKind;
+    if (date === changeDate) {
+      const anyZoneStart = Date.parse(`${date}T00:00:00Z`) - 14 * 3_600_000;
+      const anyZoneEnd = Date.parse(`${date}T00:00:00Z`) + 36 * 3_600_000;
+      const routine = mine.some((p) => {
+        const t = new Date(p.ts_utc).getTime();
+        return alarm.has(p.signal) && t >= anyZoneStart && t < anyZoneEnd;
+      });
+      dotKind = routine ? "normal" : "none";
+    } else {
+      const dayPings = mine.filter(
+        (p) => localDate(new Date(p.ts_utc), timeZone) === date,
+      );
+      dotKind = dayPings.some((p) => alarm.has(p.signal))
+        ? "normal"
+        : dayPings.length > 0
+          ? "quiet"
+          : "none";
+    }
     recentDots.push({ abbr: weekdayAbbr(dayInstant, timeZone), kind: dotKind });
   }
 

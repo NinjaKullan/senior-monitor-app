@@ -4,11 +4,14 @@ import {
   addJournalEntry,
   claimMembership,
   loadSnapshot,
+  placeUpdate,
   saveCityLabel,
+  savePlace,
   sendMagicLink,
   type FamilySnapshot,
 } from "@/lib/data";
-import { TAGLINE } from "@/lib/copy";
+import { AUTO_NOTE_AUTHOR, CITY_CHANGED_NOTE, TAGLINE } from "@/lib/copy";
+import { isKnownIana, type CityEntry } from "@/lib/cities";
 import { computeParentToday, computeRollup, type ParentToday } from "@/lib/parentState";
 import { buildSetupEntries } from "@/lib/setupLinks";
 import { localDate } from "@/lib/time";
@@ -225,8 +228,34 @@ export default function App() {
     await refresh();
   };
 
-  const saveCity = async (parentId: string, city: string | null) => {
-    await saveCityLabel(parentId, city);
+  // Spec 010 §1/§4: one pick writes label + zone (+ the changeover stamp
+  // when the zone actually moved), validated against the shipped list, and
+  // the journal remembers the move in the product's own hand.
+  const pickCity = async (parentId: string, entry: CityEntry) => {
+    const parent = snapshot.parents.find((p) => p.id === parentId);
+    if (!parent || !isKnownIana(entry.iana)) return;
+    const unchanged = parent.city_label === entry.city && parent.tz === entry.iana;
+    await savePlace(
+      parentId,
+      placeUpdate(parent.tz, familyTz, entry, new Date().toISOString()),
+    );
+    if (!unchanged) {
+      await addJournalEntry({
+        family_id: familyId,
+        parent_id: parentId,
+        author_label: AUTO_NOTE_AUTHOR,
+        body: CITY_CHANGED_NOTE.replace("{name}", parent.display_name).replace(
+          "{city}",
+          entry.city,
+        ),
+        event_date: null,
+      });
+    }
+    await refresh();
+  };
+
+  const clearCity = async (parentId: string) => {
+    await saveCityLabel(parentId, null);
     await refresh();
   };
 
@@ -277,7 +306,8 @@ export default function App() {
             setOpenParentId(id);
           }}
           onAddNote={addNote}
-          onSaveCity={saveCity}
+          onPickCity={pickCity}
+          onClearCity={clearCity}
         />
       )}
     </Shell>

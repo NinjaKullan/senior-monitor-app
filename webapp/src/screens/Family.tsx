@@ -4,12 +4,11 @@
  * composer whose tag is selectable), the spec-005b setup card (the DECISIONS
  * 122 CTA pin), the member roster, and the privacy footer.
  */
-import { useState } from "react";
+import { CityPicker } from "@/components/CityPicker";
 import { NotesPanel, type NoteDraft, type TagOption } from "@/components/NotesPanel";
+import type { CityEntry } from "@/lib/cities";
 import {
   AUTHOR_FALLBACK,
-  CITY_FIELD_LABEL,
-  CITY_MAX_CHARS,
   FAMILY_CIRCLE_LABEL,
   FAMILY_SUB,
   FAMILY_TITLE,
@@ -51,56 +50,6 @@ const CARD: React.CSSProperties = {
   overflow: "hidden",
 };
 
-function CityField({
-  parentId,
-  initial,
-  onSave,
-}: {
-  parentId: string;
-  initial: string;
-  onSave: (parentId: string, city: string | null) => Promise<void>;
-}) {
-  const [value, setValue] = useState(initial);
-  const save = () => {
-    const trimmed = value.trim().slice(0, CITY_MAX_CHARS);
-    if (trimmed === initial) return;
-    void onSave(parentId, trimmed === "" ? null : trimmed);
-  };
-  return (
-    <label
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "0.375rem",
-        fontSize: "0.8125rem",
-        color: "var(--mute)",
-      }}
-    >
-      {CITY_FIELD_LABEL}
-      <input
-        type="text"
-        value={value}
-        maxLength={CITY_MAX_CHARS}
-        onChange={(event) => setValue(event.target.value)}
-        onBlur={save}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") save();
-        }}
-        style={{
-          border: "1px solid var(--hair)",
-          borderRadius: "999px",
-          padding: "0.375rem 0.75rem",
-          fontSize: "0.8125rem",
-          color: "var(--ink)",
-          background: "var(--paper)",
-          width: "9rem",
-        }}
-        data-testid="city-input"
-      />
-    </label>
-  );
-}
-
 export function FamilyScreen({
   parentStates,
   cities,
@@ -110,10 +59,11 @@ export function FamilyScreen({
   todayDate,
   onOpen,
   onAddNote,
-  onSaveCity,
+  onPickCity,
+  onClearCity,
 }: {
   parentStates: ParentToday[];
-  /** parentId → current city label ("" when unset), for the §5 field. */
+  /** parentId → current city label ("" when unset), for the §1 picker. */
   cities: Record<string, string>;
   members: Member[];
   setupEntries: SetupEntry[];
@@ -121,7 +71,9 @@ export function FamilyScreen({
   todayDate: string;
   onOpen: (parentId: string) => void;
   onAddNote: (draft: NoteDraft) => Promise<void>;
-  onSaveCity: (parentId: string, city: string | null) => Promise<void>;
+  /** Spec 010 §1: the picker is the one surface that moves a parent. */
+  onPickCity: (parentId: string, entry: CityEntry) => Promise<void>;
+  onClearCity: (parentId: string) => Promise<void>;
 }) {
   const labelById = new Map(parentStates.map((s) => [s.parentId, s.label]));
   const tagOptions: TagOption[] = [
@@ -180,10 +132,11 @@ export function FamilyScreen({
                 {state.famSub}
               </span>
             </button>
-            <CityField
-              parentId={state.parentId}
-              initial={cities[state.parentId] ?? ""}
-              onSave={onSaveCity}
+            <CityPicker
+              name={state.label}
+              committed={cities[state.parentId] ?? ""}
+              onPick={(entry) => void onPickCity(state.parentId, entry)}
+              onClear={() => void onClearCity(state.parentId)}
             />
           </div>
         ))}
