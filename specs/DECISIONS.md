@@ -2273,3 +2273,26 @@ browser — all three adopted as the standard for future surfaces.**
        (pilot pings) silently swallowed — a scoped `!webapp/src/data/`
        exception is part of the build, or a fresh clone cannot compile
        the picker.
+
+186. **(2026-08-26, Fable) Spec 010 review verdict: PASS. All seven
+     judgement calls ratified.** Checked the report against spec 010
+     section by section; every surface, the migration, the transition
+     honesty, and the test list are present, and the seven plant drills
+     fired by name. Rulings: (1) the effective-zone stamp (compare
+     against parent.tz ?? family.tz; inherited-zone picks write no
+     changeover) is correct and adopted; (2) the changeover skip's
+     durable detail living in ops_alerts stands — sent_messages has no
+     detail column and the ledger row plus the alert together satisfy
+     the spec's intent; (3) old-zone recovery from the engine's own
+     previous alert is accepted with a standing note that the alert
+     format is now load-bearing and its test is the guard; (4) the
+     any-zone widest-UTC-span day classification is the right
+     conservative reading of "either zone's version of the day";
+     (5) a quiet morning inside the changeover window recording
+     `skipped` with no morning body is the honest option — a quiet
+     verdict under a moved clock is not evidence, and a normal claim
+     would be a lie; (6) the auto note skipping no-op picks stands;
+     (7) the scoped .gitignore exception for webapp/src/data/ is a
+     structural save recorded with thanks. Deploy order: PM applies
+     0019 via MCP → `cd product && fly deploy` → `cd webapp && fly
+     deploy` (Hema).
