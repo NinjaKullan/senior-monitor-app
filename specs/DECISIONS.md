@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 175.** This line is the one to update; the `Next number:` lines inside
+**Next number: 176.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2022,3 +2022,19 @@ browser — all three adopted as the standard for future surfaces.**
        the planted state; the canonical-host simulator gained the same
        file model and reproduces both redirect shapes, so removing the
        directive fails the suite the way it would fail production.
+
+175. **(2026-08-26, Claude Code, PM-ordered) The blog entry is the way in,
+     visibly.** Founder feedback on /blog/: the entry read as static text
+     ("I had to think about where the entire article was"). The whole block
+     (title, date, teaser) is now one anchor to the article: the title
+     carries the site's link treatment at rest (underline, 4px offset), the
+     block tints on hover and shows a focus-visible ring, and the entry
+     closes with an explicit read line in the link style. The string,
+     verbatim: **"Read the post →"** (arrow U+2192; no em dash anywhere in
+     the authored chrome, which the existing scan enforces and did enforce:
+     it caught an em dash in this pass's own CSS comment before commit).
+     Accessibility: the anchor's accessible name is the post title via an
+     aria-labelledby pair, and no link nests inside the block link. Tests
+     pin the affordance itself: one anchor carrying all four lines, the
+     at-rest underline plus hover/focus declarations, the read line
+     verbatim, and the no-nested-anchors rule. Site suite 196 → 199.
