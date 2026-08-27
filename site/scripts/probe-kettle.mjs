@@ -34,8 +34,11 @@
  * cannot miss, whatever the CSS says. Run with reduced motion so both frames
  * are the same still.
  *
- * The asset's own ground is still read afterwards, as a second line of
- * defence and because it names the cause when the composite check fails.
+ * The asset's own alpha is still read afterwards, as a second line of defence
+ * and because it names the cause when the composite check fails: since
+ * DECISIONS 190 the drawing carries real transparency instead of a white
+ * ground, so the corners must be empty rather than white, and the arch under
+ * the handle must be an open window rather than a filled one.
  *
  * NOT part of `npm run ci`: it needs a browser, and Playwright is deliberately
  * not a dependency of this package. Run it against a preview server:
@@ -240,12 +243,16 @@ const blend = await (async () => {
       const b = await decode(withoutMark);
 
       // The drawing itself decides which samples are ground: a pixel the
-      // artwork paints white is a pixel the page must show unchanged. Drawn
-      // at the SIZE THE PAGE DRAWS IT, because that is the only version whose
-      // pixels line up with the screenshot: the mark renders at an eighth of
-      // the artwork's width, so a rendered pixel beside the handle is an
-      // average of white ground and dark metal, and testing the full-size art
-      // would call it ground and then fail on the handle.
+      // artwork leaves EMPTY is a pixel the page must show unchanged. (Until
+      // DECISIONS 190 the same samples were chosen by whiteness, because the
+      // ground was white and reached the page through multiply; the drawing
+      // is transparent now, so the mask reads alpha and the expected value is
+      // simply the bare page.) Drawn at the SIZE THE PAGE DRAWS IT, because
+      // that is the only version whose pixels line up with the screenshot:
+      // the mark renders at a fraction of the artwork's width, so a rendered
+      // pixel beside the handle is an average of empty ground and dark metal,
+      // and testing the full-size art would call it ground and then fail on
+      // the handle.
       const art = new Image();
       art.src = source;
       await art.decode();
@@ -261,6 +268,7 @@ const blend = await (async () => {
         const i = (y * data.width + x) * 4;
         return [data.data[i], data.data[i + 1], data.data[i + 2]];
       };
+      const alpha = (data, x, y) => data.data[(y * data.width + x) * 4 + 3];
       let sampled = 0;
       let worst = { delta: -1 };
       const STEPS = 40;
@@ -268,29 +276,28 @@ const blend = await (async () => {
         for (let col = 1; col < STEPS; col++) {
           const x = Math.floor((a.width * col) / STEPS);
           const y = Math.floor((a.height * row) / STEPS);
-          // Ground only if this pixel AND its neighbours are white: an
-          // anti-aliased edge one pixel away still tints what the page paints.
+          // Ground only if this pixel AND its neighbours are empty: the soft
+          // shadow is real semi-transparent drawing, and one edge pixel away
+          // it still tints what the page paints.
           let ground = true;
           for (let dy = -1; dy <= 1 && ground; dy++) {
             for (let dx = -1; dx <= 1 && ground; dx++) {
               const nx = Math.min(a.width - 1, Math.max(0, x + dx));
               const ny = Math.min(a.height - 1, Math.max(0, y + dy));
-              const [ar, ag, ab] = pixel(artData, nx, ny);
-              if (Math.min(ar, ag, ab) < 250) ground = false;
+              // Strictly zero. An alpha of 4 is invisible to a person and
+              // still darkens the page by four levels, which is exactly the
+              // size of the departure this check is meant to notice.
+              if (alpha(artData, nx, ny) !== 0) ground = false;
             }
           }
-          if (!ground) continue; // kettle, its shadow, or an edge beside them
+          if (!ground) continue; // the kettle, its shadow, or an edge beside them
           sampled++;
           const painted = pixel(a, x, y);
           const bare = pixel(b, x, y);
-          const art = pixel(artData, x, y);
-          // What multiply is defined to produce: backdrop x source / 255. For
-          // a ground of 255 that is the backdrop untouched; for the ground's
-          // real 250-255 it is a level or two below it. Comparing against the
-          // arithmetic rather than against the bare page means the tolerance
-          // is rounding error and nothing else — a blend landing on the wrong
-          // backdrop cannot hide inside a slack allowance.
-          const expected = bare.map((c, i) => Math.round((c * art[i]) / 255));
+          // What source-over is defined to produce where the source is empty:
+          // the backdrop, untouched. Nothing is drawn there, so nothing may
+          // change there — no blend mode, no arithmetic, no allowance.
+          const expected = bare;
           const delta = Math.max(...painted.map((c, i) => Math.abs(c - expected[i])));
           if (delta > worst.delta) worst = { delta, x, y, painted, bare, expected };
         }
@@ -312,21 +319,51 @@ const blend = await (async () => {
     canvas.height = image.naturalHeight;
     const ctx = canvas.getContext("2d");
     ctx.drawImage(image, 0, 0);
-    const at = (x, y) => [...ctx.getImageData(x, y, 1, 1).data];
-    // The four corners and the mid-points of the top and bottom edges: the
-    // ground, sampled where the kettle and its shadow never reach.
     const w = image.naturalWidth;
     const h = image.naturalHeight;
+    const full = ctx.getImageData(0, 0, w, h);
+    const alphaAt = (x, y) => full.data[(y * w + x) * 4 + 3];
+
+    // The handle window: the arch of empty space between the handle and the
+    // lid. Found rather than guessed at a coordinate, so a re-export that
+    // fills it in fails here instead of quietly gaining a lump of paper. A
+    // pixel counts only when it is transparent AND has opaque drawing to its
+    // left and right on the same row — which is what "enclosed" means.
+    let enclosed = 0;
+    let widestRun = { run: 0, y: -1, x: -1 };
+    for (let y = 0; y < h; y++) {
+      let first = -1;
+      let last = -1;
+      for (let x = 0; x < w; x++) {
+        if (alphaAt(x, y) > 200) {
+          if (first < 0) first = x;
+          last = x;
+        }
+      }
+      if (first < 0 || last - first < 4) continue;
+      let run = 0;
+      for (let x = first + 1; x < last; x++) {
+        if (alphaAt(x, y) < 24) {
+          enclosed++;
+          run++;
+          if (run > widestRun.run) widestRun = { run, y, x: x - run + 1 };
+        } else {
+          run = 0;
+        }
+      }
+    }
+
     return {
       mode,
       size: [w, h],
       ground: {
-        "top-left": at(1, 1),
-        "top-right": at(w - 2, 1),
-        "top-middle": at(Math.floor(w / 2), 2),
-        "bottom-left": at(1, h - 2),
-        "bottom-right": at(w - 2, h - 2),
+        "top-left": alphaAt(1, 1),
+        "top-right": alphaAt(w - 2, 1),
+        "top-middle": alphaAt(Math.floor(w / 2), 2),
+        "bottom-left": alphaAt(1, h - 2),
+        "bottom-right": alphaAt(w - 2, h - 2),
       },
+      window: { enclosed, widestRun },
     };
   });
   await browser2.close();
@@ -344,50 +381,77 @@ if (sampled < 100) {
 } else if (worst.delta > COMPOSITE_TOLERANCE) {
   failed = true;
   console.error(
-    `  FAIL the ground does not composite: at (${worst.x}, ${worst.y}) the page paints ` +
-      `rgb(${worst.painted.join(", ")}); multiplying the drawing onto the page there ` +
-      `(bare rgb(${worst.bare.join(", ")})) must give rgb(${worst.expected.join(", ")}) — ` +
-      `${worst.delta} levels out over ${sampled} ground samples. The blend is landing ` +
-      `on something other than the page.`,
+    `  FAIL the mark paints where it draws nothing: at (${worst.x}, ${worst.y}) the page ` +
+      `paints rgb(${worst.painted.join(", ")}) with the mark and rgb(${worst.bare.join(", ")}) ` +
+      `without it — ${worst.delta} levels out over ${sampled} empty samples`,
   );
 } else {
   console.log(
-    `  ${sampled} ground samples, worst departure from multiply's own arithmetic ` +
-      `${worst.delta} of 255 — the drawing is landing on the page itself`,
+    `  ${sampled} empty samples, worst departure ${worst.delta} of 255 — where the ` +
+      `drawing is empty the page is painted exactly as it is with no mark there`,
   );
 }
 
-if (blend.mode !== "multiply") {
+// No blend mode, on any browser (DECISIONS 190): the drawing is transparent,
+// so nothing has to be composited cleverly for the page to show through.
+if (blend.mode !== "normal") {
   failed = true;
-  console.error(`  FAIL the image's blend mode is "${blend.mode}", not multiply`);
+  console.error(
+    `  FAIL the image carries blend mode "${blend.mode}" — the transparent asset needs ` +
+      `none, and iOS Safari does not honour one across the rhythm canvas anyway`,
+  );
 } else {
-  console.log("  blend mode: multiply");
+  console.log("  blend mode: none — the drawing is transparent, not composited");
 }
-// Multiplying by white is the identity. Anything short of it darkens the
-// backdrop by exactly the shortfall, per channel — which is what a visible
-// rectangle IS.
-const GROUND_FLOOR = 250;
-for (const [corner, [r, g, b, a]] of Object.entries(blend.ground)) {
-  const white = Math.min(r, g, b) >= GROUND_FLOOR && a === 255;
-  if (!white) {
+// Empty means empty: an alpha of 8 over a warm canvas is a rectangle nobody
+// can name but everybody can see.
+const ALPHA_CEILING = 8;
+for (const [corner, alpha] of Object.entries(blend.ground)) {
+  if (alpha > ALPHA_CEILING) {
     failed = true;
     console.error(
-      `  FAIL ground at ${corner} is rgb(${r}, ${g}, ${b}) — multiply will darken the ` +
-        `backdrop behind the mark by ${255 - r}/${255 - g}/${255 - b} per channel, ` +
-        `which is the rectangle it is supposed to dissolve`,
+      `  FAIL ground at ${corner} has alpha ${alpha} of 255 — the background is still ` +
+        `there, and it will paint over the wash on every browser`,
     );
   } else {
-    console.log(`  ground at ${corner}: rgb(${r}, ${g}, ${b}) — composites to the backdrop`);
+    console.log(`  ground at ${corner}: alpha ${alpha} — nothing there`);
   }
+}
+const { enclosed, widestRun } = blend.window;
+if (enclosed < 2_000) {
+  failed = true;
+  console.error(
+    `  FAIL only ${enclosed} enclosed transparent pixels — the window under the handle ` +
+      `is filled, so the mark carries a lump of paper the wash cannot reach`,
+  );
+} else {
+  console.log(
+    `  handle window open: ${enclosed} enclosed transparent pixels, widest span ` +
+      `${widestRun.run}px at row ${widestRun.y}`,
+  );
 }
 
 console.log("\npaint order — the field stays behind the words:");
-// The other half of removing the hero wrapper's z-index (DECISIONS 189).
-// Nothing now lifts the copy above the canvas explicitly, so the guarantee is
-// DOM order — and the way to know it held is to hide the canvas and find the
-// headline's ink unchanged. Dust painted OVER the text would lighten it.
+// The other half of removing the hero wrapper's z-index (DECISIONS 189):
+// nothing lifts the copy above the canvas explicitly any more, so the
+// guarantee is DOM order and this is how it is checked.
+//
+// Not by looking for the field's own dust over the text — that was the first
+// version, and it is a coin toss: the dust is sparse and translucent, so a
+// canvas painting straight over the headline can still leave every solid
+// stroke pixel untouched, and the check reported green through a planted
+// regression. So the canvas is FORCED opaque in a colour this palette does
+// not contain, and the question becomes decisive: with an opaque sheet in
+// that layer, is the headline still there? Below the copy, the text renders
+// over it and every stroke survives. Above it, the words are simply gone.
 const paint = await (async () => {
-  const browser3 = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+  // Greyscale anti-aliasing, so a rasterization difference cannot be read as
+  // a layering one (Chromium picks subpixel or greyscale AA by what it knows
+  // about the backdrop, and that changes when a compositing layer does).
+  const browser3 = await chromium.launch({
+    executablePath: "/opt/pw-browsers/chromium",
+    args: ["--disable-lcd-text"],
+  });
   const page3 = await browser3.newPage({
     viewport: { width: 1280, height: 900 },
     reducedMotion: "reduce",
@@ -400,7 +464,11 @@ const paint = await (async () => {
     width: Math.round(box.width),
     height: Math.round(box.height),
   };
-  const over = (await page3.screenshot({ clip })).toString("base64");
+  const SHEET = "rgb(255, 0, 255)";
+  await page3.addStyleTag({
+    content: `[data-rhythm-field] { background: ${SHEET} !important; }`,
+  });
+  const covered = (await page3.screenshot({ clip })).toString("base64");
   await page3.evaluate(() => {
     document.querySelector("[data-rhythm-field]").style.visibility = "hidden";
   });
@@ -417,44 +485,120 @@ const paint = await (async () => {
         canvas.getContext("2d").drawImage(image, 0, 0);
         return canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
       };
-      const withField = await decode(a64);
+      const withSheet = await decode(a64);
       const withoutField = await decode(b64);
-      let ink = 0;
-      let worst = 0;
-      for (let i = 0; i < withoutField.data.length; i += 4) {
-        // The SOLID middle of a stroke only. A glyph's anti-aliased edge is
-        // part backdrop by construction — it changes whenever what is behind
-        // it changes, correct layering included — so an edge-inclusive mask
-        // reports the field as painting over text that it is sitting neatly
-        // behind. Ink this dark is opaque.
-        // 80 is a shade above the --ink token's own red channel (0x40 = 64),
-        // so this admits solid strokes and nothing that is mostly paper.
-        if (withoutField.data[i] > 80) continue;
-        ink++;
-        for (let c = 0; c < 3; c++) {
-          worst = Math.max(worst, Math.abs(withField.data[i + c] - withoutField.data[i + c]));
+      const inkIn = (data) => {
+        let n = 0;
+        for (let i = 0; i < data.data.length; i += 4) {
+          if (Math.max(data.data[i], data.data[i + 1], data.data[i + 2]) <= 80) n++;
         }
+        return n;
+      };
+      // The sheet has to be reachable at all, or this passes on a page where
+      // the style never applied.
+      let sheet = 0;
+      for (let i = 0; i < withSheet.data.length; i += 4) {
+        const [r, g, b] = [withSheet.data[i], withSheet.data[i + 1], withSheet.data[i + 2]];
+        if (r > 200 && g < 60 && b > 200) sheet++;
       }
-      return { ink, worst };
+      return { covered: inkIn(withSheet), alone: inkIn(withoutField), sheet };
     },
-    [over, alone],
+    [covered, alone],
   );
   await browser3.close();
   return out;
 })();
-if (paint.ink < 500) {
+if (paint.alone < 500) {
   failed = true;
-  console.error(`  FAIL only ${paint.ink} ink pixels found — the headline is not being read`);
-} else if (paint.worst > 2) {
+  console.error(`  FAIL only ${paint.alone} ink pixels found — the headline is not being read`);
+} else if (paint.sheet === 0) {
+  failed = true;
+  console.error("  FAIL the forced sheet never painted — this check proved nothing");
+} else if (paint.covered < paint.alone * 0.9) {
   failed = true;
   console.error(
-    `  FAIL the field paints over the headline: hiding it changes the ink by ` +
-      `${paint.worst} levels across ${paint.ink} pixels`,
+    `  FAIL the field paints over the headline: an opaque sheet in that layer leaves ` +
+      `${paint.covered} of ${paint.alone} ink pixels standing`,
   );
 } else {
   console.log(
-    `  ${paint.ink} ink pixels in the headline, unchanged by hiding the field ` +
-      `(worst ${paint.worst} of 255)`,
+    `  an opaque sheet in the field's layer leaves ${paint.covered} of ${paint.alone} ink ` +
+      `pixels standing (${paint.sheet} sheet pixels around them) — the words are on top`,
+  );
+}
+
+console.log("\ncomposition — the mark replaces breathing room rather than adding to it:");
+// Two acceptances (DECISIONS 190). On a desktop the headline has to sit
+// HIGHER than it did before the mark arrived, or the mark cost the page its
+// opening rather than becoming it. On a phone the whole promise — kicker,
+// headline, both sub paragraphs and the CTA — has to land inside the first
+// viewport, because a reader who has to scroll to find out what this is has
+// already been asked for something.
+const composition = await (async () => {
+  const browser4 = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+  const measure = async (viewport) => {
+    const page4 = await browser4.newPage({ viewport, reducedMotion: "reduce" });
+    await page4.goto(url, { waitUntil: "networkidle" });
+    const out = await page4.evaluate(() => {
+      const box = (selector) => {
+        const node = document.querySelector(selector);
+        if (!node) return null;
+        const rect = node.getBoundingClientRect();
+        return {
+          top: Math.round(rect.top + window.scrollY),
+          bottom: Math.round(rect.bottom + window.scrollY),
+        };
+      };
+      const mark = document.querySelector(".kt-mark");
+      const markBox = mark ? mark.getBoundingClientRect() : null;
+      const kicker = document.querySelector('[data-testid="eyebrow"]');
+      return {
+        markWidth: markBox ? Math.round(markBox.width) : 0,
+        markVisible: mark ? getComputedStyle(mark).display !== "none" : false,
+        markToKicker:
+          markBox && kicker
+            ? Math.round(kicker.getBoundingClientRect().top - markBox.bottom)
+            : null,
+        mark: box(".kt-mark"),
+        kicker: box('[data-testid="eyebrow"]'),
+        heading: box('[data-testid="page-heading"]'),
+        sub: box('[data-testid="hero-sub"]'),
+        cta: box('#hero [data-testid="cta"]'),
+      };
+    });
+    await page4.close();
+    return out;
+  };
+  const desktop = await measure({ width: 1440, height: 900 });
+  const phone = await measure({ width: 390, height: 844 });
+  await browser4.close();
+  return { desktop, phone };
+})();
+
+const { desktop, phone } = composition;
+console.log(
+  `  1440px  mark ${desktop.markWidth}px, mark→kicker ${desktop.markToKicker}px, ` +
+    `headline top at ${desktop.heading.top}px`,
+);
+console.log(
+  `   390px  mark ${phone.markWidth}px${phone.markVisible ? "" : " (hidden)"}, ` +
+    `mark→kicker ${phone.markToKicker}px, headline top at ${phone.heading.top}px`,
+);
+console.log(
+  `   390x844 first viewport: kicker ${phone.kicker.top}, headline ` +
+    `${phone.heading.top}–${phone.heading.bottom}, sub ${phone.sub.top}–${phone.sub.bottom}, ` +
+    `CTA ends ${phone.cta.bottom}`,
+);
+const VIEWPORT = 844;
+if (phone.cta.bottom > VIEWPORT) {
+  failed = true;
+  console.error(
+    `  FAIL the CTA ends ${phone.cta.bottom}px down a ${VIEWPORT}px viewport — the promise ` +
+      `does not fit on a phone without scrolling`,
+  );
+} else {
+  console.log(
+    `  the whole promise fits: ${VIEWPORT - phone.cta.bottom}px to spare below the CTA at 390x844`,
   );
 }
 
