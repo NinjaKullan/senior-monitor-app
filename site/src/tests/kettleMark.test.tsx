@@ -243,6 +243,73 @@ describe("motion, and the viewer who asked for none", () => {
     expect(CSS).not.toMatch(/opacity:\s*[\d.]+;[\s\S]*?\.kt-mark-image/);
   });
 
+  it("keeps every ancestor up to the section out of the blend's way", () => {
+    /**
+     * The bug this exists for (DECISIONS 189), and the reason the multiply
+     * pin above was not enough: `mix-blend-mode` composites only within its
+     * nearest STACKING CONTEXT. The hero's content wrapper carried `z-10`
+     * from long before the mark existed, which made one, so the blend landed
+     * on that transparent group instead of on the section — white ground
+     * stayed white and the rectangle came back with the CSS looking perfect.
+     *
+     * So the rule is about the ANCESTORS, not about the mark: nothing between
+     * it and the section it blends against may create a stacking context. The
+     * section itself may — its wash and the rhythm canvas are what the mark is
+     * supposed to land on.
+     */
+    render(<App />);
+    const mark = screen.getByTestId("kettle-mark");
+    const section = mark.closest("section")!;
+    // Every Tailwind utility that creates one. `relative` alone does not:
+    // a positioned element makes a stacking context only once its z-index
+    // stops being auto.
+    const MAKES_CONTEXT =
+      /^(z-(?!auto)|opacity-(?!100)|transform$|transform-|scale-|rotate-|translate-|skew-|perspective|filter$|blur-|backdrop-|mix-blend-|isolate$|will-change-|contain-|animate-)/;
+    const STYLE_MAKES_CONTEXT = [
+      "zIndex",
+      "opacity",
+      "transform",
+      "filter",
+      "backdropFilter",
+      "mixBlendMode",
+      "isolation",
+      "willChange",
+      "contain",
+      "perspective",
+    ];
+
+    const offenders: string[] = [];
+    for (let node = mark.parentElement; node && node !== section; node = node.parentElement) {
+      for (const token of Array.from(node.classList)) {
+        // The gate is the bare utility; a `motion-safe:` or `md:` variant of
+        // one still creates the context whenever it applies.
+        const bare = token.includes(":") ? token.slice(token.lastIndexOf(":") + 1) : token;
+        if (MAKES_CONTEXT.test(bare)) offenders.push(`${node.tagName}.${token}`);
+      }
+      for (const property of STYLE_MAKES_CONTEXT) {
+        const value = node.style[property as keyof CSSStyleDeclaration];
+        if (value) offenders.push(`${node.tagName} style.${property}=${String(value)}`);
+      }
+    }
+    expect(offenders, "a stacking context between the mark and what it blends onto").toEqual([]);
+    // Not passing on an empty walk: there IS a wrapper between the two.
+    expect(mark.parentElement).not.toBe(section);
+  });
+
+  it("would catch the z-index that caused the bug", () => {
+    // The predicate, run against the exact class that broke it and against
+    // the ones that must stay legal — `relative` is how the wrapper positions
+    // itself and creates no context on its own.
+    const MAKES_CONTEXT =
+      /^(z-(?!auto)|opacity-(?!100)|transform$|transform-|scale-|rotate-|translate-|skew-|perspective|filter$|blur-|backdrop-|mix-blend-|isolate$|will-change-|contain-|animate-)/;
+    for (const token of ["z-10", "opacity-90", "isolate", "mix-blend-multiply", "blur-sm"]) {
+      expect(MAKES_CONTEXT.test(token), token).toBe(true);
+    }
+    for (const token of ["relative", "z-auto", "opacity-100", "mx-auto", "flex", "gap-8"]) {
+      expect(MAKES_CONTEXT.test(token), token).toBe(false);
+    }
+  });
+
   it("stays out of the way of the pointer", () => {
     // The steam sits on top of the mark; anything above the kicker that eats
     // a tap is a bug on a phone.
