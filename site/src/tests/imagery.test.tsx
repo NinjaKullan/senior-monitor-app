@@ -30,7 +30,12 @@ import { HOW_STRIP_ALT } from "@/copy";
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-/** The set, by name. A seventh image is a decision, not a detail. */
+/** The set, by name. A seventh image is a decision, not a detail — and this
+ *  one was made: the kettle mark (DECISIONS 187), which is not an
+ *  illustration at all but the brand's own object, living above the kicker.
+ *  It is the sole member of DECORATIVE below, and everything the set asserts
+ *  about alt text and loading is asserted about it separately rather than
+ *  waived. */
 const SET = [
   "/hero-two-cities.webp",
   "/ill-her-afternoon.webp",
@@ -38,7 +43,13 @@ const SET = [
   "/ill-somethings-off.webp",
   "/ill-story-strip.webp",
   "/ill-what-you-see.webp",
+  "/kettle-hero.webp",
 ];
+
+/** Images that carry no meaning and must therefore carry no alt text. One
+ *  entry, by name: a decorative image is an exemption from the alt-text rule,
+ *  so the list of them is the exemption, and it is written out. */
+const DECORATIVE = ["/kettle-hero.webp"];
 
 /** The photographs this set replaced, by every name they went by. */
 const RETIRED = [
@@ -72,8 +83,25 @@ describe("the illustration set", () => {
   it("gives every image alt text that is actually written", () => {
     const { container } = render(<App />);
     for (const image of Array.from(container.querySelectorAll("img"))) {
+      const src = image.getAttribute("src") ?? "";
       const alt = image.getAttribute("alt") ?? "";
-      expect(alt.length, `${image.getAttribute("src")} has no alt text`).toBeGreaterThan(20);
+      if (DECORATIVE.includes(src)) continue;
+      expect(alt.length, `${src} has no alt text`).toBeGreaterThan(20);
+    }
+  });
+
+  it("makes the decorative image say so in both of the ways that matter", () => {
+    // Half-done decoration is worse than none: an empty alt with no
+    // aria-hidden still lands in the accessibility tree as an unlabelled
+    // graphic, and aria-hidden with alt text is a contradiction the screen
+    // reader resolves by ignoring the picture anyway. Both, or it is not
+    // decorative.
+    const { container } = render(<App />);
+    for (const src of DECORATIVE) {
+      const image = container.querySelector(`img[src="${src}"]`)!;
+      expect(image, `${src} is not on the page`).not.toBeNull();
+      expect(image.getAttribute("alt")).toBe("");
+      expect(image.getAttribute("aria-hidden")).toBe("true");
     }
   });
 
@@ -98,7 +126,17 @@ describe("the illustration set", () => {
     const eager = Array.from(container.querySelectorAll("img")).filter(
       (image) => image.getAttribute("loading") !== "lazy",
     );
-    expect(eager.map((image) => image.getAttribute("src"))).toEqual(["/hero-two-cities.webp"]);
+    // Two now, and both above the fold in the same section: the kettle mark
+    // is eager for the same reason the illustration is — it is in the first
+    // paint, and at 61KB a lazy one would pop in over the kicker (DECISIONS
+    // 187). A third eager image anywhere is the rule breaking.
+    expect(eager.map((image) => image.getAttribute("src"))).toEqual([
+      "/kettle-hero.webp",
+      "/hero-two-cities.webp",
+    ]);
+    for (const image of eager) {
+      expect(image.closest("section")!.getAttribute("id")).toBe("hero");
+    }
   });
 });
 

@@ -98,6 +98,11 @@ def test_the_illustrations_really_are_unhashed_stable_names():
         "ill-somethings-off.webp",
         "ill-story-strip.webp",
         "ill-what-you-see.webp",
+        # The seventh is not an illustration but the brand's own object: the
+        # kettle mark above the hero kicker (DECISIONS 187). It is here for
+        # the same reason as the rest — unhashed, stable, and therefore under
+        # the revalidate rule rather than the immutable one.
+        "kettle-hero.webp",
     ]
     for name in webps:
         assert not re.search(r"[.-][0-9a-f]{8,}\.webp$", name), f"{name} looks hashed"

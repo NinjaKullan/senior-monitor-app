@@ -163,7 +163,16 @@ describe("the hero image", () => {
     // container here would be staging it twice (DECISIONS 136).
     const { container } = render(<App />);
     const hero = screen.getByTestId("hero-image").closest("section")!;
-    expect(hero.querySelectorAll("img")).toHaveLength(1);
+    // One ILLUSTRATION, counted by the thing that makes an image an
+    // illustration rather than decoration: alt text somebody wrote. The hero
+    // gained the kettle mark above the kicker (DECISIONS 187), which carries
+    // an empty alt and is aria-hidden — a second drawn frame would not.
+    const illustrations = Array.from(hero.querySelectorAll("img")).filter(
+      (image) => (image.getAttribute("alt") ?? "") !== "",
+    );
+    expect(illustrations.map((image) => image.getAttribute("src"))).toEqual([
+      "/hero-two-cities.webp",
+    ]);
     expect(screen.queryByTestId("hero-diptych")).toBeNull();
     expect(container.querySelector('[class*="grid-cols-2"]')).toBeNull();
   });
