@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 189.** This line is the one to update; the `Next number:` lines inside
+**Next number: 190.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2424,3 +2424,64 @@ browser — all three adopted as the standard for future surfaces.**
        breathe stays out, per the PM. It is not steam, it is invisible at
        132px, and it would be a fourth animated element by the site's own
        counting (design-language §6).
+
+
+189. **(2026-08-27, Claude Code, PM-ordered) The multiply blend was
+     landing on a stacking context, not on the page.** Site suite
+     214 → 216; nothing deployed. The PM's diagnosis from source was
+     exactly right, and it is the third premise of blending that neither
+     of the earlier checks could see.
+     * **The bug.** `mix-blend-mode` composites only within its nearest
+       STACKING CONTEXT. `sections/Hero.tsx` wrapped the hero's content
+       in `relative z-10` — from long before the mark existed — and a
+       positioned element with a non-auto z-index makes one. So the mark
+       blended against that transparent group rather than against the
+       section's wash and rhythm canvas: white ground multiplied by
+       nothing stayed white, and the rectangle the normalized asset was
+       cut to dissolve was still there. Both earlier checks passed
+       through this untouched — the CSS rule was present and correct, and
+       the asset's ground was white. My own comment in `kettle-mark.css`
+       names this failure; the ancestor predated the mark and I never
+       looked up the tree.
+     * **The fix: `z-10` removed, nothing added.** The canvas still
+       paints beneath the copy on DOM order alone — canvas and wrapper
+       are both positioned with `z-index: auto`, and the canvas is
+       written first — so no replacement z-index, and in particular
+       nothing that would create a second stacking context between the
+       mark and the section. Measured rather than reasoned: hiding the
+       field changes 4,562 solid-ink pixels of the headline by 0 levels
+       of 255, and lifting the canvas with a planted `z-10` moves them
+       by 74.
+     * **The probe now reads the rendered composite.** This is the
+       lesson, not the z-index: the old check read the ASSET's pixels,
+       which is a premise of blending rather than blending itself. It now
+       screenshots the mark's box, screenshots it again with the mark
+       hidden by `visibility` (no reflow), and requires every ground
+       sample to equal what multiply is *defined* to produce there —
+       backdrop × source ÷ 255 — so the tolerance is rounding (2 levels)
+       and not a slack allowance. Before the fix: 27 to 144 levels out,
+       the page painting the mark's own rgb(255, 255, 253) where it
+       should have painted rgb(245, 237, 226). After: 956 ground
+       samples, worst departure 2 of 255. Anything behind the mark shows
+       through identically, drifting field dots included, which is the
+       "is a dot still visible" question answered by construction.
+     * **Two corrections inside the probe itself, both worth not
+       undoing.** The ground mask draws the artwork at the size the PAGE
+       draws it before deciding which pixels are ground: the mark renders
+       at an eighth of the artwork's width, so a rendered pixel beside
+       the handle is an average of white ground and dark metal, and
+       masking off the full-size art called it ground and then failed on
+       the handle. And the ink threshold for the paint-order check is 80,
+       a shade above `--ink`'s own red channel (0x40): the first version
+       used 60, found zero pixels, and would have passed forever on an
+       empty sample.
+     * **The regression is pinned in the suite too**, where it is free:
+       walk from the mark up to the section and refuse any ancestor
+       carrying a stacking-context utility or inline style — z-index,
+       opacity below 100, transform, filter, backdrop-filter, blend mode,
+       isolation, will-change, contain, perspective, or an animation
+       (variants included, since a `motion-safe:` one still applies when
+       it applies). `relative` stays legal and is asserted to stay legal:
+       positioning alone creates nothing. Planted both ways — the exact
+       `z-10` that caused this, and an `animate-rise` wrapper around the
+       mark — and each fails by name.

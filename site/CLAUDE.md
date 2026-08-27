@@ -43,6 +43,12 @@ short form and the things that are not written down anywhere else.
   length in `src/kettle-mark.css` is a multiple of one container-relative unit, and a
   bare `px` there is the founder-reported drift returning. `scripts/probe-kettle.mjs`
   measures it in a real browser at three widths; the suite refuses the pixel.
+- **Nothing between the kettle mark and the hero section may create a stacking
+  context** — no z-index, opacity, transform, filter, isolation or animation on an
+  ancestor (DECISIONS 189). `mix-blend-mode` composites only inside its nearest one,
+  so a wrapper that makes one silently turns the mark back into a pasted rectangle
+  with the CSS still reading correctly. The hero's copy wrapper is `relative` with no
+  z-index for exactly this reason, and the canvas stays behind it on DOM order.
 
 ## Mobile verification
 
