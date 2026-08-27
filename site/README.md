@@ -27,7 +27,11 @@ stricter.
 | Every animation behind `motion-safe:`; hovers colour-only | `motion.test.tsx`, scanned off the rendered DOM |
 | One typeface, five type roles, three real weights, no inline emphasis | `motion.test.tsx`, scanned off the rendered DOM |
 | Every image comes from the illustration set; no retired photograph is named anywhere | `imagery.test.tsx` |
-| `public/` holds exactly those six illustrations, at unhashed stable names | `product/tests/test_site_caching.py` |
+| The one decorative image carries an empty alt AND aria-hidden; every other image carries written alt text | `imagery.test.tsx` |
+| The kettle mark sits above the hero kicker, says nothing, and eats no taps | `kettleMark.test.tsx` |
+| Every steam length is container-relative — a bare `px` is refused | `kettleMark.test.tsx`; `scripts/probe-kettle.mjs` measures it at 120/240/420px |
+| Every kettle keyframe and animation lives inside the no-preference block, and reduced motion gets one faint motionless wisp | `kettleMark.test.tsx` |
+| `public/` holds those six illustrations plus the kettle mark, at unhashed stable names | `product/tests/test_site_caching.py` |
 | The scenario tab row stays one line on a phone | `scenarios.test.tsx` pins the classes; `scripts/probe-responsive.mjs` measures it |
 | Notification proportions live in one place | `motion.test.tsx` against `lib/notification.ts` |
 | No foreign origin in `dist/` | `scripts/check-foreign-origins.mjs`, in `npm run ci` |
@@ -40,8 +44,8 @@ an urgency word, a `!` CTA, a person-status verdict, an app name inside a
 scenario, a drifted three-fields claim, a clock time in a notification, a
 `hover:scale`, an ungated entry animation, a red chip outside the form, a serif
 on a second consecutive element, a kinship term in a heading, a reordered
-section, a second serif, a drifted meta description — and watching it fail
-before reverting.
+section, a second serif, a drifted meta description, the steam's geometry
+written back in the mockup's own pixels — and watching it fail before reverting.
 
 **Universal English, and both parents** (Amendment A, founder site review). The
 copy carries no romanized kinship terms and no culture-coded vocabulary: the

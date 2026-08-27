@@ -138,6 +138,30 @@ touch device attaches no listener at all; and a reduced-motion viewer gets the d
 undisturbed. This extension covers the dust and only the dust. Any other element that answers the
 pointer is a new argument, to be made here first.
 
+**The third animated element (PM, 2026-08-27 — DECISIONS 187).** The two exceptions above are one
+canvas; this one is a picture. A small kettle sits above the hero kicker and steams — placement
+Option A of three wireframed, chosen because it is the only one that adds the heartbeat without
+moving anything: the copy block, the CTA and the hero illustration are exactly where they were, and
+the kettle reads as a wordmark that happens to be alive rather than as a second picture arguing with
+the first. The argument for it is that the product is named after an object, and a marketing page
+that shows that object once, quietly, is saying its own name.
+
+The conditions are again the law. It carries no words and no meaning: empty alt, the steam layers
+`aria-hidden`, nothing about anyone's day. It cannot be interacted with (`pointer-events: none`) and
+answers no pointer — the three-fields extension covers the dust and only the dust. It stands down
+to a designed still under `prefers-reduced-motion` — one faint wisp at the spout, going nowhere —
+and every keyframe and animation declaration lives inside the `no-preference` block, which is what
+`motion-safe:` compiles to and what hand-written component CSS has to do by hand.
+
+And one rule that is specific to a drawn element rather than to motion in general: **the steam's
+geometry is a property of the kettle, never of the page.** Every offset, size, blur radius and
+keyframe travel is a multiple of one container-relative unit, so the steam is the same fraction of
+the pot at any render size. The mockups expressed the same geometry in pixels calibrated for a
+420px kettle; at the mark's real size those pixels are not smaller steam, they are the same steam on
+a third of the kettle — wisps a quarter of the pot wide, travel one and a half kettle-widths high,
+drifting off the left edge. A bare `px` in that stylesheet is that bug returning, and the suite
+refuses one. A fourth animated element is a new argument, to be made here first.
+
 ## 7 Component grammar
 
 - **CTAs are full pills**, 12/24 padding, sans at **true semibold**; hover is a colour shift only. No

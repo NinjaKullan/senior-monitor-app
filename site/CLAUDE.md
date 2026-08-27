@@ -27,15 +27,22 @@ short form and the things that are not written down anywhere else.
   mechanism — no tooling names, no automation vocabulary, no named infrastructure.
   Mechanism transparency belongs on the setup surface, behind an expiring link.
 - **The motion law.** Entry fade and rise, once, gated `motion-safe:`; hovers are
-  colour-only. Two scripted exceptions exist and both are written into
-  `docs/design-language.md` §6 rather than into a component: the Rhythm Field, and the
-  three-fields dust answering a desktop pointer. A third animated element is a new
-  argument, to be made there first.
+  colour-only. Three scripted exceptions exist and all are written into
+  `docs/design-language.md` §6 rather than into a component: the Rhythm Field, the
+  three-fields dust answering a desktop pointer, and the kettle mark's steam. A fourth
+  animated element is a new argument, to be made there first.
 - **One typeface, five type roles, three real weights.** A sixth size is an amendment
   to `docs/design-language.md` §3, not a decision to be made inside a `className`.
   Emphasis is a whole sentence carried by weight, never an italic fragment.
 - **One image set.** Every image the page renders comes from the six illustrations in
-  `site/public/`, at unhashed stable names the cache contract depends on.
+  `site/public/`, at unhashed stable names the cache contract depends on — plus the
+  kettle mark, which is the brand's own object rather than an illustration and is the
+  one decorative image on the page (DECISIONS 187). A decorative image carries an
+  empty alt AND `aria-hidden`; anything else on this page carries written alt text.
+- **The kettle mark's steam scales with the kettle, never with the page.** Every
+  length in `src/kettle-mark.css` is a multiple of one container-relative unit, and a
+  bare `px` there is the founder-reported drift returning. `scripts/probe-kettle.mjs`
+  measures it in a real browser at three widths; the suite refuses the pixel.
 
 ## Mobile verification
 
