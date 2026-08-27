@@ -43,12 +43,17 @@ short form and the things that are not written down anywhere else.
   length in `src/kettle-mark.css` is a multiple of one container-relative unit, and a
   bare `px` there is the founder-reported drift returning. `scripts/probe-kettle.mjs`
   measures it in a real browser at three widths; the suite refuses the pixel.
+- **The kettle mark reaches the page by being transparent, not by blending.** A
+  `mix-blend-mode` here is a browser-specific bug written back in: iOS Safari will not
+  blend across the GPU-composited rhythm canvas, so the multiply version showed the
+  white ground on every iPhone (DECISIONS 190). The asset carries real alpha; nothing
+  has to composite cleverly.
 - **Nothing between the kettle mark and the hero section may create a stacking
   context** — no z-index, opacity, transform, filter, isolation or animation on an
-  ancestor (DECISIONS 189). `mix-blend-mode` composites only inside its nearest one,
-  so a wrapper that makes one silently turns the mark back into a pasted rectangle
-  with the CSS still reading correctly. The hero's copy wrapper is `relative` with no
-  z-index for exactly this reason, and the canvas stays behind it on DOM order.
+  ancestor (DECISIONS 189, kept in 190). It was the blend that first exposed this, but
+  the layering it protects outlived the blend: steam over drawing, drawing over the
+  hero's wash and canvas. The hero's copy wrapper is `relative` with no z-index for
+  exactly this reason, and the canvas stays behind it on DOM order.
 
 ## Mobile verification
 

@@ -68,13 +68,15 @@ changeover conservatism, the move alert) lives in outbound.py; (3)
 `cd webapp && fly deploy` (with the build-arg fly.toml, DECISIONS 114) for the
 city picker, the auto journal note, and the changeover-day dot.
 
-**Owed deploy (the living kettle, DECISIONS 187/188):** `cd site && npm run ci &&
-fly deploy` ships the kettle mark above the hero kicker. The blocker is cleared —
-the ground-normalized `site/public/kettle-hero.webp` landed (md5 3ff6595b, 60KB,
-ground white on every sample), so `mix-blend-mode: multiply` composites the mark
-to exactly the backdrop and the rectangle is gone. Re-verified in a browser:
-`node scripts/probe-kettle.mjs <preview-url>` passes on blending, on the steam's
-proportionality at 120/240/420px, and on the silhouette.
+**Owed deploy (the living kettle, DECISIONS 187–190):** `cd site && npm run ci &&
+fly deploy` ships the kettle mark above the hero kicker, and the hero's tightened
+composition with it. The mark carries real alpha and **no blend mode** — the
+multiply version worked in desktop Chrome and showed a white rectangle on every
+iPhone, because iOS Safari will not blend across the rhythm canvas (190). One
+command re-checks the lot against a preview server:
+`node scripts/probe-kettle.mjs <preview-url>` — steam proportionality at
+120/240/420px, the silhouette, the mark's transparency, the field's layering, and
+the hero fitting a 390x844 phone.
 
 ## 3. Live state — do not break
 

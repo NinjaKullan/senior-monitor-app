@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 190.** This line is the one to update; the `Next number:` lines inside
+**Next number: 191.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2485,3 +2485,74 @@ browser — all three adopted as the standard for future surfaces.**
        positioning alone creates nothing. Planted both ways — the exact
        `z-10` that caused this, and an `animate-rise` wrapper around the
        mark — and each fails by name.
+
+
+190. **(2026-08-27, Claude Code, PM-ordered) The blend mode is retired: iOS
+     Safari would not honour it, and a transparent drawing needs no
+     compositing trick.** Site suite 216 → 216 (one pin retired, one
+     added); nothing deployed.
+     * **The failure.** `mix-blend-mode: multiply` composited correctly in
+       desktop Chrome and not on iPhones: iOS Safari declines to blend
+       across the GPU-composited rhythm canvas, so the white ground the
+       multiply existed to dissolve was simply drawn — a white rectangle
+       on every phone the founder looked at, on a page whose whole first
+       impression is the hero. Every check we had was green: the CSS was
+       right, the asset's ground was white, and the rendered composite
+       agreed with multiply's arithmetic **in the browser the probe
+       runs**. That is the shape of this one — a correct implementation
+       of a technique one engine does not support where it matters.
+     * **The resolution.** The PM re-cut the asset with true alpha
+       (md5 c3bc1b013d5c1147f52a8e2c0b99a814, 92,278 bytes): background
+       fully transparent, the soft shadow preserved as real
+       semi-transparent pixels, the arch under the handle an open window.
+       `mix-blend-mode` is gone from `kettle-mark.css` and the pin that
+       required it is replaced by one that REFUSES a blend mode — it
+       would be a browser-specific bug written back in. The mark now
+       depends on no compositing behaviour at all: where the drawing is
+       empty, nothing is drawn.
+     * **The probe follows the mark.** The asset check reads ALPHA now
+       (corners at 0–2 of 255) and finds the handle window rather than
+       trusting a coordinate: 90,460 enclosed transparent pixels, widest
+       span 429px, so a re-export that fills the arch fails instead of
+       quietly gaining a lump of paper. The rendered-composite check is
+       unchanged in shape and stricter in fact — same screenshots, same
+       samples, expected value now simply "the page as it is with no mark
+       there": **237 empty samples, worst departure 0 of 255**.
+     * **The stacking-context pin stays** (189), with its why rewritten:
+       the blend exposed it, but the layering it protects outlived the
+       blend — steam over drawing, drawing over the hero's wash and
+       canvas.
+     * **Weight:** 92KB against the flattened 60KB, inside the existing
+       1KB–120KB bound, so nothing else needed changing. The bound is the
+       promise that justifies loading the mark eagerly above the fold;
+       it is inherited here rather than remade, and noted in the test.
+     * **Composition, all widths.** Hero padding halved (`py-28` → `py-14`,
+       `md:py-36` → `md:py-20`); kettle, kicker and headline moved into
+       one lockup on a 14px gap while the page's larger rhythm resumes
+       below the headline; the mark is 96px on a phone and 140px from the
+       `md` breakpoint up. Measured: at 1440px the headline's top edge
+       moved from **391px to 297px** — 94px higher than before this pass.
+       At 390×844 the whole promise now lands in the first viewport with
+       **139px to spare below the CTA**, against 20px before. The mobile
+       fallback the order authorised (hide the mark below 640px) was NOT
+       needed and was not built.
+     * **Reading recorded:** the order names only the mark→kicker gap, but
+       "the larger gap rhythm resumes below the headline" only means
+       something if the kicker→headline gap tightened too, so both are
+       14px and the kettle/kicker/headline read as one lockup. Say the
+       word if the kicker should keep its 32px from the headline.
+     * **Three probe corrections, each of which had made a check lie.**
+       (1) The ground mask now requires alpha exactly 0: at alpha 4 the
+       drawing is invisible to a person and still darkens the page by 4
+       levels, which is the size of the departure being looked for.
+       (2) The paint-order check forces greyscale anti-aliasing
+       (`--disable-lcd-text`): Chromium picks subpixel or greyscale AA by
+       what it knows about the backdrop, so hiding a compositing layer
+       rewrote every glyph edge by tens of levels and the check read a
+       rasterization difference as a layering one. (3) That check no
+       longer looks for the field's own dust over the text — the dust is
+       sparse and translucent, and a planted canvas-above-copy regression
+       passed it. It now forces the canvas opaque in a colour the palette
+       does not contain and asks whether the headline survived: 4,562 of
+       4,562 ink pixels standing normally, **0 of 4,562** with the
+       regression planted.

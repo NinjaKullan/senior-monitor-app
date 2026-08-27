@@ -31,7 +31,10 @@ stricter.
 | The kettle mark sits above the hero kicker, says nothing, and eats no taps | `kettleMark.test.tsx` |
 | Every steam length is container-relative — a bare `px` is refused | `kettleMark.test.tsx`; `scripts/probe-kettle.mjs` measures it at 120/240/420px |
 | Every kettle keyframe and animation lives inside the no-preference block, and reduced motion gets one faint motionless wisp | `kettleMark.test.tsx` |
-| No ancestor between the kettle mark and the hero section creates a stacking context, so the blend reaches the page | `kettleMark.test.tsx`; `scripts/probe-kettle.mjs` compares the rendered composite against multiply's own arithmetic |
+| No ancestor between the kettle mark and the hero section creates a stacking context, so the mark's layering stays the page's | `kettleMark.test.tsx` |
+| The mark needs no blend mode: where the drawing is empty the page paints exactly as it does with no mark there | `kettleMark.test.tsx` refuses a blend mode; `scripts/probe-kettle.mjs` compares the rendered page against itself |
+| The rhythm field paints behind the words: an opaque sheet in its layer leaves every stroke standing | `scripts/probe-kettle.mjs` |
+| The hero's promise — kicker, headline, both sub paragraphs, CTA — fits the first viewport at 390x844 | `scripts/probe-kettle.mjs` |
 | `public/` holds those six illustrations plus the kettle mark, at unhashed stable names | `product/tests/test_site_caching.py` |
 | The scenario tab row stays one line on a phone | `scenarios.test.tsx` pins the classes; `scripts/probe-responsive.mjs` measures it |
 | Notification proportions live in one place | `motion.test.tsx` against `lib/notification.ts` |
