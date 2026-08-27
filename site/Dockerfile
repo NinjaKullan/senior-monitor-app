@@ -5,6 +5,9 @@
 FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY dist/ /usr/share/nginx/html
+# Normalize read permissions: a file that reached the repo with owner-only
+# perms (e.g. written by a tool, not git) would otherwise 403 from nginx.
+RUN chmod -R a+rX /usr/share/nginx/html
 # The config-level half of DECISIONS 168: a conf that does not parse cannot
 # become an image, so `fly deploy` fails at build instead of at serve. The
 # behavioral half (host dispatch, the 148 loop) lives in the site suite.
