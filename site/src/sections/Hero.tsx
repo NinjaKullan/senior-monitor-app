@@ -73,7 +73,7 @@ export function Hero() {
     <section
       id="hero"
       data-testid="section"
-      className="relative overflow-hidden bg-canvas px-6 py-28 text-ink md:py-36"
+      className="relative overflow-hidden bg-canvas px-6 py-14 text-ink md:py-20"
       style={{ backgroundImage: washBackground("morning") }}
     >
       <canvas
@@ -95,11 +95,17 @@ export function Hero() {
         {/* The living kettle sits above the kicker and changes nothing else
             about this block (DECISIONS 187): same order, same spacing, same
             illustration below. */}
-        <KettleMark />
-        <Eyebrow>{HERO_EYEBROW}</Eyebrow>
-        <h1 className="max-w-2xl text-display" data-testid="page-heading">
-          {HERO_H1}
-        </h1>
+        {/* Kettle, kicker and headline are ONE lockup (DECISIONS 190), so they
+            sit on their own tight gap rather than on the section's rhythm: at
+            32px apart they read as three things that happen to be stacked.
+            The page's larger rhythm resumes below the headline. */}
+        <div className="flex flex-col gap-3.5">
+          <KettleMark />
+          <Eyebrow>{HERO_EYEBROW}</Eyebrow>
+          <h1 className="max-w-2xl text-display" data-testid="page-heading">
+            {HERO_H1}
+          </h1>
+        </div>
         {/* One sub block, two sentences: what Kettle notices, and the objection
             it answers before anyone raises it. */}
         <div className="flex max-w-xl flex-col gap-2" data-testid="hero-sub">
