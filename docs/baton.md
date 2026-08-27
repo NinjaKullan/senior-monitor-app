@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 410, zero xfails**, **`webapp` 145**, **`site` 199**.
+Current green: **`pytest` 410, zero xfails**, **`webapp` 145**, **`site` 213**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -67,6 +67,13 @@ and tz_changed_utc, so the picker must not ship before the grant exists; (2)
 changeover conservatism, the move alert) lives in outbound.py; (3)
 `cd webapp && fly deploy` (with the build-arg fly.toml, DECISIONS 114) for the
 city picker, the auto journal note, and the changeover-day dot.
+
+**Owed deploy (the living kettle, DECISIONS 187):** `cd site && npm run ci && fly
+deploy` — the hero gains the kettle mark above the kicker. Independent of the
+spec-010 chain above; the site can go whenever. One open question rides with it:
+the shipped `kettle-hero.webp` has an opaque cream ground, so the mark reads as a
+faint rectangle on the hero wash — a transparent re-export, or one line of
+`mix-blend-mode`, is the PM's call and neither blocks the deploy.
 
 ## 3. Live state — do not break
 

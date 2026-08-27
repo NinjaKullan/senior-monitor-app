@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 186.** This line is the one to update; the `Next number:` lines inside
+**Next number: 188.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2296,3 +2296,79 @@ browser — all three adopted as the standard for future surfaces.**
      structural save recorded with thanks. Deploy order: PM applies
      0019 via MCP → `cd product && fly deploy` → `cd webapp && fly
      deploy` (Hema).
+
+
+187. **(2026-08-27, Claude Code, PM-ordered) The living kettle joins the
+     homepage: placement Option A, and the steam's fixed-pixel bug fixed
+     at the law rather than at the value.** Site suite 199 → 213; nothing
+     deployed. No new copy was authored, so no copy-law surface changed;
+     the chrome scan still runs over the page with the mark on it.
+     * **Placement: Option A ("the mark"), over B and C.** A small kettle
+       above the hero kicker, 132px wide (inside the ordered 120–140
+       range; the wireframe drew 120). It is the only one of the three
+       that adds the heartbeat without moving anything — B put the kettle
+       beside the copy and made two large images share the hero, C put it
+       between the copy and the illustration and pushed the artwork down
+       a page that is already tall on a phone. Verified at 360/390/428/
+       768/1440 with `scripts/probe-responsive.mjs`: no wrap, no
+       overflow, and headline plus sub still land in the first viewport
+       at 390.
+     * **Asset:** `site/public/kettle-hero.webp` (61KB, 1100×825),
+       unhashed and stable, so it falls under the catch-all `no-cache`
+       revalidate rule exactly like the illustrations and
+       email-glyph.png. The `public/` manifest in
+       `product/tests/test_site_caching.py` now names seven files — the
+       one file outside `site/` this pass touches, and only because the
+       site's own tree-side assertion has always lived there.
+     * **The steam is a property of the kettle, never of the page.** The
+       ordered bug fix, and it is a law rather than a value: every
+       offset, wisp size, blur radius and keyframe travel in
+       `src/kettle-mark.css` is a multiple of ONE container-relative unit
+       (`--kt-u: 0.2380952cqw` = one mockup pixel at the 420px the
+       mockups were drawn for), with `container-type: inline-size` on the
+       mark. A bare `px` in that file is refused by the suite. Measured
+       in a real browser at 120/240/420px
+       (`scripts/probe-kettle.mjs`, not in `npm run ci` — it needs
+       Playwright): every wisp's size, rise and span is the same fraction
+       of the kettle at all three widths, within 0.002. The same probe
+       run against the mockup's literal pixels reproduces the founder's
+       report and quantifies it — at 120px the widest wisp is 25% of the
+       kettle instead of 7.1%, the rise is 1.477 kettle-widths instead of
+       0.183, and the wisps reach −0.215, i.e. off the left edge of the
+       pot.
+     * **Reduced motion:** every keyframe and every animation declaration
+       lives inside the `no-preference` block (what `motion-safe:`
+       compiles to, done by hand because these are component rules), and
+       the `reduce` block is one faint motionless wisp at the spout —
+       the designed still, not an absence. Scanned by position, so a
+       declaration that drifts out by one brace fails.
+     * **Decoration, said in both ways:** empty alt AND `aria-hidden` on
+       the image, `aria-hidden` on both steam layers, `pointer-events:
+       none`, no text content, `loading="eager"` (above the fold, 61KB).
+       The imagery suite gained a named one-entry DECORATIVE exemption
+       rather than a softened alt-text rule, and the eager list is now
+       two images, both required to be inside `#hero`.
+     * **Recorded as the third animated element** in
+       `docs/design-language.md` §6, per the standing rule that a new one
+       is an argument made there first. A fourth is a new argument.
+     * **FLAG — the asset has an opaque cream ground.** Sampled from the
+       shipped webp: every corner is ~rgb(253, 242, 216), alpha 255. That
+       is the mockup's `--kettlecream` demo panel, not this site's canvas
+       (#f6f2ec), so the mark renders as a faintly visible cream
+       rectangle on the hero's morning wash rather than as a floating
+       object. Built as ordered and NOT worked around, since the order
+       says no image changes: the fixes are a re-export with a
+       transparent background (best), or one line —
+       `mix-blend-mode: multiply` on `.kt-mark-image` — if the PM prefers
+       CSS. Screenshots at 120/240/420 and at phone widths were sent
+       with the report.
+     * **FLAG — the mockup's `breathe` was not built.** v5 also scales
+       the kettle image 1.2% on a 9s cycle. The order's approved list is
+       the steam (wisp count, colours, gradient stops, timing, negative
+       delays, spout anchor, lid wisp) and the breathe is not steam; at
+       132px it is a 1.6px pulse nobody would see, and it would be a
+       fourth animated element by the site's own counting. Say the word
+       and it is four lines inside the same no-preference block.
+     * **Counter note:** item 186 was filed without moving the
+       `Next number` line (the same slip as 182). Repaired here: the line
+       now reads 188.
