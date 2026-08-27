@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 188.** This line is the one to update; the `Next number:` lines inside
+**Next number: 189.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2372,3 +2372,49 @@ browser — all three adopted as the standard for future surfaces.**
      * **Counter note:** item 186 was filed without moving the
        `Next number` line (the same slip as 182). Repaired here: the line
        now reads 188.
+
+
+188. **(2026-08-27, Claude Code, PM-ordered) The kettle mark's blending:
+     multiply is the law, and the asset is what makes it work.** Site
+     suite 213 → 214; nothing deployed. **The ground-normalized asset did
+     NOT reach this working tree** — see the blocker below.
+     * **The rule.** `mix-blend-mode: multiply` on `.kt-mark-image`, and
+       the reason is arithmetic rather than taste: multiplying by white
+       is the identity, so a drawing whose ground is pure white
+       composites to *exactly* the backdrop behind it — hero wash,
+       gradient and drifting dots included — while the kettle and its
+       soft shadow keep their weight. Nothing above the image may
+       isolate the blend (`isolation: isolate`, or an opacity on an
+       ancestor): that hands it a white stacking context to land on and
+       the rectangle is back. Both halves are pinned in the suite.
+     * **BLOCKER — the replaced asset is not here.**
+       `site/public/kettle-hero.webp` in this container is byte-identical
+       to the version committed in 187 (md5 bd2fa00ae3582ce4444de855c99f4e31),
+       and no commit on `origin/main` carries a replacement. Its ground
+       still samples rgb(253, 242, 216) at every corner, so multiply
+       currently darkens the backdrop behind the mark by 2/13/39 per
+       channel — the PM's own ~36-on-blue arithmetic, measured. The
+       visible result improves a great deal on the opaque card and is
+       still a faint warm rectangle. **The site must not be deployed
+       until the normalized file is in the tree**; `node
+       scripts/probe-kettle.mjs <preview-url>` says pass or fail in one
+       line, and nothing else about this pass changes when the file
+       lands.
+     * **Where the ground check lives.** In the probe rather than in
+       `npm run ci`: the fact to check is a property of the webp's
+       pixels, which needs a decoder, and the browser the probe already
+       launches has one. It samples four corners and the top edge and
+       fails with the per-channel shortfall spelled out. Keeping it out
+       of `ci` also keeps `ci` honest about what it can actually see —
+       it holds the CSS law; the probe holds the asset's.
+     * **Asset-bounds note.** Nothing in the suite pins the asset's
+       bytes or a content hash, so the replacement invalidates no
+       assertion. The one bound that exists — `1KB < bytes < 120KB`, the
+       weight promise that justifies loading it eagerly above the fold —
+       is deliberately generous and needs no edit unless the normalized
+       export lands heavier than 120KB, which would be the right moment
+       to make that decision again rather than inherit it.
+     * **The breathe omission is ratified.** v5's 1.2% image-scale
+       breathe stays out, per the PM. It is not steam, it is invisible at
+       132px, and it would be a fourth animated element by the site's own
+       counting (design-language §6).

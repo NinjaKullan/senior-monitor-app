@@ -68,12 +68,17 @@ changeover conservatism, the move alert) lives in outbound.py; (3)
 `cd webapp && fly deploy` (with the build-arg fly.toml, DECISIONS 114) for the
 city picker, the auto journal note, and the changeover-day dot.
 
-**Owed deploy (the living kettle, DECISIONS 187):** `cd site && npm run ci && fly
-deploy` — the hero gains the kettle mark above the kicker. Independent of the
-spec-010 chain above; the site can go whenever. One open question rides with it:
-the shipped `kettle-hero.webp` has an opaque cream ground, so the mark reads as a
-faint rectangle on the hero wash — a transparent re-export, or one line of
-`mix-blend-mode`, is the PM's call and neither blocks the deploy.
+**Owed deploy (the living kettle, DECISIONS 187/188) — BLOCKED on one file:**
+`cd site && npm run ci && fly deploy` ships the kettle mark above the hero
+kicker. The mark now blends with `mix-blend-mode: multiply`, which composites to
+exactly the backdrop **only if the asset's ground is pure white**. The
+ground-normalized `site/public/kettle-hero.webp` the PM prepared never reached
+the repo: the committed file is still the cream-ground original (ground
+rgb(253, 242, 216); multiply darkens the wash behind the mark by 2/13/39 per
+channel). **Do not deploy the site until that file is replaced.** One command
+settles it against a preview server:
+`node scripts/probe-kettle.mjs http://127.0.0.1:5288/` — it prints pass or the
+per-channel shortfall. Nothing else in the pass changes when the file lands.
 
 ## 3. Live state — do not break
 
