@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { Eyebrow } from "@/components/Eyebrow";
+import { KettleMark } from "@/components/KettleMark";
 import { PillLink } from "@/components/Pill";
 import {
   HERO_ALT,
@@ -82,6 +83,10 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 h-full w-full"
       />
       <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col gap-8">
+        {/* The living kettle sits above the kicker and changes nothing else
+            about this block (DECISIONS 187): same order, same spacing, same
+            illustration below. */}
+        <KettleMark />
         <Eyebrow>{HERO_EYEBROW}</Eyebrow>
         <h1 className="max-w-2xl text-display" data-testid="page-heading">
           {HERO_H1}
