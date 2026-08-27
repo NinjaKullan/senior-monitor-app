@@ -2399,7 +2399,13 @@ browser — all three adopted as the standard for future surfaces.**
        until the normalized file is in the tree**; `node
        scripts/probe-kettle.mjs <preview-url>` says pass or fail in one
        line, and nothing else about this pass changes when the file
-       lands.
+       lands. **RESOLVED the same day:** the normalized asset landed on
+       `main` (md5 3ff6595b8f7f07806157fc3ed4c3ff3b, 60,010 bytes,
+       comfortably inside the eager-load weight bound). Re-probed against
+       it: blend mode multiply, ground rgb(254,254,254)/(255,255,253)/
+       (255,255,255)/(255,253,252)/(255,255,253) at the five samples, so
+       every ground pixel composites to the backdrop. The mark now sits
+       on the wash with no rectangle; the deploy is unblocked.
      * **Where the ground check lives.** In the probe rather than in
        `npm run ci`: the fact to check is a property of the webp's
        pixels, which needs a decoder, and the browser the probe already
