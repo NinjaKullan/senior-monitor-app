@@ -16,6 +16,13 @@
  * wide and travelled three times too far, which is the drift over the lid the
  * founder reported.
  *
+ * It also checks the mark's blending (DECISIONS 188), which is a fact about
+ * the ASSET rather than about the CSS: `multiply` is the identity for a white
+ * pixel, so a drawing whose ground is pure white composites to exactly the
+ * backdrop behind it, and one whose ground is cream leaves a warm rectangle
+ * no matter how the rule is written. Decoding the webp is the cheap way to
+ * know which one shipped, so this reads the ground straight out of the file.
+ *
  * NOT part of `npm run ci`: it needs a browser, and Playwright is deliberately
  * not a dependency of this package. Run it against a preview server:
  *
@@ -166,6 +173,68 @@ for (const result of results) {
     `  ${String(result.width).padStart(4)}px  widest wisp ${round(widest)} of the kettle, ` +
       `highest rise ${round(rise)}, spans ${round(leftmost)}–${round(rightmost)}  ${ok ? "ok" : "FAIL"}`,
   );
+}
+
+console.log("\nblending — the mark composites onto the page, not over it:");
+const blend = await (async () => {
+  const browser2 = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+  const page2 = await browser2.newPage();
+  await page2.goto(url, { waitUntil: "networkidle" });
+  const out = await page2.evaluate(async () => {
+    const rendered = document.querySelector(".kt-mark-image");
+    const mode = getComputedStyle(rendered).mixBlendMode;
+
+    const image = new Image();
+    image.src = rendered.getAttribute("src");
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(image, 0, 0);
+    const at = (x, y) => [...ctx.getImageData(x, y, 1, 1).data];
+    // The four corners and the mid-points of the top and bottom edges: the
+    // ground, sampled where the kettle and its shadow never reach.
+    const w = image.naturalWidth;
+    const h = image.naturalHeight;
+    return {
+      mode,
+      size: [w, h],
+      ground: {
+        "top-left": at(1, 1),
+        "top-right": at(w - 2, 1),
+        "top-middle": at(Math.floor(w / 2), 2),
+        "bottom-left": at(1, h - 2),
+        "bottom-right": at(w - 2, h - 2),
+      },
+    };
+  });
+  await browser2.close();
+  return out;
+})();
+
+if (blend.mode !== "multiply") {
+  failed = true;
+  console.error(`  FAIL the image's blend mode is "${blend.mode}", not multiply`);
+} else {
+  console.log("  blend mode: multiply");
+}
+// Multiplying by white is the identity. Anything short of it darkens the
+// backdrop by exactly the shortfall, per channel — which is what a visible
+// rectangle IS.
+const GROUND_FLOOR = 250;
+for (const [corner, [r, g, b, a]] of Object.entries(blend.ground)) {
+  const white = Math.min(r, g, b) >= GROUND_FLOOR && a === 255;
+  if (!white) {
+    failed = true;
+    console.error(
+      `  FAIL ground at ${corner} is rgb(${r}, ${g}, ${b}) — multiply will darken the ` +
+        `backdrop behind the mark by ${255 - r}/${255 - g}/${255 - b} per channel, ` +
+        `which is the rectangle it is supposed to dissolve`,
+    );
+  } else {
+    console.log(`  ground at ${corner}: rgb(${r}, ${g}, ${b}) — composites to the backdrop`);
+  }
 }
 
 console.log(`\nscreenshots: ${WIDTHS.map((w) => `/tmp/kettle-${w}.png`).join(" ")}`);
