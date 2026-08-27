@@ -1,0 +1,188 @@
+/* The living kettle (DECISIONS 187, placement Option A).
+ *
+ * The third animated element on this page, and the first one that is a
+ * picture rather than a canvas — the argument for it is written in
+ * docs/design-language.md §6 before it is written here.
+ *
+ * EVERY length below is container-relative, and that is the whole point of
+ * this file. The approved mockup (docs/mockups/kettle-hero-mockup-v5.html)
+ * expresses the steam in pixels calibrated for a kettle rendered 420px wide:
+ * wisps 30px across, travel 124px upward. Rendered at the mark's real size
+ * those numbers are not a smaller kettle steaming, they are the SAME steam on
+ * a third of the kettle — the wisps outgrow the pot and drift across the lid,
+ * which is what the founder saw. So the mockup's pixels are kept as the
+ * numbers they are, and one unit converts them:
+ *
+ *   --kt-u = one mockup pixel = (100 / 420)cqw = 0.2380952cqw
+ *
+ * `cqw` is a percentage of the mark's own inline size, so every geometry below
+ * — offsets, wisp sizes, blur radius, keyframe travel — is a fixed fraction of
+ * the kettle at ANY render size. Change .kt-mark's width alone and the steam
+ * follows it exactly; nothing else in this file is touched. A bare `px` here
+ * is the bug coming back, and a test refuses one.
+ */
+
+.kt-mark {
+  /* The scale reference every cqw below resolves against. */
+  container-type: inline-size;
+  position: relative;
+  display: block;
+  /* 8.25rem = 132px, inside the ordered 120–140px range. The ONE size in this
+     file, and the only line to edit to resize the whole assembly. */
+  width: 8.25rem;
+  --kt-u: 0.2380952cqw;
+}
+
+.kt-mark-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The spout mouth, located on the drawing itself: percentages of the mark,
+   so the anchor cannot drift off the spout at another size either. */
+.kt-steam {
+  position: absolute;
+  left: 26%;
+  top: 44.5%;
+  width: calc(var(--kt-u) * 110);
+  height: calc(var(--kt-u) * 150);
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+}
+
+/* The full-boil leak at the lid rim: fainter, slower, half the reach. */
+.kt-steam-lid {
+  position: absolute;
+  left: 52%;
+  top: 33%;
+  width: calc(var(--kt-u) * 60);
+  height: calc(var(--kt-u) * 90);
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+}
+
+.kt-wisp {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    var(--steam-core) 0%,
+    var(--steam-body) 55%,
+    var(--steam-edge) 100%
+  );
+  filter: blur(calc(var(--kt-u) * 3));
+  opacity: 0;
+}
+
+.kt-wisp-a {
+  left: calc(var(--kt-u) * 22);
+  width: calc(var(--kt-u) * 30);
+  height: calc(var(--kt-u) * 72);
+}
+.kt-wisp-b {
+  left: calc(var(--kt-u) * 52);
+  width: calc(var(--kt-u) * 24);
+  height: calc(var(--kt-u) * 58);
+}
+.kt-wisp-c {
+  left: calc(var(--kt-u) * 38);
+  width: calc(var(--kt-u) * 20);
+  height: calc(var(--kt-u) * 50);
+}
+.kt-wisp-d {
+  left: calc(var(--kt-u) * 10);
+  width: calc(var(--kt-u) * 18);
+  height: calc(var(--kt-u) * 44);
+}
+.kt-wisp-lid {
+  left: calc(var(--kt-u) * 20);
+  width: calc(var(--kt-u) * 18);
+  height: calc(var(--kt-u) * 42);
+}
+
+/* Every animation and every keyframe on this surface lives inside this block
+   and nowhere else — the same discipline Tailwind's `motion-safe:` prefix
+   compiles to, written by hand because these are component rules rather than
+   utilities. A viewer who asked for no motion never reaches a single
+   declaration below. */
+@media (prefers-reduced-motion: no-preference) {
+  .kt-wisp {
+    animation: kt-rise 5.8s ease-in-out infinite;
+  }
+  /* Negative delays, so the four wisps are already mid-rise on first paint:
+     a kettle that starts steaming when the page loads is a kettle somebody
+     just put on, and this one has been on the stove all morning. */
+  .kt-wisp-a {
+    animation-delay: -1.2s;
+  }
+  .kt-wisp-b {
+    animation-delay: -3.1s;
+    animation-duration: 6.6s;
+  }
+  .kt-wisp-c {
+    animation-delay: -4.9s;
+    animation-duration: 6.1s;
+  }
+  .kt-wisp-d {
+    animation-delay: -2.2s;
+    animation-duration: 7s;
+  }
+
+  @keyframes kt-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(calc(var(--kt-u) * 16)) translateX(0) scaleY(0.8);
+    }
+    14% {
+      opacity: 0.95;
+      transform: translateY(calc(var(--kt-u) * -8)) translateX(calc(var(--kt-u) * -4)) scaleY(1);
+    }
+    45% {
+      opacity: 0.7;
+      transform: translateY(calc(var(--kt-u) * -52)) translateX(calc(var(--kt-u) * -12)) scaleY(1.3);
+    }
+    75% {
+      opacity: 0.35;
+      transform: translateY(calc(var(--kt-u) * -92)) translateX(calc(var(--kt-u) * -4)) scaleY(1.5);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(calc(var(--kt-u) * -124)) translateX(calc(var(--kt-u) * -10)) scaleY(1.6);
+    }
+  }
+
+  .kt-wisp-lid {
+    animation: kt-lidrise 8.5s ease-in-out infinite;
+    animation-delay: -3.6s;
+  }
+
+  @keyframes kt-lidrise {
+    0% {
+      opacity: 0;
+      transform: translateY(calc(var(--kt-u) * 8)) scaleY(0.85);
+    }
+    18% {
+      opacity: 0.4;
+      transform: translateY(calc(var(--kt-u) * -6)) scaleY(1);
+    }
+    60% {
+      opacity: 0.22;
+      transform: translateY(calc(var(--kt-u) * -34)) scaleY(1.25);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(calc(var(--kt-u) * -58)) scaleY(1.4);
+    }
+  }
+}
+
+/* The designed still (spec 006 AC7's rule, and the mockup's own): not an
+   absence of steam but a kettle caught mid-morning — one faint wisp standing
+   at the spout, going nowhere. */
+@media (prefers-reduced-motion: reduce) {
+  .kt-wisp-a {
+    opacity: 0.4;
+  }
+}

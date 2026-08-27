@@ -29,6 +29,15 @@
      alert states, so the colour to style one with does not exist. AC2 asserts
      the absence. */
 
+  /* The kettle mark's steam (DECISIONS 187), from the approved mockup's
+     gradient stops: a warm near-white core, a grey-green body with enough
+     weight to hold against the canvas, and a fully transparent edge so a wisp
+     dissolves rather than ending. Not a status colour and no utility reaches
+     them — the one element they paint is decorative and aria-hidden. */
+  --steam-core: rgba(255, 253, 244, 0.95);
+  --steam-body: rgba(140, 148, 126, 0.65);
+  --steam-edge: rgba(120, 129, 106, 0);
+
   /* The rhythm field's palette (DECISIONS 129/131), as channel triplets the
      canvas engine composes into paint — canvas has no CSS, but its colours
      still live here and nowhere else (AC1). --field-signal is the kettle
