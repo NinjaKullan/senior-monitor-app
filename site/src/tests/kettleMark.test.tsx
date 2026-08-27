@@ -52,10 +52,18 @@ const NO_PREFERENCE = blockBody(CSS, "@media (prefers-reduced-motion: no-prefere
 const REDUCE = blockBody(CSS, "@media (prefers-reduced-motion: reduce)");
 
 /** Every length that is not container-relative. Percentages, unitless numbers
- *  and the single rem that sets the mark's own size are the vocabulary; a
- *  `px` anywhere is the fixed-geometry bug returning. */
+ *  and the rems that set the mark's own size are the vocabulary; a `px`
+ *  anywhere is the fixed-geometry bug returning.
+ *
+ *  A `@media` CONDITION is exempt and only a condition: a breakpoint is a fact
+ *  about the viewport, which is the one thing here that is genuinely measured
+ *  in pixels, and it describes no geometry. The prelude is cut, never the
+ *  block, so a px inside a media query still fails — and the test below pins
+ *  the breakpoint as the only px in the file at all, so this cannot become a
+ *  place to hide one. */
 function fixedLengths(css: string): string[] {
-  return [...css.matchAll(/-?\d*\.?\d+(px|em|vw|vh|vmin|vmax)\b/g)].map((m) => m[0]);
+  const geometry = css.replace(/@media[^{]*/g, "@media ");
+  return [...geometry.matchAll(/-?\d*\.?\d+(px|em|vw|vh|vmin|vmax)\b/g)].map((m) => m[0]);
 }
 
 describe("the asset itself", () => {
@@ -69,6 +77,9 @@ describe("the asset itself", () => {
     expect(bytes).toBeGreaterThan(1_000);
     // Eager above the fold is a promise about weight: an asset that grew to
     // half a megabyte would need that decision made again, not inherited.
+    // The alpha version costs ~92KB against the flattened one's ~60KB
+    // (DECISIONS 190) and stays comfortably inside the bound, so the decision
+    // is inherited rather than remade.
     expect(bytes).toBeLessThan(120_000);
   });
 
@@ -136,14 +147,18 @@ describe("where it sits (placement Option A)", () => {
 describe("the scaling law", () => {
   it("expresses every steam length as a multiple of one container unit", () => {
     expect(fixedLengths(CSS), "fixed geometry in the steam").toEqual([]);
+    // And the only pixel value in the whole file is the breakpoint itself.
+    expect(CSS.match(/-?\d*\.?\d+px\b/g)).toEqual(["768px"]);
     // The unit itself, and the container it measures: without container-type
     // the cqw values would resolve against the viewport, which is the same
     // bug wearing a different hat.
     expect(CSS).toMatch(/container-type:\s*inline-size/);
     expect(CSS).toMatch(/--kt-u:\s*[\d.]+cqw/);
-    // The mark's own size is the ONE length that is not derived — everything
-    // else follows it — and it is a rem, not a px.
-    expect(CSS.match(/width:\s*[\d.]+rem/g)).toHaveLength(1);
+    // The mark's own size is the only length that is not derived — everything
+    // else follows it — and it is a rem, not a px. Two of them since the
+    // phone and desktop sizes split (DECISIONS 190); a third would be a size
+    // nobody decided.
+    expect(CSS.match(/width:\s*[\d.]+rem/g)).toHaveLength(2);
   });
 
   it("derives every offset, size, blur and travel from that unit", () => {
@@ -182,6 +197,11 @@ describe("the scaling law", () => {
     expect(fixedLengths("filter: blur(3px);")).toEqual(["3px"]);
     // And the vocabulary that is allowed stays allowed.
     expect(fixedLengths("left: 26%; width: calc(var(--kt-u) * 110); opacity: 0.4;")).toEqual([]);
+    // The breakpoint passes; geometry inside its block still does not.
+    expect(fixedLengths("@media (min-width: 768px) { .kt-mark { width: 8.75rem; } }")).toEqual([]);
+    expect(fixedLengths("@media (min-width: 768px) { .kt-wisp-a { left: 22px; } }")).toEqual([
+      "22px",
+    ]);
   });
 });
 
@@ -231,31 +251,32 @@ describe("motion, and the viewer who asked for none", () => {
     }
   });
 
-  it("blends the drawing onto the page instead of pasting a card on it", () => {
-    // The finishing half of the mark (DECISIONS 188). `multiply` is the
-    // identity for a white pixel, so a ground-normalized drawing composites
-    // to exactly the backdrop it sits on — hero wash, drifting dots and all.
-    // Two ways this regresses: the declaration goes, or something above the
-    // image isolates the blend and hands it a white stacking context to land
-    // on, which puts the rectangle straight back.
-    expect(blockBody(CSS, ".kt-mark-image {")).toMatch(/mix-blend-mode:\s*multiply/);
+  it("reaches the page with no compositing trick at all", () => {
+    // Retired on purpose (DECISIONS 190), not merely absent. The mark used to
+    // reach the page through `mix-blend-mode: multiply` over a white ground;
+    // desktop Chrome composited it correctly and iOS Safari did not, because
+    // it declines to blend across the GPU-composited rhythm canvas — so
+    // iPhones showed the white rectangle the blend existed to dissolve. The
+    // asset carries real transparency now, so any blend mode reappearing here
+    // is a browser-specific bug being written back in.
+    expect(CSS).not.toMatch(/mix-blend-mode/);
     expect(CSS).not.toMatch(/isolation:\s*isolate/);
-    expect(CSS).not.toMatch(/opacity:\s*[\d.]+;[\s\S]*?\.kt-mark-image/);
   });
 
   it("keeps every ancestor up to the section out of the blend's way", () => {
     /**
-     * The bug this exists for (DECISIONS 189), and the reason the multiply
-     * pin above was not enough: `mix-blend-mode` composites only within its
-     * nearest STACKING CONTEXT. The hero's content wrapper carried `z-10`
-     * from long before the mark existed, which made one, so the blend landed
-     * on that transparent group instead of on the section — white ground
-     * stayed white and the rectangle came back with the CSS looking perfect.
+     * The bug this exists for (DECISIONS 189): the hero's content wrapper
+     * carried `z-10` from long before the mark existed, which made a stacking
+     * context, and `mix-blend-mode` composites only within its nearest one —
+     * so the blend landed on that transparent group and the rectangle came
+     * back with the CSS looking perfect.
      *
-     * So the rule is about the ANCESTORS, not about the mark: nothing between
-     * it and the section it blends against may create a stacking context. The
-     * section itself may — its wash and the rhythm canvas are what the mark is
-     * supposed to land on.
+     * The blend itself is retired (DECISIONS 190) and this stays, because the
+     * layering it protects did not go with it: the steam sits over the
+     * drawing, the drawing sits over the hero's wash and rhythm canvas, and an
+     * ancestor that lifts the mark into its own context is how that ordering
+     * quietly stops being the page's. The section itself may make one — it is
+     * what the mark is layered against.
      */
     render(<App />);
     const mark = screen.getByTestId("kettle-mark");

@@ -27,29 +27,35 @@
   container-type: inline-size;
   position: relative;
   display: block;
-  /* 8.25rem = 132px, inside the ordered 120–140px range. The ONE size in this
-     file, and the only line to edit to resize the whole assembly. */
-  width: 8.25rem;
+  /* 6rem = 96px on a phone, where vertical space is the scarce thing and the
+     mark must not push the promise below the fold. The only two sizes in this
+     file, and the only lines to edit to resize the whole assembly — every
+     other length follows them through --kt-u. */
+  width: 6rem;
   --kt-u: 0.2380952cqw;
+}
+
+/* 8.75rem = 140px from the tablet breakpoint up: at desktop sizes the smaller
+   mark read timid rather than quiet. Tailwind's `md` breakpoint, by hand,
+   because this file is component CSS rather than utilities. */
+@media (min-width: 768px) {
+  .kt-mark {
+    width: 8.75rem;
+  }
 }
 
 .kt-mark-image {
   display: block;
   width: 100%;
   height: auto;
-  /* The mark is an object on the page, not a card pasted onto it.
-     `multiply` takes each of the drawing's pixels down onto whatever is
-     behind it, so the ground disappears into the hero wash — dots, gradient
-     and all — while the kettle and its soft shadow keep their weight.
-     This works because the asset's ground is pure WHITE: multiplying by
-     white is the identity, so a white pixel composites to exactly the
-     backdrop. Over the earlier cream ground the same rule would have left a
-     warm tint (its blue channel is ~36 short of the canvas), which is why
-     the asset was ground-normalized rather than the blend mode softened.
-     Nothing here may isolate this element: an `isolation: isolate` or an
-     opacity on an ancestor would give the blend a white stacking context to
-     land on and the rectangle would be back. */
-  mix-blend-mode: multiply;
+  /* No blend mode, and that is the point (DECISIONS 190). The mark used to
+     reach the page through `mix-blend-mode: multiply` over a white ground,
+     which desktop Chrome composited correctly and iOS Safari did not: it
+     declines to blend across the GPU-composited rhythm canvas, so iPhones
+     showed the white rectangle the blend existed to dissolve. A drawing with
+     real transparency needs no compositing trick on any browser — the ground
+     is simply not there, the soft shadow is real semi-transparent pixels,
+     and the arch under the handle is an open window. */
 }
 
 /* The spout mouth, located on the drawing itself: percentages of the mark,
