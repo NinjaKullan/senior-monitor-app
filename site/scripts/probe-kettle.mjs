@@ -16,12 +16,26 @@
  * wide and travelled three times too far, which is the drift over the lid the
  * founder reported.
  *
- * It also checks the mark's blending (DECISIONS 188), which is a fact about
- * the ASSET rather than about the CSS: `multiply` is the identity for a white
- * pixel, so a drawing whose ground is pure white composites to exactly the
- * backdrop behind it, and one whose ground is cream leaves a warm rectangle
- * no matter how the rule is written. Decoding the webp is the cheap way to
- * know which one shipped, so this reads the ground straight out of the file.
+ * It also checks the mark's blending, and it checks it the way the bug
+ * demanded (DECISIONS 189). Blending has three premises and the first two are
+ * cheap lies to pass: the CSS rule can be present, and the asset's ground can
+ * be pure white, while the mark still paints a rectangle — because
+ * `mix-blend-mode` composites only within its nearest STACKING CONTEXT, and an
+ * ancestor that makes one hands the blend a transparent group to land on
+ * instead of the page. Both earlier checks passed all the way through that.
+ *
+ * So the real check reads the RENDERED page: screenshot the mark's box, then
+ * screenshot the same box with the mark hidden (`visibility`, which changes no
+ * layout), and require the two to agree wherever the drawing's ground is
+ * white. Multiplying by white is the identity, so where the ground is white
+ * the page must look EXACTLY as it does with no mark there at all — wash,
+ * gradient, and any rhythm-field dot drifting behind it. A dot that vanished
+ * under the ground region, or a wash that flattened, is a difference this
+ * cannot miss, whatever the CSS says. Run with reduced motion so both frames
+ * are the same still.
+ *
+ * The asset's own ground is still read afterwards, as a second line of
+ * defence and because it names the cause when the composite check fails.
  *
  * NOT part of `npm run ci`: it needs a browser, and Playwright is deliberately
  * not a dependency of this package. Run it against a preview server:
@@ -178,8 +192,114 @@ for (const result of results) {
 console.log("\nblending — the mark composites onto the page, not over it:");
 const blend = await (async () => {
   const browser2 = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
-  const page2 = await browser2.newPage();
+  // Reduced motion, so the steam stands still and the rhythm field draws its
+  // designed still: the two screenshots below must differ only where the mark
+  // is, never because a frame moved between them.
+  const page2 = await browser2.newPage({
+    viewport: { width: 1280, height: 900 },
+    reducedMotion: "reduce",
+  });
   await page2.goto(url, { waitUntil: "networkidle" });
+
+  const box = await page2.locator(".kt-mark").boundingBox();
+  const clip = {
+    x: Math.round(box.x),
+    y: Math.round(box.y),
+    width: Math.round(box.width),
+    height: Math.round(box.height),
+  };
+  // The steam is hidden for BOTH frames: it is not what is being tested, and
+  // a wisp sitting over the ground would read as a difference.
+  const hide = (selector, value) =>
+    page2.evaluate(
+      ([s2, v]) => {
+        for (const node of document.querySelectorAll(s2)) node.style.visibility = v;
+      },
+      [selector, value],
+    );
+  await hide(".kt-steam, .kt-steam-lid", "hidden");
+  const painted = (await page2.screenshot({ clip })).toString("base64");
+  await hide(".kt-mark", "hidden");
+  const bare = (await page2.screenshot({ clip })).toString("base64");
+  await hide(".kt-mark", "");
+  await hide(".kt-steam, .kt-steam-lid", "");
+
+  const composite = await page2.evaluate(
+    async ([withMark, withoutMark, source]) => {
+      const decode = async (data) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${data}`;
+        await image.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        canvas.getContext("2d").drawImage(image, 0, 0);
+        return canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
+      };
+      const a = await decode(withMark);
+      const b = await decode(withoutMark);
+
+      // The drawing itself decides which samples are ground: a pixel the
+      // artwork paints white is a pixel the page must show unchanged. Drawn
+      // at the SIZE THE PAGE DRAWS IT, because that is the only version whose
+      // pixels line up with the screenshot: the mark renders at an eighth of
+      // the artwork's width, so a rendered pixel beside the handle is an
+      // average of white ground and dark metal, and testing the full-size art
+      // would call it ground and then fail on the handle.
+      const art = new Image();
+      art.src = source;
+      await art.decode();
+      const artCanvas = document.createElement("canvas");
+      artCanvas.width = a.width;
+      artCanvas.height = a.height;
+      artCanvas.getContext("2d").drawImage(art, 0, 0, a.width, a.height);
+      const artData = artCanvas
+        .getContext("2d")
+        .getImageData(0, 0, artCanvas.width, artCanvas.height);
+
+      const pixel = (data, x, y) => {
+        const i = (y * data.width + x) * 4;
+        return [data.data[i], data.data[i + 1], data.data[i + 2]];
+      };
+      let sampled = 0;
+      let worst = { delta: -1 };
+      const STEPS = 40;
+      for (let row = 1; row < STEPS; row++) {
+        for (let col = 1; col < STEPS; col++) {
+          const x = Math.floor((a.width * col) / STEPS);
+          const y = Math.floor((a.height * row) / STEPS);
+          // Ground only if this pixel AND its neighbours are white: an
+          // anti-aliased edge one pixel away still tints what the page paints.
+          let ground = true;
+          for (let dy = -1; dy <= 1 && ground; dy++) {
+            for (let dx = -1; dx <= 1 && ground; dx++) {
+              const nx = Math.min(a.width - 1, Math.max(0, x + dx));
+              const ny = Math.min(a.height - 1, Math.max(0, y + dy));
+              const [ar, ag, ab] = pixel(artData, nx, ny);
+              if (Math.min(ar, ag, ab) < 250) ground = false;
+            }
+          }
+          if (!ground) continue; // kettle, its shadow, or an edge beside them
+          sampled++;
+          const painted = pixel(a, x, y);
+          const bare = pixel(b, x, y);
+          const art = pixel(artData, x, y);
+          // What multiply is defined to produce: backdrop x source / 255. For
+          // a ground of 255 that is the backdrop untouched; for the ground's
+          // real 250-255 it is a level or two below it. Comparing against the
+          // arithmetic rather than against the bare page means the tolerance
+          // is rounding error and nothing else — a blend landing on the wrong
+          // backdrop cannot hide inside a slack allowance.
+          const expected = bare.map((c, i) => Math.round((c * art[i]) / 255));
+          const delta = Math.max(...painted.map((c, i) => Math.abs(c - expected[i])));
+          if (delta > worst.delta) worst = { delta, x, y, painted, bare, expected };
+        }
+      }
+      return { sampled, worst };
+    },
+    [painted, bare, "/kettle-hero.webp"],
+  );
+
   const out = await page2.evaluate(async () => {
     const rendered = document.querySelector(".kt-mark-image");
     const mode = getComputedStyle(rendered).mixBlendMode;
@@ -210,8 +330,32 @@ const blend = await (async () => {
     };
   });
   await browser2.close();
-  return out;
+  return { ...out, composite, clip };
 })();
+
+// The composite: what the page actually painted, against what it paints with
+// no mark there at all. Anything above a couple of levels is the mark failing
+// to reach the backdrop — the stacking-context bug of DECISIONS 189.
+const COMPOSITE_TOLERANCE = 2;
+const { sampled, worst } = blend.composite;
+if (sampled < 100) {
+  failed = true;
+  console.error(`  FAIL only ${sampled} ground samples found — the check is not looking at anything`);
+} else if (worst.delta > COMPOSITE_TOLERANCE) {
+  failed = true;
+  console.error(
+    `  FAIL the ground does not composite: at (${worst.x}, ${worst.y}) the page paints ` +
+      `rgb(${worst.painted.join(", ")}); multiplying the drawing onto the page there ` +
+      `(bare rgb(${worst.bare.join(", ")})) must give rgb(${worst.expected.join(", ")}) — ` +
+      `${worst.delta} levels out over ${sampled} ground samples. The blend is landing ` +
+      `on something other than the page.`,
+  );
+} else {
+  console.log(
+    `  ${sampled} ground samples, worst departure from multiply's own arithmetic ` +
+      `${worst.delta} of 255 — the drawing is landing on the page itself`,
+  );
+}
 
 if (blend.mode !== "multiply") {
   failed = true;
@@ -235,6 +379,83 @@ for (const [corner, [r, g, b, a]] of Object.entries(blend.ground)) {
   } else {
     console.log(`  ground at ${corner}: rgb(${r}, ${g}, ${b}) — composites to the backdrop`);
   }
+}
+
+console.log("\npaint order — the field stays behind the words:");
+// The other half of removing the hero wrapper's z-index (DECISIONS 189).
+// Nothing now lifts the copy above the canvas explicitly, so the guarantee is
+// DOM order — and the way to know it held is to hide the canvas and find the
+// headline's ink unchanged. Dust painted OVER the text would lighten it.
+const paint = await (async () => {
+  const browser3 = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+  const page3 = await browser3.newPage({
+    viewport: { width: 1280, height: 900 },
+    reducedMotion: "reduce",
+  });
+  await page3.goto(url, { waitUntil: "networkidle" });
+  const box = await page3.locator('[data-testid="page-heading"]').boundingBox();
+  const clip = {
+    x: Math.round(box.x),
+    y: Math.round(box.y),
+    width: Math.round(box.width),
+    height: Math.round(box.height),
+  };
+  const over = (await page3.screenshot({ clip })).toString("base64");
+  await page3.evaluate(() => {
+    document.querySelector("[data-rhythm-field]").style.visibility = "hidden";
+  });
+  const alone = (await page3.screenshot({ clip })).toString("base64");
+  const out = await page3.evaluate(
+    async ([a64, b64]) => {
+      const decode = async (data) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${data}`;
+        await image.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        canvas.getContext("2d").drawImage(image, 0, 0);
+        return canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height);
+      };
+      const withField = await decode(a64);
+      const withoutField = await decode(b64);
+      let ink = 0;
+      let worst = 0;
+      for (let i = 0; i < withoutField.data.length; i += 4) {
+        // The SOLID middle of a stroke only. A glyph's anti-aliased edge is
+        // part backdrop by construction — it changes whenever what is behind
+        // it changes, correct layering included — so an edge-inclusive mask
+        // reports the field as painting over text that it is sitting neatly
+        // behind. Ink this dark is opaque.
+        // 80 is a shade above the --ink token's own red channel (0x40 = 64),
+        // so this admits solid strokes and nothing that is mostly paper.
+        if (withoutField.data[i] > 80) continue;
+        ink++;
+        for (let c = 0; c < 3; c++) {
+          worst = Math.max(worst, Math.abs(withField.data[i + c] - withoutField.data[i + c]));
+        }
+      }
+      return { ink, worst };
+    },
+    [over, alone],
+  );
+  await browser3.close();
+  return out;
+})();
+if (paint.ink < 500) {
+  failed = true;
+  console.error(`  FAIL only ${paint.ink} ink pixels found — the headline is not being read`);
+} else if (paint.worst > 2) {
+  failed = true;
+  console.error(
+    `  FAIL the field paints over the headline: hiding it changes the ink by ` +
+      `${paint.worst} levels across ${paint.ink} pixels`,
+  );
+} else {
+  console.log(
+    `  ${paint.ink} ink pixels in the headline, unchanged by hiding the field ` +
+      `(worst ${paint.worst} of 255)`,
+  );
 }
 
 console.log(`\nscreenshots: ${WIDTHS.map((w) => `/tmp/kettle-${w}.png`).join(" ")}`);
