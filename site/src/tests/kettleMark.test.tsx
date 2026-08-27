@@ -231,6 +231,18 @@ describe("motion, and the viewer who asked for none", () => {
     }
   });
 
+  it("blends the drawing onto the page instead of pasting a card on it", () => {
+    // The finishing half of the mark (DECISIONS 188). `multiply` is the
+    // identity for a white pixel, so a ground-normalized drawing composites
+    // to exactly the backdrop it sits on — hero wash, drifting dots and all.
+    // Two ways this regresses: the declaration goes, or something above the
+    // image isolates the blend and hands it a white stacking context to land
+    // on, which puts the rectangle straight back.
+    expect(blockBody(CSS, ".kt-mark-image {")).toMatch(/mix-blend-mode:\s*multiply/);
+    expect(CSS).not.toMatch(/isolation:\s*isolate/);
+    expect(CSS).not.toMatch(/opacity:\s*[\d.]+;[\s\S]*?\.kt-mark-image/);
+  });
+
   it("stays out of the way of the pointer", () => {
     // The steam sits on top of the mark; anything above the kicker that eats
     // a tap is a bug on a phone.
