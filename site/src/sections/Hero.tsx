@@ -82,7 +82,16 @@ export function Hero() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 h-full w-full"
       />
-      <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col gap-8">
+      {/* No z-index here, deliberately, and it is load-bearing (DECISIONS
+          189): a positioned element with a z-index makes a STACKING CONTEXT,
+          and the kettle mark's `mix-blend-mode` composites only within its
+          nearest one. With `z-10` the mark blended against this transparent
+          group instead of against the section — white ground stayed white and
+          the rectangle the blend exists to dissolve came back. The canvas
+          still paints underneath without it: both are positioned with
+          `z-index: auto`, so paint order is DOM order, and the canvas is
+          written first. The probe measures both halves in a browser. */}
+      <div className="relative mx-auto flex w-full max-w-3xl flex-col gap-8">
         {/* The living kettle sits above the kicker and changes nothing else
             about this block (DECISIONS 187): same order, same spacing, same
             illustration below. */}
