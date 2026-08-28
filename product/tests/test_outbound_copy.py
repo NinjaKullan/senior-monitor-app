@@ -68,7 +68,19 @@ VERDICT_PHRASES = (
     "he is", "they are", "nothing is wrong", "something is wrong",
 )
 
-BANNED = URGENCY_WORDS + MEDICAL_WORDS + PROFILE_WORDS + MECHANISM_WORDS
+# Retired vocabulary (DECISIONS 192). Spec 009 replaced "ordinary" with
+# "normal" in every webapp string and the email bodies were deferred, which left
+# the product saying both words for the same day — "a normal morning" at 9:30
+# and "An ordinary day, start to finish" at night, in the same family's inbox on
+# the same Thursday. The bodies are swept and the word joins the scan, so the
+# deferral cannot quietly resume: this is the one ban here that exists for
+# consistency with another surface rather than for the copy law's own reasons,
+# and it is enforced exactly as hard.
+RETIRED_WORDS = ("ordinary",)
+
+BANNED = (
+    URGENCY_WORDS + MEDICAL_WORDS + PROFILE_WORDS + MECHANISM_WORDS + RETIRED_WORDS
+)
 
 # DECISIONS 149, closing 24: pronouns are never guessed. Singular they, or the
 # sentence is restructured to need none — so no gendered pronoun survives the
@@ -151,6 +163,30 @@ def test_the_email_subjects_are_registry_copy_and_obey_the_law():
         assert_outbound_copy_law(subject)
     assert outbound_templates.subject_for(None) == outbound_templates.EMAIL_SUBJECT
     assert outbound_templates.subject_for("") == outbound_templates.EMAIL_SUBJECT
+
+
+def test_the_evening_body_is_the_ruled_string_verbatim():
+    """DECISIONS 192, character for character. This body had no verbatim pin
+    until the ruling that changed it — which is why the word could sit here
+    disagreeing with every webapp string for a whole spec."""
+    assert render("digest_evening_normal", {}) == (
+        "A normal day, start to finish. Next note in the morning."
+    )
+
+
+def test_no_outbound_body_says_the_retired_word():
+    """The sweep itself, over every body under every label — not just the one
+    template the ruling named. `rendered()` walks the whole registry, so a
+    template added later carrying "ordinary" fails here on the day it lands."""
+    for label in RELATIONSHIP_LABELS:
+        for template_id, body in rendered(label):
+            assert "ordinary" not in body.lower(), f"{template_id}: {body}"
+    # The subjects are family-facing copy from the same module.
+    for subject in (
+        outbound_templates.EMAIL_SUBJECT,
+        outbound_templates.subject_for("Mom"),
+    ):
+        assert "ordinary" not in subject.lower()
 
 
 def test_the_recovered_evening_body_is_the_ruled_string_verbatim():
@@ -250,6 +286,10 @@ def test_a_template_cannot_render_with_a_variable_missing():
         ("a guessed pronoun in a handoff", "She hasn't answered Kettle's note yet."),
         # DECISIONS 151's em dash ban, planted with the follow-on's old dash.
         ("an em dash", "You know their day best — a call beats anything."),
+        # DECISIONS 192, planted with the exact body it replaced: the evening
+        # digest as it really sent on Thursday night.
+        ("the retired word", "An ordinary day, start to finish. Next note in the morning."),
+        ("the retired word in a new sentence", "It looks like an ordinary morning."),
     ],
 )
 def test_the_scan_would_catch(label: str, body: str):
