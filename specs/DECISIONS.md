@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 193.** This line is the one to update; the `Next number:` lines inside
+**Next number: 194.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2593,7 +2593,7 @@ browser — all three adopted as the standard for future surfaces.**
        passes through.
 
 192. **(2026-08-28, Fable + Hema, built by Claude Code) "Ordinary" becomes
-     "normal" in email bodies.** Product suite 410 → 413; nothing
+     "normal" in email bodies.** Product suite 410 → 414; nothing
      deployed.
      * **Why.** Spec 009 replaced "ordinary" with "normal" in every
        webapp string and deferred the email bodies, which left the
@@ -2623,3 +2623,20 @@ browser — all three adopted as the standard for future surfaces.**
        three test docstrings quoted the retired body. They are not copy,
        but a comment quoting retired copy is how retired copy comes back,
        so they now quote what ships.
+
+193. **(2026-08-28, Hema, ruling) Spec 011 ratified: Wave D rides the
+     Twilio WhatsApp sender, and the ask template carries a 👍
+     quick-reply button.**
+     * Architecture A stands. +1 984-370-4452 registers as a Twilio
+       sender; the Wave-C-proven transport keeps working with a changed
+       `from` and template Content SIDs. Option B (Meta Cloud API
+       direct) is declined; the revisit trigger (~10k msgs/mo) stays as
+       recorded in spec 011 §1.
+     * The ask template gets a single quick-reply button whose text is,
+       verbatim: `👍`. Tapping sends the button text as an ordinary
+       inbound message, which the existing parser already accepts; a
+       typed 👍 keeps working unchanged. Elder-proof both ways.
+     * Effect: spec 011 unblocks. Next action is Phase 0 — Hema in the
+       Twilio console, connecting the number via embedded Meta signup
+       against the WABA holding the approved name "HeyKettle". Nothing
+       builds before the templates phase per the spec.
