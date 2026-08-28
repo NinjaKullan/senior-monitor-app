@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 410, zero xfails**, **`webapp` 145**, **`site` 216**.
+Current green: **`pytest` 414, zero xfails**, **`webapp` 145**, **`site` 216**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -77,6 +77,11 @@ command re-checks the lot against a preview server:
 `node scripts/probe-kettle.mjs <preview-url>` — steam proportionality at
 120/240/420px, the silhouette, the mark's transparency, the field's layering, and
 the hero fitting a 390x844 phone.
+
+**Owed deploy (the ordinary→normal ruling, DECISIONS 192):** `cd product && fly
+deploy`. The evening digest body changes to "A normal day, start to finish. Next
+note in the morning." — the last surface still saying "ordinary". Independent of
+the site deploy below.
 
 ## 3. Live state — do not break
 

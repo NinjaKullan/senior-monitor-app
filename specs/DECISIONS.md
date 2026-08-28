@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 191.** This line is the one to update; the `Next number:` lines inside
+**Next number: 193.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2556,3 +2556,67 @@ browser — all three adopted as the standard for future surfaces.**
        does not contain and asks whether the headline survived: 4,562 of
        4,562 ink pixels standing normally, **0 of 4,562** with the
        regression planted.
+
+
+191. **(2026-08-27, filed 2026-08-28 retroactively, Hema + Claude Code) The
+     site Dockerfile makes file permissions unable to break serving.**
+     Deployed by Hema on 2026-08-27; filed here after the fact, and the
+     guard is now in the repo — see the flag.
+     * **What happened.** `kettle-hero.webp` was written by a bridge with
+       mode 0600. Nothing downstream corrects a mode: vite copies
+       `public/` into `dist/` as-is, Docker `COPY` preserves what it is
+       given, and nginx's non-root worker could not read the file — so
+       the hero's kettle answered **403** on the live site while every
+       other asset served. A broken image on the page's first impression,
+       from a mode bit nobody set on purpose and no test could see.
+     * **The guard.** `RUN chmod -R a+rX /usr/share/nginx/html`
+       immediately after `COPY dist/`. `a+rX` is read for everyone on
+       files and traverse on directories, which is what a static document
+       root wants in every case; running it after the copy is the whole
+       point, since before it the directory is empty.
+     * **FLAG — it was deployed but never committed.** The line was not
+       in `site/Dockerfile` in this repo: the fix lived only in the image
+       Hema built, so the next `fly deploy` from a clean checkout would
+       have shipped without it and the 403 could return with nobody
+       expecting it. Added here as part of this filing, with a positional
+       assertion in `product/tests/test_site_caching.py` — the chmod must
+       appear AFTER the COPY, since a guard that runs first is decorative
+       and reads identically in a substring search. Planted both ways
+       (deleted, and moved above the COPY) and each fails.
+     * **The general shape**, worth naming because it will recur: an
+       artifact's *metadata* can be wrong while its bytes are right, and
+       every check in this repo reads bytes. The answer is not to check
+       modes everywhere but to normalize them at the one door everything
+       passes through.
+
+192. **(2026-08-28, Fable + Hema, built by Claude Code) "Ordinary" becomes
+     "normal" in email bodies.** Product suite 410 → 413; nothing
+     deployed.
+     * **Why.** Spec 009 replaced "ordinary" with "normal" in every
+       webapp string and deferred the email bodies, which left the
+       product saying both words for the same day. Thursday's real
+       emails: "a normal morning" at 9:30, "An ordinary day, start to
+       finish." that night, one family, one inbox.
+     * **The sweep.** One template body carried the word. Verbatim,
+       before and after:
+       * `digest_evening_normal`
+         * BEFORE: `An ordinary day, start to finish. Next note in the morning.`
+         * AFTER: `A normal day, start to finish. Next note in the morning.`
+       * No other body, subject or fragment in
+         `kettle/outbound_templates.py` contained "ordinary" — checked
+         across the whole registry under every relationship label, and
+         that sweep is now a test rather than a claim. `EMAIL_SUBJECT`,
+         `EMAIL_SUBJECT_PARENT` and the other seven bodies are unchanged,
+         character for character.
+     * **The guard.** "ordinary" joins the outbound copy scan's banned
+       vocabulary as `RETIRED_WORDS`, so an email body may no longer use
+       the word at all — the same ban the webapp has carried since 009,
+       enforced exactly as hard. Planted with the exact string that
+       shipped Thursday night, and with the word in a fresh sentence;
+       both fail. The body also gained the verbatim pin it never had,
+       which is how the word sat here disagreeing with every webapp
+       string for a whole spec without anything noticing.
+     * **Comments swept too.** Two comments in `kettle/outbound.py` and
+       three test docstrings quoted the retired body. They are not copy,
+       but a comment quoting retired copy is how retired copy comes back,
+       so they now quote what ships.

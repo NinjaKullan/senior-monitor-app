@@ -847,7 +847,7 @@ def test_resend_without_its_key_refuses_to_boot(settings, notifier):
 
 def test_a_morning_digest_is_never_sent_late(conn, family, notifier):
     """Past the staleness cutoff the slot records 'skipped' and the founder
-    hears; "her morning looked ordinary" at dinnertime is the ruled-out lie."""
+    hears; "her morning looked normal" at dinnertime is the ruled-out lie."""
     transport = CountingTransport()
     run_twice(conn, transport, at(10, 31), notifier=notifier)
     assert ledger(conn) == []
@@ -862,7 +862,7 @@ def test_a_morning_digest_inside_the_cutoff_still_goes(conn, family):
 
 
 def test_a_zero_signal_day_sends_no_evening_reassurance(conn, family, notifier):
-    """The evidence gate: 'An ordinary day, start to finish' never renders
+    """The evidence gate: 'A normal day, start to finish' never renders
     from a day that produced nothing alarm-grade. Ops condition, not copy."""
     transport = CountingTransport()
     run_twice(conn, transport, at(20, 30), notifier=notifier)
@@ -1228,7 +1228,7 @@ def test_the_comma_config_builds_the_roster_and_fails_closed(settings, notifier)
 
 
 def test_a_followed_up_day_gets_no_evening_digest_and_no_alert(conn, family, notifier):
-    """'An ordinary day, start to finish' is a false sentence on a day Kettle
+    """'A normal day, start to finish' is a false sentence on a day Kettle
     escalated. Withheld, recorded like the evidence gate's withholding — and
     silent to ops, because this absence is the system working. The quiet-day
     shape also proves the ordering: the evidence gate would have withheld this

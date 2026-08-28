@@ -99,7 +99,7 @@ _REGISTRY: tuple[Template, ...] = (
         id="digest_evening_normal",
         kind=KIND_DIGEST_EVENING,
         audience=AUDIENCE_CHILD,
-        body="An ordinary day, start to finish. Next note in the morning.",
+        body="A normal day, start to finish. Next note in the morning.",
     ),
     Template(
         # The recovered day (email-polish pass): the morning was quiet at the

@@ -5,8 +5,13 @@
 FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY dist/ /usr/share/nginx/html
-# Normalize read permissions: a file that reached the repo with owner-only
-# perms (e.g. written by a tool, not git) would otherwise 403 from nginx.
+# DECISIONS 191: file permissions must not be able to break serving. An asset
+# written by a tool rather than by git arrived mode 0600, survived vite's copy
+# into dist/ and Docker's COPY unchanged, and nginx's non-root worker answered
+# 403 for that one file — a broken image on a live page, from a mode bit nobody
+# set on purpose. `a+rX` is read for everyone on files and traverse on
+# directories, which is what a static document root wants in every case, and it
+# runs AFTER the copy because before it the directory is empty.
 RUN chmod -R a+rX /usr/share/nginx/html
 # The config-level half of DECISIONS 168: a conf that does not parse cannot
 # become an image, so `fly deploy` fails at build instead of at serve. The

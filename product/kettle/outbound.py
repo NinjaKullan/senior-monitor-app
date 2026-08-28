@@ -487,7 +487,7 @@ def run_outbound(
     The withhold rules, in the order they are checked:
 
     * **Staleness** — a morning digest decided more than `MORNING_STALE_CUTOFF`
-      past its slot is never sent late: "the morning looked ordinary" is a lie
+      past its slot is never sent late: "the morning looked normal" is a lie
       at dinnertime, whatever the ledger says about why the scheduler was down.
     * **Evidence** — the evening-normal body renders only from a day that
       produced at least one alarm-grade signal. A zero-signal day is an ops
@@ -582,7 +582,7 @@ def run_outbound(
             ) is not None:
                 # DECISIONS 164: a followed-up day gets no evening digest — the
                 # follow-on and, when earned, the all-clear already told the
-                # day's story, and an ordinary-day sentence would be a false
+                # day's story, and a normal-day sentence would be a false
                 # one. Withheld, not replaced; recorded, not
                 # alerted: this absence is the system working. The twice-a-day
                 # notes resume with the next morning digest. SENT follow-ons

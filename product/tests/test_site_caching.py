@@ -119,6 +119,14 @@ def test_the_image_serves_from_this_config_not_gostatic():
     assert "nginx" in dockerfile
     assert "COPY nginx.conf" in dockerfile
     assert "gostatic" not in dockerfile
+    # DECISIONS 191: the permissions guard, and its ORDER. A chmod before the
+    # COPY would run against an empty directory and prove nothing, so the
+    # assertion is positional rather than a substring search — that is the only
+    # way this test can tell a working guard from a decorative one.
+    copy_at = dockerfile.index("COPY dist/")
+    chmod_at = dockerfile.index("RUN chmod -R a+rX /usr/share/nginx/html")
+    assert chmod_at > copy_at, "the permissions guard runs before the files arrive"
+
     # fly.toml routes to 8080; the conf must listen where fly points.
     assert "listen 8080" in CONFIG
     assert 'internal_port = 8080' in (SITE / "fly.toml").read_text()
