@@ -2574,15 +2574,18 @@ browser — all three adopted as the standard for future surfaces.**
        files and traverse on directories, which is what a static document
        root wants in every case; running it after the copy is the whole
        point, since before it the directory is empty.
-     * **FLAG — it was deployed but never committed.** The line was not
-       in `site/Dockerfile` in this repo: the fix lived only in the image
-       Hema built, so the next `fly deploy` from a clean checkout would
-       have shipped without it and the 403 could return with nobody
-       expecting it. Added here as part of this filing, with a positional
-       assertion in `product/tests/test_site_caching.py` — the chmod must
-       appear AFTER the COPY, since a guard that runs first is decorative
-       and reads identically in a substring search. Planted both ways
-       (deleted, and moved above the COPY) and each fails.
+     * **Both sides added it independently, and they agreed.** Hema had
+       already committed the guard (34b5309) when this filing was
+       written; the check that said otherwise was made against a local
+       `main` that had not been fetched, and the claim that it was
+       deployed-but-uncommitted was wrong. The `RUN` line is identical on
+       both sides and only the comment differed, so the merge kept one
+       comment naming both the cause and the ordering. What this filing
+       does add is the test: a positional assertion in
+       `product/tests/test_site_caching.py` that the chmod appears AFTER
+       the COPY, since a guard that runs first is decorative and reads
+       identically in a substring search. Planted both ways (deleted,
+       and moved above the COPY) and each fails.
      * **The general shape**, worth naming because it will recur: an
        artifact's *metadata* can be wrong while its bytes are right, and
        every check in this repo reads bytes. The answer is not to check
