@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 194.** This line is the one to update; the `Next number:` lines inside
+**Next number: 195.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2640,3 +2640,61 @@ browser — all three adopted as the standard for future surfaces.**
        Twilio console, connecting the number via embedded Meta signup
        against the WABA holding the approved name "HeyKettle". Nothing
        builds before the templates phase per the spec.
+
+
+194. **(2026-08-28, Claude Code, spec 011 Phase 1) FLAG — the ladder's
+     timing audit: which rungs can fire outside a 24-hour service
+     window.** Nothing built and nothing changed; this is the
+     enumeration §3 asks for before Phase 2 begins. Sandbox behaviour
+     untouched.
+     * **The answer is one rung: the ask.** `ask_parent` is the ONLY
+       message Kettle sends to a parent, and therefore the only one the
+       WhatsApp window rule can reach. The WhatsApp transport declares
+       `kinds = (KIND_ASK,)`; every other template in the registry is
+       `audience="child"` and rides the Resend email transport, where a
+       24-hour window is not a concept. So the template requirement
+       covers `ask_parent` and nothing else today.
+     * **The ask's clock.** Parent-local: window opens 06:00, morning
+       digest 08:30 (email), **ask 11:00 (WhatsApp)**, follow-on at the
+       ask + 2h grace (email), evening digest 20:30 (email), all-clear
+       whenever the first alarm-grade ping lands after a sent follow-on
+       (email).
+     * **Can the ask ever be inside a window?** Sometimes, and never
+       dependably — which is why it must be a template regardless. The
+       window would have to have been opened by the previous day's
+       reply: yesterday's ask fires at 11:00 local, a reply arrives
+       after it, and today's ask fires at 11:00 local, so the reply is
+       less than 24 hours old and today's ask lands inside. That case
+       needs quiet mornings two days running AND a reply on the first,
+       and it evaporates whenever the parent did not reply, whenever a
+       day is skipped, and whenever the local clock shifts (spec 010's
+       moves, or DST) so that "24 hours later" is not "11:00 again". The
+       first ask a parent ever receives is always outside a window.
+       Sending a template inside a window is always permitted, so the
+       template is correct in both cases.
+     * **Nothing rides inside a window today, at all.** A reply cancels
+       the pending follow-on and Kettle answers the parent with
+       *nothing* — `record_parent_reply` stores the match and is silent
+       by design. So §3's "rungs inside a window stay free-form,
+       unchanged" currently governs the empty set. Worth saying plainly
+       because it means the ask template is the only parent-facing copy
+       in the product, with no free-form path behind it.
+     * **Two traps this audit exists to catch, both cheap to fall into
+       later.** (1) The transport roster maps kinds to carriers by
+       CONFIG: routing any child-facing kind to WhatsApp is a config
+       change, not a code change, and the moment one is, those rungs
+       become business-initiated too and need their own templates. The
+       follow-on is the likely candidate the first time a family member
+       prefers WhatsApp to email. (2) If the ladder ever acknowledges a
+       reply — a "thanks", an all-clear to the parent rather than the
+       child — that message would be the first thing Kettle has ever
+       sent inside a window, and it is the one case where free-form is
+       genuinely available. Neither is in scope for Wave D; both should
+       come back to this entry when they are proposed.
+     * **The ask copy was verified for Phase 1 in the same pass** and
+       matches DECISIONS 151 item 4 character for character, 53
+       codepoints, with the emoji as bare U+1F44D. The submission text
+       for the PM is `docs/whatsapp-ask-template-submission.md`; the
+       one difference found is the site's shorter illustrative quote
+       (`OFF_NOTIF`), which DECISIONS 150 already ruled non-binding and
+       which must not be the string submitted.
