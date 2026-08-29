@@ -1,6 +1,12 @@
 # WhatsApp ask template — submission text (spec 011 Phase 1)
 
-**Status: for PM review. Nothing has been submitted.** Hema submits through
+**Status: PM REVIEWED AND SIGNED OFF, 2026-08-29.** Body, zero
+variables, and button verified independently (53 codepoints, bare
+U+1F44D, no U+FE0F). Category **Utility** confirmed; template name
+**`kettle_ask_parent`** confirmed (Hema may veto the name before
+submitting — it is permanent once approved). Nothing has been
+submitted; submission waits on Phase 0, which waits on Meta's review
+of the Kettle Labs portfolio restriction (requested 2026-08-29). Hema submits through
 Twilio's Content Template Builder after the PM signs this page off; Meta
 approval usually takes hours to a couple of days. Approved copy is then
 recorded verbatim in DECISIONS, per standing law.

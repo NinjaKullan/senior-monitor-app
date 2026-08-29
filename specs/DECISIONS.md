@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 195.** This line is the one to update; the `Next number:` lines inside
+**Next number: 196.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2698,3 +2698,30 @@ browser — all three adopted as the standard for future surfaces.**
        one difference found is the site's shorter illustrative quote
        (`OFF_NOTIF`), which DECISIONS 150 already ruled non-binding and
        which must not be the string submitted.
+
+195. **(2026-08-29, Hema, ruling) Copy law amendment for the SEO/content
+     library: two registers.** Ratified after the planner/resource
+     research (docs/adult_children_aging_parent_resource_research.md,
+     docs/aging_in_place_free_resources_strategy.md) exposed the
+     tension between search vocabulary and Kettle's language laws.
+     (Filed first as 194 in an uncommitted working tree while Claude
+     Code's 194 was already pushed; renumbered here, nothing else
+     changed.)
+     * **Paper rule.** Anything a parent might see or hold — printable
+       interiors, the planner, product surfaces, email bodies — obeys
+       the copy laws in full. No monitor/track/alert/elderly/seniors,
+       ever, no exceptions. A sheet on a parent's fridge never carries
+       a word that describes them as a subject of observation.
+     * **Google rule (contrast position).** A web page built to catch a
+       search MAY use the searcher's words (e.g. "elderly monitoring")
+       but ONLY to name the category being replaced — describing other
+       products, never Kettle. Kettle self-description keeps the laws
+       everywhere. Shape: name their words, then teach ours.
+     * Gating ruling, same sitting: individual printables download
+       free, no email required; only the flagship planner bundle asks
+       for an email.
+     * Standing attribution line for anything drawing on NIA material,
+       verbatim: "Content informed by resources from the National
+       Institute on Aging." Never rebrand nonprofit PDFs (alz.org,
+       Family Caregiver Alliance, Red Cross, NCOA) — research and
+       link-out only, unless explicit reuse permission exists.
