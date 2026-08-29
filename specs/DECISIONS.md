@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 196.** This line is the one to update; the `Next number:` lines inside
+**Next number: 197.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2725,3 +2725,35 @@ browser — all three adopted as the standard for future surfaces.**
        Institute on Aging." Never rebrand nonprofit PDFs (alz.org,
        Family Caregiver Alliance, Red Cross, NCOA) — research and
        link-out only, unless explicit reuse permission exists.
+
+196. **(2026-08-29, Hema + Fable, spec 011 Phase 0) The real number is
+     LIVE as a Twilio sender — with one ruled deviation from §2.**
+     Sender +1 984-370-4452 shows Online in Twilio; display name
+     HeyKettle; throughput 80 MPS.
+     * **The deviation.** §2 said to select the existing WABA in the
+       embedded signup. Twilio's own documentation says the opposite —
+       a WABA created outside Twilio should not be selected, and the
+       popup enforces this by not offering it. Sequence that actually
+       happened: (1) Meta's Aug-10 "Account Integrity" restriction on
+       the Kettle Labs portfolio was reviewed and LIFTED same-day after
+       Hema's identity verification (this alone had blocked the popup
+       entirely); (2) the old WABA's number row — added in WhatsApp
+       Manager, stuck Unverified because its verification SMS went to
+       the Twilio number where no human reads inbox — was deleted by
+       Hema (reason given: change of business service providers);
+       (3) embedded signup created a NEW WABA "HeyKettle", ID
+       1778487076826507, under Kettle Labs, with the number and the
+       display name (typed exactly: HeyKettle) submitted in-flow.
+     * **What carried and what re-runs.** Business verification lives
+       on the portfolio and carried over. The display name approval
+       did NOT carry — it was attached to the deleted row — and rides
+       Meta's routine review of the new WABA (Commerce Policy check
+       within 24h). Watch WhatsApp Manager for the name outcome before
+       the dark stage.
+     * Meta's "insights" and "order/lead event detection" data-sharing
+       options were declined at setup.
+     * The old WABA (1963801584280787) is now empty; retire it whenever
+       convenient — nothing references it.
+     * Phase 1 template submission is now unblocked; the submission
+       text was signed off in docs/whatsapp-ask-template-submission.md
+       before this entry.
