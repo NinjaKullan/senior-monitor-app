@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 200.** This line is the one to update; the `Next number:` lines inside
+**Next number: 201.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2874,3 +2874,37 @@ browser — all three adopted as the standard for future surfaces.**
        renders at 16/32/128 (the arc's presence was double-checked by
        computed style after a small-scale screenshot misread), and the
        dark block is pinned by test so a tidy-up cannot drop it.
+
+200. **(2026-08-30, Hema, ruling) Spec 012 ratified: the journal becomes
+     the Memory tab, with Kettle's gentle lines and the family's own
+     contacts sheet.** Ratified in-session ~1:40am; filed first as 199
+     in an uncommitted tree while Claude Code's favicon 199 was already
+     in flight — renumbered here, nothing else changed. Spec at
+     specs/012-family-memory.md; builds AFTER Wave D Phase 2 (Wave D
+     keeps CC-queue priority).
+     * Nav becomes Today / Memory / Family. Tab name: **Memory**.
+     * Kettle-authored lines, VERBATIM (whats never hows; no verdicts;
+       no escalation events ever — a month that was not clean gets
+       nothing at all):
+       * city_change (exists): "{Parent}'s city changed to {city}."
+       * started: "Kettle's first morning with {Parent}."
+       * first_reply: "Heard from {Parent} with a 👍."
+       * clean_month: "A normal {month}, start to finish."
+     * Empty state, verbatim: "Notes from your family and from Kettle
+       live here. The first ones arrive on their own."
+     * Contacts card heading, verbatim: "If you can't reach them" —
+       family-entered contacts only, tap-to-call, editable; NO
+       auto-populated local-services directory, ever (a stale
+       emergency number we suggested is worse than a blank line the
+       family owns).
+     * Photos deferred; multi-account family circle and MCP read
+       access remain phase 2/3 per the journal task's standing review;
+       caretaker-log features permanently out of this spec's line.
+     * Privacy gates before any stranger family: privacy.html names
+       family notes and contacts, a deletion path exists, counsel
+       pass. Pilot family ships without ceremony.
+     * Process law, learned the hard way three counters running:
+       DECISIONS numbers are allocated only against a just-pulled
+       origin/main, and NOBODY files an entry while another agent has
+       an open task that files one — the pushed repo owns the counter;
+       local filings renumber, always.
