@@ -233,14 +233,22 @@ def test_authenticated_holds_exactly_select_on_the_family_tables(
 
     Reads only — except where a ruling says otherwise: spec 009 §4 gives the
     app select+insert on journal_entries (and usage on its identity
-    sequence), and §5 an UPDATE on parents scoped to the city_label COLUMN,
-    which lives in pg_attribute rather than relacl and is asserted in
-    test_webapp_contract.py. Anything else appearing here is a leak.
+    sequence), §5 an UPDATE on parents scoped to the city_label COLUMN
+    (widened to tz/tz_changed_utc by spec 010) — column grants live in
+    pg_attribute rather than relacl and are asserted in
+    test_webapp_contract.py — and spec 012 §4 the FULL set on
+    family_contacts, deliberately: contacts are editable reference data, not
+    record, and every verb is bounded by the per-family policies. Anything
+    else appearing here is a leak.
     """
     held = object_privileges(conn, ["authenticated"])
     expected = {("authenticated", table): {"SELECT"} for table in FAMILY_TABLES}
     expected[("authenticated", "journal_entries")] = {"SELECT", "INSERT"}
     expected[("authenticated", "journal_entries_id_seq")] = {"USAGE"}
+    expected[("authenticated", "family_contacts")] = {
+        "SELECT", "INSERT", "UPDATE", "DELETE",
+    }
+    expected[("authenticated", "family_contacts_id_seq")] = {"USAGE"}
     assert held == expected
 
     # Spelled out, because these are the ones the bootstrap left behind.

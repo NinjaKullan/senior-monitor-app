@@ -321,10 +321,12 @@ def test_the_apps_own_queries_return_one_family_only(two_families, authed):
 
 def test_the_app_never_writes_outside_its_two_granted_paths(two_families, authed):
     """Spec 009 opened two write paths (journal inserts, the city label
-    column) and spec 010 widened the second to the place columns (tz,
-    tz_changed_utc); everything else the read-only contract used to refuse it
-    still refuses, display_name on the very table the column grant touches
-    included."""
+    column), spec 010 widened the second to the place columns (tz,
+    tz_changed_utc), and spec 012 added a third: full CRUD on
+    family_contacts, RLS-bounded (tested below). Everything else the
+    read-only contract used to refuse it still refuses, display_name on the
+    very table the column grant touches included — and the journal itself
+    stays insert-only."""
     as_user(authed, USER_A)
     for statement in (
         "insert into pings (parent_id, signal, ts_utc) "
@@ -427,3 +429,90 @@ def test_the_place_columns_are_writable_together_and_nothing_else_opened(
         for r in conn.execute("select display_name, tz, tz_changed_utc from parents").fetchall()
     }
     assert zones == {"Amma": ("America/Denver", True), "Patti": (None, False)}
+
+
+def test_contacts_are_editable_reference_data_bounded_to_the_family(
+    two_families, authed, conn
+):
+    """Spec 012 §4: the one table the app may fully edit — and only its own
+    family's rows. Contacts are reference data, not record, so unlike the
+    journal every verb is granted; RLS is what keeps each verb honest."""
+    a = two_families["a"]
+    b = two_families["b"]
+    as_user(authed, USER_A)
+    authed.execute(
+        "insert into family_contacts (family_id, label, name, phone_e164, phone_display) "
+        "values (%s, 'A neighbor', 'Lakshmi', '+919845550111', '98455 50111')",
+        (a.family_id,),
+    )
+    authed.execute(
+        "update family_contacts set name = 'Lakshmi R' where family_id = %s",
+        (a.family_id,),
+    )
+    # Writing into the neighbour family, or tagging their parent: refused.
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        authed.execute(
+            "insert into family_contacts (family_id, label) values (%s, 'sneak')",
+            (b.family_id,),
+        )
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        authed.execute(
+            "insert into family_contacts (family_id, parent_id, label) "
+            "values (%s, %s, 'sneak')",
+            (a.family_id, b.parents[0].parent_id),
+        )
+
+    # The neighbour sees nothing, and their blanket delete removes nothing —
+    # RLS turns it into a no-op rather than an error, so the row count is the
+    # assertion.
+    as_user(authed, USER_B)
+    assert authed.execute(
+        "select count(*) as n from family_contacts"
+    ).fetchone()["n"] == 0
+    authed.execute("delete from family_contacts")
+    assert conn.execute(
+        "select count(*) as n from family_contacts"
+    ).fetchone()["n"] == 1
+
+    # The owner really can delete their own.
+    as_user(authed, USER_A)
+    authed.execute("delete from family_contacts where family_id = %s", (a.family_id,))
+    assert conn.execute(
+        "select count(*) as n from family_contacts"
+    ).fetchone()["n"] == 0
+
+
+def test_journal_kind_rides_the_app_write_and_stays_insert_only(
+    two_families, authed, conn
+):
+    """Spec 012 §5: the webapp's city auto-note now names its kind; a plain
+    note defaults to 'note'; an invented kind dies on the check constraint;
+    and update/delete stay refused whatever the kind says."""
+    a = two_families["a"]
+    as_user(authed, USER_A)
+    authed.execute(
+        "insert into journal_entries (family_id, parent_id, author_label, body, kind) "
+        "values (%s, %s, 'Kettle', 'Amma''s city changed to Austin.', 'city_change')",
+        (a.family_id, a.parents[0].parent_id),
+    )
+    authed.execute(
+        "insert into journal_entries (family_id, author_label, body) "
+        "values (%s, 'Hema', 'a plain note')",
+        (a.family_id,),
+    )
+    kinds = {
+        r["body"]: r["kind"]
+        for r in conn.execute("select body, kind from journal_entries").fetchall()
+    }
+    assert kinds == {
+        "Amma's city changed to Austin.": "city_change",
+        "a plain note": "note",
+    }
+    with pytest.raises(psycopg.errors.CheckViolation):
+        authed.execute(
+            "insert into journal_entries (family_id, body, kind) "
+            "values (%s, 'x', 'medication_log')",
+            (a.family_id,),
+        )
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        authed.execute("update journal_entries set kind = 'note'")
