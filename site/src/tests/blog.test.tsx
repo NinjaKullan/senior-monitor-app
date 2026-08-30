@@ -122,7 +122,13 @@ describe("post #1 ships verbatim (DECISIONS 174)", () => {
    * the link. These pins hold the affordance, not just the destination.
    */
   it("the whole entry is one link to the article, named by the title", () => {
-    const entry = index().match(/<a\s+class="entry"[\s\S]*?<\/a>/);
+    // Located by href rather than by position: the index gained a second
+    // entry (the first guide-genre post), and this pin is about post #1's
+    // block, wherever it sits in the list.
+    const entry = index()
+      .match(/<a\s+class="entry"[\s\S]*?<\/a>/g)
+      ?.find((e) => e.includes('href="/blog/the-call-ive-rehearsed-and-never-made/"'))
+      ?.match(/([\s\S]*)/);
     expect(entry, "the entry block link is gone").not.toBeNull();
     expect(entry![0]).toContain('href="/blog/the-call-ive-rehearsed-and-never-made/"');
     // Title, date, teaser and the read line all ride inside the one anchor.
@@ -135,10 +141,12 @@ describe("post #1 ships verbatim (DECISIONS 174)", () => {
     expect(entry![0]).toContain('id="post-1-title"');
   });
 
-  it("nests no link inside the entry link", () => {
-    const entry = index().match(/<a\s+class="entry"([\s\S]*?)<\/a>/);
-    expect(entry).not.toBeNull();
-    expect(/<a[\s>]/.test(entry![1]), "an anchor inside the entry anchor").toBe(false);
+  it("nests no link inside any entry link", () => {
+    const entries = [...index().matchAll(/<a\s+class="entry"([\s\S]*?)<\/a>/g)];
+    expect(entries.length).toBeGreaterThanOrEqual(1);
+    for (const e of entries) {
+      expect(/<a[\s>]/.test(e[1]), "an anchor inside an entry anchor").toBe(false);
+    }
   });
 
   it("reads as clickable at rest, not only on hover", () => {

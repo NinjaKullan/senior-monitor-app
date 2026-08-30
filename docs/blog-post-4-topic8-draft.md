@@ -118,6 +118,10 @@ worried today, in plain sentences: not "I'm anxious about my mother", but
 a fall three weeks ago, and her neighbor hasn't seen her since Tuesday."
 Specifics get people to the door faster than worry does.
 
+All of it fits on one sheet, and there's a free printable one on this site,
+[the in-case-something-happens sheet](/resources/emergency-info/), so it's
+written down before the day you need it rather than remembered during it.
+
 ## Afterwards, close the gap
 
 If it turned out to be nothing, which it usually does, resist the urge to
@@ -129,7 +133,10 @@ who lives close enough to walk over, and ask them first so it's a person who
 has agreed rather than a person you're about to surprise. Find out whether
 the building has a master key and who holds it. Make sure the phone charges
 somewhere they'll see it and that the ringer is loud enough. If they have a
-landline, keep it.
+landline, keep it. And write down what a normal day looks like while things
+are steady; there's [a one-page sheet for that](/resources/normal-day/) too.
+It's what turns "she's not answering" into "she's not answering at a time
+she always answers", which is the difference between a feeling and a reason.
 
 And if you want a wider look at what else is worth noticing, the
 [okay-living-alone checklist](/resources/okay-living-alone/) covers thirty
@@ -192,5 +199,6 @@ essays as well as product copy, that page needs a pass. I have not touched it,
 since it is pinned as verbatim-final in the HTML and it is your call whether a
 letter in your own voice is a surface where Kettle speaks.
 
-**Links out:** one, to the asset #1 page. No external links, so nothing here
-needs re-checking later.
+**Links out:** three, all internal: asset #1's page, the emergency-info sheet
+(added per the cross-link approval), and the normal-day sheet (same). No
+external links, so nothing here needs re-checking later.
