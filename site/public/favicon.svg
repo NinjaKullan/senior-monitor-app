@@ -3,19 +3,35 @@
        its hobnail texture cannot survive (Asana 1217835128977059): silhouette
        only - belly, spout, arched handle, lid knob - drawn heavy, because at
        16 CSS pixels this whole canvas is sixteen dots across and a thin
-       stroke anti-aliases to nothing. Colours are sampled from the artwork's
-       own pixels (the deep green body, the copper knob), the same way the
-       webp carries them - asset pixels, not UI tokens. Transparent ground,
-       so it sits on any tab bar. -->
+       stroke anti-aliases to nothing. Light-scheme colours are sampled from
+       the artwork's own pixels (the deep green body, the copper knob), the
+       same way the webp carries them - asset pixels, not UI tokens.
+
+       The dark block is why this file has classes: a dark kettle on a dark
+       tab bar is invisible (founder-observed on the first cut), and an SVG
+       favicon is the ONE icon in the set a browser re-styles with the tab
+       bar - so under prefers-color-scheme: dark the silhouette lifts to the
+       drawing's own sage-grey highlight and the knob brightens with it.
+       Same shapes, one media query; the rasters stay untouched. -->
+  <style>
+    .kt-body { fill: #3d4f49; }
+    .kt-arc { stroke: #3d4f49; }
+    .kt-knob { fill: #8a5a30; }
+    @media (prefers-color-scheme: dark) {
+      .kt-body { fill: #aebcb0; }
+      .kt-arc { stroke: #aebcb0; }
+      .kt-knob { fill: #d09a5b; }
+    }
+  </style>
   <g>
     <!-- handle: one thick arc, the drawing's tallest line -->
-    <path d="M8.5 14.5 A 7.8 9.5 0 0 1 23.5 14.5" fill="none"
-          stroke="#3d4f49" stroke-width="3.4" stroke-linecap="round"/>
+    <path class="kt-arc" d="M8.5 14.5 A 7.8 9.5 0 0 1 23.5 14.5" fill="none"
+          stroke-width="3.4" stroke-linecap="round"/>
     <!-- spout: a full beak reaching clear of the belly -->
-    <path d="M9 17.5 L1.6 13.6 Q0.4 13 1.2 15.2 L4.6 23 Z" fill="#3d4f49"/>
+    <path class="kt-body" d="M9 17.5 L1.6 13.6 Q0.4 13 1.2 15.2 L4.6 23 Z"/>
     <!-- belly -->
-    <ellipse cx="16.5" cy="22" rx="10" ry="8.4" fill="#3d4f49"/>
+    <ellipse class="kt-body" cx="16.5" cy="22" rx="10" ry="8.4"/>
     <!-- knob: the one copper accent, the drawing's own, riding the lid line -->
-    <circle cx="16.5" cy="12.6" r="2" fill="#8a5a30"/>
+    <circle class="kt-knob" cx="16.5" cy="12.6" r="2"/>
   </g>
 </svg>

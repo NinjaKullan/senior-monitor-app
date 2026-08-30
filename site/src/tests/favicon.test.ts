@@ -89,6 +89,10 @@ describe("the files themselves", () => {
     for (const banned of ["<script", "onload", "href=", "http", "url("]) {
       expect(svg.toLowerCase(), `svg carries ${banned}`).not.toContain(banned);
     }
+    // The dark-scheme block (founder-observed: a dark kettle on a dark tab
+    // bar is invisible, and the SVG is the one icon a browser re-styles with
+    // the bar). Pinned so a later tidy-up cannot drop it.
+    expect(raw).toContain("@media (prefers-color-scheme: dark)");
   });
 });
 

@@ -2863,3 +2863,14 @@ browser — all three adopted as the standard for future surfaces.**
        width drifted from the file's real width, a <script> in the svg,
        the ico swapped for a bare png, and the set wired into
        privacy.html.
+     * **Refinement on approval (founder): the svg answers the dark tab
+       bar.** The first cut was near-invisible there — a dark kettle on
+       a dark bar — and the svg is the ONE icon in the set a browser
+       re-styles with the bar, so it gained a
+       `@media (prefers-color-scheme: dark)` block lifting the
+       silhouette to the drawing's own sage highlight (#aebcb0) with
+       the knob brightened to match (#d09a5b); light scheme unchanged,
+       rasters untouched. Verified as screenshots of real dark-scheme
+       renders at 16/32/128 (the arc's presence was double-checked by
+       computed style after a small-scale screenshot misread), and the
+       dark block is pinned by test so a tidy-up cannot drop it.
