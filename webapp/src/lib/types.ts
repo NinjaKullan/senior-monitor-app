@@ -31,7 +31,9 @@ export interface Parent {
 }
 
 /** A family note (spec 009 §4): plain text, an optional date, an optional
- *  parent tag. Insert-only in v1 — no edit, no delete. */
+ *  parent tag. Insert-only in v1 — no edit, no delete. Spec 012 adds `kind`:
+ *  'note' for everything the family writes, the gentle-whats kinds for
+ *  Kettle's own lines (city_change, started, first_reply, clean_month). */
 export interface JournalEntry {
   id: number;
   family_id: string;
@@ -40,6 +42,22 @@ export interface JournalEntry {
   body: string;
   event_date: string | null;
   created_utc: string;
+  kind: string;
+}
+
+/** One line of the family's own contacts sheet (spec 012 §4). UNLIKE the
+ *  journal, contacts are editable and deletable — reference data, not
+ *  record. E.164 rides the tel: href; phone_display is what a person sees. */
+export interface FamilyContact {
+  id: number;
+  family_id: string;
+  parent_id: string | null;
+  label: string;
+  name: string;
+  phone_e164: string;
+  phone_display: string;
+  note: string;
+  position: number;
 }
 
 export interface Member {

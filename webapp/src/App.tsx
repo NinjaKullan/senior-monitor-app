@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
+  addContact,
   addJournalEntry,
   claimMembership,
+  deleteContact,
   loadSnapshot,
   placeUpdate,
   saveCityLabel,
   savePlace,
   sendMagicLink,
+  updateContact,
+  type ContactDraft,
   type FamilySnapshot,
 } from "@/lib/data";
 import { AUTO_NOTE_AUTHOR, CITY_CHANGED_NOTE, TAGLINE } from "@/lib/copy";
@@ -23,6 +27,7 @@ import {
 } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { FamilyScreen } from "@/screens/Family";
+import { MemoryScreen } from "@/screens/Memory";
 import { Login } from "@/screens/Login";
 import { NoFamily } from "@/screens/NoFamily";
 import { ParentDetail } from "@/screens/ParentDetail";
@@ -39,10 +44,13 @@ const REFRESH_MS = 45_000;
 /** The v5 layout switches from bottom tabs to the sidebar rail here. */
 const WIDE_MIN_PX = 760;
 
-type Tab = "today" | "family";
+type Tab = "today" | "memory" | "family";
 
+// Spec 012 §2: the journal is a place now, so the nav names it — Today for
+// the day, Memory for the record, Family for the household's settings.
 const TABS: { id: Tab; label: string }[] = [
   { id: "today", label: "Today" },
+  { id: "memory", label: "Memory" },
   { id: "family", label: "Family" },
 ];
 
@@ -249,6 +257,8 @@ export default function App() {
           entry.city,
         ),
         event_date: null,
+        // Spec 012 §5: the webapp's one auto note names its kind.
+        kind: "city_change",
       });
     }
     await refresh();
@@ -256,6 +266,21 @@ export default function App() {
 
   const clearCity = async (parentId: string) => {
     await saveCityLabel(parentId, null);
+    await refresh();
+  };
+
+  // Spec 012 §4: the contacts sheet — editable reference data, RLS-scoped
+  // server-side like everything else; position keeps the family's own order.
+  const addContactRow = async (draft: ContactDraft) => {
+    await addContact(familyId, draft, snapshot?.contacts.length ?? 0);
+    await refresh();
+  };
+  const updateContactRow = async (id: number, draft: ContactDraft) => {
+    await updateContact(id, draft);
+    await refresh();
+  };
+  const removeContactRow = async (id: number) => {
+    await deleteContact(id);
     await refresh();
   };
 
@@ -284,6 +309,18 @@ export default function App() {
         ) : (
           <Today states={states} rollup={rollup} dateLine={dateLine} onOpen={setOpenParentId} />
         ))}
+      {tab === "memory" && (
+        <MemoryScreen
+          parentLabels={states.map((s) => ({ parentId: s.parentId, label: s.label }))}
+          journal={snapshot.journal}
+          contacts={snapshot.contacts}
+          todayDate={todayDate}
+          onAddNote={addNote}
+          onAddContact={addContactRow}
+          onUpdateContact={updateContactRow}
+          onRemoveContact={removeContactRow}
+        />
+      )}
       {tab === "family" && (
         <FamilyScreen
           parentStates={states}
@@ -299,13 +336,10 @@ export default function App() {
             snapshot.latestPings,
             now,
           )}
-          journal={snapshot.journal}
-          todayDate={todayDate}
           onOpen={(id) => {
             setTab("today");
             setOpenParentId(id);
           }}
-          onAddNote={addNote}
           onPickCity={pickCity}
           onClearCity={clearCity}
         />

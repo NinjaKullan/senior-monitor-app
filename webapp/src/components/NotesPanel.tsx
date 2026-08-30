@@ -28,6 +28,7 @@ import {
   firstLine,
   linkify,
   monthDay,
+  monthYear,
   pastEntries,
   upcomingEntries,
   weekdayMonthDay,
@@ -99,6 +100,8 @@ export function NotesPanel({
   fixedParentId,
   /** Family view prefixes each entry with its tag. */
   tagLabelFor,
+  monthSeparators,
+  emptyLine,
 }: {
   entries: JournalEntry[];
   todayDate: string;
@@ -106,6 +109,11 @@ export function NotesPanel({
   tagOptions?: TagOption[];
   fixedParentId?: string | null;
   tagLabelFor?: (entry: JournalEntry) => string;
+  /** Spec 012 §2, Memory only: month separators in the past feed, and the
+   *  ruled empty-state line when there is nothing yet. ParentDetail keeps
+   *  its scoped panel exactly as it was. */
+  monthSeparators?: boolean;
+  emptyLine?: string;
 }) {
   const [body, setBody] = useState("");
   const [author, setAuthor] = useState(storedAuthor);
@@ -184,15 +192,41 @@ export function NotesPanel({
         </div>
       ))}
 
-      {past.map((entry, index) => (
+      {emptyLine && upcoming.length === 0 && past.length === 0 && (
         <div
-          key={entry.id}
-          style={{
-            padding: "0.625rem 0",
-            borderTop: index === 0 ? "none" : "1px solid var(--hair)",
-          }}
-          data-testid="note-entry"
+          style={{ fontSize: "0.84375rem", color: "var(--ink2)", lineHeight: 1.5, padding: "0.375rem 0 0.5rem" }}
+          data-testid="memory-empty"
         >
+          {emptyLine}
+        </div>
+      )}
+
+      {past.map((entry, index) => (
+        <div key={entry.id}>
+          {monthSeparators &&
+            (index === 0 ||
+              monthYear(past[index - 1].created_utc) !== monthYear(entry.created_utc)) && (
+              <div
+                style={{
+                  marginTop: index === 0 ? "0.25rem" : "0.875rem",
+                  fontSize: "0.6875rem",
+                  letterSpacing: ".14em",
+                  textTransform: "uppercase",
+                  color: "var(--mute)",
+                  fontWeight: 700,
+                }}
+                data-testid="month-separator"
+              >
+                {monthYear(entry.created_utc)}
+              </div>
+            )}
+          <div
+            style={{
+              padding: "0.625rem 0",
+              borderTop: index === 0 || monthSeparators ? "none" : "1px solid var(--hair)",
+            }}
+            data-testid="note-entry"
+          >
           <div
             style={{
               fontSize: "0.71875rem",
@@ -206,7 +240,8 @@ export function NotesPanel({
             {monthDay(entry.created_utc)} · {entry.author_label || AUTHOR_FALLBACK}
             {entry.event_date ? ` · ${EVENT_FOR.replace("{date}", monthDay(entry.event_date))}` : ""}
           </div>
-          <Body body={entry.body} />
+            <Body body={entry.body} />
+          </div>
         </div>
       ))}
 

@@ -1,14 +1,13 @@
 /**
- * Family (spec 009): the parents list (with the §5 city field), the
- * consolidated Family notes list (§4 — every entry, tag-prefixed, and a
- * composer whose tag is selectable), the spec-005b setup card (the DECISIONS
- * 122 CTA pin), the member roster, and the privacy footer.
+ * Family (spec 009, slimmed by spec 012 §2): the parents list with the city
+ * picker, the spec-005b setup card (the DECISIONS 122 CTA pin), the member
+ * roster, and the privacy footer. The consolidated notes feed moved to the
+ * Memory tab — this screen is the household's SETTINGS now, and the record
+ * lives where the record lives.
  */
 import { CityPicker } from "@/components/CityPicker";
-import { NotesPanel, type NoteDraft, type TagOption } from "@/components/NotesPanel";
 import type { CityEntry } from "@/lib/cities";
 import {
-  AUTHOR_FALLBACK,
   FAMILY_CIRCLE_LABEL,
   FAMILY_SUB,
   FAMILY_TITLE,
@@ -24,7 +23,7 @@ import {
 } from "@/lib/copy";
 import type { ParentToday } from "@/lib/parentState";
 import type { SetupEntry } from "@/lib/setupLinks";
-import type { JournalEntry, Member } from "@/lib/types";
+import type { Member } from "@/lib/types";
 
 const SETUP_STATUS_LABEL = {
   reporting: SETUP_REPORTING,
@@ -55,10 +54,7 @@ export function FamilyScreen({
   cities,
   members,
   setupEntries,
-  journal,
-  todayDate,
   onOpen,
-  onAddNote,
   onPickCity,
   onClearCity,
 }: {
@@ -67,19 +63,11 @@ export function FamilyScreen({
   cities: Record<string, string>;
   members: Member[];
   setupEntries: SetupEntry[];
-  journal: JournalEntry[];
-  todayDate: string;
   onOpen: (parentId: string) => void;
-  onAddNote: (draft: NoteDraft) => Promise<void>;
   /** Spec 010 §1: the picker is the one surface that moves a parent. */
   onPickCity: (parentId: string, entry: CityEntry) => Promise<void>;
   onClearCity: (parentId: string) => Promise<void>;
 }) {
-  const labelById = new Map(parentStates.map((s) => [s.parentId, s.label]));
-  const tagOptions: TagOption[] = [
-    ...parentStates.map((s) => ({ parentId: s.parentId, label: s.label })),
-    { parentId: null, label: AUTHOR_FALLBACK },
-  ];
   return (
     <div className="kt-view" style={{ maxWidth: "43.75rem", margin: "0 auto" }} data-testid="family-screen">
       <h1
@@ -140,20 +128,6 @@ export function FamilyScreen({
             />
           </div>
         ))}
-      </div>
-
-      <div style={{ marginTop: "1.75rem" }}>
-        <NotesPanel
-          entries={journal}
-          todayDate={todayDate}
-          onAdd={onAddNote}
-          tagOptions={tagOptions}
-          tagLabelFor={(entry: JournalEntry) =>
-            entry.parent_id === null
-              ? AUTHOR_FALLBACK
-              : (labelById.get(entry.parent_id) ?? AUTHOR_FALLBACK)
-          }
-        />
       </div>
 
       <div style={KICKER}>{SETUP_TITLE}</div>

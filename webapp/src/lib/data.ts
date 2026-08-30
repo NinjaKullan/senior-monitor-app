@@ -28,6 +28,7 @@ import { supabase } from "./supabase";
 import { READ_SURFACE } from "./queries";
 import type {
   Family,
+  FamilyContact,
   JournalEntry,
   Member,
   Parent,
@@ -161,8 +162,63 @@ export async function addJournalEntry(entry: {
   author_label: string;
   body: string;
   event_date: string | null;
+  /** Spec 012 §5: the webapp's own auto note names its kind (city_change);
+   *  a plain family note omits this and the schema defaults it to 'note'. */
+  kind?: string;
 }): Promise<void> {
   const { error } = await supabase.from("journal_entries").insert(entry);
+  if (error) throw error;
+}
+
+/* --- the contacts sheet (spec 012 §4) ------------------------------------ */
+
+async function readContacts(): Promise<FamilyContact[]> {
+  const { data, error } = await supabase
+    .from("family_contacts")
+    .select(READ_SURFACE.family_contacts)
+    .order("position", { ascending: true })
+    .order("id", { ascending: true })
+    .limit(50);
+  if (error) throw error;
+  return (data ?? []) as FamilyContact[];
+}
+
+/** What a saved contact carries. E.164 stored beside the display string —
+ *  the two travel together so neither is ever derived at render. */
+export interface ContactDraft {
+  label: string;
+  name: string;
+  phone_e164: string;
+  phone_display: string;
+  note: string;
+}
+
+/** The typed number, made href-safe: keep a leading +, drop everything that
+ *  is not a digit. What the person TYPED stays the display string verbatim —
+ *  this never renders, it only dials. */
+export function telHrefNumber(typed: string): string {
+  const digits = typed.replace(/[^\d]/g, "");
+  return typed.trim().startsWith("+") ? `+${digits}` : digits;
+}
+
+export async function addContact(
+  familyId: string,
+  draft: ContactDraft,
+  position: number,
+): Promise<void> {
+  const { error } = await supabase
+    .from("family_contacts")
+    .insert({ family_id: familyId, parent_id: null, ...draft, position });
+  if (error) throw error;
+}
+
+export async function updateContact(id: number, draft: ContactDraft): Promise<void> {
+  const { error } = await supabase.from("family_contacts").update(draft).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteContact(id: number): Promise<void> {
+  const { error } = await supabase.from("family_contacts").delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -224,6 +280,8 @@ export interface FamilySnapshot {
   journal: JournalEntry[];
   /** The detail panels' notes: newest 50 per parent, keyed by parent id. */
   journalByParent: Record<string, JournalEntry[]>;
+  /** The family's contacts sheet (spec 012 §4): small, read whole. */
+  contacts: FamilyContact[];
 }
 
 /**
@@ -255,7 +313,7 @@ export async function loadSnapshot(now: Date = new Date()): Promise<FamilySnapsh
   // The bounded reads wait for the earlier rows: pings per parent and per
   // (parent, signal), journal per family and per parent — every one ordered
   // and limited.
-  const [pings, latestPings, journal, journalByParent] = await Promise.all([
+  const [pings, latestPings, journal, journalByParent, contacts] = await Promise.all([
     readRecentPings(
       parents.map((parent) => parent.id),
       now,
@@ -265,6 +323,7 @@ export async function loadSnapshot(now: Date = new Date()): Promise<FamilySnapsh
     ),
     readJournalFamily(),
     readJournalByParent(parents.map((parent) => parent.id)),
+    readContacts(),
   ]);
   return {
     family: families[0] ?? null,
@@ -276,5 +335,6 @@ export async function loadSnapshot(now: Date = new Date()): Promise<FamilySnapsh
     setupLinks,
     journal,
     journalByParent,
+    contacts,
   };
 }

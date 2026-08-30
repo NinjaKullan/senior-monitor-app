@@ -139,6 +139,30 @@ export const CITY_ESCAPE_HATCH = "Can't find it? Pick the nearest big city.";
 /** Spec 010 §4 (ruled BUILD): the journal remembers the move, authored by
  *  the product itself. */
 export const AUTO_NOTE_AUTHOR = "Kettle";
+
+/* Spec 012 (DECISIONS 200), each ruled verbatim. */
+export const MEMORY_TITLE = "Memory";
+export const MEMORY_EMPTY =
+  "Notes from your family and from Kettle live here. The first ones arrive on their own.";
+export const CONTACTS_TITLE = "If you can't reach them";
+/* The four suggested rows (spec 012 par.4), offered as PLACEHOLDERS in empty
+   label fields, never pre-inserted: the family owns every line. Wording is
+   derived from the spec's own list and FLAGGED - the spec names the rows, not
+   the strings. */
+export const CONTACT_SUGGESTED_LABELS = [
+  "A neighbor",
+  "Someone in the family nearby",
+  "Their building or front desk",
+  "Their doctor",
+] as const;
+/* Contacts chrome, spec-silent and FLAGGED. */
+export const CONTACT_ADD_LABEL = "Add a contact";
+export const CONTACT_SAVE_LABEL = "Save";
+export const CONTACT_REMOVE_LABEL = "Remove";
+export const CONTACT_EDIT_LABEL = "Edit";
+export const CONTACT_NAME_PLACEHOLDER = "Name";
+export const CONTACT_PHONE_PLACEHOLDER = "Phone number";
+export const CONTACT_NOTE_PLACEHOLDER = "Anything worth knowing";
 export const CITY_CHANGED_NOTE = "{name}'s city changed to {city}.";
 
 /* ---------------------------------------------------------------------- */

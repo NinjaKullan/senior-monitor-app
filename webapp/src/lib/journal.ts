@@ -51,6 +51,16 @@ export function monthDay(isoDate: string): string {
   }).format(new Date(`${isoDate.slice(0, 10)}T00:00:00Z`));
 }
 
+/** "August 2026" — the Memory feed's month separators (spec 012 §2): the
+ *  line that turns a list into a record. Same UTC pinning as monthDay. */
+export function monthYear(isoDate: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${isoDate.slice(0, 10)}T00:00:00Z`));
+}
+
 /** "Tue, Sep 1" — the Upcoming strip's date form (spec 009 §4). */
 export function weekdayMonthDay(isoDate: string): string {
   return new Intl.DateTimeFormat("en-US", {

@@ -41,7 +41,12 @@ export const READ_SURFACE = {
   // Spec 009 §4: the family's notes. Grows without bound, so it NEVER rides
   // readAll — every read is newest-first with an explicit limit (the
   // DECISIONS 160 discipline), one bounded read per scope.
-  journal_entries: "id, family_id, parent_id, author_label, body, event_date, created_utc",
+  journal_entries: "id, family_id, parent_id, author_label, body, event_date, created_utc, kind",
+  // Spec 012 §4: the family's own contacts sheet — small by nature (a
+  // handful of rows), read whole, ordered by position. phone_e164 exists
+  // client-side solely to become a tel: href (the DECISIONS 167 law);
+  // phone_display is the one phone string a person sees.
+  family_contacts: "id, family_id, parent_id, label, name, phone_e164, phone_display, note, position",
 } as const;
 
 export type ReadTable = keyof typeof READ_SURFACE;
