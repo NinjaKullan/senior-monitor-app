@@ -110,3 +110,33 @@ send path uses the template API for business-initiated asks. The registry
 keeps the same body string so the copy scan still governs it, and the ledger
 keeps naming the template id it always has. Sandbox behaviour stays present
 and functional behind config until the Phase 3 sunset.
+
+---
+
+## Post-submission record (2026-08-30)
+
+Both submissions of this template were refused synchronously by
+Meta's Graph API — no review ever happened, which is why WhatsApp
+Manager shows nothing. Identical verbatim reason both times
+(DECISIONS 205):
+
+> Problem: Failed to create template, Reason: type=OAuthException,
+> code=100, subCode=2388060, userMessage=Buttons can't have any
+> variables, newlines, emojis, or formatting characters.,
+> message=Invalid parameter
+
+The BODY on this page is legal and was never judged; the quick-reply
+BUTTON labeled 👍 is illegal by hard platform rule. `kettle_ask_parent`
+(HXe33df5abd629b1c75d7dd64aac0f83e3) and `kettle_ask_parent_v2`
+(HX31fd2ac24e80fe365a3f7ca35938caa7, copy codepoint-identical) are
+both inert — Twilio allows one approval request per content resource.
+A v3 per the founder's button ruling supersedes this page's button
+row; everything else above stands.
+
+**Resolution (same day):** founder ruled option (a) — drop the
+button. `kettle_ask_parent_v3` (HXee3060b2784a551bffda9d12dbb07b86,
+twilio/text, no buttons, body verbatim, Utility) submitted
+2026-08-30 12:24:44 EDT and confirmed **In review** on the HeyKettle
+WABA in WhatsApp Manager — the first submission to genuinely reach
+Meta. The v3 supersedes this page's button row; body, name lineage,
+and category on this page otherwise stand.

@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 205.** This line is the one to update; the `Next number:` lines inside
+**Next number: 206.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3049,3 +3049,70 @@ browser — all three adopted as the standard for future surfaces.**
        sent digests earns NO started line on the first pass after deploy
        or on any later day, and a genuinely new parent still earns
        exactly one — including through a re-decided slot.
+
+205. **(2026-08-30, founder + PM at the Twilio and Meta consoles)
+     Why the ask template was rejected — twice — and what it actually
+     means: Meta forbids emojis in template BUTTONS. The body is fine.
+     Founder ruling needed before any resubmission.**
+     * **The hunt.** Twilio showed kettle_ask_parent
+       (HXe33df5abd629b1c75d7dd64aac0f83e3) Rejected, with no reason on
+       any console surface. Meta's WhatsApp Manager for the HeyKettle
+       WABA (1778487076826507) shows ZERO templates — every status
+       including Rejected, last 90 days — so no Meta human or reviewer
+       ever saw it. First theory was sequencing (Phase 1 submitted
+       before the sender existed). Founder approved a clean resubmit:
+       PM duplicated in console as kettle_ask_parent_v2
+       (HX31fd2ac24e80fe365a3f7ca35938caa7), copy verified
+       codepoint-identical (body 53 codepoints, bare U+1F44D no VS16,
+       button title bare U+1F44D), submitted Utility 12:15:30 EDT with
+       the sender Online. It went Received → Rejected in SIX seconds.
+       Sequencing theory dead.
+     * **The real reason, verbatim, both templates identical** (from the
+       console's own approval-request data; Meta's Graph API refuses the
+       create synchronously, which is why nothing ever appears in
+       WhatsApp Manager):
+       `Problem: Failed to create template, Reason: type=OAuthException,
+       code=100, subCode=2388060, userMessage=Buttons can't have any
+       variables, newlines, emojis, or formatting characters.,
+       message=Invalid parameter`
+     * **What is and is not on trial.** The ask BODY — "Everything okay
+       today? Reply with a 👍 whenever suits." — was never judged and
+       is legal (emoji fine in body). The Utility category was never
+       judged. Only the quick-reply BUTTON labeled 👍 is illegal, as a
+       hard platform rule, not a review outcome. No appeal exists for a
+       synchronous API validation.
+     * **Founder ruling required (ask copy is 151-sacred; PM does not
+       decide this):** the known options are (a) drop the button
+       entirely — template becomes plain text, body verbatim unchanged,
+       parents type/tap 👍 themselves as the body already invites;
+       (b) keep a button with worded text (any word makes the tapped
+       reply that WORD, not 👍 — touches first_reply parsing and the
+       Memory line "Heard from {Parent} with a 👍."); (c) anything else
+       the founder wants. PM recommends (a).
+     * **State:** both HX templates are inert (Twilio allows one
+       WhatsApp approval request per content resource, ever; their
+       submit buttons are disabled; delete or keep as record). Sender
+       +19843704452 (HeyKettle) Online on WABA 1778487076826507 — the
+       infrastructure is healthy and waiting. Phase 2 stays STOPPED
+       until a v3 template (per the ruling) shows Approved;
+       docs/wave-d-phase-2-handoff.md gate updated accordingly.
+     * **Ruling delivered same sitting: (a) — drop the button.** The
+       ask body stays verbatim; the template becomes plain text;
+       parents type or tap 👍 themselves, exactly as the body invites.
+       No downstream change: first_reply parsing and the Memory line
+       already key on the 👍 in the REPLY, which is unchanged.
+     * **v3 created and submitted by PM (founder watching), same
+       console session:** kettle_ask_parent_v3, Content SID
+       **HXee3060b2784a551bffda9d12dbb07b86**, type twilio/text, NO
+       buttons, language en, body verified codepoint-identical again
+       (53 codepoints, bare U+1F44D), submitted Utility 2026-08-30
+       12:24:44 EDT. It survived the synchronous validation that
+       killed v1/v2 and — confirmed in WhatsApp Manager — now sits on
+       the HeyKettle WABA as **In review** (Meta-side name carries a
+       Twilio SID suffix: kettle_ask_parent_v3_hxee30…; code always
+       uses the Content SID, so the suffix is cosmetic). This is the
+       first genuine Meta review of the ask. The Phase 2 gate now
+       waits on THIS template showing Approved.
+     * Watch item: Twilio banner "Finish compliance for 1 number and
+       sender" on the Senders page — likely routine number compliance;
+       founder to glance on a future console visit.
