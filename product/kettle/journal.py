@@ -78,22 +78,53 @@ def note_started(
     parent_id: Any,
     parent_name: str,
     local_date: date | str,
+    digest_kind: str,
 ) -> bool:
     """Spec 012 §3.2: written when a parent's first daily note goes out.
 
-    Called after every SENT digest rather than after a "first" the caller
-    proves — the schema's once-ever key makes every call after the first a
-    no-op, which is cheaper and safer than each call site re-deriving
-    firstness.
+    "First morning" is a claim about HISTORY, so it is checked against
+    history, not against the absence of a journal row (DECISIONS 204). The
+    once-ever unique key alone would have written this line for every parent
+    on the first engine pass after deploy — parents with months of digests
+    behind them, each told Kettle's first morning with them was today. That is
+    the same false-memory shape the clean_month coverage guards exist to
+    prevent, and it is caught here the same way.
+
+    The check and the insert are ONE statement, so nothing can slip between
+    them: the row lands only when this parent has no other sent digest in the
+    ledger. Re-deciding the same slot is excluded by (local_date, kind) rather
+    than by counting, so a retry of the very digest that earned the line still
+    reads as first. The unique index stays underneath as the backstop for two
+    schedulers racing the same instant.
     """
-    return _insert(
-        conn,
-        family_id,
-        parent_id,
-        "started",
-        STARTED_NOTE.format(parent=parent_name),
-        _as_date(local_date),
-    )
+    row = conn.execute(
+        """
+        insert into journal_entries
+            (family_id, parent_id, author_label, body, event_date, kind)
+        select %s, %s, %s, %s, %s, 'started'
+        where not exists (
+            select 1 from sent_messages
+            where parent_id = %s
+              and status = 'sent'
+              and kind in ('digest_morning', 'digest_evening')
+              and not (local_date = %s and kind = %s)
+        )
+        on conflict (parent_id, kind) where kind in ('started', 'first_reply')
+        do nothing
+        returning id
+        """,
+        (
+            family_id,
+            parent_id,
+            AUTHOR,
+            STARTED_NOTE.format(parent=parent_name),
+            _as_date(local_date),
+            parent_id,
+            _as_date(local_date),
+            digest_kind,
+        ),
+    ).fetchone()
+    return row is not None
 
 
 def note_first_reply(

@@ -672,16 +672,17 @@ def run_outbound(
                     decisions.append(decision)
                     if decision.kind in (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING):
                         # Spec 012 §3.2: the family's memory notes the first
-                        # daily note. Called after EVERY sent digest — the
-                        # schema's once-ever key (0020) makes all but the
-                        # first a no-op, which beats every call site proving
-                        # firstness for itself.
+                        # daily note. Called after every sent digest; the
+                        # writer itself checks the LEDGER for prior history in
+                        # the same statement (DECISIONS 204), so a parent with
+                        # months behind them never earns a first-morning line.
                         journal.note_started(
                             conn,
                             decision.family_id,
                             decision.parent_id,
                             parent["parent_name"],
                             decision.local_date,
+                            decision.kind,
                         )
             else:
                 why = f" ({result.detail})" if result.detail else ""
