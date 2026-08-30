@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 197.** This line is the one to update; the `Next number:` lines inside
+**Next number: 198.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2757,3 +2757,23 @@ browser — all three adopted as the standard for future surfaces.**
      * Phase 1 template submission is now unblocked; the submission
        text was signed off in docs/whatsapp-ask-template-submission.md
        before this entry.
+
+197. **(2026-08-29, Hema, ruling) The ask offers 👍 or silence — no 👎,
+     reaffirmed with the reasoning on the record.** Raised by Hema at
+     template submission ("how do the parents say no?"), decided the
+     same evening: the template ships as-is.
+     * "Not okay" is captured by silence: the ask's signal is whether a
+       reply comes at all, and no-reply is what the ladder exists for.
+     * A 👎 would create an obligation Kettle refuses to fake: alerting
+       the child on a tap is a verdict and an emergency channel;
+       replying to the parent is chat (killed with Send-a-note);
+       honoring it with nothing makes the button a lie. A button we
+       cannot honor honestly is worse than no button.
+     * **Known edge, watched not fixed:** reply intake is content-blind
+       — ANY reply stands the ladder down, including typed distress,
+       and Kettle neither answers it nor forwards it. Deliberate
+       (Kettle is not a mail carrier between parent and child), and
+       recorded in the Day-30 memo as a watched question: if real
+       families type distress into the ask thread, revisit with data.
+       See also 194's second trap (acknowledging a reply would be
+       Kettle's first in-window message ever).
