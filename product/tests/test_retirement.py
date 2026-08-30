@@ -39,6 +39,13 @@ RETIRED_MODULES = (
 # doing the same job for a different route, written new rather than
 # resurrected. It leaves the retired set deliberately, not by drift.
 RETIRED_TABLES = ("ladder_candidates", "ladder_events", "family_contacts")
+# `family_contacts` left this list's FRESH-SCHEMA check with migration 0021
+# (spec 012): the name is reborn as the family's own contacts sheet — a new
+# table doing a different job, written new rather than resurrected, the same
+# way kettle/twilio_signature.py left the retired modules (DECISIONS 163).
+# The 0013 archive test below still uses the full tuple, because it exercises
+# the OLD table's retirement at the 0012 schema, where only the old one exists.
+FRESH_SCHEMA_RETIRED = ("ladder_candidates", "ladder_events")
 
 
 def test_the_retired_modules_are_gone():
@@ -66,7 +73,7 @@ def test_the_twilio_webhook_is_gone(client):
 
 
 def test_the_ladder_tables_are_gone_from_a_fresh_schema(conn: psycopg.Connection):
-    for table in RETIRED_TABLES:
+    for table in FRESH_SCHEMA_RETIRED:
         row = conn.execute(
             "select to_regclass(%s) as found", (f"public.{table}",)
         ).fetchone()
@@ -204,9 +211,9 @@ def test_the_retirement_migration_is_safe_to_run_twice(half_migrated: str):
 
 
 def test_every_migration_still_applies_in_order(conn: psycopg.Connection):
-    """0019 is the last one, and the numbering has no gap."""
+    """0021 is the last one, and the numbering has no gap."""
     names = [p.name for p in migration_files()]
-    assert names[-1].startswith("0019")
+    assert names[-1].startswith("0021")
     numbers = [int(name[:4]) for name in names]
     assert numbers == list(range(1, len(numbers) + 1))
     assert apply_migrations is not None

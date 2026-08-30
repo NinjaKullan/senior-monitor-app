@@ -24,6 +24,7 @@ TABLES = (
     "waitlist",
     "sent_messages",
     "journal_entries",
+    "family_contacts",
 )
 
 
