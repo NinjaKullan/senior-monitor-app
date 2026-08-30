@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 201.** This line is the one to update; the `Next number:` lines inside
+**Next number: 202.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2908,3 +2908,23 @@ browser — all three adopted as the standard for future surfaces.**
        origin/main, and NOBODY files an entry while another agent has
        an open task that files one — the pushed repo owns the counter;
        local filings renumber, always.
+
+201. **(2026-08-30, Hema, ruling) The site measures itself with server
+     logs and Search Console — and nothing else, ever.** Prompted by
+     198 judging asset #2 on downloads while nothing counted anything.
+     * **Yes: server-side log summaries.** Fly/nginx access logs
+       already exist; a small scheduled job summarizes weekly counts
+       per path (pages and PDF downloads) and keeps ONLY the counts —
+       raw logs age out on the platform's own schedule, and nothing
+       is added to what a webserver inherently records. Built by CC
+       after Wave D Phase 2; numbers feed the Day-30 memo.
+     * **Yes: Google Search Console.** Ownership verified once by Hema
+       (DNS record — founder console work); gives impressions,
+       queries, and positions for the resources strategy with zero
+       page changes. Its data feeds the researcher's future SERP
+       passes.
+     * **No, as standing law: no client-side analytics of any kind.**
+       No scripts, no pixels, no cookies, no fingerprinting, no
+       consent banner — the site remains a page that fetches nothing,
+       and the standalone-page test keeps enforcing it. A future
+       "just add Plausible" is a ruling reversal, not a tweak.
