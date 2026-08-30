@@ -19,6 +19,7 @@ from test_outbound import (
     CountingTransport,
     at,
     family,  # noqa: F401 - fixture
+    ledger,
     ping,
     run_twice,
 )
@@ -87,6 +88,58 @@ def test_the_first_daily_note_earns_one_line_and_only_one(
     assert [n for n in auto_notes(conn) if n[0] == "started"] == [
         ("started", "Kettle's first morning with Amma.", "2026-08-21")
     ]
+
+
+def test_a_parent_with_history_earns_no_first_morning_line(
+    conn, family, notifier  # noqa: F811
+):
+    """DECISIONS 204, the deploy-day case: this is what the once-ever key
+    alone could not see. A parent Kettle has been writing to for months gets
+    NO "first morning" line from the first engine pass after deploy — the
+    line is a claim about history, so it is checked against history."""
+    parent_id = family.parents[0].parent_id
+    # Three weeks of notes already sent, before the memory feature existed.
+    for day in range(1, 21):
+        sent(
+            conn, family.family_id, parent_id, f"2026-08-{day:02d}",
+            "digest_morning", "digest_morning_normal",
+        )
+    transport = CountingTransport()
+    ping(conn, parent_id, "whatsapp", at(6, 30))
+
+    run_twice(conn, transport, at(8, 30), notifier=notifier)
+    # The digest went out as always…
+    assert ("digest_morning", "digest_morning_normal") in ledger(conn)
+    # …and the memory stayed honest.
+    assert [n for n in auto_notes(conn) if n[0] == "started"] == []
+
+    # Still nothing tomorrow, or ever: history does not expire.
+    ping(conn, parent_id, "whatsapp", at(6, 30) + timedelta(days=1))
+    run_twice(conn, transport, at(8, 30) + timedelta(days=1), notifier=notifier)
+    assert [n for n in auto_notes(conn) if n[0] == "started"] == []
+
+
+def test_a_genuinely_new_parent_still_earns_exactly_one(
+    conn, family, notifier  # noqa: F811
+):
+    """The other half: no prior ledger rows means the line is TRUE, and it
+    lands once — including when the very slot that earned it is re-decided
+    after a failure, which the (local_date, kind) exclusion covers."""
+    parent_id = family.parents[0].parent_id
+    transport = CountingTransport()
+    ping(conn, parent_id, "whatsapp", at(6, 30))
+
+    run_twice(conn, transport, at(8, 30), notifier=notifier)
+    assert [n for n in auto_notes(conn) if n[0] == "started"] == [
+        ("started", "Kettle's first morning with Amma.", "2026-08-21")
+    ]
+
+    # A retry of that same slot still reads as first (it is excluded from its
+    # own history check) and the key keeps it to one row.
+    assert not journal.note_started(
+        conn, family.family_id, parent_id, "Amma", "2026-08-21", "digest_morning"
+    )
+    assert len([n for n in auto_notes(conn) if n[0] == "started"]) == 1
 
 
 # --- first_reply --------------------------------------------------------------
