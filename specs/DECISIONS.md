@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 202.** This line is the one to update; the `Next number:` lines inside
+**Next number: 203.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2928,3 +2928,67 @@ browser — all three adopted as the standard for future surfaces.**
        consent banner — the site remains a page that fetches nothing,
        and the standalone-page test keeps enforcing it. A future
        "just add Plausible" is a ruling reversal, not a tweak.
+
+
+202. **(2026-08-30, Claude Code, PM-ordered) Spec 012 built: Family
+     Memory.** Product suite 414 → 424; webapp 147 → 156 (147 was the
+     merged baseline after Wave 1). Migrations 0020/0021 are FILES ONLY
+     — nothing applied anywhere, nothing deployed; the PM applies
+     per-action with Hema's ok. Every ruled string ships character for
+     character from DECISIONS 200 and is pinned by test. Judgement
+     calls, each flagged for review:
+     * **Contacts card placement — CC proposes: top of Memory,
+       family-wide.** The spec offered Memory-top or per-parent on
+       ParentDetail. Memory-top mirrors the printable (one sheet for
+       the household, the block at the top of its page), keeps
+       ParentDetail unchanged as §2 requires, and a per-parent split of
+       four suggested rows would fragment "their building or front
+       desk" across parents who share one. parent_id stays on the
+       schema nullable, so a per-parent view later is a filter, not a
+       migration. PM may overrule; the card moves in one place.
+     * **Idempotency is schema, not memory:** 0020's partial unique
+       indexes (once ever per parent for started/first_reply; once per
+       parent+month for clean_month, keyed by event_date = the month's
+       first day) with ON CONFLICT DO NOTHING. Reruns, restarts, and
+       racing schedulers land one row; planted by dropping the conflict
+       clause (4 tests fail).
+     * **clean_month honesty guards beyond the spec's letter:** "start
+       to finish" is a coverage claim, so a month with zero sent
+       digests, or one where the parent's first-ever sent digest lands
+       after the month's first day, writes nothing. Escalation = a SENT
+       follow_on with local_date in the month. Written on the 1st in
+       the normal case but keyed to the month — a scheduler asleep on
+       the 1st writes it on the 2nd, not never.
+     * **first_reply hooks record_parent_reply and is
+       transport-agnostic:** it cannot tell sandbox from the real
+       number. The spec scopes it to Wave D's real number; in practice
+       the once-ever key means the first matched reply after deploy
+       writes it. If the PM wants it armed only after the flip, that is
+       one config gate to add at Wave D Phase 3.
+     * **The phone-as-text exemption:** spec 012 §4 orders
+       human-readable numbers shown, which meets DECISIONS 167's
+       numbers-in-hrefs-only law head on. Resolution: phone_display
+       renders ONLY inside the tel: anchor (E.164 in the href), scoped
+       to data-testid="contact-phone"; the copy scan removes that NODE
+       and still walks every other digit. A number leaking anywhere
+       else fails the scan — planted. E.164 derivation from the typed
+       number is mechanical (keep a leading +, drop non-digits), the
+       typed form stays the display string verbatim, both stored.
+     * **Spec-silent strings, flagged:** the four suggested-label
+       placeholders ("A neighbor", "Someone in the family nearby",
+       "Their building or front desk", "Their doctor" — the spec's own
+       list as strings), and contacts chrome "Add a contact" / "Save" /
+       "Remove" / "Edit" / "Name" / "Phone number" / "Anything worth
+       knowing". The Memory screen reuses NOTES_SUB as its sub-line
+       rather than minting a new sentence.
+     * **family_contacts is a reborn name:** 0013 dropped the retired
+       ladder's call tree of the same name; 0021's table is a new thing
+       doing a different job (the twilio_signature precedent, 163). The
+       retirement suite's fresh-schema check narrows to the ladder
+       tables with the distinction written down.
+     * **Month separators live in the consolidated feed only**; the
+       ParentDetail panel is untouched per §2, and the webapp copy scan
+       gains one digit allowance shaped "August 2026".
+     * **The DECISIONS 201 log-summary job did NOT fit this run** and
+       queues: it needs a decision about where the job runs (Fly's log
+       retention vs shipping), which is design, not a small commit.

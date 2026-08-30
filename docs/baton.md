@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 414, zero xfails**, **`webapp` 145**, **`site` 236**.
+Current green: **`pytest` 424, zero xfails**, **`webapp` 156**, **`site` 236**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -82,6 +82,14 @@ the hero fitting a 390x844 phone.
 deploy`. The evening digest body changes to "A normal day, start to finish. Next
 note in the morning." — the last surface still saying "ordinary". Independent of
 the site deploy below.
+
+**Owed, spec 012 (DECISIONS 202): nothing deploys until the PM reads the build
+against the spec.** Then, in order: PM applies migration 0020, then 0021, via MCP
+(per-action, with Hema's ok) → `cd product && fly deploy` (the auto-note writer
+rides the engine) → `cd webapp && fly deploy` (Memory tab; remember the
+build-arg fly.toml, DECISIONS 114). The webapp's journal read now asks for the
+`kind` column, so 0020 MUST be applied before the webapp deploys or every
+journal read 400s. The DECISIONS 201 weekly log-summary job queues separately.
 
 ## 3. Live state — do not break
 
