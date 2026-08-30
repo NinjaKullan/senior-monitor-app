@@ -89,6 +89,10 @@ def settings(database_url: str) -> Settings:
         twilio_auth_token="",
         twilio_whatsapp_from="",
         outbound_reply_token="test-reply-token",
+        # Off, like production's default (DECISIONS 203): the first_reply line
+        # is armed at the Phase 3 flip; tests that exercise it pass
+        # note_first_reply=True at the call.
+        memory_first_reply=False,
         # The landing page is the only browser that calls this API (spec 006).
         waitlist_origins=("https://heykettle.com",),
     )

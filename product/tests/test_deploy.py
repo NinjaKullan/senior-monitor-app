@@ -112,6 +112,7 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         twilio_auth_token="",
         twilio_whatsapp_from="",
         outbound_reply_token="",
+        memory_first_reply=False,
         waitlist_origins=("https://heykettle.com",),
     )
     with TestClient(create_app(settings, notifier)) as fresh_client:
