@@ -31,6 +31,16 @@ tripwire-health exemption and why it is safe.
   pin is a single key, and adding one is a ruling, not an edit.
 - **The setup link's slug never appears as text.** It travels inside an href and
   nothing else; a slug printed on screen is a token printed on screen.
+- **Phone numbers ride in hrefs, never as text — with ONE spec-012 exemption:** the
+  contacts sheet shows `phone_display` inside its `tel:` anchor (E.164 in the href),
+  scoped to `data-testid="contact-phone"` and removed as a NODE before the copy
+  scan's digit walk. The exemption is the element, never the digits; a number
+  rendered anywhere else still fails the scan, and a plant proves it.
+- **The journal is insert-only; contacts are editable.** A note is record and a
+  correction is a new entry; a contact is reference data the family owns and may
+  change or remove. Kettle's own lines (spec 012 §3) are written by the backend,
+  never this app — the one auto note the app writes is the city change, and it now
+  names its kind.
 - **The cache contract** (DECISIONS 112): the shell always revalidates, hashed assets
   are immutable for a year, and no rule may reintroduce a lifetime on an unhashed
   file — otherwise a deploy white-screens returning browsers.

@@ -14,7 +14,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { NotesPanel } from "@/components/NotesPanel";
-import { FamilyScreen } from "@/screens/Family";
+import { MemoryScreen } from "@/screens/Memory";
 import { firstLine, linkify, monthDay, pastEntries, upcomingEntries, weekdayMonthDay } from "@/lib/journal";
 import { computeParentToday } from "@/lib/parentState";
 import type { JournalEntry, Parent, ParentSignal, Ping } from "@/lib/types";
@@ -29,6 +29,7 @@ const entry = (over: Partial<JournalEntry>): JournalEntry => ({
   body: "a note",
   event_date: null,
   created_utc: "2026-08-24T10:00:00Z",
+  kind: "note",
   ...over,
 });
 
@@ -154,19 +155,17 @@ describe("scoping (spec 009 §4)", () => {
     entry({ id: 3, parent_id: null, body: "About the family" }),
   ];
 
-  it("the Family screen consolidates all entries and tags each one", () => {
+  it("the Memory screen consolidates all entries and tags each one (spec 012)", () => {
     render(
-      <FamilyScreen
-        parentStates={states}
-        cities={{}}
-        members={[]}
-        setupEntries={[]}
+      <MemoryScreen
+        parentLabels={states.map((s) => ({ parentId: s.parentId, label: s.label }))}
         journal={journal}
+        contacts={[]}
         todayDate={TODAY}
-        onOpen={() => undefined}
         onAddNote={noop}
-        onPickCity={noop}
-        onClearCity={noop}
+        onAddContact={noop}
+        onUpdateContact={noop}
+        onRemoveContact={noop}
       />,
     );
     const metas = screen.getAllByTestId("note-meta").map((n) => n.textContent ?? "");

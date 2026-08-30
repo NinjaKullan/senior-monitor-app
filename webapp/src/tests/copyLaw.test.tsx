@@ -19,6 +19,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FamilyScreen } from "@/screens/Family";
+import { MemoryScreen } from "@/screens/Memory";
 import { NoFamily } from "@/screens/NoFamily";
 import { ParentDetail } from "@/screens/ParentDetail";
 import { Today } from "@/screens/Today";
@@ -127,6 +128,7 @@ const notes: JournalEntry[] = [
     body: "New reading glasses arrive Thursday.",
     event_date: null,
     created_utc: "2026-08-01T10:00:00Z",
+    kind: "note",
   },
   {
     id: 2,
@@ -136,6 +138,7 @@ const notes: JournalEntry[] = [
     body: "Eye doctor",
     event_date: "2026-09-01",
     created_utc: "2026-08-02T10:00:00Z",
+    kind: "note",
   },
 ];
 const TODAY_DATE = "2026-08-03";
@@ -190,6 +193,9 @@ const IN_DAYS = /\bin \d+ days?\b/g;
 const KICKER_DATE =
   /\b(?:Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday) · (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}\b/g;
 const MONTH_DAY = /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}\b/g;
+/** Spec 012 §2: the Memory feed's month separators ("August 2026"). */
+const MONTH_YEAR =
+  /\b(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b/g;
 const APP_ALLOW = [REL_TIME, IN_DAYS, KICKER_DATE, MONTH_DAY];
 
 /**
@@ -345,10 +351,7 @@ describe("rendered copy law", () => {
         cities={{ p1: "Chennai", p2: "", p3: "" }}
         members={members}
         setupEntries={setupEntries}
-        journal={notes}
-        todayDate={TODAY_DATE}
         onOpen={() => undefined}
-        onAddNote={noop}
         onPickCity={noop}
         onClearCity={noop}
       />,
@@ -357,10 +360,65 @@ describe("rendered copy law", () => {
     expect(screen.getByTestId("privacy-footer")).toHaveTextContent(PRIVACY_FOOTER);
     expect(text).toContain("sms");
     expect(text).toContain("Ready to send");
-    // The notes panel is genuinely on screen, upcoming strip included.
+    assertCopyLaw(text, [...SHARE_CTA_EXEMPTION, ...APP_ALLOW]);
+  });
+
+  it("holds for the Memory screen, feed and contacts on screen (spec 012)", () => {
+    render(
+      <MemoryScreen
+        parentLabels={[{ parentId: "p1", label: "Amma" }]}
+        journal={notes}
+        contacts={[
+          {
+            id: 1,
+            family_id: "f1",
+            parent_id: null,
+            label: "A neighbor",
+            name: "Lakshmi",
+            phone_e164: "+919845550111",
+            phone_display: "98455 50111",
+            note: "Two doors down",
+            position: 0,
+          },
+        ]}
+        todayDate={TODAY_DATE}
+        onAddNote={noop}
+        onAddContact={noop}
+        onUpdateContact={noop}
+        onRemoveContact={noop}
+      />,
+    );
+    // The one sanctioned phone-as-text (spec 012 §4): phone_display inside a
+    // tel: anchor, scoped to its testid. Assert the shape, then remove it
+    // before the digit walk — the exemption is the NODE, never the digits.
+    const phone = screen.getByTestId("contact-phone");
+    expect(phone.getAttribute("href")).toBe("tel:+919845550111");
+    expect(phone.textContent).toBe("98455 50111");
+    phone.remove();
+    const text = renderedText();
     expect(text).toContain("Family notes");
     expect(text).toContain("Upcoming");
-    assertCopyLaw(text, [...SHARE_CTA_EXEMPTION, ...APP_ALLOW]);
+    expect(text).toContain("If you can't reach them");
+    assertCopyLaw(text, [...APP_ALLOW, MONTH_YEAR]);
+  });
+
+  it("shows the ruled empty state when the memory is empty", () => {
+    render(
+      <MemoryScreen
+        parentLabels={[]}
+        journal={[]}
+        contacts={[]}
+        todayDate={TODAY_DATE}
+        onAddNote={noop}
+        onAddContact={noop}
+        onUpdateContact={noop}
+        onRemoveContact={noop}
+      />,
+    );
+    expect(screen.getByTestId("memory-empty").textContent).toBe(
+      "Notes from your family and from Kettle live here. The first ones arrive on their own.",
+    );
+    assertCopyLaw(renderedText(), APP_ALLOW);
   });
 
   it("spends the channel exemption on one key with one value, and no wider", () => {

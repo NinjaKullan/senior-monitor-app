@@ -28,6 +28,8 @@ const REM_LAW_FILES = [
   "src/components/RecentDots.tsx",
   "src/components/NotesPanel.tsx",
   "src/components/CityPicker.tsx",
+  "src/screens/Memory.tsx",
+  "src/components/ContactsCard.tsx",
 ];
 
 describe("all typography in rem (spec 009 §6)", () => {
