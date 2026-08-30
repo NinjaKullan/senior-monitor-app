@@ -38,7 +38,7 @@ from zoneinfo import ZoneInfo
 
 import psycopg
 
-from kettle import db
+from kettle import db, journal
 from kettle.notify import Notifier
 from kettle.outbound_templates import (
     KIND_ALL_CLEAR,
@@ -518,6 +518,14 @@ def run_outbound(
         label = f"{parent['family_name']} / {parent['parent_name']}"
 
         _alert_tz_change_once(conn, notifier, parent, tz_name, now)
+        # Spec 012 §3.4: on the turn of the parent-local month, the previous
+        # month earns a line ONLY if it was clean — a month with an
+        # escalation writes nothing at all. Keyed to the month rather than
+        # the day (a scheduler asleep on the 1st writes it on the 2nd, not
+        # never), and every guard lives in the writer.
+        journal.note_clean_month(
+            conn, parent["family_id"], parent["parent_id"], plan.local_date
+        )
         tz_changed = parent["tz_changed_utc"]
         in_changeover = tz_changed is not None and now < first_new_zone_midnight(
             tz_changed, tz_name
@@ -662,6 +670,19 @@ def run_outbound(
                     conn, notifier, decision, result.transport, "sent", "", now
                 ):
                     decisions.append(decision)
+                    if decision.kind in (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING):
+                        # Spec 012 §3.2: the family's memory notes the first
+                        # daily note. Called after EVERY sent digest — the
+                        # schema's once-ever key (0020) makes all but the
+                        # first a no-op, which beats every call site proving
+                        # firstness for itself.
+                        journal.note_started(
+                            conn,
+                            decision.family_id,
+                            decision.parent_id,
+                            parent["parent_name"],
+                            decision.local_date,
+                        )
             else:
                 why = f" ({result.detail})" if result.detail else ""
                 _record_outcome(
@@ -807,6 +828,17 @@ def record_parent_reply(
     if parent is None:
         return False
     matched = db.record_reply(conn, parent["parent_id"], now)
+    if matched:
+        # Spec 012 §3.3: the first-ever reply earns a line in the family's
+        # memory, once — the schema key absorbs every later one. Content
+        # stays unread; this notes THAT a reply came, never what it said.
+        journal.note_first_reply(
+            conn,
+            parent["family_id"],
+            parent["parent_id"],
+            parent["parent_name"],
+            now,
+        )
     if not matched:
         log.info(
             "outbound: reply from %s with no pending ask; noted, nothing cancelled",
