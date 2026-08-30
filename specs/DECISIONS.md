@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 198.** This line is the one to update; the `Next number:` lines inside
+**Next number: 199.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2777,3 +2777,40 @@ browser — all three adopted as the standard for future surfaces.**
        families type distress into the ask thread, revisit with data.
        See also 194's second trap (acknowledging a reply would be
        Kettle's first in-window message ever).
+
+198. **(2026-08-29, PM, Hema to veto) Content library round-2 verdicts.**
+     Research report docs/blog-research-round-2.md reviewed in full and
+     ACCEPTED. The decisions it asked for:
+     * **CFPB Managing Someone Else's Money: LINK, never co-brand.**
+       The license forbids content changes, so the booklet can never be
+       brought inside the paper rule (195), and Kettle's mark does not
+       go on a register we cannot edit.
+     * **First build wave (four assets):** #1 okay-living-alone
+       checklist ([web] page + [paper] printable), #2 normal-day
+       baseline ([paper], the spine — explicitly NOT judged on search
+       traffic; flagship/email asset), #3 changes tracker (ships as
+       #1's download, no own landing page), and #6 emergency info
+       sheet — promoted on evidence: weakest SERP in the set, File of
+       Life precedent. First articles: topics 8 (parent doesn't answer
+       the phone), 5 (how often to check), 19 (what info to have in an
+       emergency). The local-help "who do I call for what" crosswalk
+       is wave 2, with a dated "numbers checked" footer REQUIRED and
+       every phone number verified on its live official page the day
+       the file is generated.
+     * **Kill list accepted:** article topics 13/14/15 (vendor-owned
+       monitoring SERPs) and 20 (query space owned by child-monitoring
+       content) are dead; 4/7/11 merge into 1/3; topic 3 dies as an
+       article, survives as a printable.
+     * **House print spec adopted (from NIA's senior-friendly print
+       guidance, which we already attribute):** type ≥13–14pt (16–18
+       for low-vision variants), black on white, no patterned
+       backgrounds, 50–65 character lines, left-aligned; US Letter
+       with A4-safe margins; every single-sheet asset ships BOTH
+       print-only and fillable PDF — the fillable form is the visible
+       quality edge nothing in the free field has.
+     * Researcher owes five verifications before the writer touches
+       the affected items: NIA reuse policy page quoted verbatim, FEMA
+       PDF click-verified, 1-800-MEDICARE confirmed on a live page,
+       CFPB/AARP guide page counts, OutreachPro links replaced before
+       2026-09-14. Writer may start on wave-1 assets that do not
+       depend on these.

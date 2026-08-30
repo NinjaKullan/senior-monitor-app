@@ -9,9 +9,9 @@ about verification, gaps, and grounding the priorities in data.
 Deliver everything as one markdown report; formats specified at the
 end.
 
-## Rulings that now govern this work (DECISIONS 193/194)
+## Rulings that now govern this work (DECISIONS 195; numbering corrected after the 194 collision)
 
-1. **Two vocabulary registers (DECISIONS 194).**
+1. **Two vocabulary registers (DECISIONS 195).**
    - Paper rule: printable interiors, the planner, emails — full copy
      laws, no monitor/track/alert/elderly/seniors, ever. A sheet on a
      parent's fridge never describes them as being watched.
@@ -22,7 +22,7 @@ end.
    - Consequence for you: keyword targets USE the real search terms;
      proposed page titles and copy must respect the register rules.
      Tag every proposed title as [paper] or [web].
-2. **Gating**: individual printables are free downloads, no email;
+2. **Gating (also DECISIONS 195)**: individual printables are free downloads, no email;
    only the flagship planner bundle collects email. Rank assets
    accordingly (SEO value matters more for singles, perceived value
    for the flagship).
