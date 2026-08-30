@@ -807,7 +807,11 @@ def _due_for_parent(
 
 
 def record_parent_reply(
-    conn: psycopg.Connection, number: str, now: datetime
+    conn: psycopg.Connection,
+    number: str,
+    now: datetime,
+    *,
+    note_first_reply: bool = False,
 ) -> bool:
     """The parent answered. Cancels the pending follow-on; stores no content.
 
@@ -828,10 +832,13 @@ def record_parent_reply(
     if parent is None:
         return False
     matched = db.record_reply(conn, parent["parent_id"], now)
-    if matched:
+    if matched and note_first_reply:
         # Spec 012 §3.3: the first-ever reply earns a line in the family's
         # memory, once — the schema key absorbs every later one. Content
         # stays unread; this notes THAT a reply came, never what it said.
+        # Gated by MEMORY_FIRST_REPLY (default off, DECISIONS 203): the line
+        # belongs to the real-number era and is armed at the Phase 3 flip,
+        # never spent on a sandbox or dark-stage reply.
         journal.note_first_reply(
             conn,
             parent["family_id"],

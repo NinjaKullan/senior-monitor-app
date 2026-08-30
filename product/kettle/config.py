@@ -58,6 +58,13 @@ class Settings:
     # the endpoint does not exist: an unauthenticated route that can cancel a
     # follow-on would let anyone who knows a number suppress an escalation.
     outbound_reply_token: str
+    # Spec 012 §3.3's first_reply journal line, gated (DECISIONS 203): the
+    # line belongs to the real-number era, so it must not be spent on a
+    # sandbox or dark-stage reply. Default OFF; armed at the Wave D Phase 3
+    # flip alongside the real number. The once-ever idempotency key is
+    # unchanged underneath — the gate decides WHEN the first countable reply
+    # can happen, the schema still guarantees it counts once.
+    memory_first_reply: bool
     # Browser origins allowed to POST /waitlist. An explicit list, not a
     # wildcard: this is the only route a browser ever calls, and the landing
     # page is served from origins we control (spec 006 §7).
@@ -98,6 +105,7 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         twilio_auth_token=src.get("TWILIO_AUTH_TOKEN", "").strip(),
         twilio_whatsapp_from=src.get("TWILIO_WHATSAPP_FROM", "").strip(),
         outbound_reply_token=src.get("OUTBOUND_REPLY_TOKEN", "").strip(),
+        memory_first_reply=_flag(src, "MEMORY_FIRST_REPLY", default=False),
         waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
     )
 

@@ -244,7 +244,9 @@ def create_app(
 
         if sender:
             with request.app.state.pool.connection() as conn:
-                record_parent_reply(conn, sender, clock())
+                record_parent_reply(
+                    conn, sender, clock(), note_first_reply=cfg.memory_first_reply
+                )
         return PlainTextResponse("", status_code=204)
 
     @app.post("/waitlist", response_class=PlainTextResponse)
