@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- The kettle glyph, hand-simplified from the hero drawing for the sizes
+       its hobnail texture cannot survive (Asana 1217835128977059): silhouette
+       only - belly, spout, arched handle, lid knob - drawn heavy, because at
+       16 CSS pixels this whole canvas is sixteen dots across and a thin
+       stroke anti-aliases to nothing. Colours are sampled from the artwork's
+       own pixels (the deep green body, the copper knob), the same way the
+       webp carries them - asset pixels, not UI tokens. Transparent ground,
+       so it sits on any tab bar. -->
+  <g>
+    <!-- handle: one thick arc, the drawing's tallest line -->
+    <path d="M8.5 14.5 A 7.8 9.5 0 0 1 23.5 14.5" fill="none"
+          stroke="#3d4f49" stroke-width="3.4" stroke-linecap="round"/>
+    <!-- spout: a full beak reaching clear of the belly -->
+    <path d="M9 17.5 L1.6 13.6 Q0.4 13 1.2 15.2 L4.6 23 Z" fill="#3d4f49"/>
+    <!-- belly -->
+    <ellipse cx="16.5" cy="22" rx="10" ry="8.4" fill="#3d4f49"/>
+    <!-- knob: the one copper accent, the drawing's own, riding the lid line -->
+    <circle cx="16.5" cy="12.6" r="2" fill="#8a5a30"/>
+  </g>
+</svg>

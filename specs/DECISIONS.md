@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 199.** This line is the one to update; the `Next number:` lines inside
+**Next number: 200.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2814,3 +2814,52 @@ browser — all three adopted as the standard for future surfaces.**
        CFPB/AARP guide page counts, OutreachPro links replaced before
        2026-09-14. Writer may start on wave-1 assets that do not
        depend on these.
+199. **(2026-08-30, Claude Code, PM-ordered — Asana 1217835128977059;
+     filed as 196 in the branch commit and renumbered at merge, since
+     196-198 landed concurrently on main) The
+     favicon set, derived from the shipping kettle asset.** Site suite
+     216 → 223; committed and pushed for PM review, NOT deployed — rides
+     the next site batch. Per the pinned scope: every raster is a crop
+     and resize of `site/public/kettle-hero.webp` (the true-alpha hero
+     drawing), never regenerated artwork, via
+     `site/scripts/make-favicons.py` — re-run it and the whole set
+     follows the asset. The master crop is the 700px square centred on
+     (524, 414), measured from the asset's own alpha channel.
+     * **The set:** `favicon.ico` (16/32/48), `favicon-16.png`,
+       `favicon-32.png`, `apple-touch-icon.png` (180×180, flattened onto
+       the canvas token because iOS renders transparency as black),
+       `og-image.png` (1200×630, the kettle alone on the site's ground),
+       and `favicon.svg` — the hand-simplified glyph, silhouette only,
+       for the sizes the hobnail texture cannot survive. All unhashed
+       stable names under the DECISIONS 112 revalidate rule.
+     * **16px legibility, checked as a screenshot rather than an
+       assertion (the order's own instruction).** At a real 16 device
+       pixels the raster reads as a kettle — belly, spout, handle arc,
+       and the copper knob survives as a warm pixel — on light and dark
+       tab bars both; the hobnail becomes texture and costs nothing.
+       The FIRST draft of the svg glyph failed this check (it read as a
+       blob: a 1.3px anti-aliased handle stroke vanishes) and was
+       redrawn heavier before shipping; screenshots of both renders went
+       to the founder. The check caught a real one.
+     * **Head wiring:** ico + svg + png-32 icons, apple-touch-icon, and
+       `og:image` with type/width/height. The og URL is absolute at the
+       canonical origin, pinned equal to the canonical link's own by
+       test. **Deliberately NO og:title/og:description/twitter tags**:
+       scrapers fall back to the existing <title> and meta description,
+       so the card adds zero new copy surface — and the card itself
+       carries no words for the same reason. privacy.html stays
+       icon-free (its no-<link>, no-absolute-URL law, 142) and a test
+       holds that too.
+     * **Judgement calls, each cheap to overrule:** og-image is PNG, not
+       webp (WhatsApp/iMessage scrapers still mishandle webp cards, and
+       the tree-side `*.webp` manifest stays a clean six-plus-mark);
+       the svg's two colours are sampled from the artwork's own pixels
+       (asset pixels like the webp's, not UI tokens — tokens.css cannot
+       reach a static file); Pillow is a container tool for the
+       generator, not a product dependency — the OUTPUTS are committed
+       and the script documents its own invocation.
+     * **Five plants, each red then reverted:** a linked icon deleted
+       (the silent-404 case the head test exists for), the declared og
+       width drifted from the file's real width, a <script> in the svg,
+       the ico swapped for a bare png, and the set wired into
+       privacy.html.
