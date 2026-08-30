@@ -6,6 +6,7 @@ import {
   FOOTER_PRIVACY_LABEL,
   FOOTER_WORDMARK,
   NAV_BLOG_LABEL,
+  NAV_RESOURCES_LABEL,
 } from "@/copy";
 
 /**
@@ -30,6 +31,13 @@ export function Footer() {
           </a>
           <a className="underline underline-offset-4" href="/blog/" data-testid="footer-blog">
             {NAV_BLOG_LABEL}
+          </a>
+          <a
+            className="underline underline-offset-4"
+            href="/resources/"
+            data-testid="footer-resources"
+          >
+            {NAV_RESOURCES_LABEL}
           </a>
         </nav>
         <p className="text-body text-secondary" data-testid="footer-legal">

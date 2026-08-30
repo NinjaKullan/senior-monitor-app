@@ -82,13 +82,18 @@
   <body>
     <header>
       <a href="/">Kettle</a>
-      <nav><a href="/blog/">Blog</a></nav>
+      <nav><a href="/blog/">Blog</a> <a href="/resources/">Free guides</a></nav>
     </header>
     <main>
       <article>
         <h1>Is Mom or Dad okay living alone?</h1>
         <p class="meta">30 things worth noticing. A checklist for adult children.</p>
-        <p class="body">Search &ldquo;elderly parent living alone checklist&rdquo; and you'll get a dozen lists of warning signs, most of them published by companies that sell assisted living. They're not wrong, exactly. They're written to end in a phone call to a sales team.</p>
+        <!-- The one paragraph on this page allowed the searcher's vocabulary
+             below the doorway: DECISIONS 195's Google rule, contrast position,
+             naming the category being replaced and never Kettle. The class is
+             the marker src/tests/resources.test.tsx scans for; it carries no
+             styling, and a second one on a page fails the suite. -->
+        <p class="body contrast">Search &ldquo;elderly parent living alone checklist&rdquo; and you'll get a dozen lists of warning signs, most of them published by companies that sell assisted living. They're not wrong, exactly. They're written to end in a phone call to a sales team.</p>
         <p class="body">This one is a sheet of paper. It's free, there's no email box, and it ends with you knowing what to do next.</p>
         <p class="body">Answer for how things are now compared with a year ago. One check mark means nothing on its own. Three or four in the same section is worth a conversation, with them or with their doctor. Fill it in afterwards, not in front of them.</p>
 
@@ -153,7 +158,7 @@
 
         <p class="body">I'm Hema. I built HeyKettle after realizing how much of my day went on wondering whether the morning in Chennai had been a normal one. It asks nothing of my parents.</p>
       </article>
-      <p class="back"><a href="/blog/">Back to the blog</a></p>
+      <p class="back"><a href="/resources/">All free guides</a></p>
     </main>
   </body>
 </html>

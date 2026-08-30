@@ -1,0 +1,6 @@
+# Everything here is meant to be found. Nothing on this origin is private:
+# the webapp lives elsewhere, and this is a document site.
+User-agent: *
+Allow: /
+
+Sitemap: https://heykettle.com/sitemap.xml

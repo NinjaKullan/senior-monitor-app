@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Every page this site serves, at the canonical origin (DECISIONS 142).
+  The two PDFs are listed deliberately: the printables are the differentiator
+  in this category, and a sheet nobody can find is a sheet nobody prints.
+
+  Adding an asset means adding it here and to /resources/index.html in the
+  same change. src/tests/resources.test.tsx fails the build if a resource
+  page exists on disk and is missing from either one.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://heykettle.com/</loc>
+    <lastmod>2026-08-30</lastmod>
+  </url>
+  <url>
+    <loc>https://heykettle.com/blog/</loc>
+    <lastmod>2026-08-30</lastmod>
+  </url>
+  <url>
+    <loc>https://heykettle.com/blog/the-call-ive-rehearsed-and-never-made/</loc>
+    <lastmod>2026-08-26</lastmod>
+  </url>
+  <url>
+    <loc>https://heykettle.com/resources/</loc>
+    <lastmod>2026-08-30</lastmod>
+  </url>
+  <url>
+    <loc>https://heykettle.com/resources/okay-living-alone/</loc>
+    <lastmod>2026-08-30</lastmod>
+  </url>
+  <url>
+    <loc>https://heykettle.com/resources/okay-living-alone/okay-living-alone-checklist-print.pdf</loc>
+    <lastmod>2026-08-30</lastmod>
+  </url>
+  <url>
+    <loc>https://heykettle.com/resources/okay-living-alone/okay-living-alone-checklist-fillable.pdf</loc>
+    <lastmod>2026-08-30</lastmod>
+  </url>
+  <url>
+    <loc>https://heykettle.com/resources/normal-day/</loc>
+    <lastmod>2026-08-30</lastmod>
+  </url>
+  <url>
+    <loc>https://heykettle.com/resources/normal-day/normal-day-print.pdf</loc>
+    <lastmod>2026-08-30</lastmod>
+  </url>
+  <url>
+    <loc>https://heykettle.com/resources/normal-day/normal-day-fillable.pdf</loc>
+    <lastmod>2026-08-30</lastmod>
+  </url>
+  <url>
+    <loc>https://heykettle.com/privacy.html</loc>
+    <lastmod>2026-08-30</lastmod>
+  </url>
+</urlset>

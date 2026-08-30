@@ -261,6 +261,10 @@ export const WAITLIST_ERROR = "That didn't go through. Check the address and try
  *  a second CTA — the hero still offers exactly one next step. */
 export const HEADER_WORDMARK = "Kettle";
 export const NAV_BLOG_LABEL = "Blog";
+/* The free-guides register (/resources/). It rides in the footer, not the
+   header: DECISIONS 174 keeps the header at one destination so the hero can
+   still be the page's single decision. */
+export const NAV_RESOURCES_LABEL = "Free guides";
 
 export const FOOTER_WORDMARK = "Kettle";
 export const FOOTER_LINE = "Three fields. Nothing else.";
