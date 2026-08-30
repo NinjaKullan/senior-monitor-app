@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 204.** This line is the one to update; the `Next number:` lines inside
+**Next number: 205.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3017,3 +3017,35 @@ browser — all three adopted as the standard for future surfaces.**
        of the memory entirely, and arming it later makes the NEXT reply
        the first countable one; the config default and the route wiring
        are pinned, and a plant that wires the gate open goes red.
+
+
+204. **(2026-08-30, PM code review of spec 012; fix by Claude Code)
+     `started` checks HISTORY, not just the absence of a journal row.**
+     Product suite 426 → 428. Review verdict: PASS with this one required
+     fix, everything else approved as built (target-month idempotency
+     keying and the gate wiring included).
+     * **The defect, correctly caught.** `note_started` fired after every
+       sent digest and leaned on 0020's once-ever key alone. That key
+       only knows whether the LINE exists, never whether the claim is
+       true — so the first engine pass after deploy would have written
+       "Kettle's first morning with {parent}." for every parent with
+       months of history behind them. A false memory line, and the same
+       shape the clean_month coverage guards already refuse: "first
+       morning" is a claim about history, so it is checked against
+       history.
+     * **The fix.** The insert became one statement with a `where not
+       exists` over `sent_messages` — no prior SENT digest row for that
+       parent — so the check and the write cannot be separated by a
+       concurrent pass. The slot being decided right now is excluded by
+       `(local_date, kind)` rather than by counting, so a retry of the
+       very digest that earned the line still reads as first. The
+       once-ever unique index stays underneath as the backstop for two
+       schedulers racing the same instant.
+     * **Both halves are load-bearing, proven by plant:** removing the
+       history check fails 4 tests (the deploy-day case among them);
+       removing the ON CONFLICT backstop fails 1. Neither substitutes
+       for the other.
+     * Tests added per the review: a parent with three weeks of prior
+       sent digests earns NO started line on the first pass after deploy
+       or on any later day, and a genuinely new parent still earns
+       exactly one — including through a re-decided slot.
