@@ -95,12 +95,12 @@ def test_the_first_daily_note_earns_one_line_and_only_one(
 def test_the_first_reply_earns_one_line_across_days(
     conn, family, notifier  # noqa: F811
 ):
-    """§3.3: once ever, content unread — a second reply on another day adds
-    nothing."""
+    """§3.3 with the gate armed (the Phase 3 posture): once ever, content
+    unread — a second reply on another day adds nothing."""
     transport = CountingTransport()
 
     run_twice(conn, transport, at(11, 0), notifier=notifier)  # the ask
-    assert record_parent_reply(conn, WHATSAPP, at(11, 30)) is True
+    assert record_parent_reply(conn, WHATSAPP, at(11, 30), note_first_reply=True) is True
     assert [n for n in auto_notes(conn) if n[0] == "first_reply"] == [
         ("first_reply", "Heard from Amma with a 👍.", "2026-08-21")
     ]
@@ -108,9 +108,49 @@ def test_the_first_reply_earns_one_line_across_days(
     # Tomorrow's quiet morning asks again; the reply matches again; one line.
     run_outbound(conn, transport, at(11, 0) + timedelta(days=1), notifier=notifier)
     assert record_parent_reply(
-        conn, WHATSAPP, at(11, 30) + timedelta(days=1)
+        conn, WHATSAPP, at(11, 30) + timedelta(days=1), note_first_reply=True
     ) is True
     assert len([n for n in auto_notes(conn) if n[0] == "first_reply"]) == 1
+
+
+def test_the_gate_holds_a_sandbox_reply_out_of_the_memory(
+    conn, family, notifier  # noqa: F811
+):
+    """DECISIONS 203: the line belongs to the real-number era. With the gate
+    at its DEFAULT — off — a matched reply cancels the ladder exactly as
+    before and writes NOTHING; arming it later still means the NEXT reply is
+    the first countable one, once, via the unchanged schema key."""
+    transport = CountingTransport()
+
+    run_twice(conn, transport, at(11, 0), notifier=notifier)
+    # The default posture: no keyword, gate off — the ladder still stands
+    # down, the memory stays silent.
+    assert record_parent_reply(conn, WHATSAPP, at(11, 30)) is True
+    assert auto_notes(conn) == []
+
+    # The flip: the gate arms, and the next matched reply earns the line.
+    run_outbound(conn, transport, at(11, 0) + timedelta(days=1), notifier=notifier)
+    assert record_parent_reply(
+        conn, WHATSAPP, at(11, 30) + timedelta(days=1), note_first_reply=True
+    ) is True
+    assert [n for n in auto_notes(conn) if n[0] == "first_reply"] == [
+        ("first_reply", "Heard from Amma with a 👍.", "2026-08-22")
+    ]
+
+
+def test_the_gate_defaults_off_in_config_and_rides_the_reply_route():
+    """The wiring, both ends: MEMORY_FIRST_REPLY resolves False when unset,
+    True when set — and the webhook actually passes it, since a gate the
+    route ignores is decoration."""
+    from pathlib import Path
+
+    from kettle.config import settings_from_env
+
+    base = {"DATABASE_URL": "postgresql://x/y"}
+    assert settings_from_env(base).memory_first_reply is False
+    assert settings_from_env({**base, "MEMORY_FIRST_REPLY": "1"}).memory_first_reply is True
+    source = Path("kettle/main.py").read_text()
+    assert "note_first_reply=cfg.memory_first_reply" in source
 
 
 # --- clean_month --------------------------------------------------------------

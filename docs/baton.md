@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 424, zero xfails**, **`webapp` 156**, **`site` 236**.
+Current green: **`pytest` 426, zero xfails**, **`webapp` 156**, **`site` 236**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -89,7 +89,9 @@ against the spec.** Then, in order: PM applies migration 0020, then 0021, via MC
 rides the engine) → `cd webapp && fly deploy` (Memory tab; remember the
 build-arg fly.toml, DECISIONS 114). The webapp's journal read now asks for the
 `kind` column, so 0020 MUST be applied before the webapp deploys or every
-journal read 400s. The DECISIONS 201 weekly log-summary job queues separately.
+journal read 400s. The DECISIONS 201 weekly log-summary job queues separately. At the Phase 3
+flip, also set `MEMORY_FIRST_REPLY=1` on kettle-api (DECISIONS 203) so the
+first_reply journal line arms with the real number.
 
 ## 3. Live state — do not break
 

@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 203.** This line is the one to update; the `Next number:` lines inside
+**Next number: 204.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -2992,3 +2992,28 @@ browser — all three adopted as the standard for future surfaces.**
      * **The DECISIONS 201 log-summary job did NOT fit this run** and
        queues: it needs a decision about where the job runs (Fly's log
        retention vs shipping), which is design, not a small commit.
+
+
+203. **(2026-08-30, Hema + Fable, ruling; gate built by Claude Code) The
+     five spec-012 flags ruled, and the one code change they ordered.**
+     Product suite 424 → 426.
+     * Rulings, as communicated: (1) contacts placement approved as
+       proposed — top of Memory, family-wide, nullable parent_id as the
+       future filter; (2) the phone-inside-tel-anchor resolution
+       approved, the planted scan being the enforcement; (3) first_reply
+       gains a CONFIG GATE — the line belongs to the real-number era and
+       must not be spent on a sandbox or dark-stage reply; (4) the
+       clean_month coverage guards approved; (5) the spec-silent strings
+       approved as flagged in 202. 0020 applies before any webapp
+       deploy, PM's hand on the migration; the 201 log job queues for
+       its own design pass; PM code review precedes any ship.
+     * **The gate, built:** `MEMORY_FIRST_REPLY`, default OFF, in
+       Settings and .env.example, armed at the Wave D Phase 3 flip. The
+       reply webhook passes it into `record_parent_reply` as
+       `note_first_reply`; the once-ever schema key is unchanged
+       underneath — the gate decides WHEN the first countable reply can
+       happen, the schema still guarantees it counts once. Tested both
+       ways: default-off holds a matched (ladder-cancelling) reply out
+       of the memory entirely, and arming it later makes the NEXT reply
+       the first countable one; the config default and the route wiring
+       are pinned, and a plant that wires the gate open goes red.
