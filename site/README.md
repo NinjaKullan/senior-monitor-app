@@ -36,6 +36,7 @@ stricter.
 | The rhythm field paints behind the words: an opaque sheet in its layer leaves every stroke standing | `scripts/probe-kettle.mjs` |
 | The hero's promise — kicker, headline, both sub paragraphs, CTA — fits the first viewport at 390x844 | `scripts/probe-kettle.mjs` |
 | `public/` holds those six illustrations plus the kettle mark, at unhashed stable names | `product/tests/test_site_caching.py` |
+| The favicon set is present, correctly sized, declared in the head, and every head link resolves to a real file; the svg glyph is inert; privacy.html stays icon-free | `favicon.test.ts`; 16px legibility is a screenshot of the real render, not an assertion |
 | The scenario tab row stays one line on a phone | `scenarios.test.tsx` pins the classes; `scripts/probe-responsive.mjs` measures it |
 | Notification proportions live in one place | `motion.test.tsx` against `lib/notification.ts` |
 | No foreign origin in `dist/` | `scripts/check-foreign-origins.mjs`, in `npm run ci` |
