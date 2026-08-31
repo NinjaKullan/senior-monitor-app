@@ -132,12 +132,22 @@ _REGISTRY: tuple[Template, ...] = (
         # The one question the product asks about a person, addressed *to* the
         # parent: it asks rather than concludes, which is why it survives the
         # verdict ban. The 👍 is DECISIONS 150's universal icon — an affordance
-        # a parent who reads no English can act on, never a parsed answer.
-        # The site's older quote of this string is illustrative, not binding.
+        # a parent who reads no English can act on, never a parsed answer, and
+        # since DECISIONS 205 it is only ever typed BY the parent: Meta forbids
+        # emoji in template buttons, so the approved template carries none and
+        # the body does the inviting.
+        #
+        # Reworded by the founder in DECISIONS 206 ("whenever suits" → "when
+        # you're free": plainer words, same no-pressure register), and that is
+        # the wording Meta approved as kettle_ask_parent_v4. It lives here as
+        # well as at Meta on purpose — on the real number the words come from
+        # the approved template, on the sandbox they come from this string, and
+        # the two must be the same ask. The site's older quote of this string is
+        # illustrative, not binding.
         id="ask_parent",
         kind=KIND_ASK,
         audience=AUDIENCE_PARENT,
-        body="Everything okay today? Reply with a 👍 whenever suits.",
+        body="Everything okay today? Reply with a 👍 when you're free.",
     ),
     Template(
         # The changed-morning follow-on (DECISIONS 151 body 5): signals still
