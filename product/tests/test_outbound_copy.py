@@ -137,16 +137,28 @@ def test_every_template_obeys_the_copy_law_under_every_label(
 
 
 def test_the_ask_carries_the_icon_and_is_the_only_thing_a_parent_hears():
-    """One string reaches a parent, and it is DECISIONS 151's, verbatim.
+    """One string reaches a parent, and it is the ruled one, verbatim.
 
     It survives the verdict ban because it is a question addressed *to* the
     parent rather than a claim *about* them. The 👍 is DECISIONS 150's
     universal icon — the site's older quote of this string is illustrative,
     not binding, so this asserts against the ruling and never the site.
+
+    Reworded by the founder in DECISIONS 206 and approved by Meta in that
+    wording as kettle_ask_parent_v4 (207), which is why the assertion is
+    codepoint-exact: on the real number these words come from Meta's approved
+    template, on the sandbox from this registry, and a drift between them
+    would be two different asks wearing one product's voice.
     """
     parent_facing = [t for t in TEMPLATES.values() if t.audience == "parent"]
     assert [t.id for t in parent_facing] == ["ask_parent"]
-    assert parent_facing[0].body == "Everything okay today? Reply with a 👍 whenever suits."
+    body = parent_facing[0].body
+    assert body == "Everything okay today? Reply with a 👍 when you're free."
+    # 55 codepoints, bare U+1F44D (no variation selector), straight
+    # apostrophe — the three details a retyping loses (DECISIONS 206).
+    assert len(body) == 55
+    assert "\U0001f44d" in body and "\ufe0f" not in body
+    assert "'" in body and "\u2019" not in body
 
 
 def test_the_email_subjects_are_registry_copy_and_obey_the_law():

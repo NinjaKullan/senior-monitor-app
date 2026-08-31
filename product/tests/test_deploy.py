@@ -111,6 +111,9 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         twilio_account_sid="",
         twilio_auth_token="",
         twilio_whatsapp_from="",
+        # Empty: the sandbox body send, which is what the suite exercises
+        # unless a test builds the transport with a SID of its own.
+        twilio_ask_content_sid="",
         outbound_reply_token="",
         memory_first_reply=False,
         waitlist_origins=("https://heykettle.com",),
