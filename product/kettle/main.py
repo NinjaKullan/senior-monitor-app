@@ -11,7 +11,7 @@ import asyncio
 import logging
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager, suppress
-from datetime import datetime
+from datetime import date, datetime
 from hmac import compare_digest
 from urllib.parse import parse_qs
 
@@ -23,7 +23,7 @@ from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from kettle import db, waitlist
+from kettle import db, site_metrics, waitlist
 from kettle.config import Settings, settings_from_env
 from kettle.heartbeat import HeartbeatState, heartbeat_loop
 from kettle.notify import LogOnlyNotifier, Notifier, NtfyNotifier
@@ -248,6 +248,54 @@ def create_app(
                     conn, sender, clock(), note_first_reply=cfg.memory_first_reply
                 )
         return PlainTextResponse("", status_code=204)
+
+    @app.post("/site-metrics/daily", response_class=PlainTextResponse)
+    async def site_metrics_daily(request: Request) -> PlainTextResponse:
+        """The site container ships a day's counts (DECISIONS 201/211/212).
+
+        The only writer is site/counter/kettle_counter.py, running beside nginx
+        in the site image. What arrives is `{"day": "2026-08-31", "counts":
+        {"/": 12, "other": 3}}` and nothing else — no request lines, no
+        addresses, no user agents, because the log format the counter reads
+        never contained any.
+
+        Fail-closed like every other authenticated route here: with no token
+        configured the endpoint does not exist, and a wrong token is a 401
+        rather than a hint. `compare_digest` because a token check that leaks
+        its answer in timing is not a token check.
+        """
+        if not cfg.site_metrics_token:
+            raise StarletteHTTPException(status_code=404, detail="not found")
+        supplied = request.headers.get("x-kettle-metrics-token") or ""
+        if not compare_digest(supplied, cfg.site_metrics_token):
+            raise StarletteHTTPException(status_code=401, detail="unauthorized")
+
+        try:
+            payload = await request.json()
+        except ValueError:
+            raise StarletteHTTPException(
+                status_code=400, detail="malformed request"
+            ) from None
+        if not isinstance(payload, dict):
+            raise StarletteHTTPException(status_code=400, detail="malformed request")
+
+        raw_day = payload.get("day")
+        counts = payload.get("counts")
+        if not isinstance(raw_day, str) or not isinstance(counts, dict):
+            raise StarletteHTTPException(status_code=400, detail="malformed request")
+        try:
+            day = date.fromisoformat(raw_day)
+        except ValueError:
+            raise StarletteHTTPException(status_code=400, detail="malformed day") from None
+        if len(counts) > site_metrics.MAX_PATHS_PER_POST:
+            raise StarletteHTTPException(status_code=400, detail="too many paths")
+
+        with request.app.state.pool.connection() as conn:
+            written = site_metrics.record_daily(conn, day, counts)
+        # The count of rows written, not the counts themselves: this route is
+        # a write, and an endpoint that echoes the numbers back is a read the
+        # token was not issued for.
+        return PlainTextResponse(str(written))
 
     @app.post("/waitlist", response_class=PlainTextResponse)
     async def join_waitlist(request: Request) -> PlainTextResponse:

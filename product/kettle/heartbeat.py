@@ -20,7 +20,7 @@ from typing import Any
 
 import psycopg
 
-from kettle import db
+from kettle import db, site_metrics
 from kettle.config import Settings
 from kettle.notify import Notifier
 from kettle.timeutil import (
@@ -196,6 +196,14 @@ async def heartbeat_loop(
                 run_checks, conn, settings, notifier, now
             )
             state.last_check_utc = now
+            # The weekly site summary rides THIS loop, not the outbound one
+            # (DECISIONS 212). Both are "the existing scheduler", but the
+            # outbound loop is gated behind OUTBOUND_ENABLED, the kill switch
+            # on family sending — a founder-only ops note must not be silenced
+            # by the switch that stops messages to families, and must not be
+            # revived by the one that starts them. This loop is already the
+            # founder-only channel, so the note belongs here.
+            await asyncio.to_thread(site_metrics.maybe_send_weekly, conn, settings, now)
         except asyncio.CancelledError:
             raise
         except Exception:  # noqa: BLE001 - the monitor must outlive any failure
