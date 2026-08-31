@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 209.** This line is the one to update; the `Next number:` lines inside
+**Next number: 210.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3225,3 +3225,25 @@ browser — all three adopted as the standard for future surfaces.**
        `TWILIO_ASK_CONTENT_SID=HXdb4e38c90d0ccc51bbcd264a002d0a8a` as Fly
        secrets, and `MEMORY_FIRST_REPLY=1` when the flip is real
        (DECISIONS 203). No code change is owed at the flip.
+
+209. **(2026-08-31, PM review of Wave D Phase 2) PASS — zero required
+     fixes; the sandbox-wording change is ratified as within 206.**
+     * Reviewed from pushed main (132c3ee) against spec 011 §4 and the
+       194 ladder audit. Verified with own eyes: the transport accepts
+       KIND_ASK only, so the ContentSid can never ride a follow-on or
+       any family-facing message; unset SID reproduces the Wave C
+       request byte-for-byte (test-pinned); the registry ask string is
+       codepoint-identical to the 206 ruling (55 cps, bare U+1F44D,
+       U+0027 apostrophe); `_refusal` fails loudly on non-JSON;
+       the no-button scan covers both the outgoing form and the reply
+       vocabulary; counter handled correctly.
+     * **Scope ratification:** 206 was filed template-scoped; Claude
+       Code applied the reword to the sandbox registry as well so both
+       send shapes speak one ask, and flagged it rather than slipping
+       it through. Ratified — that is the founder's intent, and the
+       flag-not-hide behavior is the process working. Deploy-day
+       consequence is exactly one: sandbox parents read "when you're
+       free" from the next product deploy.
+     * Next: founder deploys product (no secrets set — wording-only
+       change), then Phase 3 per docs/wave-d-dark-stage-runbook.md,
+       founder at the console, PM checking each step.
