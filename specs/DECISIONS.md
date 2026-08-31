@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 212.** This line is the one to update; the `Next number:` lines inside
+**Next number: 213.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3293,3 +3293,95 @@ browser — all three adopted as the standard for future surfaces.**
        contained; the dark stage needs no deploys, so the build sits
        in the repo until PM review and a post-Wave-D deploy). Memory
        v1.1 queues behind it.
+
+212. **(2026-08-31, Claude Code, PM-ordered) The weekly log-summary job is
+     built: option C, per docs/log-summary-job-design.md, with 201 and 211
+     governing.** Product suite 486 → 555. Nothing deployed, no secret set,
+     no family touched, migration 0022 is a FILE ONLY. Five judgement calls
+     and one repo finding, each flagged rather than quietly adjusted:
+
+     * **FLAG 1 — the design's premise was wrong: nginx was not logging at
+       all.** The doc says "nginx in the site container currently logs to
+       stdout" and has the sidecar tail that stream. It does not:
+       `site/nginx.conf` carried `access_log off` in BOTH server blocks, so
+       there was nothing to tail and option C could not be built as written.
+       Turning a log on is exactly the kind of change 201 is suspicious of, so
+       it was turned on in the narrowest form that can exist: a custom
+       `log_format kettle_counts` defined by SUBTRACTION from nginx's
+       `combined` — no `$remote_addr`, no `$http_user_agent`, no
+       `$http_referer`, and `$uri` rather than `$request` so no query string
+       rides along. Three fields: timestamp, status, path. This is STRONGER
+       than the design, which assumed IPs and user agents would be in the
+       stream and would "die in-memory within the day" — there is now no
+       address in the process to leak even by accident. The redirect-only
+       server block keeps `access_log off`. **PM should confirm the reading of
+       201** that a three-field ephemeral stream is a log the site may write.
+
+     * **FLAG 2 — `auto_stop_machines` breaks a daily flush, so the flush is
+       periodic and the upsert keeps a high-water mark.** The design has the
+       counter flush daily, the endpoint upsert per date+path, and accepts
+       that "a restart loses at most a partial day". But `site/fly.toml` sets
+       `auto_stop_machines = 'stop'` with `min_machines_running = 0`: the site
+       machine stops whenever it is idle, many times a day. A counter that
+       flushed only at midnight would almost never reach one, and under a
+       last-write-wins upsert the post-restart process — counting up from zero
+       again — would ERASE the morning it never saw. Both changed together:
+       the counter ships the day's RUNNING TOTAL every SITE_METRICS_INTERVAL_S
+       (default 300s) plus once on SIGTERM, and the upsert is
+       `greatest(existing, incoming)`. Re-POSTing an identical body still
+       changes nothing, which is the idempotency the design asked for and the
+       test it named; what a restart costs is only the requests during the
+       gap, which is the partial day the design already accepts and the email
+       footer states out loud. Pinned by test in both directions.
+
+     * **FLAG 3 — a second table the design did not name.**
+       `site_weekly_sends (week_start primary key)`. The ops loop runs every
+       minute and the Monday window is an hour wide, so without a durable
+       once-only key the founder gets sixty copies of the same note. The
+       insert IS the lock. `site_daily_counts` is exactly as specified: date,
+       path, count, nothing else.
+
+     * **FLAG 4 — the status class is folded away at the counter.** The design
+       has the counter hold `{date, path, status-class}` in memory but gives
+       the table no column to put a class in, and "three fields, and they are
+       literally three" argues against adding one. Resolved at the edge: 2xx
+       and 304 count as served (a 304 is a returning reader), everything else
+       is not a view of the thing and is dropped. Redirects, 404s and errors
+       never appear.
+
+     * **FLAG 5 — the family copy law cannot bind this email verbatim.** The
+       order said "copy scan on every string in the email", and the scan in
+       `test_outbound_copy.py` bans "count", "counts", "average" and "server"
+       among others — which would forbid a founder note about server counts
+       from existing at all. `test_site_metrics_copy.py` holds the founder-ops
+       subset instead: no medical or decline vocabulary, no urgency, no
+       verdict about a person, no person in it AT ALL, no em dash, no gendered
+       pronoun, and nothing that could identify anyone. Six plants prove the
+       scanner goes red. Recorded here so it reads as a ruling rather than an
+       exemption someone took quietly.
+
+     * **FLAG 6 — two pre-existing failures on main; one fixed, one left.**
+       (a) `test_family_memory.py` pinned `Path("kettle/main.py")` relative to
+       the working directory. CI runs `pytest` from the repo root, where that
+       raised FileNotFoundError instead of checking anything — the source pin
+       was inert in CI. Anchored to the test file; it is load-bearing now.
+       (b) `ruff check .` reports 25 errors in `tools/printables/`, all
+       pre-existing on a clean main and untouched by this pass. NOT fixed:
+       that tooling generates the shipped PDFs, and a lint sweep there is its
+       own pass with its own re-render check. CI stays red on lint until
+       someone takes it.
+
+     Two placements worth recording. The weekly send rides the HEARTBEAT loop,
+     not the outbound one: both are "the existing scheduler", but the outbound
+     loop is gated behind OUTBOUND_ENABLED, the kill switch on family sending,
+     and a founder-only ops note must not be silenced by the switch that stops
+     messages to families nor revived by the one that starts them — the
+     heartbeat loop is already the founder-only channel. And the send does not
+     go through `ResendTransport`: that class is the family channel (template
+     registry, child-facing kinds, multipart HTML), and keeping this out of it
+     makes law #3 structural rather than careful.
+
+     Secrets, unset, for the founder at deploy (the Wave D pattern):
+     `SITE_METRICS_TOKEN` on BOTH apps, `SITE_METRICS_EMAIL` on kettle-api,
+     `SITE_METRICS_ENDPOINT` on kettle-site. Deploy is a separate founder step
+     after PM review, post-Wave-D.

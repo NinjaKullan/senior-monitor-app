@@ -89,7 +89,7 @@ against the spec.** Then, in order: PM applies migration 0020, then 0021, via MC
 rides the engine) → `cd webapp && fly deploy` (Memory tab; remember the
 build-arg fly.toml, DECISIONS 114). The webapp's journal read now asks for the
 `kind` column, so 0020 MUST be applied before the webapp deploys or every
-journal read 400s. The DECISIONS 201 weekly log-summary job queues separately. At the Phase 3
+journal read 400s. At the Phase 3
 flip, also set `MEMORY_FIRST_REPLY=1` on kettle-api (DECISIONS 203) so the
 first_reply journal line arms with the real number.
 
@@ -101,6 +101,24 @@ sandbox body while they do not. Neither is set; no family is flipped; the dark
 stage is a separate order after PM review. At the real flip, also set
 `MEMORY_FIRST_REPLY=1` (203). Note the ask's words changed with the approved
 template (206): the sandbox now says "when you're free" too, on purpose.
+
+**The weekly log-summary job is BUILT and unshipped (DECISIONS 212).** Option C
+from docs/log-summary-job-design.md: a counter beside nginx in the site image
+tallies allowlisted paths and POSTs counts to kettle-api, which mails the
+founder a plain-text summary Monday 9:00am ET. THREE Fly secrets, none set, and
+until they are the site serves exactly as before and no email is sent:
+
+    fly secrets set -a kettle-site SITE_METRICS_TOKEN=... \
+        SITE_METRICS_ENDPOINT=https://kettle-api.fly.dev/site-metrics/daily
+    fly secrets set -a kettle-api  SITE_METRICS_TOKEN=... SITE_METRICS_EMAIL=...
+
+The token must be the SAME string on both apps. Migration 0022 is a file only
+and must be applied before kettle-api deploys, or the endpoint 500s on a
+missing table. Two things a reviewer should know before this ships: the site's
+nginx now writes a three-field access log (timestamp, status, path — no
+address, no user agent, no query string) where it previously wrote none, and
+the site image gained python3 for the counter. Both are FLAG 1 and the
+Dockerfile note in 212. Deploy is a founder step after PM review, post-Wave-D.
 
 ## 3. Live state — do not break
 
