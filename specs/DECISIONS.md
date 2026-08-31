@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 208.** This line is the one to update; the `Next number:` lines inside
+**Next number: 209.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3171,3 +3171,57 @@ browser — all three adopted as the standard for future surfaces.**
        session expired, so the ten-second Twilio glance (v4 page shows
        Approved) is the founder's last box to tick before pasting the
        handoff to CC. Handoff category line updated to Marketing.
+
+
+208. **(2026-08-30, Claude Code, PM-ordered) Wave D Phase 2 built: the
+     ask goes out as the approved template.** Product suite 428 → 439;
+     nothing deployed, no family flipped, no secret set — Phase 3 is a
+     separate order.
+     * **One variable is the whole switch.** `TWILIO_ASK_CONTENT_SID`
+       set → the ask sends `ContentSid` (Meta's approved copy, zero
+       variables, no `ContentVariables`); unset → the transport sends
+       `Body` from the registry, byte-for-byte the request Wave C has
+       always made. So the sandbox stays present and functional to the
+       Phase 3 sunset, a rollback is emptying one variable, and nothing
+       in code branches on category (Marketing per 207) or on which
+       number is configured.
+     * **No buttons, anywhere.** DECISIONS 205 removed them from the
+       template; this build refuses to grow them back on either side.
+       A test scans the outgoing form for button/payload/action shapes
+       AND every module under `kettle/` for button-parsing vocabulary,
+       so neither a send that Meta would refuse nor a reply path that
+       only works for taps can appear. A parent's 👍 is an ordinary
+       inbound message, which is what intake has always read.
+     * **The ask body was updated to the approved v4 wording**
+       (DECISIONS 206): "Everything okay today? Reply with a 👍 when
+       you're free." — 55 codepoints, bare U+1F44D, straight
+       apostrophe, all three pinned. This is a REAL change to the
+       sandbox's words, made deliberately: on the real number the words
+       come from Meta's template, on the sandbox from the registry, and
+       a drift between them would be two different asks wearing one
+       voice. Flagged because it is the one place this build changes
+       what a parent reads today.
+     * **Failure honesty: Twilio's own words, not a table of mine.** A
+       refusal carries `code` and `message` verbatim into the detail, so
+       the ops_alert and ntfy say "63016; Template is paused due to low
+       quality" rather than "HTTP 400". Deliberately NOT a hardcoded
+       error-code→meaning map: I cannot verify current Twilio code
+       semantics from this container, and passthrough is both more
+       honest and more informative on the day Meta pauses the template.
+       The parser is defensive — a non-JSON error page, an empty body,
+       or JSON of an unexpected shape still produces a failed result and
+       an alert rather than an exception on the failure path.
+     * **Untouched, and tested to be:** decision core, ledger,
+       idempotency, webhook, signature verification, reply matching. The
+       engine test proves a refused template send is a 'failed' row
+       naming twilio_whatsapp with exactly one alert, and that the slot
+       stays retryable — the template comes back, the ask goes.
+     * **Four plants, each red then reverted:** a Body riding along with
+       the ContentSid (the shape Meta refuses), the SID ignored so the
+       real number silently body-sends, the refusal reason dropped back
+       to a bare status, and a button payload creeping into the send.
+     * **Phase 3 needs, recorded for the dark-stage order:** set
+       `TWILIO_WHATSAPP_FROM=whatsapp:+19843704452` and
+       `TWILIO_ASK_CONTENT_SID=HXdb4e38c90d0ccc51bbcd264a002d0a8a` as Fly
+       secrets, and `MEMORY_FIRST_REPLY=1` when the flip is real
+       (DECISIONS 203). No code change is owed at the flip.

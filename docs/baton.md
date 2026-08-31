@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 428, zero xfails**, **`webapp` 156**, **`site` 236**.
+Current green: **`pytest` 439, zero xfails**, **`webapp` 156**, **`site` 236**.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -92,6 +92,15 @@ build-arg fly.toml, DECISIONS 114). The webapp's journal read now asks for the
 journal read 400s. The DECISIONS 201 weekly log-summary job queues separately. At the Phase 3
 flip, also set `MEMORY_FIRST_REPLY=1` on kettle-api (DECISIONS 203) so the
 first_reply journal line arms with the real number.
+
+**Wave D Phase 2 is BUILT and unshipped (DECISIONS 208).** The code sends the
+approved template the moment two Fly secrets exist —
+`TWILIO_WHATSAPP_FROM=whatsapp:+19843704452` and
+`TWILIO_ASK_CONTENT_SID=HXdb4e38c90d0ccc51bbcd264a002d0a8a` — and sends the
+sandbox body while they do not. Neither is set; no family is flipped; the dark
+stage is a separate order after PM review. At the real flip, also set
+`MEMORY_FIRST_REPLY=1` (203). Note the ask's words changed with the approved
+template (206): the sandbox now says "when you're free" too, on purpose.
 
 ## 3. Live state — do not break
 
