@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 210.** This line is the one to update; the `Next number:` lines inside
+**Next number: 211.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3247,3 +3247,30 @@ browser — all three adopted as the standard for future surfaces.**
      * Next: founder deploys product (no secrets set — wording-only
        change), then Phase 3 per docs/wave-d-dark-stage-runbook.md,
        founder at the console, PM checking each step.
+
+210. **(2026-08-31, founder, dark-stage pre-flight) Isolation accepted
+     with eyes open; runbook corrected to the approved template; the
+     missing precondition found before it could bite.**
+     * **Isolation ruling:** the two Fly secrets are GLOBAL — setting
+       them moves every family's ask to the real number; there is no
+       per-family routing. Founder ruled: accept and keep the dark
+       stage SHORT rather than build routing first. Measured exposure
+       at ruling time: Appa 0 asks in 14 days, Amma 1 — and a leak
+       arrives as the approved copy from "HeyKettle", i.e. the flip
+       early for one message, watched not feared.
+     * **Precondition was NOT met and is now a checked step:** both
+       Rehearsal parents had NO whatsapp_e164 (or phone) on file —
+       the runbook's "numbers point at Hema's own WhatsApp" was
+       assumed, false, and would have made the first pass silently
+       undeliverable. Hema sets TestMom's whatsapp_e164 to his own
+       number before the secrets; reply-matching keys on the same
+       column, so both directions need it.
+     * **Runbook corrected for 205/206:** expected copy is now the v4
+       wording; a BUTTON appearing is itself a stop signal; reply
+       pass one is a typed 👍; pass two is a REACTION 👍 — with no
+       button, the likeliest real-parent behavior — and its outcome
+       is a finding for the flip decision either way (a reaction may
+       never reach the webhook: the content-blind reply edge made
+       concrete).
+     * Flip-day flag MEMORY_FIRST_REPLY=1 stays OUT of the dark
+       stage; only the two Twilio secrets are set now.
