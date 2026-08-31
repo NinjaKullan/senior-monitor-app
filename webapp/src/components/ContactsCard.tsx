@@ -14,8 +14,11 @@
 
 import { useState } from "react";
 import {
-  CONTACTS_TITLE,
   CONTACT_ADD_LABEL,
+  CONTACT_MOVE_DOWN,
+  CONTACT_MOVE_UP,
+  CONTACT_TAG_EVERYONE,
+  CONTACT_TAG_LABEL,
   CONTACT_EDIT_LABEL,
   CONTACT_NAME_PLACEHOLDER,
   CONTACT_NOTE_PLACEHOLDER,
@@ -52,16 +55,20 @@ const CHIP: React.CSSProperties = {
 function Editor({
   initial,
   suggestedLabel,
+  parentOptions,
   onSave,
 }: {
   initial: ContactDraft;
   suggestedLabel: string;
+  /** Spec 012 §9.3: who this number is for. Everyone, or one parent. */
+  parentOptions: { parentId: string; label: string }[];
   onSave: (draft: ContactDraft) => Promise<void>;
 }) {
   const [label, setLabel] = useState(initial.label);
   const [name, setName] = useState(initial.name);
   const [phone, setPhone] = useState(initial.phone_display);
   const [note, setNote] = useState(initial.note);
+  const [tag, setTag] = useState(initial.parent_id ?? "");
   return (
     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", padding: "0.5rem 0" }} data-testid="contact-editor">
       <input type="text" value={label} placeholder={suggestedLabel} maxLength={60}
@@ -76,6 +83,20 @@ function Editor({
       <input type="text" value={note} placeholder={CONTACT_NOTE_PLACEHOLDER} maxLength={200}
         onChange={(event) => setNote(event.target.value)}
         style={{ ...FIELD, flex: "2 1 12rem" }} data-testid="contact-note-input" />
+      <select
+        value={tag}
+        onChange={(event) => setTag(event.target.value)}
+        aria-label={CONTACT_TAG_LABEL}
+        style={{ ...FIELD, flex: "1 1 8rem" }}
+        data-testid="contact-tag"
+      >
+        <option value="">{CONTACT_TAG_EVERYONE}</option>
+        {parentOptions.map((option) => (
+          <option key={option.parentId} value={option.parentId}>
+            {option.label}
+          </option>
+        ))}
+      </select>
       <button type="button" style={{ ...CHIP, color: "var(--copperdeep)", fontWeight: 600 }}
         onClick={() =>
           void onSave({
@@ -84,6 +105,7 @@ function Editor({
             phone_display: phone.trim(),
             phone_e164: telHrefNumber(phone),
             note: note.trim(),
+            parent_id: tag === "" ? null : tag,
           })
         }
         data-testid="contact-save"
@@ -96,14 +118,22 @@ function Editor({
 
 export function ContactsCard({
   contacts,
+  parentOptions,
+  parentLabelFor,
   onAdd,
   onUpdate,
   onRemove,
+  onMove,
 }: {
+  /** Already filtered and already in rank order by the screen above. */
   contacts: FamilyContact[];
+  parentOptions: { parentId: string; label: string }[];
+  parentLabelFor: (contact: FamilyContact) => string;
   onAdd: (draft: ContactDraft) => Promise<void>;
   onUpdate: (id: number, draft: ContactDraft) => Promise<void>;
   onRemove: (id: number) => Promise<void>;
+  /** Spec 012 §9.3: the call-first order, moved one row at a time. */
+  onMove: (id: number, direction: -1 | 1) => Promise<void>;
 }) {
   const [editing, setEditing] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
@@ -123,19 +153,10 @@ export function ContactsCard({
       }}
       data-testid="contacts-card"
     >
-      <h3
-        style={{
-          fontSize: "0.6875rem",
-          letterSpacing: ".14em",
-          textTransform: "uppercase",
-          color: "var(--mute)",
-          fontWeight: 700,
-          margin: 0,
-          marginBottom: "0.375rem",
-        }}
-      >
-        {CONTACTS_TITLE}
-      </h3>
+      {/* No heading here. The page above carries the DECISIONS-200 line
+          "If you can't reach them", and printing it twice is precisely the
+          duplication spec 012 §9.4 exists to remove — the card must not
+          reintroduce it one section down. */}
 
       {contacts.map((contact) =>
         editing === contact.id ? (
@@ -143,6 +164,7 @@ export function ContactsCard({
             key={contact.id}
             initial={contact}
             suggestedLabel={nextSuggestion}
+            parentOptions={parentOptions}
             onSave={async (draft) => {
               await onUpdate(contact.id, draft);
               setEditing(null);
@@ -167,6 +189,12 @@ export function ContactsCard({
             >
               {contact.label}
             </span>
+            <span
+              style={{ fontSize: "0.71875rem", color: "var(--mute)", letterSpacing: ".03em" }}
+              data-testid="contact-tag-label"
+            >
+              {parentLabelFor(contact)}
+            </span>
             <span className="kt-serif" style={{ fontWeight: 500, fontSize: "0.9375rem" }}>
               {contact.name}
             </span>
@@ -184,6 +212,14 @@ export function ContactsCard({
               <span style={{ fontSize: "0.8125rem", color: "var(--ink2)" }}>{contact.note}</span>
             )}
             <span style={{ marginLeft: "auto", display: "flex", gap: "0.375rem" }}>
+              <button type="button" style={CHIP} onClick={() => void onMove(contact.id, -1)}
+                aria-label={CONTACT_MOVE_UP} data-testid="contact-up">
+                {CONTACT_MOVE_UP}
+              </button>
+              <button type="button" style={CHIP} onClick={() => void onMove(contact.id, 1)}
+                aria-label={CONTACT_MOVE_DOWN} data-testid="contact-down">
+                {CONTACT_MOVE_DOWN}
+              </button>
               <button type="button" style={CHIP} onClick={() => setEditing(contact.id)}
                 data-testid="contact-edit">
                 {CONTACT_EDIT_LABEL}
@@ -199,8 +235,9 @@ export function ContactsCard({
 
       {adding ? (
         <Editor
-          initial={{ label: "", name: "", phone_e164: "", phone_display: "", note: "" }}
+          initial={{ label: "", name: "", phone_e164: "", phone_display: "", note: "", parent_id: null }}
           suggestedLabel={nextSuggestion}
+          parentOptions={parentOptions}
           onSave={async (draft) => {
             await onAdd(draft);
             setAdding(false);
