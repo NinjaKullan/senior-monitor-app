@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 213.** This line is the one to update; the `Next number:` lines inside
+**Next number: 214.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3385,3 +3385,40 @@ browser — all three adopted as the standard for future surfaces.**
      `SITE_METRICS_TOKEN` on BOTH apps, `SITE_METRICS_EMAIL` on kettle-api,
      `SITE_METRICS_ENDPOINT` on kettle-site. Deploy is a separate founder step
      after PM review, post-Wave-D.
+
+213. **(2026-08-31, PM review of the log-summary build) PASS — all
+     three PM-decision flags ratified; counts are floors, not exacts,
+     and that is on the record.**
+     * Verified in the tree: three-field log format to stdout only
+       (no IP/UA/referrer/query anywhere in the stream — the privacy
+       guarantee made by the FORMAT, stronger than the design's
+       premise, which had assumed logs existed at all); migration
+       0022 counts-only with RLS on and no family grants (the table
+       is invisible to family sessions); endpoint 404-unconfigured /
+       401-bad-token with constant-time compare; greatest() upsert;
+       site_weekly_sends claims the Monday send atomically; empty
+       week says "Nothing was counted this week." rather than
+       imitating data; drain-first sidecar degrades to a pass-through
+       pipe rather than taking nginx down.
+     * **Ratified:** (1) the three-field ephemeral stream reads as
+       within 201 — a request line is still never remembered, a count
+       of them now survives, which is what 201 permits; founder may
+       veto on sight of this entry. (2) Periodic flush + greatest():
+       right for auto-stop machines; noted honestly that a mid-day
+       restart keeps the larger partial, so weekly numbers are
+       FLOORS — fine for trend reads, never to be quoted as exact.
+       (5) The founder-ops copy subset for this email is correct, not
+       a loophole: no medical vocabulary, no urgency, no claims about
+       any person; the family law's banned words cannot bind an email
+       whose subject IS counts.
+     * Also noted with credit: the pre-existing CI red
+       (test_family_memory's cwd-relative source pin) found and fixed
+       in its own commit; tools/printables ruff debt correctly left
+       for a pass with its own re-render check.
+     * **Deploy plan — HELD until after dark-stage pass 1** (a
+       product deploy restarts kettle-api; the rehearsal is not to be
+       disturbed for a metrics job). Then, founder: apply 0022 via
+       Supabase Studio; set SITE_METRICS_TOKEN (same string, both
+       apps), SITE_METRICS_EMAIL (kettle-api), SITE_METRICS_ENDPOINT
+       (kettle-site); deploy product then site. First email lands the
+       Monday after.
