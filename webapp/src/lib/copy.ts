@@ -256,3 +256,40 @@ export function renderNothingIn(days: number): string {
 export function renderFixBody(name: string): string {
   return FIX_BODY.replace("{name}", name);
 }
+
+/* Spec 012 §9 (Memory v1.1). */
+
+/* The fourth tab's label, ruled VERBATIM by DECISIONS 211. The PAGE keeps the
+   DECISIONS-200 heading CONTACTS_TITLE above; the tab is the short name in the
+   rail, and the two are deliberately different strings for different jobs. */
+export const WHO_TO_CALL_TAB = "Who to call";
+
+/* The notes filters (§9.1). The four timeframes are the spec's own words; the
+   two numeric ones are the ONLY digits this app prints outside a date or a
+   clock, and they are exempted by name in the copy scan rather than by
+   widening the rule. FLAGGED in DECISIONS 214: spelling them ("Three months")
+   would need no exemption, and is a one-line change if the PM prefers it. */
+export const FILTER_ALL_PARENTS = "All";
+export const TIMEFRAME_THIS_MONTH = "This month";
+export const TIMEFRAME_3_MONTHS = "3 months";
+export const TIMEFRAME_6_MONTHS = "6 months";
+export const TIMEFRAME_ALL = "All";
+
+/* Accessible names for the two chip groups. Spec-silent and FLAGGED: the spec
+   names the filters, not the labels that introduce them. */
+export const FILTER_PARENT_LABEL = "Show notes about";
+export const FILTER_TIME_LABEL = "Show notes from";
+
+/* Shown when a filter is narrow enough to hide everything (§9.1 does not name
+   this case, so it is FLAGGED): the feed must not look broken or empty-by-
+   nature when the family has simply filtered past its own notes. */
+export const FILTER_EMPTY = "Nothing in this stretch. Try a longer one.";
+
+/* The contacts tab's own filter (§9.3 iii) and the per-contact tag, spec-silent
+   and FLAGGED. "Everyone" rather than "All" because a contact tagged to no
+   parent is for the whole household, which is a different idea from an
+   unfiltered list. */
+export const CONTACT_TAG_LABEL = "Who this is for";
+export const CONTACT_TAG_EVERYONE = "Everyone";
+export const CONTACT_MOVE_UP = "Move up";
+export const CONTACT_MOVE_DOWN = "Move down";

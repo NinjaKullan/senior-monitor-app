@@ -88,3 +88,70 @@ export function upcomingEntries(entries: JournalEntry[], todayDate: string): Jou
 export function pastEntries(entries: JournalEntry[], todayDate: string): JournalEntry[] {
   return entries.filter((e) => e.event_date === null || e.event_date < todayDate);
 }
+
+/* --- spec 012 §9.1: the notes filters ------------------------------------ */
+
+/** The four timeframes, as the chips offer them. `null` months = all time. */
+export const TIMEFRAMES = [
+  { id: "month", months: 1 },
+  { id: "3m", months: 3 },
+  { id: "6m", months: 6 },
+  { id: "all", months: null },
+] as const;
+
+export type TimeframeId = (typeof TIMEFRAMES)[number]["id"];
+
+/** DECISIONS 211: the view opens on All parents over three months. */
+export const DEFAULT_TIMEFRAME: TimeframeId = "3m";
+export const DEFAULT_PARENT_FILTER: string | null = null;
+
+/**
+ * The oldest date a timeframe admits, as an ISO day.
+ *
+ * "This month" means the calendar month `todayDate` falls in, not the last
+ * thirty days: on the 2nd, a family filtering to this month wants the 1st,
+ * not five weeks of history. The others are rolling windows back from today,
+ * which is what "3 months" reads as.
+ */
+export function timeframeStart(todayDate: string, id: TimeframeId): string | null {
+  const months = TIMEFRAMES.find((t) => t.id === id)?.months ?? null;
+  if (months === null) return null;
+  const [year, month, day] = todayDate.split("-").map(Number);
+  if (id === "month") return `${todayDate.slice(0, 7)}-01`;
+  // Date arithmetic in UTC so a browser west of Greenwich cannot roll the
+  // boundary a day, the way every other date in this app is handled.
+  //
+  // The day is CLAMPED to the target month's length first. Without it,
+  // Date.UTC overflows a short month — six months back from August 30th asks
+  // for February 30th and silently lands on March 2nd, quietly excluding two
+  // days of notes from a window the family believes is six months wide.
+  const targetMonth = month - 1 - months;
+  const lastDay = new Date(Date.UTC(year, targetMonth + 1, 0)).getUTCDate();
+  const start = new Date(Date.UTC(year, targetMonth, Math.min(day, lastDay)));
+  return start.toISOString().slice(0, 10);
+}
+
+/**
+ * Filter the feed by parent and timeframe (§9.1).
+ *
+ * Kettle's own lines carry a parent tag and filter with that parent, exactly
+ * as the spec requires — nothing here treats an authored note and a Kettle
+ * line differently, because the tag is the only thing being read.
+ *
+ * The timeframe is measured on `created_utc`, the day the note was WRITTEN,
+ * so an entry does not slip out of view because someone dated an event far
+ * ahead; upcoming entries are pulled out by `upcomingEntries` regardless.
+ */
+export function filterEntries(
+  entries: JournalEntry[],
+  todayDate: string,
+  parentId: string | null,
+  timeframe: TimeframeId,
+): JournalEntry[] {
+  const start = timeframeStart(todayDate, timeframe);
+  return entries.filter((entry) => {
+    if (parentId !== null && entry.parent_id !== parentId) return false;
+    if (start !== null && entry.created_utc.slice(0, 10) < start) return false;
+    return true;
+  });
+}

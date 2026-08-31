@@ -191,6 +191,10 @@ export interface ContactDraft {
   phone_e164: string;
   phone_display: string;
   note: string;
+  /** Spec 012 §9.3: null means the contact is for the whole household.
+   *  Parents living separately carry different numbers, so a contact belongs
+   *  to one of them or to everyone, and never to "the family" by default. */
+  parent_id: string | null;
 }
 
 /** The typed number, made href-safe: keep a leading +, drop everything that
@@ -208,12 +212,24 @@ export async function addContact(
 ): Promise<void> {
   const { error } = await supabase
     .from("family_contacts")
-    .insert({ family_id: familyId, parent_id: null, ...draft, position });
+    // parent_id now travels inside the draft (§9.3): the caller decides who a
+    // contact is for, and the old hardcoded null is gone. `position` is the
+    // rank the family put the rows in — 0021 already carries the column.
+    .insert({ family_id: familyId, ...draft, position });
   if (error) throw error;
 }
 
 export async function updateContact(id: number, draft: ContactDraft): Promise<void> {
   const { error } = await supabase.from("family_contacts").update(draft).eq("id", id);
+  if (error) throw error;
+}
+
+/** Reorder one contact (§9.3): the call-first / then / then order the family
+ *  chose. Position is written on its own so a move never rewrites the fields
+ *  a person typed, and RLS scopes the row the same way every other write is
+ *  scoped — by policy, never by a family_id the client supplies. */
+export async function moveContact(id: number, position: number): Promise<void> {
+  const { error } = await supabase.from("family_contacts").update({ position }).eq("id", id);
   if (error) throw error;
 }
 
