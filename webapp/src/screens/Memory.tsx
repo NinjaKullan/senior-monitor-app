@@ -7,33 +7,62 @@
  * A companion to the daily note, never a care-coordination suite; it asks
  * nothing of the parent, ever.
  */
-import { ContactsCard } from "@/components/ContactsCard";
+import { useState } from "react";
+import { FilterChips } from "@/components/FilterChips";
 import { NotesPanel, type NoteDraft, type TagOption } from "@/components/NotesPanel";
-import { AUTHOR_FALLBACK, MEMORY_EMPTY, MEMORY_TITLE, NOTES_SUB } from "@/lib/copy";
-import type { ContactDraft } from "@/lib/data";
-import type { FamilyContact, JournalEntry } from "@/lib/types";
+import {
+  AUTHOR_FALLBACK,
+  FILTER_ALL_PARENTS,
+  FILTER_EMPTY,
+  FILTER_PARENT_LABEL,
+  FILTER_TIME_LABEL,
+  MEMORY_EMPTY,
+  MEMORY_TITLE,
+  NOTES_SUB,
+  TIMEFRAME_3_MONTHS,
+  TIMEFRAME_6_MONTHS,
+  TIMEFRAME_ALL,
+  TIMEFRAME_THIS_MONTH,
+} from "@/lib/copy";
+import {
+  DEFAULT_PARENT_FILTER,
+  DEFAULT_TIMEFRAME,
+  filterEntries,
+  type TimeframeId,
+} from "@/lib/journal";
+import type { JournalEntry } from "@/lib/types";
+
+/** The four timeframes, chip id to the words DECISIONS 211 ruled the view
+ *  opens on ("3 months"). Ids are the journal lib's, labels are copy. */
+const TIMEFRAME_OPTIONS = [
+  { id: "month", label: TIMEFRAME_THIS_MONTH },
+  { id: "3m", label: TIMEFRAME_3_MONTHS },
+  { id: "6m", label: TIMEFRAME_6_MONTHS },
+  { id: "all", label: TIMEFRAME_ALL },
+];
 
 export function MemoryScreen({
   parentLabels,
   journal,
-  contacts,
   todayDate,
   onAddNote,
-  onAddContact,
-  onUpdateContact,
-  onRemoveContact,
 }: {
-  /** parentId → display name, for tags and the composer's picker. */
+  /** parentId → display name, for tags, filters and the composer's picker. */
   parentLabels: { parentId: string; label: string }[];
   journal: JournalEntry[];
-  contacts: FamilyContact[];
   todayDate: string;
   onAddNote: (draft: NoteDraft) => Promise<void>;
-  onAddContact: (draft: ContactDraft) => Promise<void>;
-  onUpdateContact: (id: number, draft: ContactDraft) => Promise<void>;
-  onRemoveContact: (id: number) => Promise<void>;
 }) {
+  // DECISIONS 211: All parents over three months, All-time one tap away.
+  const [parentFilter, setParentFilter] = useState<string | null>(DEFAULT_PARENT_FILTER);
+  const [timeframe, setTimeframe] = useState<TimeframeId>(DEFAULT_TIMEFRAME);
   const labelById = new Map(parentLabels.map((p) => [p.parentId, p.label]));
+  const shown = filterEntries(journal, todayDate, parentFilter, timeframe);
+  // Two different silences, and they must not read the same. Nothing written
+  // yet is the ruled MEMORY_EMPTY line; nothing in THIS window is a filter
+  // that went too narrow, and saying "the first ones arrive on their own" to
+  // a family with a year of notes would be false.
+  const emptyLine = journal.length === 0 ? MEMORY_EMPTY : FILTER_EMPTY;
   const tagOptions: TagOption[] = [
     ...parentLabels.map((p) => ({ parentId: p.parentId, label: p.label })),
     { parentId: null, label: AUTHOR_FALLBACK },
@@ -50,17 +79,10 @@ export function MemoryScreen({
         {NOTES_SUB}
       </div>
 
-      <div style={{ marginTop: "1.25rem" }}>
-        <ContactsCard
-          contacts={contacts}
-          onAdd={onAddContact}
-          onUpdate={onUpdateContact}
-          onRemove={onRemoveContact}
-        />
-      </div>
+      {/* Spec 012 §9.3: the contacts sheet left this page for its own tab. */}
 
       <NotesPanel
-        entries={journal}
+        entries={shown}
         todayDate={todayDate}
         onAdd={onAddNote}
         tagOptions={tagOptions}
@@ -70,7 +92,34 @@ export function MemoryScreen({
             : (labelById.get(entry.parent_id) ?? AUTHOR_FALLBACK)
         }
         monthSeparators
-        emptyLine={MEMORY_EMPTY}
+        emptyLine={emptyLine}
+        // Spec 012 §9.4: the page above already carries this sentence, so the
+        // card no longer prints a second copy of it.
+        showSubtitle={false}
+        scrollList
+        filters={
+          <div style={{ display: "grid", gap: "0.375rem", marginBottom: "0.75rem" }}>
+            {parentLabels.length > 1 && (
+              <FilterChips
+                groupLabel={FILTER_PARENT_LABEL}
+                options={[
+                  { id: "", label: FILTER_ALL_PARENTS },
+                  ...parentLabels.map((p) => ({ id: p.parentId, label: p.label })),
+                ]}
+                selected={parentFilter ?? ""}
+                onSelect={(id) => setParentFilter(id === "" ? null : id)}
+                testId="notes-parent-filter"
+              />
+            )}
+            <FilterChips
+              groupLabel={FILTER_TIME_LABEL}
+              options={TIMEFRAME_OPTIONS}
+              selected={timeframe}
+              onSelect={(id) => setTimeframe(id as TimeframeId)}
+              testId="notes-time-filter"
+            />
+          </div>
+        }
       />
     </div>
   );

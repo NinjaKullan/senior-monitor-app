@@ -10,11 +10,12 @@ import {
   saveCityLabel,
   savePlace,
   sendMagicLink,
+  moveContact,
   updateContact,
   type ContactDraft,
   type FamilySnapshot,
 } from "@/lib/data";
-import { AUTO_NOTE_AUTHOR, CITY_CHANGED_NOTE, TAGLINE } from "@/lib/copy";
+import { AUTO_NOTE_AUTHOR, CITY_CHANGED_NOTE, TAGLINE, WHO_TO_CALL_TAB } from "@/lib/copy";
 import { isKnownIana, type CityEntry } from "@/lib/cities";
 import { computeParentToday, computeRollup, type ParentToday } from "@/lib/parentState";
 import { buildSetupEntries } from "@/lib/setupLinks";
@@ -28,6 +29,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { FamilyScreen } from "@/screens/Family";
 import { MemoryScreen } from "@/screens/Memory";
+import { WhoToCallScreen } from "@/screens/WhoToCall";
 import { Login } from "@/screens/Login";
 import { NoFamily } from "@/screens/NoFamily";
 import { ParentDetail } from "@/screens/ParentDetail";
@@ -44,13 +46,17 @@ const REFRESH_MS = 45_000;
 /** The v5 layout switches from bottom tabs to the sidebar rail here. */
 const WIDE_MIN_PX = 760;
 
-type Tab = "today" | "memory" | "family";
+type Tab = "today" | "memory" | "who" | "family";
 
 // Spec 012 §2: the journal is a place now, so the nav names it — Today for
 // the day, Memory for the record, Family for the household's settings.
 const TABS: { id: Tab; label: string }[] = [
   { id: "today", label: "Today" },
   { id: "memory", label: "Memory" },
+  // Spec 012 §9.3, label ruled VERBATIM by DECISIONS 211. It sits beside
+  // Memory because that is where it used to live, and before Family because
+  // it is something a family reaches for, not something they configure.
+  { id: "who", label: WHO_TO_CALL_TAB },
   { id: "family", label: "Family" },
 ];
 
@@ -284,6 +290,23 @@ export default function App() {
     await refresh();
   };
 
+  // Spec 012 §9.3: the call-first order. A move SWAPS the two rows' positions
+  // rather than renumbering the list, so one move is two writes and never
+  // touches a row the family did not point at. Positions can arrive equal
+  // (0021 defaults them to 0), so the neighbour is found in the list's own
+  // rendered order and the swap writes distinct ranks either way.
+  const moveContactRow = async (id: number, direction: -1 | 1) => {
+    const ordered = (snapshot?.contacts ?? [])
+      .slice()
+      .sort((a, b) => a.position - b.position || a.id - b.id);
+    const index = ordered.findIndex((contact) => contact.id === id);
+    const swapWith = ordered[index + direction];
+    if (index === -1 || !swapWith) return;
+    await moveContact(id, index + direction);
+    await moveContact(swapWith.id, index);
+    await refresh();
+  };
+
   const navigate = (next: Tab) => {
     setTab(next);
     setOpenParentId(null);
@@ -313,12 +336,18 @@ export default function App() {
         <MemoryScreen
           parentLabels={states.map((s) => ({ parentId: s.parentId, label: s.label }))}
           journal={snapshot.journal}
-          contacts={snapshot.contacts}
           todayDate={todayDate}
           onAddNote={addNote}
+        />
+      )}
+      {tab === "who" && (
+        <WhoToCallScreen
+          parentLabels={states.map((s) => ({ parentId: s.parentId, label: s.label }))}
+          contacts={snapshot.contacts}
           onAddContact={addContactRow}
           onUpdateContact={updateContactRow}
           onRemoveContact={removeContactRow}
+          onMoveContact={moveContactRow}
         />
       )}
       {tab === "family" && (
