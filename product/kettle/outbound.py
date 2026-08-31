@@ -218,6 +218,7 @@ def _twilio_transport(settings: Any) -> Transport:
         settings.twilio_account_sid,
         settings.twilio_auth_token,
         settings.twilio_whatsapp_from,
+        ask_content_sid=settings.twilio_ask_content_sid,
     )
 
 

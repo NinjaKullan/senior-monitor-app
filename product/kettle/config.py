@@ -54,6 +54,14 @@ class Settings:
     twilio_account_sid: str
     twilio_auth_token: str
     twilio_whatsapp_from: str
+    # Wave D Phase 2 (spec 011 §4): the approved ask template's Content SID.
+    # THIS setting is the switch between the two send shapes, and it is config
+    # rather than code (DECISIONS 208): set, the ask goes as a template — the
+    # only thing a real registered number may use to START a conversation;
+    # unset, the transport sends a body exactly as the sandbox always has.
+    # The sandbox path is therefore untouched and stays functional until the
+    # Phase 3 sunset, and rolling back the real number is emptying one var.
+    twilio_ask_content_sid: str
     # The shared secret the reply webhook requires. Empty — the default — means
     # the endpoint does not exist: an unauthenticated route that can cancel a
     # follow-on would let anyone who knows a number suppress an escalation.
@@ -104,6 +112,7 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         twilio_account_sid=src.get("TWILIO_ACCOUNT_SID", "").strip(),
         twilio_auth_token=src.get("TWILIO_AUTH_TOKEN", "").strip(),
         twilio_whatsapp_from=src.get("TWILIO_WHATSAPP_FROM", "").strip(),
+        twilio_ask_content_sid=src.get("TWILIO_ASK_CONTENT_SID", "").strip(),
         outbound_reply_token=src.get("OUTBOUND_REPLY_TOKEN", "").strip(),
         memory_first_reply=_flag(src, "MEMORY_FIRST_REPLY", default=False),
         waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
