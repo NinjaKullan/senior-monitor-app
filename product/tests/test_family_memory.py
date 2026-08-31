@@ -202,7 +202,12 @@ def test_the_gate_defaults_off_in_config_and_rides_the_reply_route():
     base = {"DATABASE_URL": "postgresql://x/y"}
     assert settings_from_env(base).memory_first_reply is False
     assert settings_from_env({**base, "MEMORY_FIRST_REPLY": "1"}).memory_first_reply is True
-    source = Path("kettle/main.py").read_text()
+    # Anchored to THIS file, not to the working directory. `Path("kettle/
+    # main.py")` resolved only when pytest happened to be invoked from
+    # product/, and CI invokes it from the repo root — so the source pin that
+    # is the whole point of this assertion was raising FileNotFoundError
+    # instead of checking anything.
+    source = (Path(__file__).resolve().parent.parent / "kettle" / "main.py").read_text()
     assert "note_first_reply=cfg.memory_first_reply" in source
 
 
