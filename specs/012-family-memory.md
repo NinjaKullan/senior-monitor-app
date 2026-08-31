@@ -136,3 +136,47 @@ verbatim. (c) Empty-state line in §2. (d) Contacts card heading "If
 you can't reach them" (mirrors the printable). Once ratified: file
 the DECISIONS entry, then CC builds from pushed git after Wave D
 Phase 2 — Wave D keeps priority for CC's queue.
+
+
+## 9. v1.1 follow-ups (founder feedback on the live tab, 2026-08-31)
+
+Filed from first real use (Asana 1218017356495916). Build AFTER Wave
+D flip + sunset; one CC pass, PM-reviewed, same laws as v1.
+
+**9.1 Family-notes filters.** Kids filter the notes by (a) parent —
+one chip per parent plus All — and (b) timeframe: This month / 3
+months / 6 months / All. Kettle-authored lines carry their parent tag
+and filter with the parent. Server-side or client-side filtering is
+CC's call at current data sizes; the RLS posture is unchanged either
+way. RULING NEEDED (a): the default view. PM proposes All parents ×
+3 months, All-time one tap away.
+
+**9.2 Notes list scrolls inside its card.** The list grows without
+bound; the card gets a max-height with internal scroll, month
+headers stay as dividers inside the scroll region, and the composer
+(input + date + Add) stays pinned and reachable at the bottom.
+
+**9.3 "If you can't reach them" becomes its own tab.** Founder
+framing, recorded verbatim in intent: this is an escalation ladder
+camouflaged as a contact list. Changes: (i) `family_contacts` gains
+`parent_id` (nullable FK — null means whole-family) and `rank`
+(the call-first / then / then order); migration + RLS mirror 0021.
+(ii) The section moves off Memory into a fourth tab alongside Today /
+Memory / Family; the page keeps the DECISIONS-200 verbatim heading
+"If you can't reach them". (iii) Kids can tag contacts per parent,
+order them, and filter by parent — parents living separately carry
+different numbers. RULING NEEDED (b): the tab's short label (new
+user-visible string; must pass copy laws — nothing in the alarm/
+emergency register). The heading itself is NOT reopened.
+
+**9.4 Polish.** The sentence "The family's memory. Everyone in the
+family can read and add." currently appears twice on the Memory page
+(page subtitle and Family Notes card subtitle). It appears once
+after this pass — PM proposes keeping the page subtitle, dropping
+the card's.
+
+Out of scope for v1.1, unchanged from §7: photos, family circle,
+MCP read, reactions/threads, digest hooks. The related-but-separate
+"kids own the ask" work (per-parent ask timing, stand-down, toggles)
+is its own spec candidate (013; Asana 1218030916899056) because it
+touches the ladder, not the journal.
