@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 206.** This line is the one to update; the `Next number:` lines inside
+**Next number: 208.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3116,3 +3116,58 @@ browser — all three adopted as the standard for future surfaces.**
      * Watch item: Twilio banner "Finish compliance for 1 number and
        sender" on the Senders page — likely routine number compliance;
        founder to glance on a future console visit.
+
+206. **(2026-08-30, founder) The ask copy is reworded: "whenever
+     suits" becomes "when you're free". v4 submitted; v3 stays in
+     review as fallback.**
+     * Founder's reasoning: "suits" can be hard to understand for
+       some readers; "when you're free" says the same thing in
+       plainer words. PM concurred — "whenever suits" was the one
+       phrase in the ask with a British/Indian English flavor; the
+       replacement keeps the same no-pressure register and stays
+       fully law-clean.
+     * **The ruled string, VERBATIM (supersedes the 151/200-era ask
+       body wherever the v4 template is the sender):**
+       "Everything okay today? Reply with a 👍 when you're free."
+       Straight apostrophe U+0027 (as the founder typed it), bare
+       U+1F44D, 55 codepoints. 👍-or-silence (197) unchanged; no
+       button (205) unchanged.
+     * **kettle_ask_parent_v4**, Content SID
+       **HXdb4e38c90d0ccc51bbcd264a002d0a8a**, twilio/text, language
+       en, category Utility, submitted 2026-08-30 12:39:20 EDT, body
+       codepoint-verified before submit. Confirmed In review on the
+       HeyKettle WABA alongside v3 — both genuinely with Meta.
+     * **Precedence:** v4 is the shipping template. v3 (old wording)
+       rides its review purely as fallback — it ships ONLY if v4 is
+       rejected and v3 approved, and then only after a fresh founder
+       ruling. If both approve, v3 is simply never used (delete at
+       leisure). docs/wave-d-phase-2-handoff.md updated to carry v4.
+
+207. **(2026-08-30, ~4pm ET, PM at the Meta console on the scheduled
+     check) BOTH ask templates APPROVED — and Meta recategorized both
+     Utility → Marketing at approval.**
+     * WhatsApp Manager, HeyKettle WABA: kettle_ask_parent_v4 and
+       kettle_ask_parent_v3 both show **Active - Quality pending**
+       (approved and usable; quality rating accrues with sends). Both
+       rows show **category Marketing** with a category-change notice —
+       the submissions went in as Utility with allow_category_change
+       on, and Meta's review judged an open-ended daily check-in to be
+       Marketing. The copy itself passed review untouched.
+     * Precedence unchanged (206): **v4 ships** ("when you're free");
+       v3 is never used and can be deleted at leisure along with
+       v1/v2.
+     * **Cost consequence, for the Day-30 memo watch list:** Marketing
+       per-message rates are materially higher than Utility (several
+       times, US rates; exact current per-message figures to be read
+       off Twilio's pricing page before the memo). At one ask per
+       parent per day this is still cents per parent per month — not a
+       beta blocker, but it belongs in unit economics. Remedy paths if
+       ever needed: request recategorization under Account tools →
+       Category updates (rarely granted for open-ended check-ins), or
+       live with Marketing. Founder's call later; nothing gates on it.
+     * **Gate status:** Meta is the authority and says approved, but
+       the Phase 2 gate reads "shows Approved in Twilio", and sends go
+       through Twilio's view of the template — the PM's Twilio console
+       session expired, so the ten-second Twilio glance (v4 page shows
+       Approved) is the founder's last box to tick before pasting the
+       handoff to CC. Handoff category line updated to Marketing.

@@ -172,12 +172,39 @@ describe("the chrome obeys the site's laws — the body alone is exempt", () => 
     }
   });
 
-  it("both pages stand alone: no scripts, no stylesheets, no absolute URLs", () => {
+  /**
+   * The posture, with the one hole canonicals opened.
+   *
+   * Blog pages now carry `<link rel="canonical">` (PM ruling, 2026-08-30:
+   * canonicals are policy for the homepage and blog pages; resource pages
+   * stay bare). That is a `<link` and an absolute URL, so the flat bans this
+   * assertion used to make would fail on a page that is correct. The bans
+   * are therefore narrowed rather than dropped: the canonical is removed
+   * first, and everything else must still hold. A second `<link`, a script,
+   * or any other absolute URL still fails, and the canonical itself is
+   * checked for shape and origin below.
+   */
+  const CANONICAL = /<link rel="canonical" href="https:\/\/heykettle\.com\/[^"]*" \/>/;
+
+  it("both pages stand alone: no scripts, no stylesheets, no other absolute URLs", () => {
     for (const html of [article(), index()]) {
-      expect(html).not.toMatch(/<script/i);
-      expect(html).not.toMatch(/<link/i);
-      expect(html).not.toMatch(/https?:\/\//i);
+      const rest = html.replace(CANONICAL, "");
+      expect(rest).not.toMatch(/<script/i);
+      expect(rest).not.toMatch(/<link/i);
+      expect(rest).not.toMatch(/https?:\/\//i);
     }
+  });
+
+  it("the article's canonical names its own URL, and the index has none", () => {
+    const found = article().match(CANONICAL);
+    expect(found, "the post lost its canonical").not.toBeNull();
+    expect(found![0]).toContain(
+      'href="https://heykettle.com/blog/the-call-ive-rehearsed-and-never-made/"',
+    );
+    // One canonical, not two.
+    expect(article().match(/rel="canonical"/g)!.length).toBe(1);
+    // The register page is not a canonical target; it stays bare.
+    expect(index()).not.toMatch(/rel="canonical"/);
   });
 
   it("the exemption is load-bearing: the body would fail the chrome scan", () => {

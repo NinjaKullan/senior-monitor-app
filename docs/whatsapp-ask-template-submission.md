@@ -140,3 +140,10 @@ twilio/text, no buttons, body verbatim, Utility) submitted
 WABA in WhatsApp Manager — the first submission to genuinely reach
 Meta. The v3 supersedes this page's button row; body, name lineage,
 and category on this page otherwise stand.
+
+**Reword (same day, DECISIONS 206):** founder changed the body to
+"Everything okay today? Reply with a 👍 when you're free." —
+`kettle_ask_parent_v4` (HXdb4e38c90d0ccc51bbcd264a002d0a8a,
+twilio/text, no buttons, Utility) submitted 2026-08-30 12:39:20 EDT,
+In review on Meta alongside v3. v4 is the shipping template; v3 is
+fallback only.
