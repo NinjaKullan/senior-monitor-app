@@ -102,6 +102,9 @@ export function NotesPanel({
   tagLabelFor,
   monthSeparators,
   emptyLine,
+  showSubtitle = true,
+  filters,
+  scrollList = false,
 }: {
   entries: JournalEntry[];
   todayDate: string;
@@ -114,6 +117,17 @@ export function NotesPanel({
    *  its scoped panel exactly as it was. */
   monthSeparators?: boolean;
   emptyLine?: string;
+  /** Spec 012 §9.4: the Memory page already carries this sentence as its
+   *  subtitle, so the card drops its copy rather than printing it twice. The
+   *  parent page, which has no such subtitle, keeps it. */
+  showSubtitle?: boolean;
+  /** Spec 012 §9.1: the filter chips, rendered above the scroll region so
+   *  they stay put while the list moves under them. */
+  filters?: React.ReactNode;
+  /** Spec 012 §9.2: the list grows without bound, so on Memory it scrolls
+   *  inside the card. Month dividers ride INSIDE the scroll region and the
+   *  composer stays outside it, pinned and always reachable. */
+  scrollList?: boolean;
 }) {
   const [body, setBody] = useState("");
   const [author, setAuthor] = useState(storedAuthor);
@@ -165,10 +179,28 @@ export function NotesPanel({
       >
         {NOTES_TITLE}
       </h3>
-      <div style={{ fontSize: "0.78125rem", color: "var(--mute)", marginBottom: "0.625rem" }}>
-        {NOTES_SUB}
-      </div>
+      {showSubtitle && (
+        <div style={{ fontSize: "0.78125rem", color: "var(--mute)", marginBottom: "0.625rem" }}>
+          {NOTES_SUB}
+        </div>
+      )}
 
+      {filters}
+
+      {/* Spec 012 §9.2. The scroll region holds the upcoming strip, the empty
+          line and the whole past feed WITH its month dividers; the composer
+          below is deliberately outside it, so it stays pinned and reachable
+          no matter how far the family has scrolled back. maxHeight is in rem
+          so it tracks the reader's own text size, and overscroll-behavior
+          keeps a flick at the end of the list from scrolling the page. */}
+      <div
+        style={
+          scrollList
+            ? { maxHeight: "32rem", overflowY: "auto", overscrollBehavior: "contain" }
+            : undefined
+        }
+        data-testid={scrollList ? "notes-scroll" : undefined}
+      >
       {upcoming.map((entry) => (
         <div
           key={`up-${entry.id}`}
@@ -244,6 +276,8 @@ export function NotesPanel({
           </div>
         </div>
       ))}
+
+      </div>
 
       <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem", flexWrap: "wrap" }}>
         <input
