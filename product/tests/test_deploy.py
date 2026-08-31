@@ -116,6 +116,8 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         twilio_ask_content_sid="",
         outbound_reply_token="",
         memory_first_reply=False,
+        site_metrics_token="",
+        site_metrics_email="",
         waitlist_origins=("https://heykettle.com",),
     )
     with TestClient(create_app(settings, notifier)) as fresh_client:

@@ -25,13 +25,27 @@ TABLES = (
     "sent_messages",
     "journal_entries",
     "family_contacts",
+    "site_daily_counts",
+    "site_weekly_sends",
 )
 
 
-# Everything except the two service-only tables: no policy and, after migration
+# Everything except the service-only tables: no policy and, after migration
 # 0004, no privilege either. `ops_alerts` is the founder's plumbing log (law #3);
 # `waitlist` is strangers' email addresses that no client ever reads (spec 006).
-SERVICE_ONLY_TABLES = ("ops_alerts", "waitlist", "sent_messages")
+# The two `site_*` tables (0022) join them for a different reason: they are not
+# family data at all. Page counts belong to the founder, say nothing about any
+# person, and no family session has any business seeing that they exist — so
+# they get RLS with no policies and no grants, which denies everyone but the
+# service role. Membership in THIS tuple is what test_deploy checks that
+# against, so a later migration that quietly granted them away would fail here.
+SERVICE_ONLY_TABLES = (
+    "ops_alerts",
+    "waitlist",
+    "sent_messages",
+    "site_daily_counts",
+    "site_weekly_sends",
+)
 FAMILY_TABLES = tuple(t for t in TABLES if t not in SERVICE_ONLY_TABLES)
 
 # Actual granted privileges on public tables and sequences, straight from the

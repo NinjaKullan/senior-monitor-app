@@ -96,6 +96,8 @@ def settings(database_url: str) -> Settings:
         # is armed at the Phase 3 flip; tests that exercise it pass
         # note_first_reply=True at the call.
         memory_first_reply=False,
+        site_metrics_token="",
+        site_metrics_email="",
         # The landing page is the only browser that calls this API (spec 006).
         waitlist_origins=("https://heykettle.com",),
     )
