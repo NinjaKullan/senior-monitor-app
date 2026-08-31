@@ -73,6 +73,16 @@ class Settings:
     # unchanged underneath — the gate decides WHEN the first countable reply
     # can happen, the schema still guarantees it counts once.
     memory_first_reply: bool
+    # DECISIONS 201/211's weekly site summary. The token authenticates the
+    # site container's counter to `POST /site-metrics/daily` and is shared
+    # between the two apps; empty means the endpoint does not exist (404), the
+    # same fail-closed shape `outbound_reply_token` uses and for the same
+    # reason — an unauthenticated counts endpoint is a way to write junk into
+    # the founder's only numbers. The address is where the Monday email goes;
+    # empty means no weekly email is sent, so an unconfigured deploy is quiet
+    # rather than broken. Neither has a default: they are founder values.
+    site_metrics_token: str
+    site_metrics_email: str
     # Browser origins allowed to POST /waitlist. An explicit list, not a
     # wildcard: this is the only route a browser ever calls, and the landing
     # page is served from origins we control (spec 006 §7).
@@ -115,6 +125,8 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         twilio_ask_content_sid=src.get("TWILIO_ASK_CONTENT_SID", "").strip(),
         outbound_reply_token=src.get("OUTBOUND_REPLY_TOKEN", "").strip(),
         memory_first_reply=_flag(src, "MEMORY_FIRST_REPLY", default=False),
+        site_metrics_token=src.get("SITE_METRICS_TOKEN", "").strip(),
+        site_metrics_email=src.get("SITE_METRICS_EMAIL", "").strip(),
         waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
     )
 
