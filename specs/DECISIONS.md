@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 214.** This line is the one to update; the `Next number:` lines inside
+**Next number: 215.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3422,3 +3422,86 @@ browser — all three adopted as the standard for future surfaces.**
        apps), SITE_METRICS_EMAIL (kettle-api), SITE_METRICS_ENDPOINT
        (kettle-site); deploy product then site. First email lands the
        Monday after.
+
+214. **(2026-08-31, Claude Code, PM-ordered) Memory v1.1 built: spec 012 §9,
+     all four items.** Webapp 158 → 180; product 555 → 559 (the four new ones
+     are RLS). Nothing deployed. Five flags, one of which changes what the
+     pass contains:
+
+     * **FLAG 1 — 9.3(i)'s migration was already shipped, so there is NO new
+       migration in this pass.** The order and the spec both call for
+       `family_contacts` to GAIN a nullable `parent_id` FK and a `rank`, with
+       RLS mirroring 0021. Reading 0021 rather than assuming: it already has
+       `parent_id uuid references parents(id)` (nullable), already has insert
+       AND update policies checking that the parent belongs to the same
+       family, and already has `position integer not null default 0`, which is
+       the rank under a different name. The read surface in
+       `webapp/src/lib/queries.ts` already selects both columns. What was
+       missing was entirely in the app: `addContact` hardcoded
+       `parent_id: null` and nothing ever wrote or read `position`. So the
+       schema work for 9.3 is zero and the pass is webapp-only there. **PM
+       call wanted:** rename `position` to `rank` for vocabulary alignment
+       with the spec? Recommendation is NO — the column works, the app and the
+       read surface already speak `position`, and a rename is churn with
+       deploy risk for a word. Filed rather than done either way.
+
+     * **FLAG 2 — the timeframe chips print the only bare numerals in the
+       app.** "3 months" and "6 months" are the spec's own words, and the copy
+       law's digit ban (`strayDigits`, DECISIONS 167) allows digits only
+       inside a clock time or an ISO date, so those two strings would fail the
+       scan. The ban exists so a PHONE NUMBER can never reach the screen as
+       text, which a filter chip is not. Resolved the way every other
+       legitimate numeral here is resolved — a narrow named pattern in the
+       scan (`TIMEFRAME_DIGITS = /\b[36] months\b/`), pinned by a test to
+       exactly those two copy keys, with a plant proving a widened pattern
+       goes red and that the exemption does not swallow a phone number, a
+       count, or a bare year. Spelling them ("Three months", "Six months")
+       would need no exemption at all and is a one-line change if the PM
+       prefers it; only "Who to call" was marked VERBATIM, so these were read
+       as descriptive.
+
+     * **FLAG 3 — the contacts card had to lose its own heading.** Moving the
+       section to its own tab put the DECISIONS-200 line "If you can't reach
+       them" on the page AND in the card, which is exactly the duplication
+       9.4 exists to remove, one section down. The card's `<h3>` is gone and
+       the page keeps the heading. Caught by a test failure, not by reading.
+
+     * **FLAG 4 — spec-silent strings, each flagged as written.** The parent
+       chip "All"; the two chip-group labels "Show notes about" and "Show
+       notes from"; the per-contact tag control "Who this is for" with
+       "Everyone" for an untagged row; "Move up" / "Move down". Also
+       `FILTER_EMPTY` — "Nothing in this stretch. Try a longer one." — which
+       the spec does not name at all but the build needs: a family that
+       filters past its own history must not be told the ruled MEMORY_EMPTY
+       line about first notes arriving on their own, because with a year of
+       notes on file that sentence is false. Two silences, two sentences.
+
+     * **FLAG 5 — a date bug found while testing, fixed.** Six months back
+       from August 30th asks `Date.UTC` for February 30th, which overflows to
+       March 2nd and silently excludes two days from a window the family
+       believes is six months wide. The day is now clamped to the target
+       month's length. "This month" is the calendar month, not a rolling
+       thirty days — on the 2nd a family filtering to this month wants the
+       1st.
+
+     Two build decisions worth recording. A household contact (`parent_id`
+     null) shows under EVERY parent's filter, not just under All: the
+     neighbour with a key is who you call about either parent, and hiding that
+     row while filtered to one of them would be the list lying about who is
+     reachable. And a reorder SWAPS two rows' positions rather than
+     renumbering the list, so one move is two writes and never touches a row
+     the family did not point at.
+
+     Filtering is client-side, which §9.1 leaves to CC: the journal read is
+     already a bounded newest-first window (DECISIONS 160) and the contacts
+     read is a handful of rows, so at pilot sizes a server round trip per chip
+     tap would cost latency and buy nothing. The RLS posture is unchanged
+     either way, as the spec says. Four RLS tests now cover both tables in
+     both directions, including the two cross-family tag writes v1.1 makes
+     reachable for the first time; seven planted regressions each turned a
+     guardrail red before being reverted.
+
+     Sequencing note: spec §9 says "build AFTER Wave D flip + sunset", and the
+     order overrode that to build now with deploys held. Nothing here depends
+     on the dark stage, so the build sits in the repo behind the same hold as
+     the log-summary job (213).

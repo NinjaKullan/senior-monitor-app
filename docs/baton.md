@@ -120,6 +120,23 @@ address, no user agent, no query string) where it previously wrote none, and
 the site image gained python3 for the counter. Both are FLAG 1 and the
 Dockerfile note in 212. Deploy is a founder step after PM review, post-Wave-D.
 
+**Memory v1.1 is BUILT and unshipped (DECISIONS 214).** Spec 012 §9, all four
+items: the notes filter by parent and timeframe (opening on All parents × 3
+months per 211), the notes card scrolls inside itself with the composer pinned
+below the scroll region, "If you can't reach them" is now its own tab labelled
+"Who to call", and the sentence that appeared twice on Memory appears once.
+
+**No migration in this pass, and that is deliberate** — 0021 already gave
+`family_contacts` a nullable `parent_id` with policies that check the parent
+belongs to the family, plus `position`, which is the rank the spec calls for.
+v1.1 simply starts WRITING both from the browser, so policies that were dormant
+are now load-bearing and are covered by four new RLS tests. Nothing is owed to
+the database: this is a webapp-only deploy when the hold lifts, and it rides
+the same hold as the log-summary job (213) — after the dark-stage pass.
+
+One PM call is open in 214: whether to rename `position` to `rank` for
+vocabulary alignment with the spec. The recommendation is no.
+
 ## 3. Live state — do not break
 
 * **Both parents are live in production.** Amma on the old per-app keys (never rebuilt
