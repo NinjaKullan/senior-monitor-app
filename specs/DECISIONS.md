@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 215.** This line is the one to update; the `Next number:` lines inside
+**Next number: 216.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3505,3 +3505,32 @@ browser — all three adopted as the standard for future surfaces.**
      order overrode that to build now with deploys held. Nothing here depends
      on the dark stage, so the build sits in the repo behind the same hold as
      the log-summary job (213).
+
+215. **(2026-08-31, PM review of Memory v1.1 + founder string rulings)
+     PASS — no-migration finding verified; all five flags settled.**
+     * Verified in the tree: 0021 already carried parent_id (nullable
+       FK), position, and the same-family insert/update policies — the
+       §9.3(i) migration premise was the SPEC's error, found by CC
+       reading the schema rather than trusting the spec. Ratified:
+       zero DDL, webapp-only deploy. Also verified: the date clamp
+       (six months back from Aug 30 no longer lands on March 2), the
+       filters keying on parent tag never kind, the composer pinned
+       outside the scroll, the removed duplicate heading (9.4's own
+       logic one section down), and the household-contact rule (an
+       untagged contact shows under every parent's filter — the
+       neighbour with a key is who you call about either parent).
+     * **PM ratified:** position stays position (rename to rank is
+       churn with deploy risk for a word); reorder-by-swap; client-
+       side filtering at current data sizes.
+     * **Founder ruled:** the two digit chips stay "3 months" /
+       "6 months" under CC's narrow tested exemption (the digit ban
+       exists so a phone number never renders as text; a filter chip
+       is not that, and the plant proves the exemption cannot widen).
+       And the spec-silent strings are approved AS WRITTEN, verbatim:
+       "All" · "This month" · "3 months" · "6 months" · "Show notes
+       about" · "Show notes from" · "Who this is for" · "Everyone" ·
+       "Move up" · "Move down" · and the filtered-empty line
+       "Nothing in this stretch. Try a longer one."
+     * Deploy: webapp-only, HELD behind the same dark-stage hold as
+       the log-summary job. After the hold clears: `cd webapp && fly
+       deploy` — no DDL, no secrets for this one.
