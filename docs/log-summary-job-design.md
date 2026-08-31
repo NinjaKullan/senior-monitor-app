@@ -65,6 +65,18 @@ remains a page that fetches nothing — the sidecar is server-side.
   week), allowlist excludes everything not on it.
 - New secret: SITE_METRICS_TOKEN on both apps (Hema sets).
 
+## Storage budget (Supabase free plan, checked 2026-08-31)
+
+One row per path per day, counts only. Allowlist today = 20 sitemap
+pages + 8 PDFs + one "other" bucket ≈ 30 rows/day ceiling (fewer in
+practice: no traffic, no row). At ~100-200 bytes/row with indexes,
+a full year is ~11k rows ≈ 2 MB against the free tier's 500 MB —
+under 1% per decade. sent_messages grows faster than this table.
+Pressure valve if the site ever has hundreds of pages: roll dailies
+into weekly rows after ~6 months and prune the dailies — the weekly
+email never needed finer grain than that anyway. No storage reason
+to leave the free plan.
+
 ## Open founder decisions (small)
 
 1. Email day/time: Monday 9am ET proposed.
