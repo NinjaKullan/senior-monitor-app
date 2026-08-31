@@ -17,4 +17,24 @@ RUN chmod -R a+rX /usr/share/nginx/html
 # become an image, so `fly deploy` fails at build instead of at serve. The
 # behavioral half (host dispatch, the 148 loop) lives in the site suite.
 RUN nginx -t
+
+# The counter sidecar (DECISIONS 201/211/212, docs/log-summary-job-design.md
+# option C). One interpreter and one file, no new app and no new storage: it
+# runs nginx as its child, reads the three-field access log off its stdout,
+# tallies allowlisted paths in memory, and POSTs counts to kettle-api. python3
+# is the one dependency added to this image, and it earns it by being the
+# whole runtime — stdlib urllib for the POST, stdlib ElementTree for the
+# sitemap-derived allowlist, no pip install and no requirements file. The
+# alternative (busybox awk plus curl) is smaller and is not testable from the
+# suite that has to prove the allowlist excludes what is not on it.
+RUN apk add --no-cache python3
+COPY counter/kettle_counter.py /usr/local/bin/kettle_counter.py
+
 EXPOSE 8080
+# nginx is no longer PID 1: the counter is, and nginx is its child. That is
+# what lets one process read the other's log stream with no file, no FIFO and
+# no volume. The counter forwards SIGTERM, exits with nginx's own code, and
+# treats draining that stdout as its only guaranteed duty — with the metrics
+# secret unset it is a pass-through pipe and the image serves exactly as it
+# did before.
+CMD ["python3", "/usr/local/bin/kettle_counter.py"]
