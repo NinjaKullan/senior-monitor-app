@@ -19,8 +19,9 @@ import { describe, expect, it, vi } from "vitest";
 import { NotesPanel } from "@/components/NotesPanel";
 import { ContactsCard } from "@/components/ContactsCard";
 import { MemoryScreen } from "@/screens/Memory";
+import { WhoToCallScreen } from "@/screens/WhoToCall";
 import { telHrefNumber } from "@/lib/data";
-import { CONTACT_SUGGESTED_LABELS, MEMORY_EMPTY } from "@/lib/copy";
+import { CONTACT_SUGGESTED_LABELS, CONTACT_TAG_EVERYONE, MEMORY_EMPTY } from "@/lib/copy";
 import type { FamilyContact, JournalEntry } from "@/lib/types";
 
 const TODAY = "2026-08-30";
@@ -56,12 +57,23 @@ function renderMemory(over: Partial<Parameters<typeof MemoryScreen>[0]> = {}) {
     <MemoryScreen
       parentLabels={[{ parentId: "p1", label: "Amma" }]}
       journal={[]}
-      contacts={[]}
       todayDate={TODAY}
       onAddNote={noop}
+      {...over}
+    />,
+  );
+}
+
+/** Spec 012 §9.3: the contacts sheet renders on its own tab now. */
+function renderWhoToCall(over: Partial<Parameters<typeof WhoToCallScreen>[0]> = {}) {
+  return render(
+    <WhoToCallScreen
+      parentLabels={[{ parentId: "p1", label: "Amma" }]}
+      contacts={[]}
       onAddContact={noop}
       onUpdateContact={noop}
       onRemoveContact={noop}
+      onMoveContact={noop}
       {...over}
     />,
   );
@@ -103,7 +115,7 @@ describe("the empty state", () => {
 
 describe("the contacts card (spec 012 §4)", () => {
   it("renders a row as label, name, and a tap-to-call number", () => {
-    renderMemory({ contacts: [contact({ note: "Two doors down" })] });
+    renderWhoToCall({ contacts: [contact({ note: "Two doors down" })] });
     expect(screen.getByText("If you can't reach them")).toBeTruthy();
     expect(screen.getByTestId("contact-label").textContent).toBe("A neighbor");
     const phone = screen.getByTestId("contact-phone");
@@ -115,7 +127,7 @@ describe("the contacts card (spec 012 §4)", () => {
   });
 
   it("offers the printable's suggested rows as placeholders, never as rows", () => {
-    renderMemory();
+    renderWhoToCall();
     // Nothing pre-inserted: the family owns every line (DECISIONS 200).
     expect(screen.queryAllByTestId("contact-row")).toEqual([]);
     fireEvent.click(screen.getByTestId("contact-add"));
@@ -133,7 +145,15 @@ describe("the contacts card (spec 012 §4)", () => {
   it("saves a new contact with the number normalized beside the typed form", async () => {
     const onAdd = vi.fn().mockResolvedValue(undefined);
     render(
-      <ContactsCard contacts={[]} onAdd={onAdd} onUpdate={noop} onRemove={noop} />,
+      <ContactsCard
+        contacts={[]}
+        parentOptions={[]}
+        parentLabelFor={() => CONTACT_TAG_EVERYONE}
+        onAdd={onAdd}
+        onUpdate={noop}
+        onRemove={noop}
+        onMove={noop}
+      />,
     );
     fireEvent.click(screen.getByTestId("contact-add"));
     fireEvent.change(screen.getByTestId("contact-label-input"), { target: { value: "Their doctor" } });
@@ -147,6 +167,9 @@ describe("the contacts card (spec 012 §4)", () => {
       phone_display: "+1 (984) 370-4452",
       phone_e164: "+19843704452",
       note: "",
+      // Spec 012 §9.3: untagged means the whole household, and the draft says
+      // so explicitly rather than leaving the field for the writer to guess.
+      parent_id: null,
     });
   });
 
@@ -155,6 +178,9 @@ describe("the contacts card (spec 012 §4)", () => {
     const onRemove = vi.fn().mockResolvedValue(undefined);
     render(
       <ContactsCard
+        parentOptions={[]}
+        parentLabelFor={() => CONTACT_TAG_EVERYONE}
+        onMove={noop}
         contacts={[contact({ id: 7 })]}
         onAdd={noop}
         onUpdate={onUpdate}

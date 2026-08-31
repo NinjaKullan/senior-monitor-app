@@ -160,12 +160,8 @@ describe("scoping (spec 009 §4)", () => {
       <MemoryScreen
         parentLabels={states.map((s) => ({ parentId: s.parentId, label: s.label }))}
         journal={journal}
-        contacts={[]}
         todayDate={TODAY}
         onAddNote={noop}
-        onAddContact={noop}
-        onUpdateContact={noop}
-        onRemoveContact={noop}
       />,
     );
     const metas = screen.getAllByTestId("note-meta").map((n) => n.textContent ?? "");

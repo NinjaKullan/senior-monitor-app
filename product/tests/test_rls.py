@@ -366,3 +366,117 @@ def test_isolation_holds_for_a_freshly_created_family(conn, authed):
 
     as_user(authed, USER_A)
     assert _rows(authed, "select * from pings") == []
+
+
+# --- the two tables Memory v1.1 leans on (spec 012 §9) ------------------------
+#
+# v1.1 adds no columns: 0021 already gave family_contacts a nullable parent_id
+# with policies that check the parent belongs to the family, and `position` is
+# the rank. What v1.1 DOES is start writing both from the browser, so the
+# policies that were dormant become load-bearing and are pinned here.
+
+
+def test_each_family_sees_only_its_own_notes_and_contacts(two_families, authed, conn):
+    """Both tables, both directions."""
+    a, b = two_families["a"], two_families["b"]
+    for family, body, name in ((a, "note for A", "Lakshmi"), (b, "note for B", "Ravi")):
+        conn.execute(
+            "insert into journal_entries (family_id, author_label, body) values (%s, %s, %s)",
+            (family.family_id, "Hema", body),
+        )
+        conn.execute(
+            "insert into family_contacts (family_id, label, name) values (%s, %s, %s)",
+            (family.family_id, "A neighbor", name),
+        )
+
+    as_user(authed, USER_A)
+    assert [r["body"] for r in _rows(authed, "select body from journal_entries")] == [
+        "note for A"
+    ]
+    assert [r["name"] for r in _rows(authed, "select name from family_contacts")] == [
+        "Lakshmi"
+    ]
+
+    as_user(authed, USER_B)
+    assert [r["body"] for r in _rows(authed, "select body from journal_entries")] == [
+        "note for B"
+    ]
+    assert [r["name"] for r in _rows(authed, "select name from family_contacts")] == [
+        "Ravi"
+    ]
+
+
+def test_a_contact_cannot_be_tagged_to_another_familys_parent(two_families, authed):
+    """The parent_id check spec 012 §9.3 relies on, exercised as a write.
+
+    Tagging is new in v1.1: until now the app hardcoded null. A family that
+    could point parent_id at someone else's parent would be writing a row that
+    names a stranger's household, so the policy has to refuse the insert
+    rather than merely hide the result.
+    """
+    a, b = two_families["a"], two_families["b"]
+    as_user(authed, USER_A)
+
+    # Their own parent is fine.
+    authed.execute(
+        "insert into family_contacts (family_id, parent_id, label, name) "
+        "values (%s, %s, %s, %s)",
+        (a.family_id, a.parents[0].parent_id, "A neighbor", "Lakshmi"),
+    )
+    # Family-wide (null) is fine — that is what "for everyone" means.
+    authed.execute(
+        "insert into family_contacts (family_id, parent_id, label, name) "
+        "values (%s, null, %s, %s)",
+        (a.family_id, "Their doctor", "Dr. Rao"),
+    )
+    # Another family's parent is not.
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        authed.execute(
+            "insert into family_contacts (family_id, parent_id, label, name) "
+            "values (%s, %s, %s, %s)",
+            (a.family_id, b.parents[0].parent_id, "A neighbor", "Someone"),
+        )
+
+
+def test_a_family_cannot_reorder_or_delete_another_familys_contacts(
+    two_families, authed, conn
+):
+    """The rank is editable data, so the write path needs the same fence.
+
+    §9.3 lets a family reorder its own call list; nothing about that may reach
+    across families, and an update that matches no visible row must change
+    nothing rather than quietly succeeding.
+    """
+    b = two_families["b"]
+    row = conn.execute(
+        "insert into family_contacts (family_id, label, name, position) "
+        "values (%s, %s, %s, 0) returning id",
+        (b.family_id, "A neighbor", "Ravi"),
+    ).fetchone()["id"]
+
+    as_user(authed, USER_A)
+    authed.execute("update family_contacts set position = 9 where id = %s", (row,))
+    authed.execute("delete from family_contacts where id = %s", (row,))
+
+    # Untouched, and still there.
+    after = conn.execute(
+        "select position from family_contacts where id = %s", (row,)
+    ).fetchone()
+    assert after is not None and after["position"] == 0
+
+
+def test_a_note_cannot_be_tagged_to_another_familys_parent(two_families, authed):
+    """The same fence on the journal, which v1.1's parent filter reads."""
+    a, b = two_families["a"], two_families["b"]
+    as_user(authed, USER_A)
+    authed.execute(
+        "insert into journal_entries (family_id, parent_id, author_label, body) "
+        "values (%s, %s, %s, %s)",
+        (a.family_id, a.parents[0].parent_id, "Hema", "about my own parent"),
+    )
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        authed.execute(
+            "insert into journal_entries (family_id, parent_id, author_label, body) "
+            "values (%s, %s, %s, %s)",
+            (a.family_id, b.parents[0].parent_id, "Hema", "about a stranger"),
+        )

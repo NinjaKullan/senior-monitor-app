@@ -20,6 +20,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FamilyScreen } from "@/screens/Family";
 import { MemoryScreen } from "@/screens/Memory";
+import { WhoToCallScreen } from "@/screens/WhoToCall";
 import { NoFamily } from "@/screens/NoFamily";
 import { ParentDetail } from "@/screens/ParentDetail";
 import { Today } from "@/screens/Today";
@@ -27,7 +28,14 @@ import { computeParentToday, computeRollup } from "@/lib/parentState";
 import { CityPicker } from "@/components/CityPicker";
 import { CITIES, displayOf } from "@/lib/cities";
 import { SIGNAL_DISPLAY_NAMES } from "@/lib/signalNames";
-import { PRIVACY_FOOTER, SETUP_SEND_LABEL, STATE_QUIET } from "@/lib/copy";
+import {
+  NOTES_SUB,
+  PRIVACY_FOOTER,
+  SETUP_SEND_LABEL,
+  STATE_QUIET,
+  TIMEFRAME_3_MONTHS,
+  TIMEFRAME_6_MONTHS,
+} from "@/lib/copy";
 import type { JournalEntry, Member, Parent, ParentSignal, Ping } from "@/lib/types";
 
 const IST = "Asia/Kolkata";
@@ -196,6 +204,19 @@ const MONTH_DAY = /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{1,2}
 /** Spec 012 §2: the Memory feed's month separators ("August 2026"). */
 const MONTH_YEAR =
   /\b(?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b/g;
+/**
+ * Spec 012 §9.1: the two numeric timeframe chips.
+ *
+ * The digit ban exists so a PHONE NUMBER can never reach the screen as text
+ * (DECISIONS 167). A filter chip offering three or six months is not that,
+ * and it is the only place in the app a bare numeral is printed. Exempted the
+ * way every other legitimate numeral here is — by a narrow named pattern, not
+ * by widening `strayDigits` — and pinned to the two copy keys by the test
+ * below, so the exemption cannot quietly grow to cover a number that matters.
+ * FLAGGED in DECISIONS 214: spelling the words would need no exemption at all.
+ */
+const TIMEFRAME_DIGITS = /\b[36] months\b/g;
+
 const APP_ALLOW = [REL_TIME, IN_DAYS, KICKER_DATE, MONTH_DAY];
 
 /**
@@ -363,11 +384,28 @@ describe("rendered copy law", () => {
     assertCopyLaw(text, [...SHARE_CTA_EXEMPTION, ...APP_ALLOW]);
   });
 
-  it("holds for the Memory screen, feed and contacts on screen (spec 012)", () => {
+  it("holds for the Memory screen and its feed (spec 012, filters in §9.1)", () => {
     render(
       <MemoryScreen
         parentLabels={[{ parentId: "p1", label: "Amma" }]}
         journal={notes}
+        todayDate={TODAY_DATE}
+        onAddNote={noop}
+      />,
+    );
+    const text = renderedText();
+    expect(text).toContain("Family notes");
+    expect(text).toContain("Upcoming");
+    // Spec 012 §9.4: the sentence the page and the card both used to print
+    // appears exactly once now.
+    expect(text.split(NOTES_SUB).length - 1).toBe(1);
+    assertCopyLaw(text, [...APP_ALLOW, MONTH_YEAR, TIMEFRAME_DIGITS]);
+  });
+
+  it("holds for the Who to call tab, with the one sanctioned phone (§9.3)", () => {
+    render(
+      <WhoToCallScreen
+        parentLabels={[{ parentId: "p1", label: "Amma" }]}
         contacts={[
           {
             id: 1,
@@ -381,11 +419,10 @@ describe("rendered copy law", () => {
             position: 0,
           },
         ]}
-        todayDate={TODAY_DATE}
-        onAddNote={noop}
         onAddContact={noop}
         onUpdateContact={noop}
         onRemoveContact={noop}
+        onMoveContact={noop}
       />,
     );
     // The one sanctioned phone-as-text (spec 012 §4): phone_display inside a
@@ -396,10 +433,9 @@ describe("rendered copy law", () => {
     expect(phone.textContent).toBe("98455 50111");
     phone.remove();
     const text = renderedText();
-    expect(text).toContain("Family notes");
-    expect(text).toContain("Upcoming");
+    // The page keeps the DECISIONS-200 heading; the TAB carries 211's label.
     expect(text).toContain("If you can't reach them");
-    assertCopyLaw(text, [...APP_ALLOW, MONTH_YEAR]);
+    assertCopyLaw(text, APP_ALLOW);
   });
 
   it("shows the ruled empty state when the memory is empty", () => {
@@ -407,18 +443,28 @@ describe("rendered copy law", () => {
       <MemoryScreen
         parentLabels={[]}
         journal={[]}
-        contacts={[]}
         todayDate={TODAY_DATE}
         onAddNote={noop}
-        onAddContact={noop}
-        onUpdateContact={noop}
-        onRemoveContact={noop}
       />,
     );
     expect(screen.getByTestId("memory-empty").textContent).toBe(
       "Notes from your family and from Kettle live here. The first ones arrive on their own.",
     );
-    assertCopyLaw(renderedText(), APP_ALLOW);
+    assertCopyLaw(renderedText(), [...APP_ALLOW, TIMEFRAME_DIGITS]);
+  });
+
+  it("spends the timeframe exemption on two keys with two values, and no wider", () => {
+    // The same discipline the channel exemption gets: the pattern is pinned to
+    // the exact strings it exists for, so a later edit cannot widen it into a
+    // licence for any number on screen.
+    expect(TIMEFRAME_3_MONTHS).toBe("3 months");
+    expect(TIMEFRAME_6_MONTHS).toBe("6 months");
+    expect("3 months".replace(TIMEFRAME_DIGITS, "")).toBe("");
+    expect("6 months".replace(TIMEFRAME_DIGITS, "")).toBe("");
+    // What it must NOT swallow: a phone number, a count, a bare year.
+    for (const forbidden of ["98455 50111", "4 notes", "2026", "12 months"]) {
+      expect(forbidden.replace(TIMEFRAME_DIGITS, "")).toBe(forbidden);
+    }
   });
 
   it("spends the channel exemption on one key with one value, and no wider", () => {
