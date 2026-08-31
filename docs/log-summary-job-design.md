@@ -77,8 +77,8 @@ into weekly rows after ~6 months and prune the dailies — the weekly
 email never needed finer grain than that anyway. No storage reason
 to leave the free plan.
 
-## Open founder decisions (small)
+## Founder decisions (RULED, DECISIONS 211)
 
-1. Email day/time: Monday 9am ET proposed.
-2. Whether the weekly email also includes Search Console highlights
-   (manual paste by founder, or stays a separate console visit).
+1. Email lands Monday 9:00am ET.
+2. Search Console stays a separate console visit; the email carries
+   server counts only.

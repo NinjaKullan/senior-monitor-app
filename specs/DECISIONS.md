@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 211.** This line is the one to update; the `Next number:` lines inside
+**Next number: 212.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3274,3 +3274,22 @@ browser — all three adopted as the standard for future surfaces.**
        concrete).
      * Flip-day flag MEMORY_FIRST_REPLY=1 stays OUT of the dark
        stage; only the two Twilio secrets are set now.
+
+211. **(2026-08-31, founder) Four small rulings: the metrics email,
+     and Memory v1.1's two open strings/defaults.**
+     * **Weekly metrics email (201 design): Monday 9:00am ET**,
+       founder-only, plain text, server counts only. **Search Console
+       stays a separate console visit** — no manual-paste chore rides
+       the email. Design: docs/log-summary-job-design.md (option C,
+       count-at-the-edge; storage budget on file — ~2 MB/year against
+       the free tier).
+     * **Memory v1.1 default filter view: All parents × 3 months**,
+       All-time one tap away.
+     * **The contacts tab's label, VERBATIM: "Who to call"** — plain
+       speech, the same language the topic-8 article already uses;
+       the page keeps the DECISIONS-200 verbatim heading "If you
+       can't reach them". Spec 012 §9 updated with both rulings.
+     * Sequencing: CC builds the log-summary job FIRST (self-
+       contained; the dark stage needs no deploys, so the build sits
+       in the repo until PM review and a post-Wave-D deploy). Memory
+       v1.1 queues behind it.

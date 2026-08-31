@@ -148,8 +148,8 @@ one chip per parent plus All — and (b) timeframe: This month / 3
 months / 6 months / All. Kettle-authored lines carry their parent tag
 and filter with the parent. Server-side or client-side filtering is
 CC's call at current data sizes; the RLS posture is unchanged either
-way. RULING NEEDED (a): the default view. PM proposes All parents ×
-3 months, All-time one tap away.
+way. RULED (DECISIONS 211): default view is All parents × 3 months,
+All-time one tap away.
 
 **9.2 Notes list scrolls inside its card.** The list grows without
 bound; the card gets a max-height with internal scroll, month
@@ -165,9 +165,8 @@ camouflaged as a contact list. Changes: (i) `family_contacts` gains
 Memory / Family; the page keeps the DECISIONS-200 verbatim heading
 "If you can't reach them". (iii) Kids can tag contacts per parent,
 order them, and filter by parent — parents living separately carry
-different numbers. RULING NEEDED (b): the tab's short label (new
-user-visible string; must pass copy laws — nothing in the alarm/
-emergency register). The heading itself is NOT reopened.
+different numbers. RULED (DECISIONS 211): the tab's label is, VERBATIM, "Who to
+call". The heading itself is NOT reopened.
 
 **9.4 Polish.** The sentence "The family's memory. Everyone in the
 family can read and add." currently appears twice on the Memory page
