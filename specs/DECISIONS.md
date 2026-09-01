@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 222.** This line is the one to update; the `Next number:` lines inside
+**Next number: 223.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3856,3 +3856,35 @@ browser — all three adopted as the standard for future surfaces.**
        shows pending (grey), not the instant red of v5 — so the body
        passed validation and is in review.
      * Next number: 222.
+
+222. **(2026-09-01, 13:57 EDT) v6 APPROVED, category UTILITY. The US
+     wall is cleared on paper; pass 2 of the dark stage is on.**
+     * Read on the template page by PM (console, Hema's session):
+       kettle_ask_parent_v6, HX61758012edba26686ec7ee361a0f493f,
+       "WhatsApp approval status: Approved", "WhatsApp category:
+       Utility", date updated 2026-09-01 13:45:49 EDT — three minutes
+       after submission; body on the page is the 221 sentence exactly.
+       No recategorization email is expected because none happened;
+       if one arrives, it outranks this reading and we stop.
+     * What this proves: Meta accepts the 221 words as Utility. What
+       it does not prove yet: delivery to a US phone — that is pass 2,
+       and the 63049 wall is judged by the message log, not the
+       template page.
+     * Ruling: dark stage restarts. Runbook gains a "Pass 2 setup"
+       block: one `fly secrets set` with both values (FROM real, SID
+       v6) from product/, run AFTER the deploy train (a `fly deploy`
+       would restart the app anyway; secrets last). TestMom's number
+       is already on file; no address SQL. Next ask fires 11:00
+       parent-local on the next quiet Rehearsal morning; expected
+       screen: "Hi. Hema asked Kettle to check in with you when a
+       morning looks different. Is everything okay? Reply with a 👍
+       when you're free." from HeyKettle (the owner of Rehearsal is
+       Hema; if the first word is not his first name, that is the
+       finding).
+     * Code catch-up owed before the FLIP, not before pass 2 (the
+       template path sends the SID + variables and never reads the
+       registry sentence): registry `{owner_name}` sentence and the
+       script BODY/TEMPLATE_NAME to v6 words, the sentence-pins test,
+       the URL assertion from 220. One CC commit; bundled with the
+       next CC task.
+     * Next number: 223.
