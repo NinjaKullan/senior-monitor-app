@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 219.** This line is the one to update; the `Next number:` lines inside
+**Next number: 220.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3700,3 +3700,42 @@ browser — all three adopted as the standard for future surfaces.**
      has it; and prints Meta's rejection reason VERBATIM, because a
      paraphrased rejection is the one thing the whole attempt was run to
      learn. It is not imported by the app and nothing schedules it.
+
+219. **(2026-09-01, PM review of the v5 build) PASS; the 149 guardrail
+     narrowing is ratified; the site CI red gets its ruling.**
+     * Verified in the tree: tools/submit_ask_template.py carries the
+       217 body byte-for-byte (124 codepoints, bare U+1F44D, straight
+       apostrophe), name kettle_ask_parent_v5, category UTILITY,
+       allow_category_change=False, one variable sampled "Priya",
+       credentials from env only; the registry carries the same words
+       with {owner_name}; OWNER_FALLBACK is exactly "Your family";
+       ContentVariables ride the template send with no Body. The
+       script and the registry are pinned to each other by test.
+     * **149 narrowing — ratified.** 149's purpose is that no template
+       ever guesses what a parent is called. {owner_name} is the
+       self-supplied name of the family member who set Kettle up,
+       addressed TO the parent, and Utility classification depends on
+       it. The parent-naming ban is untouched; the exception is pinned
+       to the ask alone so it cannot spread. Test renamed to say what
+       it now checks.
+     * **Double fallback — ratified**: the engine resolves the name so
+       the sandbox never renders blank, and the transport falls back
+       again because the template path is where a blank would reach a
+       phone before anything here noticed.
+     * **Site CI red on main — PM's own doing, ruled here:** the
+       images pass (4c18ed1) put guide thumbnails under
+       site/public/resources/img/, and resources.test.tsx rightly
+       treats every directory there as a resource page. The fix is to
+       MOVE the four thumbnails to site/public/img/guides/ and update
+       the four hrefs in resources/index.html — never to loosen the
+       scan. Writer task; site deploy waits for it. Also recorded: the
+       writer's report claimed the resources assertions passed — its
+       replica missed the directory scan; a lesson about replicas.
+     * site/src/copy.ts OFF_NOTIF (homepage notification mockup) is
+       now two rewordings behind the ask; folded into the homepage
+       sweep task (Asana 1217831042637424): it becomes the 217
+       sentence with a sample name.
+     * **Next: the founder runs the script** (his credentials, his
+       shell). Meta's verdict, Approved or Rejected with its verbatim
+       reason, is the next ledger entry. Approved as Utility → dark
+       stage restarts from step 1 (secrets set again, SID = v5).
