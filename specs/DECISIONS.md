@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 216.** This line is the one to update; the `Next number:` lines inside
+**Next number: 218.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3534,3 +3534,87 @@ browser — all three adopted as the standard for future surfaces.**
      * Deploy: webapp-only, HELD behind the same dark-stage hold as
        the log-summary job. After the hold clears: `cd webapp && fly
        deploy` — no DDL, no secrets for this one.
+
+216. **(2026-09-01, dark-stage pass 1 — founder + PM) The real-number
+     ask CANNOT reach a US phone as built: Meta blocks every
+     Marketing-category template to +1 numbers. Rolled back to the
+     sandbox the same hour; 207's "cost footnote" is corrected here.**
+     * **What happened.** TestMom's quiet-morning ask fired at 11:00:35
+       ET on the real number, as the approved template, with the exact
+       v4 body — Twilio Sent at 11:00:38, then **Undelivered at
+       11:00:42, error 63049** ("Meta chose not to deliver this
+       WhatsApp marketing message"; read from the console's own
+       message record, MM0c325ee8913760aa68122f7b73bfba9c). Nothing
+       reached the founder's phone.
+     * **Why, structurally.** Since 2025-04-01 Meta blocks ALL
+       marketing-category templates to US (+1) numbers, no exceptions,
+       no lift date; Twilio's own guidance is "use SMS". Meta
+       recategorized our ask Utility → Marketing at approval (207).
+       Therefore the v4 template is undeliverable to every US parent
+       — Amma in Austin, every US beta family — and deliverable only
+       outside the US (Appa), subject there to Meta's per-user
+       marketing caps. **Correction to 207:** the recategorization was
+       recorded as a pricing footnote, not a blocker. For the US it is
+       a wall. PM's miss; the dark stage did its job.
+     * **Rollback, done 12:3x pm ET:** TWILIO_ASK_CONTENT_SID unset,
+       TWILIO_WHATSAPP_FROM restored to whatsapp:+14155238886 (the
+       sandbox). Discovered while writing the rollback: unsetting
+       TWILIO_WHATSAPP_FROM outright would have failed the app closed
+       at startup — the runbook now says so. Real family unaffected
+       throughout: Amma's asks_14d = 1 and no real ask fired during the
+       ~20 hours the real number was live; the only casualties were
+       two rehearsal sends (63015 Sun, 63049 Tue).
+     * **Founder ruling on the path (same sitting): A first, B in
+       parallel.** (A) Win a UTILITY approval: reframe the ask as the
+       agreed-upon service the parent opted into, submit with
+       category-change DISALLOWED so Meta rejects rather than silently
+       recategorizes — a clean verdict per attempt, minutes each. New
+       wording is 151-sacred copy: founder rules each candidate
+       verbatim. (B) SMS for +1 parents: spec 011 amendment (per-parent
+       channel: SMS for US, WhatsApp elsewhere), inbound-SMS reply
+       path, and US A2P 10DLC registration for +19843704452 (very
+       likely what Twilio's "Finish compliance for 1 number and sender"
+       banner is). Start the paperwork regardless of A's outcome.
+     * Wave D flip is OFF the table until a template delivers to a US
+       number in a dark-stage pass. Sandbox stays the production path.
+       Today's ledger row for TestMom's ask reads 'sent' and its
+       follow-on will fire on the clock — expected, harmless
+       (Rehearsal family), recorded as evidence.
+
+217. **(2026-09-01, founder) The ask is reworded again, this time for a
+     UTILITY approval: it now names who asked. Verbatim, with one
+     variable.**
+     * **The ruled body, VERBATIM:**
+       "{{1}} asked Kettle to check in with you when a morning looks
+       different. Is everything okay? Reply with a 👍 when you're free."
+       Bare U+1F44D, straight apostrophe. {{1}} = the FIRST NAME of the
+       family member who set Kettle up (first word of the owner's
+       display name); if missing, empty, or not a real name, the
+       fallback is exactly "Your family" — the sentence was chosen so
+       the fallback reads whole ("Your family asked Kettle to check in
+       with you…"). "Check in with", Kettle as actor, is the pinned
+       phrasing (DECISIONS record); "heard from / checked in" laws
+       unchanged. 👍-or-silence (197) unchanged; no button (205)
+       unchanged.
+     * **Founder's reasoning, kept on record:** plain English for every
+       mood and background — "Today it does." was a writer's beat, not
+       how a person texts their mother; the direct question comes
+       back because that is how people talk. PM concurred.
+     * **Why the shape:** Meta's Utility category means a specific,
+       agreed-upon service update. The first sentence IS that anchor;
+       the earlier body was only the question, hence Marketing (207)
+       and the US block (216). Submit as UTILITY with
+       allow_category_change=FALSE so Meta rejects rather than
+       recategorizes — a clean verdict. Console cannot set that flag;
+       the Content API can, so CC writes the submission script and the
+       founder runs it with his credentials.
+     * **Both paths, one ask:** the sandbox registry body changes to
+       the same words with the name rendered in, so a sandbox parent
+       and a real-number parent read the identical message (the 209
+       principle). The variable rides ContentVariables on the template
+       path; zero buttons still.
+     * Sequencing: sandbox remains production. If v5 approves as
+       Utility, the dark stage restarts from step 1 with the same
+       rehearsal setup; if Meta rejects it, the next candidate is the
+       founder's call and Option B (SMS for +1, 10DLC) is already in
+       motion.

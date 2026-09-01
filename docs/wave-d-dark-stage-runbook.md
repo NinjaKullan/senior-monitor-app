@@ -65,3 +65,24 @@ the real number, then DECISIONS records the retirement.
 
 Every screenshot from this runbook goes into the Day-30 memo's
 evidence pile.
+
+## Pass 1 result (2026-09-01) and the rollback law
+
+Pass 1 FAILED for a structural reason, not a copy one: Twilio error
+63049 — Meta blocks every Marketing-category template to US (+1)
+numbers since 2025-04-01, and our approved template is Marketing
+(207). See DECISIONS 216. Rolled back the same hour.
+
+**Rollback = restore, never delete.** To leave the real number:
+```
+fly secrets unset TWILIO_ASK_CONTENT_SID --stage
+fly secrets set TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
+```
+NEVER `fly secrets unset TWILIO_WHATSAPP_FROM` — the transport
+requires a sender and the app fails closed at startup without one.
+One restart, one shortcut blip.
+
+**Precondition added for any future pass:** the template in
+TWILIO_ASK_CONTENT_SID must be UTILITY category (or the recipient
+must be outside +1). A Marketing template cannot pass this runbook
+for a US rehearsal phone, whatever else is right.
