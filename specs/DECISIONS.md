@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 223.** This line is the one to update; the `Next number:` lines inside
+**Next number: 224.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3888,3 +3888,31 @@ browser — all three adopted as the standard for future surfaces.**
        the URL assertion from 220. One CC commit; bundled with the
        next CC task.
      * Next number: 223.
+
+223. **(2026-09-01, ~14:10 EDT) Deploy train shipped; site counter live;
+     dark stage pass 2 armed.**
+     * Founder: 0022 applied in Studio (whole file, one run); secrets
+       set (SITE_METRICS_TOKEN both apps, SITE_METRICS_EMAIL on
+       kettle-api, SITE_METRICS_ENDPOINT on kettle-site); product,
+       site, webapp deployed in that order. Then, last, the pass 2
+       secrets from 222 on kettle-api — one rolling update, succeeded.
+     * PM verified live: site_daily_counts and site_weekly_sends exist
+       with RLS on, no policies, no anon/authenticated grants; the four
+       guide thumbnails render on /resources from /img/guides/ at
+       1440×810 and the old path is 404; POST /site-metrics/daily is
+       401 without a token and 401 with a wrong one; first counter
+       rows landed within ten minutes of the site deploy (day
+       2026-09-01: 'other' 23, /blog/ 4, /resources/ 2, / 2, three
+       article paths) — option C works end to end, floors as ruled in
+       213. First weekly email: Monday 2026-09-07, 9am ET. Founder
+       eyeballed Memory v1.1 (filters, scroll, "Who to call") on
+       kettle-app.fly.dev and is happy; PM could not reach the webapp
+       host from its browser. Note for the record: the webapp is
+       served at kettle-app.fly.dev; app.heykettle.com was never set
+       up (founder). PM's "/health returns 404" remark was a PM error:
+       the route is /healthz and fly.toml checks it.
+     * State now: real number + v6 Utility template live for EVERY
+       family (210's isolation caveat stands; keep it short). Next
+       Rehearsal ask: 11:00 parent-local 2026-09-02, to Hema's phone.
+       Expected screen in 222. Verification list = runbook, v6 copy.
+     * Next number: 224.
