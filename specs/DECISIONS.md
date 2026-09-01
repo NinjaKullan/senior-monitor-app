@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 224.** This line is the one to update; the `Next number:` lines inside
+**Next number: 226.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3916,3 +3916,95 @@ browser — all three adopted as the standard for future surfaces.**
        Rehearsal ask: 11:00 parent-local 2026-09-02, to Hema's phone.
        Expected screen in 222. Verification list = runbook, v6 copy.
      * Next number: 224.
+
+224. **(2026-09-01, ~14:26 EDT) Direct test send: v6 DELIVERED to a US
+     number. The 63049 wall is down in practice, not just on paper.**
+     * Founder curl'd the Messages API himself (his creds): From the
+       real number, To his phone, ContentSid v6, ContentVariables
+       {"1":"Hema"}. Twilio accepted (MMe6b76c21c01ce1b975b80e9f4757e8b4,
+       18:25:49Z) and the message ARRIVED — screenshots show the exact
+       221 body rendered on WhatsApp at 2:25 PM, bubble from
+       +1 (984) 370-4452, "Business account", Meta's "secure service"
+       banner, no button. First business-initiated WhatsApp ever
+       delivered to a US phone in this product's history.
+     * Founder replied with a typed 👍. The ledger shows NOTHING for
+       it — and that is the DESIGNED behavior, not a failure: a known
+       number with no pending ask is recorded as a masked log line
+       only (outbound.py record_parent_reply; "un-answering is not a
+       thing a late reply can do"). The test send was outside the app,
+       so no pending ask existed. Consequence: this test CANNOT prove
+       the webhook path; only tomorrow's real ask can (reply → ask row
+       marked answered → follow-on cancelled). To rule the webhook in
+       or out today, check Twilio Debugger for 11200-class alerts on
+       the inbound; no alert + inbound logged = webhook answered.
+     * Finding, new: the chat header shows the NUMBER, not
+       "HeyKettle". Expectation corrected: recipients who have not
+       saved the contact see the number; the display name (and photo,
+       once set) lives behind Profile, and name-instead-of-number in
+       the header is largely an Official Business Account privilege.
+       Runbook step 1 amended in spirit: verify via Profile that the
+       name reads heykettle, don't demand it in the header. Work item
+       before flip: set the sender's profile (photo, about, website)
+       in Twilio's sender page / WhatsApp Manager, and confirm the
+       display-name review (In review as of Aug 23) actually approved.
+       RESOLVED same hour, from the phone: the profile card reads
+       **HeyKettle** (approved, capitalized form — the Aug 23 record
+       said "heykettle"), with the description ("HeyKettle sends adult
+       children a short daily note about a parent's day. It asks
+       nothing of the parent.") and https://heykettle.com already on
+       it. Only the photo was missing; founder added one via the
+       Twilio sender page (about line "Kettle passes along how the
+       morning started.", 44 chars). Rulings: Vertical = Other (never
+       Medical/Health, same reasoning as 10DLC); email and address
+       stay empty; the photo should eventually be the site's kettle
+       mark so the chat avatar matches the site — swap any time, no
+       review. Work item closed.
+     * Founder judgment on the words, after seeing them on a real
+       phone: "when a morning looks different" is writer-speak; wants
+       a v7 in plainer speech. His draft: "Hi. Hema asked Kettle to
+       check in with you when your morning is not as usual and check
+       that you're okay. Reply with a 👍 when you can." PM counter
+       (keeps his phrasing, restores the direct question, drops the
+       doubled "check"): `Hi. {{1}} asked Kettle to check in with you
+       when your morning is not as usual. Is everything okay? Reply
+       with a 👍 when you can.` Founder locks the final words; then
+       console submit as kettle_ask_parent_v7 (Utility), keep v6 in
+       the secret until v7 shows Approved+Utility, then swap the SID.
+       The locked words and Meta's verdict are the next entry.
+     * Next number: 225.
+
+225. **(2026-09-01, ~15:00 EDT) v7 submitted by the founder and APPROVED
+     as Utility in minutes. The ask sentence is final in his register;
+     the secret swaps to v7 tonight.**
+     * The founder locked the PM counter-wording from 224 by
+       submitting it himself. kettle_ask_parent_v7 =
+       HX1ebee977bfd531bf7fdee2bf0d1484ad, updated 14:52:47 EDT,
+       WhatsApp approval status Approved, category Utility (PM read
+       both fields on the template page). Body VERBATIM, now the ask
+       sentence on BOTH paths, superseding 221's:
+       `Hi. {{1}} asked Kettle to check in with you when your morning
+       is not as usual. Is everything okay? Reply with a 👍 when you
+       can.` {{1}} = owner first name, fallback exactly "Your family".
+     * Ruling: TWILIO_ASK_CONTENT_SID moves from v6 to v7 before
+       tomorrow's 11:00 pass (one fly secrets set; founder). v6 stays
+       Approved/Utility in Twilio as the proven-delivered fallback —
+       it is the template that actually landed on a US phone (224) —
+       and is not deleted until v7 has done the same in pass 2.
+       Code catch-up (registry sentence, script BODY/TEMPLATE_NAME,
+       sentence-pins test, URL assertion) now targets the v7 words.
+     * Founder's profile work verified on the phone: the avatar is
+       the site's kettle mark (founder had his image agent resize it
+       to 640px; PM's "stock teapot" read in 224 was wrong), name
+       HeyKettle, description and site link on the card. Meta's Phone
+       Profile panel still says display name "In review" even though
+       the phone already renders HeyKettle — no action, Meta-side lag;
+       watch, don't chase. Same kettle image goes into the Meta
+       panel's own Profile picture slot (founder asked; yes — same
+       640px file, keeps the two stores consistent; no review cycle).
+     * Twilio Alerts read (founder curl): the last three alerts are
+       63046 template-APPROVED notices (v6 today; v3 and v4 on Aug
+       30 — so v3 cleared review, noted for the delete-later list).
+       NO 11200-class webhook failure exists for the 👍 reply window,
+       so nothing recorded the webhook failing; full proof of the
+       reply path stays with tomorrow's real ask, as 224 said.
+     * Next number: 226.

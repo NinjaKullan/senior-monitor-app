@@ -21,11 +21,12 @@ order, PIXELS FIRST:
 
 1. **The message arrives** on Hema's WhatsApp FROM "HeyKettle" — the
    name shown is HeyKettle, not a bare number. Screenshot it.
-2. **The copy is character-exact**: "Hi. Priya asked Kettle to check
-   in with you when a morning looks different. Is everything okay?
-   Reply with a 👍 when you're free." — the DECISIONS 221 wording,
-   with {{1}} = the Rehearsal owner's first name (fallback "Your
-   family"); the 206 sentence is retired. There is NO button (Meta forbids emoji in buttons, DECISIONS 205); a button
+2. **The copy is character-exact**: "Hi. Hema asked Kettle to check
+   in with you when your morning is not as usual. Is everything
+   okay? Reply with a 👍 when you can." — the DECISIONS 225 wording
+   (v7), {{1}} = the Rehearsal owner's first name (fallback "Your
+   family"); the 206 and 221 sentences are retired. There is NO
+   button (Meta forbids emoji in buttons, DECISIONS 205); a button
    appearing is itself a stop signal. Any drift = stop, do not
    reply, bring it back.
 3. **Reply by typing 👍** (just the emoji, nothing else). Expect:
@@ -91,13 +92,13 @@ for a US rehearsal phone, whatever else is right.
 
 ## Pass 2 setup (2026-09-01, v6 Approved as Utility)
 
-`kettle_ask_parent_v6` = `HX61758012edba26686ec7ee361a0f493f`, Approved,
-WhatsApp category **Utility** (PM read both fields on the template
-page at 13:57 EDT; DECISIONS 222). The precondition above is met.
-To enter the dark stage again, from `product/`, ONE command so the
-app restarts once with both values:
+`kettle_ask_parent_v7` = `HX1ebee977bfd531bf7fdee2bf0d1484ad`, Approved,
+WhatsApp category **Utility** (DECISIONS 225; v6 HX61758012edba26686ec7ee361a0f493f
+stays approved as the proven-delivered fallback). Secrets live since
+Sep 1: FROM = whatsapp:+19843704452, SID = v7 (swapped from v6 the
+same day):
 ```
-fly secrets set TWILIO_WHATSAPP_FROM=whatsapp:+19843704452 TWILIO_ASK_CONTENT_SID=HX61758012edba26686ec7ee361a0f493f
+fly secrets set TWILIO_WHATSAPP_FROM=whatsapp:+19843704452 TWILIO_ASK_CONTENT_SID=HX1ebee977bfd531bf7fdee2bf0d1484ad
 ```
 TestMom already carries Hema's number (set Tue before pass 1) — no
 address SQL this time, so the ordering law cannot bite. Next ask
