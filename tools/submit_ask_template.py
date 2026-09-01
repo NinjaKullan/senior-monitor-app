@@ -4,13 +4,22 @@
 DECISIONS 217. The founder runs this; it is not wired into the app and nothing
 imports it.
 
-**Why a script rather than the console.** Meta approved v4 but recategorized it
-Marketing on the way in, and Meta refuses to deliver marketing templates to US
-numbers — so the ask never reached a US parent (DECISIONS 216, error 63049).
-The fix is to submit as UTILITY with `allow_category_change=false`, so Meta
-either approves it as Utility or REJECTS it, instead of quietly downgrading it
-into a category that cannot be delivered. The console cannot set that flag.
-The Content API can, which is the whole reason this file exists.
+**What decides the category.** Meta approved v4 but recategorized it Marketing
+on the way in, and Meta refuses to deliver marketing templates to US numbers —
+so the ask never reached a US parent (DECISIONS 216, error 63049).
+
+An earlier version of this file claimed `allow_category_change=false` would
+force a clean verdict: approve as Utility or reject, never silently downgrade.
+That is no longer true, and DECISIONS 220 corrects it. Per Twilio's 2025-04-25
+changelog the flag no longer prevents recategorization — **Meta decides the
+category from the words**. So the thing doing the work is the copy: v5's first
+sentence names who asked for the message and what it is for, which is what
+Utility means (DECISIONS 217). The flag stays in the payload because it is
+harmless, not because it is load-bearing.
+
+The script remains the way in because it submits the exact ruled body and
+prints the verdict, and because a run can be repeated against an existing
+content resource without minting a duplicate.
 
 Credentials come from the environment and are never written down here:
 
@@ -39,7 +48,12 @@ import urllib.request
 from base64 import b64encode
 
 CONTENT_API = "https://content.twilio.com/v1/Content"
-APPROVAL_API = "https://content.twilio.com/v1/Content/{sid}/ApprovalRequests"
+#: The two are NOT the same path (DECISIONS 220). Submitting posts to the
+#: channel-specific endpoint — `/ApprovalRequests/whatsapp`, per Twilio's
+#: Content API reference — while reading the verdict back is a GET on the bare
+#: `/ApprovalRequests` collection. The first version of this script used the
+#: bare path for both, so the submission went nowhere.
+APPROVAL_API = "https://content.twilio.com/v1/Content/{sid}/ApprovalRequests/whatsapp"
 APPROVAL_FETCH = "https://content.twilio.com/v1/Content/{sid}/ApprovalRequests"
 
 TEMPLATE_NAME = "kettle_ask_parent_v5"
@@ -114,14 +128,20 @@ def create_content() -> str:
 
 
 def submit_for_approval(sid: str) -> dict:
-    """Submit for WhatsApp approval as Utility, category change DISALLOWED."""
+    """Submit for WhatsApp approval, asking for Utility."""
     payload = {
         "name": TEMPLATE_NAME,
         "category": CATEGORY,
-        # THE point of this script. False means Meta must either approve this
-        # as Utility or reject it — it may not recategorize it to Marketing,
-        # which is what silently happened to v4 and made it undeliverable to
-        # every US number (DECISIONS 216).
+        # This flag does NOT do what the first version of this script claimed
+        # (DECISIONS 220). Per Twilio's 2025-04-25 changelog,
+        # allow_category_change no longer prevents recategorization: Meta
+        # decides the category from the WORDS, and a request to hold a
+        # category is not something it honours. It is left in the payload
+        # because it is harmless and because removing it would read as a
+        # deliberate opt-IN to recategorization, which is not the intent
+        # either. What actually earns Utility is the first sentence naming who
+        # asked for the message and what it is for (DECISIONS 217) — the copy
+        # is the lever, not this field.
         "allow_category_change": False,
     }
     return _request(APPROVAL_API.format(sid=sid), payload, method="POST")
@@ -167,14 +187,27 @@ def poll(sid: str) -> int:
 
 
 def main() -> int:
-    print(f"Creating {TEMPLATE_NAME} ({LANGUAGE}, one variable, no buttons)…")
-    print("Body:")
-    print(BODY)
-    sid = create_content()
-    print("\nContent SID:", sid)
+    # DECISIONS 220: a content resource already exists from the first run,
+    # whose submission failed on the wrong approval path rather than on its
+    # contents. Re-running create_content() would mint a second identical
+    # resource and leave a duplicate behind at Twilio for no reason, so an
+    # exported SID short-circuits creation and the script goes straight to
+    # submitting the one that is already there.
+    existing = os.environ.get("KETTLE_CONTENT_SID", "").strip()
+    if existing:
+        sid = existing
+        print("Reusing content SID:", sid)
+    else:
+        print(f"Creating {TEMPLATE_NAME} ({LANGUAGE}, one variable, no buttons)…")
+        print("Body:")
+        print(BODY)
+        sid = create_content()
+        print("\nContent SID:", sid)
 
-    print(f"\nSubmitting for WhatsApp approval as {CATEGORY}, "
-          "allow_category_change=false…")
+    # Says what is being ASKED for, not what is guaranteed: Meta decides the
+    # category from the words (DECISIONS 220), so a line promising Utility
+    # would be the same false claim the docstring just stopped making.
+    print(f"\nSubmitting for WhatsApp approval, requesting {CATEGORY}…")
     submitted = submit_for_approval(sid)
     status, _ = _status_of(submitted)
     print("submitted:", status or "pending")
