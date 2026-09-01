@@ -137,17 +137,39 @@ _REGISTRY: tuple[Template, ...] = (
         # emoji in template buttons, so the approved template carries none and
         # the body does the inviting.
         #
-        # Reworded by the founder in DECISIONS 206 ("whenever suits" → "when
-        # you're free": plainer words, same no-pressure register), and that is
-        # the wording Meta approved as kettle_ask_parent_v4. It lives here as
-        # well as at Meta on purpose — on the real number the words come from
-        # the approved template, on the sandbox they come from this string, and
-        # the two must be the same ask. The site's older quote of this string is
-        # illustrative, not binding.
+        # Reworded again by the founder in DECISIONS 217, and this time the
+        # shape is doing regulatory work as well as human work. Meta's UTILITY
+        # category means a specific, agreed-upon service update; v4 was only
+        # the question, so Meta recategorized it Marketing at approval (207)
+        # and then refused to deliver it to any US number at all (216, error
+        # 63049). The FIRST SENTENCE is the anchor that makes this a service
+        # message: it names who asked for it and what it is for. The direct
+        # question follows because that is how a person actually texts their
+        # mother.
+        #
+        # `{owner_name}` is the first name of the family member who set Kettle
+        # up, or exactly "Your family" — the sentence was chosen so the
+        # fallback reads whole. "Check in with", Kettle as actor, is the
+        # pinned phrasing and is already how the follow-on speaks; the
+        # "checked in" ban is about claiming a PARENT checked in, which this
+        # does not do.
+        #
+        # It lives here as well as at Meta on purpose — on the real number the
+        # words come from the approved template, on the sandbox from this
+        # string, and the two must be the same ask (DECISIONS 209). The site's
+        # older quote of this string is illustrative, not binding.
         id="ask_parent",
         kind=KIND_ASK,
         audience=AUDIENCE_PARENT,
-        body="Everything okay today? Reply with a 👍 when you're free.",
+        body=(
+            "{owner_name} asked Kettle to check in with you when a morning "
+            "looks different. Is everything okay? Reply with a 👍 when "
+            "you're free."
+        ),
+        # One variable, matching the approved template's {{1}} exactly. The
+        # registry is what makes render() refuse a partial fill, so declaring
+        # it here is what stops a sandbox ask going out with a hole in it.
+        variables=("owner_name",),
     ),
     Template(
         # The changed-morning follow-on (DECISIONS 151 body 5): signals still
@@ -221,3 +243,36 @@ def render(template_id: str, variables: Mapping[str, str] | None = None) -> str:
     if extra:
         raise ValueError(f"{template_id} takes no {', '.join(sorted(extra))}")
     return found.body.format(**values)
+
+
+#: DECISIONS 217: what `{owner_name}` becomes when there is no usable name.
+#: Exactly this string, and the sentence was chosen so it reads whole — "Your
+#: family asked Kettle to check in with you…" is a true sentence about a
+#: household, not a blank where a person should be. Copy, so it is scanned.
+OWNER_FALLBACK = "Your family"
+
+
+def owner_first_name(display_name: str | None) -> str:
+    """The first name to put in the ask, or the fallback (DECISIONS 217).
+
+    The rule is deliberately suspicious, because this string is the first
+    thing a parent reads and a wrong one is worse than a general one. What
+    survives is the FIRST WORD of the owner's display name, and only when it
+    looks like something a person would be called:
+
+    * missing or empty — nothing to use;
+    * an `@` — an address landed in the name field, which happens when a
+      signup form is the only thing that ever filled it in;
+    * a digit — not a name, and it would also put a number in a body the copy
+      law forbids numbers in;
+    * a single character — an initial is not a name, and "H asked Kettle to
+      check in with you" reads as a bug rather than as a person.
+
+    Everything else is taken at face value: this is not the place to police
+    what a person is called, only to notice when the field plainly does not
+    hold a name at all.
+    """
+    first = (display_name or "").strip().split(" ")[0] if display_name else ""
+    if not first or len(first) < 2 or "@" in first or any(c.isdigit() for c in first):
+        return OWNER_FALLBACK
+    return first
