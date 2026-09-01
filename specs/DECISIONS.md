@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 220.** This line is the one to update; the `Next number:` lines inside
+**Next number: 221.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3739,3 +3739,66 @@ browser — all three adopted as the standard for future surfaces.**
        shell). Meta's verdict, Approved or Rejected with its verbatim
        reason, is the next ledger entry. Approved as Utility → dark
        stage restarts from step 1 (secrets set again, SID = v5).
+
+220. **(2026-09-01, first run of the v5 script) The content was created;
+     the approval POST hit a wrong path; and the premise behind
+     allow_category_change turns out to be dead.**
+     * Founder ran tools/submit_ask_template.py. Twilio created the
+       content resource — SID HX8be9f36a7206df4a6fd9b389ccabf912, body
+       printed and matching 217 — then the approval POST returned,
+       verbatim: `Twilio said HTTP 405: {"code":20004,"message":"The
+       requested resource
+       /v1/Content/HX8be9f36a7206df4a6fd9b389ccabf912/ApprovalRequests
+       does not support the attempted HTTP method
+       POST","more_info":"https://www.twilio.com/docs/errors/20004",
+       "status":405}`. Nothing was submitted to Meta; the template
+       sits in Twilio unsubmitted.
+     * Cause, from Twilio's Content API reference: the submit call is
+       `POST /v1/Content/{sid}/ApprovalRequests/whatsapp`; the bare
+       `/ApprovalRequests` path is GET-only (status fetch). The script
+       used the bare path for both. PM review 219 checked the body,
+       category and variable against the ledger and did not check
+       the endpoint against the reference; a PM miss, recorded.
+     * Larger correction. Twilio's changelog of 2025-04-25 ("Change to
+       WhatsApp Category Reclassifications") says Meta discontinued
+       allow_category_change: calls carrying it still submit, but it
+       "will no longer prevent recategorizations", and Twilio has
+       unpublished the field. So the reject-not-recategorize
+       mechanism this arc leaned on since 216 (and 217's "submit
+       UTILITY with allow_category_change=FALSE so Meta rejects rather
+       than recategorizes") does not exist. What stands: Meta decides
+       the category from the words; a Utility-worded template stays
+       Utility if Meta agrees, and gets moved to Marketing if it does
+       not — and a Marketing result is the 63049 wall again. The
+       wording (217) is the whole bet; the flag was never a safety
+       net. The field stays in the payload (harmless) but the
+       docstrings that promise it forces a reject must stop saying so.
+     * Ruling: CC fixes the script in three places — (a) submit path
+       `/ApprovalRequests/whatsapp`, fetch path unchanged; (b) reuse
+       an existing content SID when `KETTLE_CONTENT_SID` is set in the
+       env, skipping creation, so the founder submits
+       HX8be9f36a7206df4a6fd9b389ccabf912 rather than minting a
+       duplicate; (c) the module docstring and submit_for_approval
+       comment state the changelog truth above. No product code
+       touched. Then the founder reruns with the SID exported. Meta's
+       verdict, with its category as approved, is entry 221.
+     * The dark-stage precondition from 210 sharpens: before secrets
+       are set, PM confirms in the console that the approved template's
+       category reads Utility, not just that its status reads Approved.
+       Approved-as-Marketing = do not deploy; back to wording.
+     * Build note (CC, 21c6a2c, filed here by PM because 220 had not
+       reached origin when CC ran): (a) (b) (c) done as ruled; both
+       paths of (b) exercised offline with the network stubbed; body,
+       name, category, language, variables byte-identical; the
+       sentence-pins-registry test still passes; product suite 570
+       passed, ruff clean. CC also changed the terminal line from
+       "Submitting for WhatsApp approval as UTILITY,
+       allow_category_change=false…" to "Submitting for WhatsApp
+       approval, requesting UTILITY…" — a fourth edit outside the
+       ruling, ratified: the retired promise must not appear on the
+       founder's screen at the moment it matters. CC's offer of a
+       one-line test that APPROVAL_API ends in "/whatsapp" and
+       APPROVAL_FETCH does not is accepted as a follow-on, bundled
+       with the next CC touch of the tools/ directory, not a
+       round-trip of its own.
+     * Next number: 221.
