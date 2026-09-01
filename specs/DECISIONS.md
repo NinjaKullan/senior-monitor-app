@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 218.** This line is the one to update; the `Next number:` lines inside
+**Next number: 219.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3618,3 +3618,85 @@ browser — all three adopted as the standard for future surfaces.**
        rehearsal setup; if Meta rejects it, the next candidate is the
        founder's call and Option B (SMS for +1, 10DLC) is already in
        motion.
+
+218. **(2026-09-01, Claude Code, PM-ordered) The v5 Utility attempt is built
+     in the repo: submission script, the variable on both send paths, and the
+     reworded ask.** Product suite 562 → 570. Nothing submitted, nothing
+     deployed, no secret set; the sandbox stays production per 216. Six
+     planted regressions each turned a guardrail red before being reverted.
+     Four flags:
+
+     * **FLAG 1 — DECISIONS 149 had to be narrowed, and that is worth a
+       ruling rather than a quiet edit.** `test_no_template_takes_a_name_or_
+       says_one` asserted that every template's variables were a subset of
+       `{relationship}`, so 217's `{owner_name}` failed it outright. 149's
+       reasoning is about not GUESSING what a monitored parent is called;
+       `owner_name` is the self-supplied display name of the family member who
+       set Kettle up, addressed TO the parent, and it exists because Meta's
+       Utility category requires the message to say who asked for it. So the
+       test is renamed `test_no_template_names_the_parent_it_is_about`, the
+       allowlist is two names wide with each justified in the docstring, the
+       parent-naming ban itself is untouched, and a second assertion pins
+       `owner_name` to the ask ALONE so the exception cannot spread to a body
+       that is about a parent. **PM should confirm this reading of 149.**
+
+     * **FLAG 2 — the fallback is enforced twice, on purpose.** 217 rules the
+       fallback at the point the name is chosen, and `owner_first_name` is
+       that point: the engine calls it, so the sandbox body can never render a
+       blank. But the TEMPLATE path is the dangerous one — Meta holds the copy,
+       so an empty `{{1}}` would deliver "  asked Kettle to check in with you"
+       to a real phone before anything here could notice. The transport
+       therefore falls back a second time on its own
+       (`variables.get("owner_name") or OWNER_FALLBACK`) rather than trusting
+       its caller. Belt and braces on the one path where a mistake is invisible
+       until after it has been delivered. Both are pinned by test and both
+       plants go red.
+
+     * **FLAG 3 — the registry sentence and the submitted sentence are pinned
+       to each other by test.** `tools/submit_ask_template.py` is the only
+       place the Meta-side string lives in this repo, so
+       `test_the_two_paths_say_the_same_sentence` loads the script by path and
+       asserts `BODY.replace("{{1}}", "{owner_name}")` equals the registry
+       body, along with the name, language, category and the single variable.
+       That is the strongest local check available for the 209 principle:
+       drift between the two is a difference nobody would see until a parent
+       on one channel read a different ask from a parent on the other. A plant
+       changing "okay" to "OK" in the script goes red.
+
+     * **FLAG 4 — spec-silent and left alone.** `site/src/copy.ts`'s
+       `OFF_NOTIF` still quotes the ORIGINAL ask ("Everything okay today?
+       Reply whenever suits."). The registry comment and spec 007 both call
+       the site's quote illustrative and not binding, and 217 did not reopen
+       it, so it is untouched — but it is now two rewordings behind, and the
+       landing page shows it in the notification mockup. Worth a founder
+       glance; not changed here.
+
+     * **FLAG 5 — site CI is RED on main, from the images pass, not this one.**
+       `site/src/tests/resources.test.tsx` treats every directory under
+       `site/public/resources/` as a resource page and asserts each has an
+       `index.html`, is on the register, and is in the sitemap. Commit 4c18ed1
+       added `public/resources/img/` to hold the four guide thumbnails, so the
+       suite now fails five ways on a directory that is an ASSET folder and was
+       never meant to be a page. Verified pre-existing by checking out a8d1300
+       clean: same five failures, none of them this pass's. NOT fixed here
+       because the right fix is a call this pass cannot make — either the
+       images move somewhere the scan does not walk, or the scan learns to skip
+       a directory with no index.html — and picking wrong would fight whatever
+       the image layout was meant to be. Product suite, webapp CI and the site's
+       other seventeen files are green.
+
+     Codepoints, pinned in both renderings a parent can actually receive: 124
+     with a name ("Priya asked Kettle…"), 130 with the fallback ("Your family
+     asked Kettle…"), bare U+1F44D with no variation selector, straight
+     apostrophe. The engine's withhold rule for empty variables (DECISIONS
+     152) deliberately does NOT fire on a missing owner name — a family that
+     never filled in a display name still gets asked, with a sentence that
+     reads whole — and a parametrized engine test proves it over the seven
+     shapes the ruling calls not-a-name.
+
+     The submission script takes credentials from the environment only, never
+     from the repo; uses stdlib urllib so it needs no install; prints the new
+     Content SID before submitting, so a founder who loses the terminal still
+     has it; and prints Meta's rejection reason VERBATIM, because a
+     paraphrased rejection is the one thing the whole attempt was run to
+     learn. It is not imported by the app and nothing schedules it.

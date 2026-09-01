@@ -93,14 +93,37 @@ journal read 400s. At the Phase 3
 flip, also set `MEMORY_FIRST_REPLY=1` on kettle-api (DECISIONS 203) so the
 first_reply journal line arms with the real number.
 
-**Wave D Phase 2 is BUILT and unshipped (DECISIONS 208).** The code sends the
-approved template the moment two Fly secrets exist —
-`TWILIO_WHATSAPP_FROM=whatsapp:+19843704452` and
-`TWILIO_ASK_CONTENT_SID=HXdb4e38c90d0ccc51bbcd264a002d0a8a` — and sends the
-sandbox body while they do not. Neither is set; no family is flipped; the dark
-stage is a separate order after PM review. At the real flip, also set
-`MEMORY_FIRST_REPLY=1` (203). Note the ask's words changed with the approved
-template (206): the sandbox now says "when you're free" too, on purpose.
+**Wave D is ROLLED BACK to the sandbox, and both secrets are UNSET BY DESIGN
+(DECISIONS 216).** The v4 template was approved but recategorized Marketing,
+and Meta refuses marketing templates to US numbers: a real send to TestMom went
+Undelivered with error 63049 and reached nobody. `TWILIO_ASK_CONTENT_SID` is
+unset and `TWILIO_WHATSAPP_FROM` is back to `whatsapp:+14155238886`, the
+sandbox, which is the production path. **Do not read either empty secret as
+work left undone — the emptiness IS the rollback.** One trap recorded in 216:
+unsetting `TWILIO_WHATSAPP_FROM` outright fails the app closed at startup, so
+it is restored to the sandbox value rather than removed.
+
+**The v4 Content SID `HXdb4e38c90d0ccc51bbcd264a002d0a8a` is retired.** It is
+Marketing-categorized and undeliverable to +1 for good; setting it again would
+reproduce 63049. It is recorded here only so nobody re-finds it in an old note
+and treats it as the current SID.
+
+**The v5 Utility attempt is BUILT and unsubmitted (DECISIONS 217/218).** The
+ask is reworded to name who asked for it, which is what Meta's Utility category
+means, and `tools/submit_ask_template.py` creates and submits it through the
+Content API with `allow_category_change=false` so Meta must approve as Utility
+or reject outright rather than silently downgrading it again. **The founder
+runs that script with his own credentials; a v5 Content SID does not exist
+until he has.** The script prints the SID and polls to a verdict, printing
+Meta's rejection words verbatim.
+
+Meanwhile the sandbox already says the v5 sentence: the registry body changed
+with it, so a sandbox parent and a future real-number parent read the identical
+ask (DECISIONS 209). At any future flip, three values, none set today:
+`TWILIO_WHATSAPP_FROM=whatsapp:+19843704452`, `TWILIO_ASK_CONTENT_SID=<the v5
+SID the script prints>`, and `MEMORY_FIRST_REPLY=1` (203). The flip itself is
+off the table until a template is seen delivering to a US number in a dark-stage
+pass (216).
 
 **The weekly log-summary job is BUILT and unshipped (DECISIONS 212).** Option C
 from docs/log-summary-job-design.md: a counter beside nginx in the site image
@@ -136,6 +159,13 @@ the same hold as the log-summary job (213) — after the dark-stage pass.
 
 One PM call is open in 214: whether to rename `position` to `rank` for
 vocabulary alignment with the spec. The recommendation is no.
+
+**Site CI is red on main and it is not the log-summary job.** The images pass
+(4c18ed1) added `site/public/resources/img/` for the guide thumbnails, and
+`src/tests/resources.test.tsx` treats every directory under `public/resources/`
+as a resource page — so it fails five ways on an asset folder. Whoever takes it
+decides whether the images move or the scan learns to skip a directory with no
+`index.html`. DECISIONS 218 flag 5.
 
 ## 3. Live state — do not break
 
