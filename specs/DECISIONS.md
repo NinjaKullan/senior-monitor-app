@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 227.** This line is the one to update; the `Next number:` lines inside
+**Next number: 228.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -4039,3 +4039,35 @@ browser — all three adopted as the standard for future surfaces.**
        sentence + STOP line so the eventual campaign matches the live
        template.
      * Next number: 227.
+
+227. **(2026-09-01, ~4:45pm EDT) 10DLC brand SUBMITTED, the right way:
+     Low Volume Standard for the LLC, off the converted Business
+     profile. In review at TCR.**
+     * The path out of 226, all founder-executed the same hour: Trust
+       Hub's self-serve "Convert to a business profile" (no support
+       ticket needed — PM's ticket route was the slower answer);
+       conversion approved within the hour; A2P wizard rerun from
+       Start then followed the Standard track and inherited the
+       Business profile.
+     * Two matching lessons that will matter every time a form asks
+       for the company: the IRS CP 575 letter carries the legal name
+       as **LINKABIT AI LABS** — no "LLC" — and the business address
+       zip as **27523**; carrier vetting matches the CP 575, not the
+       NC filing, so the brand went in as LINKABIT AI LABS. The
+       compliance profile's inherited "…LLC" spelling and an
+       inherited linkabitai.com website URL were both corrected on
+       the review screen (website → https://heykettle.com, the live
+       site that shows what the campaign claims).
+     * Submitted as: Low Volume Standard (under 6,000 msgs/day —
+       Kettle's volume is a rounding error against that; if we ever
+       outgrow it, a new brand then is a good problem), brand
+       friendly name HeyKettle, industry Technology, EIN-verified,
+       founder as authorized rep. Twilio's fee bills to the account
+       balance silently; no checkout step.
+     * State: brand IN REVIEW (hours to days; email will say).
+       Approved → campaign step unlocks; paste-ready campaign text
+       (Account Notifications use case, v7 samples + STOP line) in
+       docs/a2p-10dlc-campaign.md. Rejected → verbatim reason to the
+       ledger, fix the named field. SMS transport build (spec 011
+       amendment) can proceed in parallel regardless.
+     * Next number: 228.

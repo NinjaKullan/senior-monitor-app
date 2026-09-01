@@ -5,14 +5,26 @@ registration". No SMS reaches a US phone from it until a 10DLC brand
 and campaign are approved. This is the SMS fallback for US parents,
 since Meta blocks Marketing templates to US numbers (216).
 
+## Status 2026-09-01 ~4:45pm ET: BRAND SUBMITTED — Low Volume
+Standard for LINKABIT AI LABS (CP 575 spelling, no "LLC"; zip 27523;
+website heykettle.com; friendly name HeyKettle), off the converted
+Business compliance profile. IN REVIEW at TCR (hours–days; email to
+the notification address decides). Approved → do the Campaign section
+below. Rejected → verbatim reason to the ledger. Full arc: DECISIONS
+226–227.
+
 ## Status 2026-09-01 ~3:45pm ET: PAUSED at the review screen — root
 cause found (DECISIONS 226). The Trust Hub primary profile is an
 INDIVIDUAL profile (the founder personally), so the wizard was
 registering a Sole Proprietor brand and never asked for an EIN. Do
-NOT submit. Path chosen from 226: ask Twilio support to convert/
-replace the primary profile with a Business profile for LINKABIT AI
-LABS LLC (type LLC, EIN, business address), then rerun the wizard on
-the Standard track. Earlier notes kept below for the record.
+NOT submit. Resolution better than expected: Trust Hub
+offers self-serve "Convert to a business profile" — founder converted
+the primary profile to Business (LINKABIT AI LABS LLC, LLC, EIN,
+business address) and submitted ~4:00pm ET Sep 1; profile is IN
+REVIEW (hours to a couple of days). The A2P wizard stays paused until
+the profile reads Approved · Business, then rerun from Start — it
+should then follow the Standard/EIN track. Earlier notes kept below
+for the record.
 
 ## Status 2026-09-01 ~1:30pm ET: BLOCKED on Twilio's side
 
