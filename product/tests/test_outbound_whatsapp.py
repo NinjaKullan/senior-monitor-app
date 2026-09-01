@@ -20,6 +20,11 @@ TOKEN = "auth_test_token"
 FROM = "whatsapp:+14155238886"
 PARENT = "+919845550001"
 
+#: The ask takes one variable since DECISIONS 217 — the first name of the
+#: family member who set Kettle up. Every send in this file supplies it, the
+#: way the engine does.
+ASK_VARS = {"owner_name": "Priya"}
+
 
 def transport_answering(handler) -> tuple[TwilioWhatsAppTransport, list[httpx.Request]]:
     seen: list[httpx.Request] = []
@@ -38,7 +43,7 @@ def ok(request: httpx.Request) -> httpx.Response:
 
 def test_the_ask_becomes_one_twilio_call_with_the_rendered_body():
     transport, seen = transport_answering(ok)
-    result = transport.send(PARENT, "ask_parent", {})
+    result = transport.send(PARENT, "ask_parent", ASK_VARS)
 
     assert result.delivered is True
     assert result.transport == "twilio_whatsapp"
@@ -56,13 +61,13 @@ def test_the_ask_becomes_one_twilio_call_with_the_rendered_body():
     assert decoded == {
         "From": FROM,
         "To": f"whatsapp:{PARENT}",
-        "Body": render("ask_parent", {}),
+        "Body": render("ask_parent", ASK_VARS),
     }
 
 
 def test_a_refusal_is_a_failed_result_with_the_status_code():
     transport, _ = transport_answering(lambda request: httpx.Response(401))
-    result = transport.send(PARENT, "ask_parent", {})
+    result = transport.send(PARENT, "ask_parent", ASK_VARS)
     assert result.delivered is False
     assert result.detail == "HTTP 401"
 
@@ -72,7 +77,7 @@ def test_a_network_error_is_a_failed_result_never_an_exception():
         raise httpx.ConnectTimeout("slow", request=request)
 
     transport, _ = transport_answering(explode)
-    result = transport.send(PARENT, "ask_parent", {})
+    result = transport.send(PARENT, "ask_parent", ASK_VARS)
     assert result.delivered is False
     assert result.detail == "ConnectTimeout"
 
@@ -96,7 +101,7 @@ def test_it_carries_the_ask_and_only_the_ask():
 def test_logs_carry_a_masked_number_and_no_body(caplog):
     transport, _ = transport_answering(ok)
     with caplog.at_level(logging.DEBUG, logger="kettle.outbound"):
-        transport.send(PARENT, "ask_parent", {})
+        transport.send(PARENT, "ask_parent", ASK_VARS)
     logged = "\n".join(record.getMessage() for record in caplog.records)
     assert PARENT not in logged
     assert "…0001" in logged

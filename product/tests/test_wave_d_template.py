@@ -39,7 +39,7 @@ from test_outbound import (
 from kettle import db
 from kettle.config import settings_from_env
 from kettle.outbound import record_parent_reply, transport_from_name
-from kettle.outbound_templates import render
+from kettle.outbound_templates import TEMPLATES, render
 from kettle.outbound_whatsapp import TwilioWhatsAppTransport
 
 SID = "AC_test_sid"
@@ -75,12 +75,17 @@ def form_of(request: httpx.Request) -> dict[str, str]:
 # --- the template send --------------------------------------------------------
 
 
-def test_the_ask_goes_as_a_content_sid_with_no_body_and_no_variables():
-    """The business-initiated shape. The approved template has zero variables
-    (DECISIONS 206/207), so the request names the SID and nothing else — an
-    empty ContentVariables would be a field Twilio parses for nothing."""
+def test_the_ask_goes_as_a_content_sid_with_one_variable_and_no_body():
+    """The business-initiated shape, as v5 changed it (DECISIONS 217).
+
+    v4 had zero variables and this test asserted ContentVariables was absent.
+    v5 carries exactly one — the first name of the family member who set
+    Kettle up — because Meta's Utility category needs the message to say who
+    asked for it. Still no Body: on this path the words are Meta's approved
+    copy, and only the blank travels from here.
+    """
     transport, seen = transport_answering(ok, ask_content_sid=CONTENT_SID)
-    result = transport.send(PARENT, "ask_parent", {})
+    result = transport.send(PARENT, "ask_parent", {"owner_name": "Priya"})
 
     assert result.delivered is True
     # The ledger names the transport that actually carried it (spec 011 §4).
@@ -90,9 +95,53 @@ def test_the_ask_goes_as_a_content_sid_with_no_body_and_no_variables():
         "From": REAL_FROM,
         "To": f"whatsapp:{PARENT}",
         "ContentSid": CONTENT_SID,
+        "ContentVariables": '{"1": "Priya"}',
     }
     assert "Body" not in form_of(request)
-    assert "ContentVariables" not in form_of(request)
+
+
+def test_the_template_path_never_sends_an_empty_name():
+    """The fallback reaches the WIRE, not just the sandbox body.
+
+    A template send with an empty {{1}} would deliver "  asked Kettle to check
+    in with you" to a real parent's phone — the exact hole DECISIONS 217's
+    fallback exists to close, and the template path is the one where Meta's
+    copy makes it invisible to us until it has already been delivered.
+    """
+    for variables in ({}, {"owner_name": ""}):
+        transport, seen = transport_answering(ok, ask_content_sid=CONTENT_SID)
+        transport.send(PARENT, "ask_parent", variables)
+        [request] = seen
+        assert form_of(request)["ContentVariables"] == '{"1": "Your family"}'
+
+
+def test_the_two_paths_say_the_same_sentence(monkeypatch):
+    """DECISIONS 209/217: one ask, whichever number carries it.
+
+    The sandbox renders the registry body; the real number sends a SID whose
+    approved copy is the same sentence with the same variable. What this can
+    check locally is that the registry sentence and the SUBMITTED sentence are
+    the same words — the submission script is the only place the Meta-side
+    string lives in this repo, so it is the thing to compare against.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "submit_ask_template",
+        Path(__file__).resolve().parent.parent.parent / "tools" / "submit_ask_template.py",
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    # Meta's {{1}} and the registry's {owner_name} are the same blank.
+    submitted = module.BODY.replace("{{1}}", "{owner_name}")
+    assert submitted == TEMPLATES["ask_parent"].body
+    assert module.TEMPLATE_NAME == "kettle_ask_parent_v5"
+    assert module.CATEGORY == "UTILITY"
+    assert module.LANGUAGE == "en"
+    # One variable, one sample, zero buttons — the shape 205 and 217 require.
+    assert module.VARIABLES == {"1": "Priya"}
+    assert set(module._request.__annotations__)  # imported cleanly
 
 
 def test_nothing_sends_or_expects_a_button(caplog):
@@ -101,7 +150,7 @@ def test_nothing_sends_or_expects_a_button(caplog):
     payload built here would be a message Meta refuses, and a button payload
     PARSED here would be a reply path that only works for taps."""
     transport, seen = transport_answering(ok, ask_content_sid=CONTENT_SID)
-    transport.send(PARENT, "ask_parent", {})
+    transport.send(PARENT, "ask_parent", {"owner_name": "Priya"})
     [request] = seen
     body = request.content.decode().lower()
     for shape in ("button", "quick_reply", "payload", "action"):
@@ -122,16 +171,20 @@ def test_without_a_content_sid_the_request_is_the_sandbox_one_byte_for_byte():
     configured the transport sends the registry's rendered body, exactly as
     Wave C has all along."""
     transport, seen = transport_answering(ok, from_address=SANDBOX_FROM)
-    result = transport.send(PARENT, "ask_parent", {})
+    result = transport.send(PARENT, "ask_parent", {"owner_name": "Priya"})
 
     assert result.delivered is True
     [request] = seen
     assert form_of(request) == {
         "From": SANDBOX_FROM,
         "To": f"whatsapp:{PARENT}",
-        "Body": render("ask_parent", {}),
+        "Body": render("ask_parent", {"owner_name": "Priya"}),
     }
     assert "ContentSid" not in form_of(request)
+    assert "ContentVariables" not in form_of(request)
+    # DECISIONS 209/217: the sandbox parent reads the SAME sentence the real
+    # number would send, with the same name in it.
+    assert form_of(request)["Body"].startswith("Priya asked Kettle to check in")
 
 
 def test_the_switch_is_config_and_the_sandbox_is_still_reachable():
@@ -263,3 +316,64 @@ def test_every_inbound_reply_lands_the_same_way(
     # And the follow-on never fires, whatever the parent typed.
     run_twice(conn, CountingTransport(), at(13, 30), notifier=notifier)
     assert "follow_on" not in statuses(conn)
+
+
+# --- the name on the send path (DECISIONS 217) --------------------------------
+
+
+def ask_body_sent(conn) -> str:
+    """Run a quiet morning and return the ask body the parent would read.
+
+    The rendered BODY rather than the variables dict, on purpose: the sentence
+    is the thing a parent receives, and asserting on it catches a name that
+    arrived correctly and then rendered into the wrong sentence.
+    """
+    transport = CountingTransport()
+    run_twice(conn, transport, at(11, 0))
+    asks = [body for template_id, body in transport.sent if template_id == "ask_parent"]
+    assert len(asks) == 1, asks
+    return asks[0]
+
+
+def test_the_ask_carries_the_owner_first_name_from_the_database(
+    conn, family  # noqa: F811
+):
+    """End to end: the member row is where the name comes from.
+
+    Not a constant, not the parent's label — the display name of the family
+    member whose role is owner, reduced to its first word.
+    """
+    conn.execute(
+        "update members set display_name = %s where family_id = %s and role = 'owner'",
+        ("Priya Sharma", family.family_id),
+    )
+    assert ask_body_sent(conn).startswith("Priya asked Kettle to check in with you")
+
+
+@pytest.mark.parametrize(
+    "stored",
+    [None, "", "   ", "hema@example.com", "H", "H2", "9999"],
+)
+def test_a_family_with_no_usable_owner_name_still_gets_a_whole_sentence(
+    conn, family, stored  # noqa: F811
+):
+    """The fallback, proved through the ENGINE rather than through the helper.
+
+    This is the path that matters: a family whose owner never set a display
+    name is the common case in a pilot, and the ask must still read as a
+    sentence rather than opening with a blank. The engine's withhold rule for
+    empty variables (DECISIONS 152) must not fire here either — a missing
+    owner name is not a reason to leave a parent unasked.
+    """
+    conn.execute(
+        "update members set display_name = %s where family_id = %s and role = 'owner'",
+        (stored, family.family_id),
+    )
+    assert ask_body_sent(conn).startswith(
+        "Your family asked Kettle to check in with you"
+    )
+    # And the ask was actually SENT, not withheld for a blank variable.
+    assert ("ask", "ask_parent") in ledger(conn)
+    assert render("ask_parent", {"owner_name": "Your family"}).startswith(
+        "Your family asked Kettle to check in with you"
+    )

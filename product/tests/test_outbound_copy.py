@@ -18,7 +18,13 @@ import re
 import pytest
 
 from kettle import outbound_templates
-from kettle.outbound_templates import KINDS, TEMPLATES, render
+from kettle.outbound_templates import (
+    KINDS,
+    OWNER_FALLBACK,
+    TEMPLATES,
+    owner_first_name,
+    render,
+)
 from kettle.provisioning import RELATIONSHIP_LABELS
 from kettle.signals import SIGNAL_LABELS, STANDARD_SIGNALS
 
@@ -144,8 +150,10 @@ def test_the_ask_carries_the_icon_and_is_the_only_thing_a_parent_hears():
     universal icon — the site's older quote of this string is illustrative,
     not binding, so this asserts against the ruling and never the site.
 
-    Reworded by the founder in DECISIONS 206 and approved by Meta in that
-    wording as kettle_ask_parent_v4 (207), which is why the assertion is
+    Reworded again in DECISIONS 217 for a UTILITY approval: v4 was approved
+    but recategorized Marketing, and Meta refuses marketing templates to US
+    numbers, so the ask reached nobody in the US (216, error 63049). v5 names
+    who asked and what for, which is what Utility means. The assertion stays
     codepoint-exact: on the real number these words come from Meta's approved
     template, on the sandbox from this registry, and a drift between them
     would be two different asks wearing one product's voice.
@@ -153,12 +161,24 @@ def test_the_ask_carries_the_icon_and_is_the_only_thing_a_parent_hears():
     parent_facing = [t for t in TEMPLATES.values() if t.audience == "parent"]
     assert [t.id for t in parent_facing] == ["ask_parent"]
     body = parent_facing[0].body
-    assert body == "Everything okay today? Reply with a 👍 when you're free."
-    # 55 codepoints, bare U+1F44D (no variation selector), straight
-    # apostrophe — the three details a retyping loses (DECISIONS 206).
-    assert len(body) == 55
+    assert body == (
+        "{owner_name} asked Kettle to check in with you when a morning looks "
+        "different. Is everything okay? Reply with a 👍 when you're free."
+    )
+    # Bare U+1F44D (no variation selector) and a straight apostrophe — the
+    # details a retyping loses (DECISIONS 206, carried into 217).
     assert "\U0001f44d" in body and "\ufe0f" not in body
     assert "'" in body and "\u2019" not in body
+    # Codepoint-exact in BOTH renderings, because both are things a parent can
+    # actually receive: a family with a name on file, and one without.
+    assert len(render("ask_parent", {"owner_name": "Priya"})) == 124
+    assert len(render("ask_parent", {"owner_name": OWNER_FALLBACK})) == 130
+
+    # DECISIONS 217: the fallback was chosen so the sentence reads whole
+    # rather than leaving a hole where a person should be.
+    assert render("ask_parent", {"owner_name": OWNER_FALLBACK}).startswith(
+        "Your family asked Kettle to check in with you"
+    )
 
 
 def test_the_email_subjects_are_registry_copy_and_obey_the_law():
@@ -234,21 +254,64 @@ def test_the_161_bodies_are_verbatim():
     assert TEMPLATES["all_clear_family"].audience == "child"
 
 
-def test_no_template_takes_a_name_or_says_one():
-    """DECISIONS 149: `{relationship}` and nothing else, never a name.
+def test_no_template_names_the_parent_it_is_about():
+    """DECISIONS 149, and the one exception 217 opened.
 
-    Three ways a name could sneak back in, each closed: a `parent_name`
-    variable (the shape 149 superseded), any other variable that is not
-    `relationship`, and a pet name written straight into a body.
+    149 banned names because Kettle must never GUESS what a parent is called:
+    the family picks `{relationship}` and the product says that, or says
+    nothing. That reasoning is untouched here — no template names, or takes a
+    variable for, the person it is about.
+
+    What 217 added is a different act. `{owner_name}` is the first name of the
+    family member who SET KETTLE UP, addressed to the parent, and it is not
+    guessed: it is that member's own display name, or the ruled fallback. It
+    exists because Meta's Utility category needs the message to say who asked
+    for it, and without it the ask is Marketing and undeliverable to every US
+    number (216). So the allowlist is two names wide and each is justified,
+    rather than open.
     """
+    ALLOWED = {"relationship", "owner_name"}
     for template in TEMPLATES.values():
-        assert set(template.variables) <= {"relationship"}, (
-            f"{template.id} takes {template.variables} — 149 allows only {{relationship}}"
+        assert set(template.variables) <= ALLOWED, (
+            f"{template.id} takes {template.variables} — only {ALLOWED} are ruled"
         )
+        # The parent-naming ban itself, unchanged: no pet name in any body.
         for name in NAMES:
             if name == "Kettle":
                 continue
             assert name not in template.body, f"a name in {template.id}: {name}"
+
+    # And `owner_name` is spent on exactly one template — the ask — so the
+    # exception cannot spread to a body that is ABOUT a parent.
+    takes_owner = [t.id for t in TEMPLATES.values() if "owner_name" in t.variables]
+    assert takes_owner == ["ask_parent"]
+
+
+def test_the_owner_name_fallback_is_the_ruled_string_and_is_hard_to_reach_past():
+    """DECISIONS 217's fallback, pinned, and the shapes that must trigger it.
+
+    This string is the first thing a parent reads when a family has no usable
+    name on file, so it is ruled copy and not a default someone can drift.
+    """
+    assert OWNER_FALLBACK == "Your family"
+    assert_outbound_copy_law(OWNER_FALLBACK)
+
+    # A real first name survives, including from a full display name.
+    assert owner_first_name("Priya") == "Priya"
+    assert owner_first_name("Hema Kumar") == "Hema"
+    assert owner_first_name("  Hema  Kumar ") == "Hema"
+
+    # Everything the ruling names as not-a-name falls back.
+    for not_a_name in (
+        None,
+        "",
+        "   ",
+        "hema@example.com",   # an address in the name field
+        "H",                  # an initial is not a name
+        "H2",                 # a digit would also break the copy law
+        "2Chainz",
+    ):
+        assert owner_first_name(not_a_name) == OWNER_FALLBACK, not_a_name
 
 
 def test_no_template_stores_or_names_a_signal():
