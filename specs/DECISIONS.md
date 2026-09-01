@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 226.** This line is the one to update; the `Next number:` lines inside
+**Next number: 227.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -4008,3 +4008,34 @@ browser — all three adopted as the standard for future surfaces.**
        so nothing recorded the webhook failing; full proof of the
        reply path stays with tomorrow's real ask, as 224 said.
      * Next number: 226.
+
+226. **(2026-09-01, ~15:45 EDT) 10DLC root cause found: the Trust Hub
+     primary profile is an INDIVIDUAL profile, so the wizard was
+     silently registering a Sole Proprietor brand. Submission paused.**
+     * PM read the profile page (console, founder's session):
+       "projectkettle", Primary profile, type **Individual**, status
+       Approved — the founder personally (personal contact details,
+       home address), no business section, no EIN field anywhere.
+       This explains both symptoms: the morning's "unexpected error"
+       (a Standard-brand attempt over a personal profile) and the
+       afternoon wizard's missing EIN prompt (it had dropped onto the
+       sole-prop track, where none is asked). The review screen's
+       "Brand name: LINKABIT AI LABS LLC" was a label the wizard
+       never intended to verify against an EIN.
+     * Founder decision framed, PM recommends path 1: (1) STANDARD —
+       via Twilio support (the support chat already offered an
+       agent): convert/replace the primary customer profile with a
+       Business profile (LINKABIT AI LABS LLC, type LLC, EIN,
+       business address), then rerun the wizard, which will then ask
+       for the EIN; brand belongs to the company. (2) SOLE PROP —
+       submit as-is: fast, caps sufficient for beta, but registers
+       the founder personally, wrong type for an existing LLC, and
+       redoing it properly later means re-registration and fees.
+       SMS is not on Wave D's critical path (WhatsApp delivers as of
+       224), so days of support latency cost nothing.
+     * docs/a2p-10dlc-campaign.md status updated across the day
+       (blocked → unblocked-but-wrong-track → paused on this
+       decision); its campaign samples were also reworded to the v7
+       sentence + STOP line so the eventual campaign matches the live
+       template.
+     * Next number: 227.
