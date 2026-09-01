@@ -16,10 +16,17 @@ has always been: `Body`, rendered from the registry. The registry keeps the
 same words either way (DECISIONS 206), so the two paths say one thing.
 
 The approved template carries NO buttons (DECISIONS 205: Meta forbids emoji in
-template buttons) and zero variables, so a template send names the SID and
-nothing else — no `ContentVariables`, no button payload to parse. A parent's
-👍 arrives as an ordinary inbound message, which is what the reply path has
-always read.
+template buttons) and, since v5, exactly ONE variable — the first name of the
+family member who set Kettle up (DECISIONS 217). So a template send names the
+SID and that one value, and there is still no button payload to parse: a
+parent's 👍 arrives as an ordinary inbound message, which is what the reply
+path has always read.
+
+Why v5 exists at all: v4 was approved but recategorized Marketing, and Meta
+refuses to deliver marketing templates to US numbers (DECISIONS 216, error
+63049 on a real send). v5 names who asked and what for, which is what Utility
+means, and is submitted with category change disallowed so a refusal is a
+verdict rather than a silent downgrade.
 
 The sandbox constraint worth remembering until Phase 3's sunset: a parent must
 have joined the sandbox (sent the join code once) before Twilio will deliver.
@@ -29,13 +36,19 @@ the correct loudness — the registered sender removes the step.
 
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Mapping
 
 import httpx
 
 from kettle.outbound import DeliveryResult
-from kettle.outbound_templates import KIND_ASK, render, template
+from kettle.outbound_templates import (
+    KIND_ASK,
+    OWNER_FALLBACK,
+    render,
+    template,
+)
 
 log = logging.getLogger("kettle.outbound")
 
@@ -129,10 +142,16 @@ class TwilioWhatsAppTransport:
         payload: dict[str, str] = {"From": self._from, "To": f"whatsapp:{to}"}
         if self._ask_content_sid:
             # The business-initiated shape: the SID names Meta-approved copy,
-            # so no body travels from here. Zero variables (DECISIONS 206/207),
-            # so no ContentVariables either — an empty one is a field Twilio
-            # would have to parse for nothing.
+            # so no body travels from here — only the one value the approved
+            # template leaves blank. v5 carries a single variable (DECISIONS
+            # 217), the first name of the family member who set Kettle up, and
+            # Twilio wants it as a JSON object keyed by position. The value is
+            # already resolved by the engine through `owner_first_name`, so it
+            # is never empty: worst case it is the ruled fallback.
             payload["ContentSid"] = self._ask_content_sid
+            payload["ContentVariables"] = json.dumps(
+                {"1": variables.get("owner_name") or OWNER_FALLBACK}
+            )
         else:
             payload["Body"] = render(template_id, variables)
         try:

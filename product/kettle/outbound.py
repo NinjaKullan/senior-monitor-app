@@ -47,6 +47,7 @@ from kettle.outbound_templates import (
     KIND_DIGEST_MORNING,
     KIND_FOLLOW_ON,
     KINDS,
+    owner_first_name,
     render,
     template,
 )
@@ -619,7 +620,18 @@ def run_outbound(
             # The template says which variables it takes; the caller does not
             # get to guess. A kind-based guess drifts the moment two templates
             # of one kind differ, which `digest_morning` already does.
-            available = {"relationship": parent["relationship"] or ""}
+            # DECISIONS 217: the ask now names who asked for it. The owner's
+            # first name is resolved through `owner_first_name`, which returns
+            # the ruled fallback rather than an empty string — so unlike
+            # `relationship` below, this variable can never be the reason a
+            # message is withheld, and a family with no name on file still
+            # gets a sentence that reads whole.
+            available = {
+                "relationship": parent["relationship"] or "",
+                "owner_name": owner_first_name(
+                    db.family_owner_name(conn, parent["family_id"])
+                ),
+            }
             variables = {
                 name: available[name] for name in template(decision.template_id).variables
             }
