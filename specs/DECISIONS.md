@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 221.** This line is the one to update; the `Next number:` lines inside
+**Next number: 222.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -3802,3 +3802,57 @@ browser — all three adopted as the standard for future surfaces.**
        with the next CC touch of the tools/ directory, not a
        round-trip of its own.
      * Next number: 221.
+
+221. **(2026-09-01, v5 submitted) REJECTED before review: Meta forbids a
+     variable at the start or end of a template body. A new hard rule;
+     the founder picks the opening word.**
+     * Second run of the script (KETTLE_CONTENT_SID exported, path fix
+       in 21c6a2c): `submitted: received` → within one poll
+       `rejected`. Reason, verbatim: `Problem: Failed to create
+       template, Reason: type=OAuthException, code=100,
+       subCode=2388299, userMessage=Variables can’t be at the start
+       or end of the template., message=Invalid parameter`. Record
+       shows category UTILITY, allow_category_change false, status
+       rejected, name kettle_ask_parent_v5.
+     * This is a validation reject, not a review verdict — same class
+       as 205's emoji-in-button (code 100). It says nothing yet about
+       whether Meta reads the words as Utility. The 217 body begins
+       `{{1}} asked Kettle…`, so the rule bites on the first
+       character. Hard rule for every future template: the body must
+       open and close with fixed text; a variable never sits first
+       or last. 217's body is otherwise unchanged and still the
+       founder's words.
+     * Fix is one opening word before the name; the founder chooses
+       (217 law: his register). Candidates offered, each the 217 body
+       with only the opening changed; the fallback for a missing
+       owner name stays sentence-initial so it needs no case change:
+       (a) `Hi. {{1}} asked Kettle to check in with you when a
+       morning looks different. Is everything okay? Reply with a 👍
+       when you're free.` (b) `Hello. {{1}} asked Kettle…` (same
+       tail). (c) `This is Kettle. {{1}} asked us to check in with
+       you when a morning looks different. Is everything okay? Reply
+       with a 👍 when you're free.` — rejected by PM before offering
+       wider: it moves Kettle from the one asked to the one talking,
+       which 217 deliberately avoided. PM leans (a): shortest, and
+       "Hi." is how a person opens a text. Fallback under (a)/(b):
+       `Hi. Your family asked Kettle…` — OWNER_FALLBACK stays exactly
+       "Your family".
+     * Founder chose (a). v6 body, VERBATIM, this is the ask sentence
+       from here on, both paths: `Hi. {{1}} asked Kettle to check in
+       with you when a morning looks different. Is everything okay?
+       Reply with a 👍 when you're free.` Fallback unchanged: "Your
+       family".
+     * Route: the founder creates and submits v6 in the Twilio console
+       (Content Template Builder, name kettle_ask_parent_v6, English,
+       text, one variable sampled "Priya", category Utility). Since
+       220 the script's only edge over the console (the flag) is gone,
+       so no CC trip gates the submission. Code catches up in one CC
+       commit before any deploy: registry sentence and script BODY /
+       TEMPLATE_NAME to v6, sentence-pins test, plus the URL assertion
+       accepted in 220. Meta's verdict is the next entry. HX8be9…
+       stays as the rejected record; delete with v1–v4 later.
+     * Submitted 2026-09-01 13:42 EDT from the console: v6 is
+       HX61758012edba26686ec7ee361a0f493f; WhatsApp business-initiated
+       shows pending (grey), not the instant red of v5 — so the body
+       passed validation and is in review.
+     * Next number: 222.
