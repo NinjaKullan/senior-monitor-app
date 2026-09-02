@@ -197,8 +197,22 @@ export const CLOCK_BY_NAME = "{name}'s time";
  * Login (DECISIONS 115). The mailer is equipment, so its failures are worded
  * like equipment — calm, specific, and with the next step in the sentence.
  */
+/* Spec 013 §3, VERBATIM. The button asks for a CODE now: on a phone the link
+   opens inside the mail app's browser rather than the installed Kettle app, so
+   the session lands somewhere the family never sees. A code has no context to
+   get wrong — they read it in Mail and type it here. The link still rides in
+   the same email for laptops, where it is one tap. */
+export const LOGIN_BUTTON = "Email me a code";
 export const LOGIN_SENT =
-  "Check your email for a sign-in link. It can take a minute — look in spam if it hasn't arrived.";
+  "Check your email for a 6-digit code and type it below. It can take a minute. Look in spam if it hasn't arrived.";
+export const LOGIN_CODE_LABEL = "6-digit code";
+export const LOGIN_CODE_BUTTON = "Sign in";
+export const LOGIN_CODE_RESEND = "Send a new code";
+/* Distinct from LOGIN_FAILED on purpose (DECISIONS 115): a mistyped digit and
+   a dead mailer are different problems with different next steps, and one
+   sentence for both teaches a family to retry the thing that cannot work. */
+export const LOGIN_CODE_WRONG =
+  "That code didn't match, or it has expired. Check the newest email, or ask for a new code.";
 export const LOGIN_RATE_LIMITED =
   "That's a few links in a row, and the mailer needs a short break. Wait a few minutes, then try once more.";
 export const LOGIN_FAILED = "That didn't go through. Check the address and try again.";

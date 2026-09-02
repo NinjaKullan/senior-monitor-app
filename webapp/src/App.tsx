@@ -9,7 +9,8 @@ import {
   placeUpdate,
   saveCityLabel,
   savePlace,
-  sendMagicLink,
+  sendSignInCode,
+  verifySignInCode,
   moveContact,
   updateContact,
   type ContactDraft,
@@ -185,7 +186,7 @@ export default function App() {
   if (authState === "signed-out") {
     return (
       <Shell isWide={isWide}>
-        <Login onSend={sendMagicLink} />
+        <Login onSend={sendSignInCode} onVerify={verifySignInCode} />
       </Shell>
     );
   }

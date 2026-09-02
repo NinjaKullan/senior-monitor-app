@@ -308,8 +308,38 @@ export interface FamilySnapshot {
  * over a link the rate-limited mailer had refused to send. Throwing is what
  * lets the Login screen put the failure into words.
  */
-export async function sendMagicLink(email: string): Promise<void> {
+/**
+ * Ask Supabase to email a sign-in code (spec 013 §2).
+ *
+ * The CALL is unchanged from the magic-link era — one `signInWithOtp` sends an
+ * email carrying both a code and a link, and which one a person uses is their
+ * choice, not a branch here. Only the name changed, because "magic link" stopped
+ * describing what this is for once the code became the path a phone takes.
+ *
+ * It throws rather than returning the error, and that is the whole point
+ * (DECISIONS 115): supabase-js hands failures back as VALUES, so the original
+ * bug was a call site that discarded a 429 and told the family to check an
+ * inbox nothing had been sent to.
+ */
+export async function sendSignInCode(email: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({ email });
+  if (error) throw error;
+}
+
+/**
+ * Exchange a typed 6-digit code for a session (spec 013 §2).
+ *
+ * `type: "email"` covers both templates a family can receive: the magic-link
+ * mail for an address that has signed in before, and the confirm-signup mail a
+ * first-time address gets. Success is not returned from here — the existing
+ * `onAuthStateChange` observes it, exactly as it does when someone taps the
+ * link on a laptop, so there is one place in the app that decides a person is
+ * signed in.
+ *
+ * Throws for the same reason as above.
+ */
+export async function verifySignInCode(email: string, token: string): Promise<void> {
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
   if (error) throw error;
 }
 

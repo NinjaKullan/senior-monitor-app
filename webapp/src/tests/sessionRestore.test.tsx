@@ -71,7 +71,12 @@ async function mount(overrides: Partial<Harness> = {}) {
   vi.doMock("@/lib/data", () => ({
     claimMembership: h.claimMembership,
     loadSnapshot: h.loadSnapshot,
-    sendMagicLink: vi.fn().mockResolvedValue(undefined),
+    // Spec 013 renamed the sender and added the verifier. This mock stands in
+    // for the whole module, and vitest fails hard on an export App imports but
+    // the mock does not define — so the two names track the module's surface.
+    // Nothing this file asserts changed.
+    sendSignInCode: vi.fn().mockResolvedValue(undefined),
+    verifySignInCode: vi.fn().mockResolvedValue(undefined),
   }));
 
   const { default: App } = await import("@/App");
