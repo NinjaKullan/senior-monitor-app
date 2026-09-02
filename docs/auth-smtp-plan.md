@@ -1,6 +1,6 @@
 # Custom SMTP for Supabase auth — the plan (DECISIONS 115)
 
-*Planned 2026-08-16, not yet applied. Founder-applied when it happens: every step here is dashboard
+*Planned 2026-08-16. APPLIED (founder, before 2026-09-02; seen in the dashboard Sep 2): custom SMTP ON, host smtp.resend.com, port 465, user resend, sender `Kettle <hello@send.heykettle.com>`, 60s per-user minimum interval. Rate-limit raise and the three-links-in-ten-minutes test recorded in DECISIONS 234. Originally: Founder-applied when it happens: every step here is dashboard
 and DNS work, nothing in this repo changes except `.env.example`'s documentation of the fact. Owed
 before any family that is not the founder's.*
 

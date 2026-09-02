@@ -4271,3 +4271,28 @@ browser — all three adopted as the standard for future surfaces.**
      * Twilio balance $20.00 at time of writing. Top up before real +1
        parents go on SMS (about 3 segments per ask at UCS-2).
      * Next number: 234.
+
+234. **(2026-09-02, evening) Supabase auth custom SMTP was ALREADY
+     APPLIED (Resend). PM miss: the plan doc and this ledger said
+     "not yet applied"; the dashboard said otherwise.**
+     * Seen in the dashboard (founder screenshot): Enable custom SMTP
+       ON; sender `Kettle <hello@send.heykettle.com>` (plan said
+       sign-in@; hello@ stands, it is verified and friendlier); host
+       smtp.resend.com; port 465; username resend; password saved;
+       minimum interval per user 60 s. docs/auth-smtp-plan.md status
+       line corrected.
+     * Test, same evening (founder): signed out of the app, requested
+       a sign-in link; arrived 5:41 PM ET from `Kettle
+       <hello@send.heykettle.com>` in an Outlook inbox, not spam.
+       Custom SMTP is live and delivering. Founder had applied this
+       earlier without a ledger entry; this entry is the record.
+     * Still open, one screen: Authentication → Rate Limits → email
+       sends, raise to 30/hour if still at the default 2 (the August
+       429 was the rate limit, not the mailer). Resend tracking on
+       send.heykettle.com assumed OFF (digest links have worked);
+       confirm at leisure.
+     * Lesson for the record: before calling anything a blocker,
+       check the live surface, not the plan doc. Same class as the
+       checklist-"Complete" miss (228) and the "Hema in {{1}}" miss
+       (229).
+     * Next number: 235.
