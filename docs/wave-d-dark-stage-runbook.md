@@ -105,3 +105,24 @@ address SQL this time, so the ordering law cannot bite. Next ask
 fires 11:00 parent-local on the next quiet Rehearsal morning; the
 verification list above applies unchanged, step 2 with the v6 copy.
 Rollback is the block above, unchanged.
+
+### Sender-swap checklist
+
+Pass 2 delivered cleanly and the first 👍 still recorded nothing: the
+real sender's Messaging Endpoint Configuration in the Twilio console
+was entirely empty, because the reply path had only ever been wired on
+the sandbox (DECISIONS 229). Outbound proves nothing about inbound.
+A sender swap is not done until all four are true:
+
+1. **Outbound secrets set** — `TWILIO_WHATSAPP_FROM` and
+   `TWILIO_ASK_CONTENT_SID` on kettle-api, and an ask seen delivered.
+2. **Inbound webhook set on the NEW sender** — incoming message
+   webhook = `https://kettle-api.fly.dev/outbound/reply`, method POST.
+   It is per-sender: the sandbox's setting does not carry over, and an
+   empty box looks exactly like a working one from the outside.
+3. **One typed reply round-tripped** — send a 👍 from the parent's own
+   phone and confirm `replied_utc` is set on that day's ask row. A
+   delivered ask is not evidence the answer has anywhere to land.
+4. **Only then is the swap done.** Until step 3 passes, treat the
+   sender as outbound-only: a parent who answers is being ignored, and
+   the follow-on will fire as though nobody replied.

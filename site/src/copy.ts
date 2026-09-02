@@ -36,7 +36,7 @@
 export const HERO_EYEBROW = "For families far away";
 export const HERO_H1 = "Know the day started normally.";
 export const HERO_BODY =
-  "Kettle notices when your parents' ordinary routine doesn't happen, and asks them first, before anyone worries.";
+  "Kettle notices when your parents' normal routine doesn't happen, and asks them first, before anyone worries.";
 /** The second half of the sub block. The objection this page answers before it
  *  is raised: nothing arrives, nothing is worn, nothing new has to be learned. */
 export const HERO_NO_DEVICE_BODY =
@@ -60,7 +60,7 @@ export const HERO_ALT =
 /* Scenario tabs                                                            */
 /* ---------------------------------------------------------------------- */
 
-export const SCENARIOS_H2 = "An ordinary day.";
+export const SCENARIOS_H2 = "A normal day.";
 
 /*
  * Each scenario is one lead sentence, whole. It used to be split at the last
@@ -75,7 +75,7 @@ export const MORNING_H3 = "A morning like any other.";
 export const MORNING_LEAD =
   "By the time her coffee went cold she'd called her sister, read the news, and lost "
   + "an argument with the crossword.";
-export const MORNING_BODY = "Her phone did its ordinary things. That's all Kettle ever needs.";
+export const MORNING_BODY = "Her phone did its normal things. That's all Kettle ever needs.";
 export const MORNING_ALT =
   "A silver-haired woman does the crossword at a sunny kitchen table, coffee in hand, her phone "
   + "lying ignored at the table's edge.";
@@ -99,7 +99,8 @@ export const OFF_ALT =
   + "her phone on the table showing one small amber glow.";
 /** Addressed *to* her, and a question rather than a claim — the one reason this
  *  string is on the pinned allowlist rather than banned. */
-export const OFF_NOTIF = "Everything okay today? Reply whenever suits.";
+export const OFF_NOTIF =
+  "Hi. Priya asked Kettle to check in with you when your morning is not as usual. Is everything okay? Reply with a 👍 when you can.";
 
 export const SEEN_TAB = "What you see";
 export const SEEN_H3 = "Reassurance, twice a day.";
@@ -128,7 +129,7 @@ export const STORY_EYEBROW = "Why the name";
 export const STORY_H2 = "Named after a kettle.";
 export const STORY_ONE_BODY =
   "In Japan, a tea kettle once told faraway families that their parents had started the day as usual.";
-export const STORY_TWO_LEAD = "The gentle idea was to notice the ordinary, and say so.";
+export const STORY_TWO_LEAD = "The gentle idea was to notice the normal, and say so.";
 export const STORY_TWO_BODY = "Kettle does the same with the phone your parents already own.";
 export const STORY_THREE_BODY =
   "Nothing to install in their home. Nothing to wear, nothing to charge, nothing to learn.";
@@ -157,14 +158,14 @@ export const HOW_H2 = "How Kettle works.";
  *  below do not already make — so it carries no copy of its own beyond this
  *  alt text. PM-drafted, verbatim. */
 export const HOW_STRIP_ALT =
-  "Four drawn panels: her ordinary morning, her daughter at ease in the city, a morning that has "
+  "Four drawn panels: her normal morning, her daughter at ease in the city, a morning that has "
   + "not started marked by an amber glow on her phone, and the mother replying as the day resumes.";
 
 export const STEP_ONE_LABEL = "Set up together on one video call.";
 /** What, never how (DECISIONS 132): public surfaces describe what is
  *  collected, never the mechanism — so this sentence names no tooling. */
 export const STEP_ONE_BODY =
-  "Kettle notices her phone's ordinary moments. She approves every part of the setup, and can switch any of it off herself.";
+  "Kettle notices her phone's normal moments. She approves every part of the setup, and can switch any of it off herself.";
 
 export const STEP_TWO_LABEL = "Kettle watches for the absence of normal.";
 export const STEP_TWO_BODY =
@@ -216,7 +217,7 @@ export const FOUNDER_WHY_BODY = [
   "I built Kettle because I wanted something smaller and kinder than a worried phone "
     + "call. Something that didn't ask my parents to wear anything, charge anything, "
     + "press a button, or change how they live.",
-  "Kettle simply notices that their ordinary day happened, and asks them first when it "
+  "Kettle simply notices that their normal day happened, and asks them first when it "
     + "doesn't.",
   "My mother and father were the first two people on it, and they are on it still. My "
     + "mother will happily use almost anything I set up for her. My father is a "

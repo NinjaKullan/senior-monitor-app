@@ -162,22 +162,27 @@ def test_the_ask_carries_the_icon_and_is_the_only_thing_a_parent_hears():
     assert [t.id for t in parent_facing] == ["ask_parent"]
     body = parent_facing[0].body
     assert body == (
-        "{owner_name} asked Kettle to check in with you when a morning looks "
-        "different. Is everything okay? Reply with a 👍 when you're free."
+        "Hi. {owner_name} asked Kettle to check in with you when your "
+        "morning is not as usual. Is everything okay? Reply with a 👍 "
+        "when you can."
     )
-    # Bare U+1F44D (no variation selector) and a straight apostrophe — the
-    # details a retyping loses (DECISIONS 206, carried into 217).
+    # Bare U+1F44D, no variation selector — the detail a retyping loses
+    # (DECISIONS 206, carried through 217 to the v7 words of 225).
     assert "\U0001f44d" in body and "\ufe0f" not in body
-    assert "'" in body and "\u2019" not in body
+    # v7 contains no apostrophe at all ("when you can" replaced "when you're
+    # free"), so the old "a straight one is present" pin no longer has
+    # anything to hold. What still matters is that a curly one never sneaks
+    # in through a retyping, on this string or any future wording of it.
+    assert "\u2019" not in body
     # Codepoint-exact in BOTH renderings, because both are things a parent can
     # actually receive: a family with a name on file, and one without.
-    assert len(render("ask_parent", {"owner_name": "Priya"})) == 124
-    assert len(render("ask_parent", {"owner_name": OWNER_FALLBACK})) == 130
+    assert len(render("ask_parent", {"owner_name": "Priya"})) == 127
+    assert len(render("ask_parent", {"owner_name": OWNER_FALLBACK})) == 133
 
     # DECISIONS 217: the fallback was chosen so the sentence reads whole
     # rather than leaving a hole where a person should be.
     assert render("ask_parent", {"owner_name": OWNER_FALLBACK}).startswith(
-        "Your family asked Kettle to check in with you"
+        "Hi. Your family asked Kettle to check in with you"
     )
 
 

@@ -137,15 +137,21 @@ _REGISTRY: tuple[Template, ...] = (
         # emoji in template buttons, so the approved template carries none and
         # the body does the inviting.
         #
-        # Reworded again by the founder in DECISIONS 217, and this time the
-        # shape is doing regulatory work as well as human work. Meta's UTILITY
-        # category means a specific, agreed-upon service update; v4 was only
-        # the question, so Meta recategorized it Marketing at approval (207)
-        # and then refused to deliver it to any US number at all (216, error
-        # 63049). The FIRST SENTENCE is the anchor that makes this a service
-        # message: it names who asked for it and what it is for. The direct
-        # question follows because that is how a person actually texts their
-        # mother.
+        # Reworded in DECISIONS 217, and this time the shape is doing
+        # regulatory work as well as human work. Meta's UTILITY category means
+        # a specific, agreed-upon service update; v4 was only the question, so
+        # Meta recategorized it Marketing at approval (207) and then refused to
+        # deliver it to any US number at all (216, error 63049). The FIRST
+        # SENTENCE is the anchor that makes this a service message: it names
+        # who asked for it and what it is for. The direct question follows
+        # because that is how a person actually texts their mother.
+        #
+        # These are the v7 words (DECISIONS 225), approved as Utility and the
+        # ask on BOTH paths: the greeting, "when your morning is not as usual"
+        # rather than "when a morning looks different", and "when you can"
+        # rather than "when you're free". Approved template
+        # kettle_ask_parent_v7; the sentence is final in the founder's
+        # register, so a reword here is a founder ruling, not an edit.
         #
         # `{owner_name}` is the first name of the family member who set Kettle
         # up, or exactly "Your family" — the sentence was chosen so the
@@ -162,9 +168,9 @@ _REGISTRY: tuple[Template, ...] = (
         kind=KIND_ASK,
         audience=AUDIENCE_PARENT,
         body=(
-            "{owner_name} asked Kettle to check in with you when a morning "
-            "looks different. Is everything okay? Reply with a 👍 when "
-            "you're free."
+            "Hi. {owner_name} asked Kettle to check in with you when your "
+            "morning is not as usual. Is everything okay? Reply with a 👍 "
+            "when you can."
         ),
         # One variable, matching the approved template's {{1}} exactly. The
         # registry is what makes render() refuse a partial fill, so declaring

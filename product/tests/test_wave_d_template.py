@@ -136,12 +136,23 @@ def test_the_two_paths_say_the_same_sentence(monkeypatch):
     # Meta's {{1}} and the registry's {owner_name} are the same blank.
     submitted = module.BODY.replace("{{1}}", "{owner_name}")
     assert submitted == TEMPLATES["ask_parent"].body
-    assert module.TEMPLATE_NAME == "kettle_ask_parent_v5"
+    assert module.TEMPLATE_NAME == "kettle_ask_parent_v7"
     assert module.CATEGORY == "UTILITY"
     assert module.LANGUAGE == "en"
     # One variable, one sample, zero buttons — the shape 205 and 217 require.
     assert module.VARIABLES == {"1": "Priya"}
     assert set(module._request.__annotations__)  # imported cleanly
+
+    # DECISIONS 219's class of miss, closed. Submitting is a POST to the
+    # CHANNEL-specific approval endpoint; the bare /ApprovalRequests
+    # collection is fetch-only, and posting there succeeds quietly while
+    # submitting nothing. Two URLs one character apart in the middle, and the
+    # difference is invisible until a template that was never submitted fails
+    # to arrive. Nothing else in the suite reaches these constants, so this is
+    # the only thing standing between that bug and a repeat of it.
+    assert module.APPROVAL_API.endswith("/ApprovalRequests/whatsapp")
+    assert module.APPROVAL_FETCH.endswith("/ApprovalRequests")
+    assert not module.APPROVAL_FETCH.endswith("/whatsapp")
 
 
 def test_nothing_sends_or_expects_a_button(caplog):
@@ -184,7 +195,7 @@ def test_without_a_content_sid_the_request_is_the_sandbox_one_byte_for_byte():
     assert "ContentVariables" not in form_of(request)
     # DECISIONS 209/217: the sandbox parent reads the SAME sentence the real
     # number would send, with the same name in it.
-    assert form_of(request)["Body"].startswith("Priya asked Kettle to check in")
+    assert form_of(request)["Body"].startswith("Hi. Priya asked Kettle to check in")
 
 
 def test_the_switch_is_config_and_the_sandbox_is_still_reachable():
@@ -347,7 +358,7 @@ def test_the_ask_carries_the_owner_first_name_from_the_database(
         "update members set display_name = %s where family_id = %s and role = 'owner'",
         ("Priya Sharma", family.family_id),
     )
-    assert ask_body_sent(conn).startswith("Priya asked Kettle to check in with you")
+    assert ask_body_sent(conn).startswith("Hi. Priya asked Kettle to check in with you")
 
 
 @pytest.mark.parametrize(
@@ -370,10 +381,10 @@ def test_a_family_with_no_usable_owner_name_still_gets_a_whole_sentence(
         (stored, family.family_id),
     )
     assert ask_body_sent(conn).startswith(
-        "Your family asked Kettle to check in with you"
+        "Hi. Your family asked Kettle to check in with you"
     )
     # And the ask was actually SENT, not withheld for a blank variable.
     assert ("ask", "ask_parent") in ledger(conn)
     assert render("ask_parent", {"owner_name": "Your family"}).startswith(
-        "Your family asked Kettle to check in with you"
+        "Hi. Your family asked Kettle to check in with you"
     )

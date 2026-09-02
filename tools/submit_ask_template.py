@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Create and submit the v5 ask template through Twilio's Content API.
+"""Create and submit the ask template through Twilio's Content API.
+
+Currently at v7 (DECISIONS 225), which is APPROVED as Utility and is the
+live template — HX1ebee977bfd531bf7fdee2bf0d1484ad. So this file is now a
+RECORD of what was submitted rather than something to run: the sentence
+here is pinned by test to the registry body, and re-running it would mint
+a duplicate content resource for a template that already exists.
 
 DECISIONS 217. The founder runs this; it is not wired into the app and nothing
 imports it.
@@ -12,7 +18,7 @@ An earlier version of this file claimed `allow_category_change=false` would
 force a clean verdict: approve as Utility or reject, never silently downgrade.
 That is no longer true, and DECISIONS 220 corrects it. Per Twilio's 2025-04-25
 changelog the flag no longer prevents recategorization — **Meta decides the
-category from the words**. So the thing doing the work is the copy: v5's first
+category from the words**. So the thing doing the work is the copy: the ask's first
 sentence names who asked for the message and what it is for, which is what
 Utility means (DECISIONS 217). The flag stays in the payload because it is
 harmless, not because it is load-bearing.
@@ -56,7 +62,7 @@ CONTENT_API = "https://content.twilio.com/v1/Content"
 APPROVAL_API = "https://content.twilio.com/v1/Content/{sid}/ApprovalRequests/whatsapp"
 APPROVAL_FETCH = "https://content.twilio.com/v1/Content/{sid}/ApprovalRequests"
 
-TEMPLATE_NAME = "kettle_ask_parent_v5"
+TEMPLATE_NAME = "kettle_ask_parent_v7"
 LANGUAGE = "en"
 CATEGORY = "UTILITY"
 
@@ -65,8 +71,8 @@ CATEGORY = "UTILITY"
 #: same sentence lives in kettle/outbound_templates.py as `{owner_name}` for
 #: the sandbox path, and a test pins the two to the same words.
 BODY = (
-    "{{1}} asked Kettle to check in with you when a morning looks different. "
-    "Is everything okay? Reply with a \U0001f44d when you're free."
+    "Hi. {{1}} asked Kettle to check in with you when your morning is not as "
+    "usual. Is everything okay? Reply with a \U0001f44d when you can."
 )
 
 #: Meta wants a sample for each variable so a reviewer can read the message as
