@@ -4296,3 +4296,22 @@ browser — all three adopted as the standard for future surfaces.**
        checklist-"Complete" miss (228) and the "Hema in {{1}}" miss
        (229).
      * Next number: 235.
+
+235. **(2026-09-02, evening) Spec 013 RATIFIED: sign in with a 6-digit
+     email code; the magic link stays in the same email as the second
+     path. Pre-beta; starts now.**
+     * Why now: it is the one pre-beta item on the board that touches
+       nothing the flip depends on, and the phone failure it fixes
+       (link opens in the mail app's browser, not the installed app)
+       is exactly what a beta family hits on day one.
+     * Ruling: BOTH code and link in the email, code first and larger.
+       Phones use the code; laptops use the link. No platform
+       detection in the app.
+     * Strings VERBATIM in spec 013 §3. Button "Email me a code";
+       LOGIN_SENT rewritten; new LOGIN_CODE_WRONG; email subject "Your
+       Kettle sign-in code". Parents never sign in; unchanged.
+     * Founder dashboard: both Supabase email templates (Magic Link
+       and Confirm signup) gain {{ .Token }}; text per §3.
+     * Order on the board: this ships before the beta invites; Memory
+       tab v1.1 (1218017356495916) stays after the flip.
+     * Next number: 236.
