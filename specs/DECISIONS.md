@@ -4127,3 +4127,90 @@ browser — all three adopted as the standard for future surfaces.**
        the script above at enrollment. Campaign verdict = next
        10DLC entry.
      * Next number: 229.
+
+229. **(2026-09-02, midday) Wave D pass 2 CLEAN: v7 delivered on the real
+     number at 11:00:57 ET, and the reply path is proven — after a
+     config fix.**
+     * Delivery: ask row 11:00:57 ET, transport twilio_whatsapp, body
+       v7 verbatim on TestMom's phone at 11:01. No ops_alerts beyond
+       the expected noon alert for a dark-stage parent.
+     * `{{1}}` rendered as "Your family", NOT "Hema". Correct per 217:
+       the Rehearsal owner's member display_name is an email address,
+       which `owner_first_name` rejects. So pass 2 proves the FALLBACK
+       path only. The runbook's "Hi. Hema asked…" expectation was a PM
+       miss (assumed a name never on file). To prove the name path:
+       founder sets that member's display_name to "Hema" (Studio DML)
+       before the next quiet-morning pass.
+     * Reply path: first 👍 (12:27 ET) recorded NOTHING. Cause: the
+       real WhatsApp sender's Messaging Endpoint Configuration in the
+       Twilio console was entirely empty — no incoming-message webhook.
+       The reply path had only ever been wired on the sandbox. Founder
+       set incoming webhook = https://kettle-api.fly.dev/outbound/reply
+       (POST), fallback/status/messaging-service left empty. Second 👍
+       matched: replied_utc 12:33:55 ET. Twilio signature verified
+       against PUBLIC_BASE_URL, so that value is confirmed correct.
+     * Standing rule (make structural): a sender swap is not done until
+       its INBOUND webhook is set and a reply has round-tripped. The
+       onboarding/ops runbook's sender-swap checklist gains that line;
+       the DB silence on Sep 1's ask (never answered) was this bug,
+       not a no-reply.
+     * Still owed from this pass: confirm no follow_on row for
+       2026-09-02 after the follow-on hour (cancellation proof), then
+       reaction-👍 pass next quiet morning, then no-reply ladder pass,
+       then flip order (item 4 code catch-up before flip).
+     * Next number: 230.
+
+230. **(2026-09-02, 1pm) 10DLC campaign APPROVED. SMS to +1 is now
+     carrier-registered. Sending remains gated on spec 011.**
+     * Read from the console by PM (Chrome, read-only): A2P Campaign
+       CM267f6c7e5b77d9bb9d57c0bc13945c01, status Approved, use case
+       Account Notification, brand HeyKettle
+       BN17aaa4a756b388a218a9f8437ba6f1dd, last updated Sep 1. Review
+       took under a day, not the 1–7 business days quoted.
+     * The campaign is bound to Messaging Service
+       MG0e9fbf94ad89764c8a6f121f2027675c ("Messaging Service created
+       on August 11, 2026"), whose sender pool holds +19843704452
+       (Local 10DLC, SMS+MMS). So SMS sends MUST go out via that
+       Messaging Service SID (MessagingServiceSid), not a bare From —
+       the registration attaches to the service. Spec 011 amendment
+       carries this.
+     * WhatsApp is unaffected: the WhatsApp sender's endpoint config
+       has no Messaging Service selected (229), and must stay that
+       way — the service's inbound handling is for SMS STOP/HELP.
+     * Not yet verified: the number's SMS "Registration required"
+       flag clearing, and the Messaging Service's inbound/opt-out
+       settings (console pages 404'd on PM's paths; founder to open
+       Messaging Services → the service → Integration and Opt-Out
+       and report what they show). Both feed spec 011.
+     * Next number: 231.
+
+231. **(2026-09-02, afternoon) Spec 011 Amendment A (SMS transport for
+     +1 parents) RATIFIED.** Three founder rulings, rest locked by
+     228/230 evidence:
+     * SMS ask body = the filed sample, always: v7 + "Reply STOP to
+       end these texts." (option (a)). The daily SMS question is the
+       only SMS the parent gets besides the one-time welcome.
+     * Enrollment of a phone-only parent: setup shows the child the
+       228 script verbatim; the control that enrols reads "They said
+       yes" and stores `sms_consent_utc`. Ruled NOT a consent ceremony
+       (no gate, no extra screen); the 10DLC filing's "consent recorded
+       with the parent's record at setup" is this timestamp.
+     * Family-facing copy when a parent texts STOP: DEFERRED. v1 =
+       founder ops_alert only; opted-out parent gets no ask, hence no
+       follow-on.
+     * Locked design (see spec A.2–A.10): per-parent routing
+       (whatsapp_e164 → WhatsApp; else +1 phone_e164 + consent + not
+       opted out → twilio_sms; else recorded skip); payload
+       MessagingServiceSid + To + Body, never a bare From; kind
+       `sms_welcome` once per parent; inbound on the SAME
+       /outbound/reply using Twilio's OptOutType (STOP/START/HELP are
+       never replies; body still never read; lookup by phone_e164 when
+       From has no whatsapp: prefix); 21610 = opted out; migration
+       0023 (parents.sms_consent_utc, sms_opted_out_utc); secret
+       TWILIO_MESSAGING_SERVICE_SID; "one reminder" in the script is a
+       ceiling, v1 sends the parent none; Phase 4 dark stage on
+       TestMom with whatsapp_e164 nulled.
+     * Order: Phase 3 flip first, then the item-4 catch-up commit,
+       then Amendment A build. Founder console tasks A.8 can run any
+       time (service inbound webhook, HELP text, registration flag).
+     * Next number: 232.
