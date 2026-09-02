@@ -138,6 +138,12 @@ before paying". Then give a top-10 with one sentence each on why.
   fragility). Size L. Clears. Source: docs/PLAN.md Q107.
 - [R] Acuity tiers; paid responder integration (premium). Size L.
   Clears. Source: docs/gtm-roadmap.md Wave 1 "explicitly OUT".
+- [R] Show the family that a parent's 👍 arrived (today it is
+  invisible by design: the reply cancels the 1 PM follow-on and
+  silence means all's well, 197). Options: keep as is; one evening-
+  digest line on ask-and-answered days; a same-day mark on the parent
+  card. Size S. Clears if what-never-how. PM position: keep as is.
+  Source: Asana 1218133142343268, revisit after flip.
 
 ## 4. Creative pass (unreviewed)
 
