@@ -4244,3 +4244,30 @@ browser — all three adopted as the standard for future surfaces.**
        ContentSid is set; deploying keeps prod = HEAD). No secret
        changes.
      * Next number: 233.
+
+233. **(2026-09-02, evening) Twilio SMS console tasks DONE (spec 011
+     A.8 items 1–3). Number is registered and the SMS inbound path is
+     wired; nothing sends until Amendment A ships.**
+     * Messaging Service MG0e9fbf94ad89764c8a6f121f2027675c → Settings
+       → Inbound messages: "Send a webhook", request URL
+       https://kettle-api.fly.dev/outbound/reply, POST; fallback empty;
+       delivery status callback empty. (Was "Defer to sender's webhook"
+       with the number's own webhook empty, i.e. inbound SMS went
+       nowhere.) PM filled, founder saved.
+     * Same service → Opt-out: HELP confirmation message set to the
+       filed string verbatim: "HeyKettle: a family service. Questions:
+       hello@heykettle.com. Reply STOP to end these texts." STOP and
+       START confirmations left at Twilio defaults (not in the filing).
+     * Number +1 984 370 4452: Traffic Status "Messaging enabled";
+       Messaging configuration = the Aug 11 Messaging Service (service
+       settings override the number-level webhook, which is empty and
+       may stay so). No "Registration required" flag.
+     * Console still shows one "Onboarding task" for the number (A2P,
+       last modified Sep 1). With the campaign Approved and traffic
+       enabled this reads as a lagging checklist record, like the Meta
+       panel's "In review" on the display name. Watch, don't chase; if
+       the first SMS dark-stage send fails with a registration error,
+       this is the first place to look.
+     * Twilio balance $20.00 at time of writing. Top up before real +1
+       parents go on SMS (about 3 segments per ask at UCS-2).
+     * Next number: 234.
