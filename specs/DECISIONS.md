@@ -4214,3 +4214,33 @@ browser — all three adopted as the standard for future surfaces.**
        then Amendment A build. Founder console tasks A.8 can run any
        time (service inbound webhook, HELP text, registration flag).
      * Next number: 232.
+
+232. **(2026-09-02, evening) v7 catch-up commit REVIEWED and APPROVED
+     (5174f02). Registry, submission script, pins, site copy, runbook
+     all on v7 words; nothing touched outside the brief.**
+     * Registry body diffed against 225: identical, straight
+       characters, "Hi." present. Codepoint pins now 127 (named) /
+       133 (fallback). The apostrophe pin lost its positive half
+       because v7 has no apostrophe; the negative half (no curly
+       apostrophe) stays. Accepted.
+     * Site: eight "ordinary"→"normal" swaps, all rendered strings
+       including HOW_STRIP_ALT (alt text is read aloud, so it is
+       copy). RULED: "An ordinary day." → "A normal day." is the
+       correct edit; the article follows the word. Meta description
+       and HERO_BODY now say "normal routine". rhythmField's internal
+       `mode = "ordinary"` and code comments are not copy; left alone.
+     * tools/submit_ask_template.py is a record of what was filed,
+       not a submitter: TEMPLATE_NAME v7, BODY v7. New tests pin
+       APPROVAL_API ends /ApprovalRequests/whatsapp and APPROVAL_FETCH
+       does not.
+     * Runbook gained "Sender-swap checklist" (four conditions; step 3
+       = one typed reply round-tripped). Structural fix for 229.
+     * Process note from CC, on record: plant drills were run without
+       a WIP commit and a checkout revert took two finished items with
+       it; caught, reapplied, suite re-run on the restored tree.
+       The law stands: commit WIP before destructive experiments.
+     * Deploy owed (founder): `cd site && npm run ci && fly deploy`;
+       `cd product && fly deploy` (registry body only renders when no
+       ContentSid is set; deploying keeps prod = HEAD). No secret
+       changes.
+     * Next number: 233.
