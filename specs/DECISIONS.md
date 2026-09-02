@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 228.** This line is the one to update; the `Next number:` lines inside
+**Next number: 229.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -4071,3 +4071,59 @@ browser — all three adopted as the standard for future surfaces.**
        ledger, fix the named field. SMS transport build (spec 011
        amendment) can proceed in parallel regardless.
      * Next number: 228.
+
+228. **(2026-09-01, evening) 10DLC finished end to end: brand APPROVED
+     (~3 hours), site grew the two pages carriers require, and the
+     campaign is SUBMITTED. The verbal consent script is now canon.**
+     * Brand: approved same evening (Low Volume Standard, LINKABIT AI
+       LABS). Campaign wizard then demanded what our site lacked: a
+       privacy policy containing a mobile-number non-sharing
+       statement, message frequency, and "message and data rates may
+       apply" — and a terms page. Founder approved PM drafts; shipped
+       to the site (privacy.html gains a "Text messages" section,
+       dated 2026-09-01; new standalone terms.html in the privacy
+       page's fetch-nothing posture; both in sitemap; CI green,
+       deployed, committed by founder).
+     * Campaign filed as Account Notifications. First submission
+       bounced on three automated checks, all wording: description
+       didn't read as the use case, description said only "HeyKettle"
+       (not the registered brand), and verbal opt-in lacked the
+       exact script. Fixes: description now opens "HeyKettle, a
+       service operated by LINKABIT AI LABS, sends notifications to
+       enrolled members of a HeyKettle family account…"; the consent
+       field carries the full script. Resubmit passed initial
+       verification; now in TCR review (1–7 business days; monthly
+       campaign fee applies).
+     * **The setup consent script, VERBATIM (carriers have this
+       exact text; the setup flow must say the same):** "Kettle is a
+       service from HeyKettle. It sends you a short text when your
+       morning is not as usual, to ask if everything is okay. You
+       would get at most one question a day, and one reminder if you
+       do not reply. Message and data rates may apply. You can reply
+       HELP for help, or STOP to end the texts at any time. The
+       terms are at heykettle.com/terms.html and the privacy policy
+       at heykettle.com/privacy.html. Do you want these texts?
+       Please say yes or no." After yes → one enrollment-confirming
+       welcome text (option (c) from the campaign doc, now
+       ratified by the filing): "HeyKettle: [name] set you up to get
+       a short text from Kettle when your morning is not as usual.
+       At most one question a day, and one reminder. Message and
+       data rates may apply. Reply HELP for help or STOP to end
+       these texts. heykettle.com"
+     * Other filed values: samples 1–2 = the v7 ask (+ STOP line) in
+       named and "Your family" forms; sample 4 = the HELP reply
+       ("HeyKettle: a family service. Questions:
+       hello@heykettle.com. Reply STOP to end these texts."); opt-in
+       keywords blank (defaults START/YES/UNSTOP stand — a STOPped
+       parent can text START to resume); embedded links yes, sample
+       https://heykettle.com, no shorteners; no phone numbers, no
+       lending, no age-gating; opt-in Verbal only.
+     * Consequences owed: (a) hello@heykettle.com is now in a
+       carrier filing, the HELP reply, and the terms page — the
+       forward MUST exist before any SMS sends (founder). (b) Spec
+       011 amendment (SMS transport build) now has its consent
+       script, welcome text, and STOP semantics fixed by this filing
+       — CC builds to THESE strings. (c) The setup flow must present
+       the script above at enrollment. Campaign verdict = next
+       10DLC entry.
+     * Next number: 229.

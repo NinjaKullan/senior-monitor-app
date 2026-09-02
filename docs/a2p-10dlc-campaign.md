@@ -5,6 +5,16 @@ registration". No SMS reaches a US phone from it until a 10DLC brand
 and campaign are approved. This is the SMS fallback for US parents,
 since Meta blocks Marketing templates to US numbers (216).
 
+## Status 2026-09-01 ~9:00pm ET: BRAND APPROVED; CAMPAIGN SUBMITTED
+(passed initial verification; TCR review 1-7 business days). The
+as-filed strings live in DECISIONS 228 and are canon: campaign
+description (Account Notifications register, names LINKABIT AI
+LABS), the verbal consent script, the welcome/enrollment text,
+samples 1-4, STOP/HELP/START semantics. The setup flow and the spec
+011 SMS build must use THESE strings. hello@heykettle.com must
+receive mail before any SMS sends. Privacy "Text messages" section +
+terms.html shipped to the site 2026-09-01.
+
 ## Status 2026-09-01 ~4:45pm ET: BRAND SUBMITTED — Low Volume
 Standard for LINKABIT AI LABS (CP 575 spelling, no "LLC"; zip 27523;
 website heykettle.com; friendly name HeyKettle), off the converted
