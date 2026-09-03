@@ -4391,3 +4391,30 @@ browser — all three adopted as the standard for future surfaces.**
        (Safari: Share, Add to Home Screen); sign in with the emailed
        code. Both now hold.
      * Next number: 240.
+
+240. **(2026-09-02, 10:50pm ET) Wave D owed items, checked against the
+     live surfaces (the 234 lesson), ahead of the reaction-👍 pass.**
+     * Cancellation PROVEN. sent_messages for Rehearsal/TestMom:
+       Sep 1 ask 11:00:35 ET, no reply, follow_on 13:01:09 (the
+       ladder fired, as designed). Sep 2 ask 11:00:57 ET, replied
+       12:33:55, NO follow_on row for 2026-09-02. A reply cancels the
+       follow-on; a silence does not. Both halves now on record.
+     * Name path: Rehearsal owner display_name is already "Hema"
+       (founder did it after 229 without a ledger line). Tomorrow's
+       ask should render "Hi. Hema asked…"; if it says "Your family"
+       again, that is a code path, not data.
+     * FOUND: the Suryaprakasam owner's display_name is still the
+       email address, so after the Phase 3 flip Amma and Appa would get
+       the fallback "Your family asked…" instead of "Hema asked…".
+       Same one-line fix, same table, must land BEFORE the flip. Added
+       to the flip checklist (Asana 1218116228613723).
+     * 232 deploy: site CONFIRMED live (heykettle.com reads "A normal
+       day." and has no "ordinary"; meta description on v7 words).
+       Product (kettle-api) not verifiable from outside (healthz has
+       no version); founder to confirm `cd product && fly deploy` ran.
+     * Still on the founder, two screens: Supabase Auth → Rate Limits
+       → email sends to 30/hour (234); Twilio balance top-up (233).
+     * Tomorrow (Thu Sep 3), quiet morning: reaction-👍 pass on
+       TestMom at the 11:00 ET ask. Then Fri: no-reply ladder pass.
+       Then Phase 3 flip. Beta invites after the flip.
+     * Next number: 241.
