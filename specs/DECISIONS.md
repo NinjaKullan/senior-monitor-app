@@ -4315,3 +4315,20 @@ browser — all three adopted as the standard for future surfaces.**
      * Order on the board: this ships before the beta invites; Memory
        tab v1.1 (1218017356495916) stays after the flip.
      * Next number: 236.
+
+236. **(2026-09-02, late) Spec 013 built at 2dad423; two build-report
+     calls accepted; deploy gated on the founder's template edit.**
+     * Webapp 188 tests (8 new), ci green, nothing deployed.
+     * Accepted: step 2 stays visible after the first successful send;
+       a rate-limited resend shows LOGIN_RATE_LIMITED beside the resend
+       link instead of collapsing to step 1. Spec 013 §2 amended.
+     * Accepted: sessionRestore.test.tsx mock keys renamed to match the
+       data.ts surface; assertions untouched. §5 wording amended so
+       "unchanged" means what it asserts, not byte-identical.
+     * Bad-code detection is loose on purpose (otp_expired code, or
+       "token" + "expired"/"invalid" in the message); an unrecognised
+       error degrades to LOGIN_FAILED, never throws.
+     * Deploy order: (1) both Supabase templates get {{ .Token }} per
+       §4, (2) deploy webapp, (3) §6 live check on phone and laptop.
+       Deploying before (1) sends emails with no code in them.
+     * Next number: 237.

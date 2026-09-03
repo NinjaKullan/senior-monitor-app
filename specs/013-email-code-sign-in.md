@@ -1,6 +1,6 @@
 # Spec 013 — Sign in with a 6-digit email code (magic link kept as the second path)
 
-Status: RATIFIED by Hema, 2026-09-02 (DECISIONS 235): both code and
+Status: RATIFIED by Hema, 2026-09-02 (DECISIONS 235); BUILT 2dad423, awaiting founder template edit + deploy (DECISIONS 236): both code and
 link in the email, code first. Pre-beta. Asana 1218034241842672
 (layer 1). Builds on DECISIONS 115 (make failures visible) and 234
 (custom SMTP live).
@@ -32,7 +32,11 @@ observed by the existing `onAuthStateChange`; nothing else in App.tsx
 changes. Below the field a text link **"Send a new code"** which
 re-runs step 1 with the same email (the SMTP 60-second per-user
 minimum means a quick second tap surfaces LOGIN_RATE_LIMITED; that is
-correct behaviour, not a bug).
+correct behaviour, not a bug). Once step 2 is revealed it is never
+hidden again: a rate-limited or failed resend shows its message beside
+the "Send a new code" link and leaves the code field and whatever was
+typed in place, because the family may be holding a good code from the
+first email. (Ruled on the build report, DECISIONS 236.)
 
 Step-2 failures, distinct and in words (DECISIONS 115 posture):
 - wrong or expired code (Supabase returns a 403 with "Token has
@@ -82,7 +86,8 @@ called with `{ email, token, type: "email" }`; wrong/expired →
 LOGIN_CODE_WRONG; resend calls `signInWithOtp` again and a rate-limit
 error shows LOGIN_RATE_LIMITED; code field has `inputmode="numeric"`
 and `autocomplete="one-time-code"`. `sessionRestore.test.tsx`
-unchanged. Copy-law test picks up the new strings automatically if it
+unchanged in what it asserts (its module mock must list the renamed
+exports; that is the only permitted edit). Copy-law test picks up the new strings automatically if it
 walks `copy.ts`; if it pins a list, add them.
 
 ## 6. Verify live (founder, then PM reads the ledger)
