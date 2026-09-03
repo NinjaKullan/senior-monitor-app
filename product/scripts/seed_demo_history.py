@@ -124,8 +124,13 @@ ANSWERED_RESUME = time(11, 30)   # Dad's habits resume, after he has answered
 ANSWERED_REPLY = time(11, 20)    # his reply to the ask, which stops the ladder
 CHANGED_RESUME = time(15, 0)     # Mom's habits resume, mid-afternoon
 
+#: How recent the front edge of a `--through-now` day is. The glance reads
+#: "Heard from N minutes ago", and a demo wants that N small enough to look
+#: live without being so small it looks staged.
+THROUGH_NOW_FRESHNESS = timedelta(minutes=18)
+
 NOTE_UNREACHABLE = "Phone was in the car. All fine."
-NOTE_APPOINTMENT = "Dr. Patel, Thursday 2pm"
+NOTE_APPOINTMENT = "Dr. Reed, Thursday 2pm"
 NOTE_CHANGED_MORNING = "Was at Carol's. Left the phone on the counter."
 NOTE_AUTHOR = "Sarah"
 
@@ -413,12 +418,26 @@ class Seeded:
 
 
 def seed(
-    conn: psycopg.Connection, family_id: Any, days: int = 30, seed_value: int = 42
+    conn: psycopg.Connection,
+    family_id: Any,
+    days: int = 30,
+    seed_value: int = 42,
+    *,
+    through_now: bool = False,
 ) -> Seeded:
     """Write the history. Refuses first, deletes its own, then rewrites.
 
     One transaction: a half-seeded family is a demo that shows the wrong thing
     without anybody knowing it is wrong.
+
+    `through_now` adds TODAY, in progress: the beats that have already happened
+    in each parent's local time, plus one habit ping a few minutes ago, so the
+    glance reads "Heard from N minutes ago" instead of "nothing yet". It writes
+    no ledger row for today - the digests have not happened yet, and inventing
+    an 08:30 digest at 09:00 would be the demo claiming Kettle said something
+    it did not. Re-running later simply moves the front edge forward;
+    everything behind today is deleted and rewritten identically, so the whole
+    thing stays idempotent (DECISIONS 245).
     """
     check_safe(conn, family_id)
     parents = db.parents_for_family(conn, family_id)
@@ -465,6 +484,22 @@ def seed(
             )
         relationship = relationships[parent_id]
         today_local = datetime.now(tz).date()
+
+        # Today first when asked for, then the finished days behind it. Today
+        # is the only day whose shape depends on the clock rather than on the
+        # seed, which is why it is built apart from the loop below.
+        if through_now:
+            now_local = datetime.now(tz)
+            today = now_local.date()
+            rng = _rng(seed_value, parent_id, today)
+            for signal, when in day_pings(today, tz, roles, rng):
+                if when <= now_local:
+                    ping_rows.append((parent_id, signal, when, MARKER))
+            # The front edge. Placed relative to NOW rather than to a beat, so
+            # the glance says the same thing whenever the founder re-runs this.
+            ping_rows.append(
+                (parent_id, roles["alarm"][0], now_local - THROUGH_NOW_FRESHNESS, MARKER)
+            )
 
         for back in range(days, 0, -1):
             day = today_local - timedelta(days=back)
@@ -578,6 +613,11 @@ def main() -> int:
     parser.add_argument("--family-id", required=True)
     parser.add_argument("--days", type=int, default=30)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--through-now",
+        action="store_true",
+        help="also seed TODAY up to this moment, so the glance reads as live",
+    )
     args = parser.parse_args()
 
     settings = settings_from_env()
@@ -587,7 +627,13 @@ def main() -> int:
         except Refused as refusal:
             print(f"refused: {refusal}", file=sys.stderr)
             return 2
-        counts = seed(conn, args.family_id, days=args.days, seed_value=args.seed)
+        counts = seed(
+            conn,
+            args.family_id,
+            days=args.days,
+            seed_value=args.seed,
+            through_now=args.through_now,
+        )
 
     print(f"{name}: {args.days} days seeded (seed {args.seed}, marker {MARKER!r})")
     print(f"  pings          {counts.pings:,}")

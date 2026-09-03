@@ -182,13 +182,19 @@ def parents_with_tz(conn: psycopg.Connection) -> list[Row]:
     `relationship` rides along for the outbound channel: it is the only thing
     `{relationship}` ever renders (DECISIONS 149), and None means the parent is
     skipped by relationship-bearing templates until the label is set.
+
+    `family_demo` rides along too (0023): the engine drops those parents before
+    it decides anything, and reading the flag here rather than filtering it out
+    in SQL keeps this one query the single description of what a parent IS,
+    with the decision about what to do with one staying in the engine.
     """
     return conn.execute(
         """
         select p.id as parent_id, p.display_name as parent_name, p.tz as parent_tz,
                p.relationship as relationship,
                p.city_label as city_label, p.tz_changed_utc as tz_changed_utc,
-               f.id as family_id, f.name as family_name, f.tz as family_tz
+               f.id as family_id, f.name as family_name, f.tz as family_tz,
+               f.demo as family_demo
         from parents p
         join families f on f.id = p.family_id
         order by f.name, p.display_name

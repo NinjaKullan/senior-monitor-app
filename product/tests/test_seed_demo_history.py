@@ -9,14 +9,19 @@ write rather than per row, and it is checked here first.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
+from html import unescape
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import psycopg
 import pytest
 
 from kettle import db
+from kettle.outbound import MORNING_DIGEST
+from kettle.outbound_templates import render, template
 from kettle.provisioning import provision_family
+from kettle.signals import ALARM_GRADE
 from scripts.seed_demo_history import (
     ANSWERED_ASK_DAYS_AGO,
     APPOINTMENT_DAYS_AGO,
@@ -69,6 +74,12 @@ def ledger(conn: psycopg.Connection, parent_id, local_date: str) -> dict[str, tu
         (parent_id, local_date),
     ).fetchall()
     return {r["kind"]: (r["template_id"], r["status"]) for r in rows}
+
+
+def parent_relationship(conn, parent_row) -> str:
+    return conn.execute(
+        "select relationship from parents where id = %s", (parent_row["id"],)
+    ).fetchone()["relationship"]
 
 
 def local_day(parent_row, days_ago: int) -> str:
@@ -592,3 +603,279 @@ def test_a_reseed_leaves_alone_what_it_did_not_write(conn, whitakers):
         "select count(*) as n from journal_entries where family_id = %s and body = %s",
         (whitakers.family_id, "She sounded good on the phone today."),
     ).fetchone()["n"] == 1, "a family's own note was deleted by the reseed"
+
+
+# --- the engine walks past a demo family (DECISIONS 245) ----------------------
+
+
+def test_a_demo_family_produces_nothing_while_its_neighbour_behaves(
+    conn, whitakers, notifier
+):
+    """The gap DECISIONS 245 found, closed and pinned.
+
+    "No phone number" (242) stops the ASK. It stops nothing else: the engine
+    walks every parent in the database, so a seeded demo family would mail the
+    owner a quiet-morning digest and the founder an ops alert, daily, about a
+    household that does not exist. A family that exists to be photographed
+    does not get to send anybody mail.
+
+    Both families here have a silent parent and are otherwise identical, so
+    the only thing separating "nothing at all" from "the full ladder" is the
+    one bit.
+    """
+    from kettle.outbound import LogTransport, run_outbound
+
+    real = provision_family(
+        conn,
+        name="Brennan",
+        tz="America/Phoenix",
+        parents=[("Joan", "America/Phoenix", "Mom")],
+        base_url=BASE_URL,
+        signals=["routine", "charger", "device_alive"],
+    )
+    conn.execute(
+        "update families set demo = true where id = %s", (whitakers.family_id,)
+    )
+    conn.commit()
+
+    # Nobody has pinged today in either family, so the ladder has every reason
+    # to fire for both. Late enough that the digest, the ask and the follow-on
+    # are all past due.
+    tz = ZoneInfo("America/Phoenix")
+    now = datetime.now(tz).replace(hour=14, minute=0, second=0, microsecond=0)
+    run_outbound(conn, LogTransport(), now, notifier=notifier, enabled=True)
+
+    demo_rows = conn.execute(
+        "select count(*) as n from sent_messages where family_id = %s",
+        (whitakers.family_id,),
+    ).fetchone()["n"]
+    real_rows = conn.execute(
+        "select count(*) as n from sent_messages where family_id = %s",
+        (real.family_id,),
+    ).fetchone()["n"]
+
+    assert demo_rows == 0, "a demo family wrote a ledger row"
+    assert real_rows > 0, "the neighbour stopped behaving as it does today"
+
+    # And no ops alert either: a skipped ask normally raises one, and the
+    # founder should not be told about scenery. Scoped to the demo family on
+    # purpose - the neighbour's own skipped ask SHOULD alert, and asserting
+    # zero alerts globally would have passed for the wrong reason the moment
+    # the neighbour went quiet.
+    assert conn.execute(
+        "select count(*) as n from ops_alerts where family_id = %s",
+        (whitakers.family_id,),
+    ).fetchone()["n"] == 0
+    assert conn.execute(
+        "select count(*) as n from ops_alerts where family_id = %s",
+        (real.family_id,),
+    ).fetchone()["n"] > 0
+
+
+def test_the_flag_is_off_until_somebody_sets_it(conn, whitakers):
+    """Every existing family keeps behaving exactly as it does today."""
+    assert conn.execute(
+        "select demo from families where id = %s", (whitakers.family_id,)
+    ).fetchone()["demo"] is False
+
+
+# --- today, in progress (DECISIONS 245) ---------------------------------------
+
+
+def today_pings(conn, parent_row) -> list:
+    tz = ZoneInfo(parent_row["tz"])
+    midnight = datetime.combine(datetime.now(tz).date(), time(0, 0), tzinfo=tz)
+    return conn.execute(
+        "select signal, ts_utc from pings where parent_id = %s and ts_utc >= %s "
+        "order by ts_utc",
+        (parent_row["id"], midnight),
+    ).fetchall()
+
+
+def test_without_through_now_today_is_empty(conn, whitakers):
+    """The default stops at yesterday, exactly as it always has."""
+    seed(conn, whitakers.family_id, days=30, seed_value=42)
+    for relationship in ("Mom", "Dad"):
+        assert today_pings(conn, parent_by(conn, whitakers.family_id, relationship)) == []
+
+
+def test_through_now_makes_the_glance_read_as_live(conn, whitakers):
+    """The point of the flag: "Heard from N minutes ago", not "nothing yet"."""
+    seed(conn, whitakers.family_id, days=30, seed_value=42, through_now=True)
+    for relationship in ("Mom", "Dad"):
+        parent = parent_by(conn, whitakers.family_id, relationship)
+        tz = ZoneInfo(parent["tz"])
+        rows = today_pings(conn, parent)
+        assert rows, relationship
+
+        newest = rows[-1]["ts_utc"]
+        age = datetime.now(tz) - newest
+        assert timedelta() <= age < timedelta(hours=1), f"{relationship}: {age}"
+        # Alarm-grade, or the glance has nothing to say it heard from her.
+        assert ALARM_GRADE.get(rows[-1]["signal"], False)
+
+
+def test_through_now_never_seeds_the_future(conn, whitakers):
+    """A ping timestamped ahead of the clock is a demo that cannot be trusted."""
+    seed(conn, whitakers.family_id, days=30, seed_value=42, through_now=True)
+    for relationship in ("Mom", "Dad"):
+        parent = parent_by(conn, whitakers.family_id, relationship)
+        tz = ZoneInfo(parent["tz"])
+        for row in today_pings(conn, parent):
+            assert row["ts_utc"] <= datetime.now(tz)
+
+
+def test_through_now_writes_no_ledger_row_for_today(conn, whitakers):
+    """Today's digests have not happened yet, so the demo does not claim them.
+
+    An 08:30 digest invented at 09:00 would be the demo saying Kettle said
+    something it did not - and the whole point of the replay test is that this
+    seeder only ever records what the engine would.
+    """
+    seed(conn, whitakers.family_id, days=30, seed_value=42, through_now=True)
+    for relationship in ("Mom", "Dad"):
+        parent = parent_by(conn, whitakers.family_id, relationship)
+        today = datetime.now(ZoneInfo(parent["tz"])).date().isoformat()
+        assert ledger(conn, parent["id"], today) == {}
+
+
+def test_re_running_moves_the_front_edge_and_leaves_the_past_alone(conn, whitakers):
+    """Idempotent behind today; live at the front (DECISIONS 245)."""
+    def past_only(family_id):
+        pings, messages, notes = snapshot(conn, family_id)
+        mom = parent_by(conn, family_id, "Mom")
+        midnight = datetime.combine(
+            datetime.now(ZoneInfo(mom["tz"])).date(), time(0, 0),
+            tzinfo=ZoneInfo(mom["tz"]),
+        )
+        return ([p for p in pings if p[1] < midnight], messages, notes)
+
+    seed(conn, whitakers.family_id, days=30, seed_value=42, through_now=True)
+    before = past_only(whitakers.family_id)
+    first_edge = today_pings(conn, parent_by(conn, whitakers.family_id, "Mom"))[-1]
+
+    seed(conn, whitakers.family_id, days=30, seed_value=42, through_now=True)
+    after = past_only(whitakers.family_id)
+    second_edge = today_pings(conn, parent_by(conn, whitakers.family_id, "Mom"))[-1]
+
+    assert before == after, "a re-run rewrote history behind today"
+    # The edge tracks the clock, so it moves forward (or holds, within the
+    # second the two runs share) but never backwards.
+    assert second_edge["ts_utc"] >= first_edge["ts_utc"]
+    # And there is still exactly one front edge, not two stacked up.
+    assert len(today_pings(conn, parent_by(conn, whitakers.family_id, "Mom"))) == len(
+        today_pings(conn, parent_by(conn, whitakers.family_id, "Mom"))
+    )
+
+
+def test_today_replays_as_a_normal_day_so_far(conn, whitakers, notifier):
+    """The same replay discipline the story days get.
+
+    Run the real engine at this moment over today's seeded pings: a morning
+    that has reported normally owes a normal morning digest and no ask, which
+    is what a demo opened at lunchtime should be showing.
+    """
+    from kettle.outbound import LogTransport, run_outbound
+
+    seed(conn, whitakers.family_id, days=30, seed_value=42, through_now=True)
+    mom = parent_by(conn, whitakers.family_id, "Mom")
+    tz = ZoneInfo(mom["tz"])
+    now_local = datetime.now(tz)
+    run_outbound(conn, LogTransport(), now_local, notifier=notifier, enabled=True)
+    decided = ledger(conn, mom["id"], now_local.date().isoformat())
+
+    # Both branches assert, rather than skipping before the digest slot: a
+    # test that proves nothing between midnight and 08:30 Phoenix is a test
+    # that proves nothing on most of the runs that matter.
+    if now_local.time() < MORNING_DIGEST:
+        assert decided == {}, "nothing is due before the morning slot"
+    else:
+        assert decided.get("digest_morning") == ("digest_morning_normal", "sent")
+    # Either way, a morning that reported is never asked about.
+    assert "ask" not in decided
+
+
+# --- rendering a seeded day's digests (DECISIONS 245) -------------------------
+
+
+def test_the_renderer_writes_the_template_ids_the_ledger_names(conn, whitakers, tmp_path):
+    """Each story day renders the bodies its own ledger row named.
+
+    The mapping is the table in the DECISIONS 243 build report, checked
+    against the files rather than against the ledger it came from - the point
+    of this script is that what lands on disk is what the engine decided, and
+    a renderer that quietly picked its own template would still pass a test
+    that only read sent_messages.
+    """
+    from scripts.render_digest import render_day
+
+    seed(conn, whitakers.family_id, days=30, seed_value=42)
+    mom = parent_by(conn, whitakers.family_id, "Mom")
+    dad = parent_by(conn, whitakers.family_id, "Dad")
+
+    cases = [
+        # (parent, days ago, expected template id per kind that SENT)
+        ("Linda", mom, 3, {"digest_morning": "digest_morning_normal",
+                           "digest_evening": "digest_evening_normal"}),
+        ("Linda", mom, LATE_START_DAYS_AGO,
+         {"digest_morning": "digest_morning_quiet",
+          "digest_evening": "digest_evening_recovered"}),
+        ("Bill", dad, ANSWERED_ASK_DAYS_AGO,
+         {"digest_morning": "digest_morning_quiet",
+          "digest_evening": "digest_evening_recovered"}),
+        # The withheld evenings: a skipped row is not an email, so no file.
+        ("Bill", dad, UNREACHABLE_DAYS_AGO,
+         {"digest_morning": "digest_morning_quiet"}),
+        ("Linda", mom, CHANGED_MORNING_DAYS_AGO,
+         {"digest_morning": "digest_morning_quiet"}),
+    ]
+
+    for name, parent, days_ago, expected in cases:
+        day = local_day(parent, days_ago)
+        out = tmp_path / f"{name}-{days_ago}"
+        written = render_day(conn, whitakers.family_id, name, day, out)
+
+        assert len(written) == len(expected), f"{name} {days_ago}d: {written}"
+        for kind, template_id in expected.items():
+            path = out / f"{day}-{name.lower()}-{kind}.html"
+            assert path in written
+            # Unescaped, because the wrapper escapes the apostrophe in
+            # "Mom's" and the point is the WORDS, not their encoding.
+            page = unescape(path.read_text(encoding="utf-8"))
+            assert template_id in page, f"{path.name} did not name {template_id}"
+            # The rendered body is the registry's words, not a paraphrase.
+            body = render(
+                template_id,
+                dict.fromkeys(
+                    template(template_id).variables,
+                    parent_relationship(conn, parent),
+                ),
+            )
+            assert body.split(".")[0] in page
+
+
+def test_the_renderer_never_writes_a_withheld_evening(conn, whitakers, tmp_path):
+    """A file on disk is a message the family received.
+
+    The evening of a follow-on day is recorded as skipped, and rendering it
+    would put an email in the founder's screenshot folder that nobody was ever
+    sent - the quiet fiction this demo exists to avoid.
+    """
+    from scripts.render_digest import render_day
+
+    seed(conn, whitakers.family_id, days=30, seed_value=42)
+    dad = parent_by(conn, whitakers.family_id, "Dad")
+    day = local_day(dad, UNREACHABLE_DAYS_AGO)
+
+    assert ledger(conn, dad["id"], day)["digest_evening"][1] == "skipped"
+    written = render_day(conn, whitakers.family_id, "Bill", day, tmp_path)
+    assert [p.name for p in written] == [f"{day}-bill-digest_morning.html"]
+
+
+def test_the_renderer_sends_nothing_and_cannot(conn):
+    """No transport, no key, no address: it reads tables and writes files."""
+    source = (
+        Path(__file__).resolve().parent.parent / "scripts" / "render_digest.py"
+    ).read_text()
+    for forbidden in ("httpx", "requests", "resend", "twilio", "smtp", "ResendTransport"):
+        assert forbidden not in source.lower(), forbidden

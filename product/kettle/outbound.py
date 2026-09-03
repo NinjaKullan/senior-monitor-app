@@ -510,6 +510,17 @@ def run_outbound(
 
     decisions: list[Decision] = []
     for parent in db.parents_with_tz(conn):
+        # Scenery (DECISIONS 245): a demo family is skipped BEFORE anything is
+        # decided, so it produces no ledger row, no ops alert and no send. The
+        # gap this closes was real and shipping: "no phone number" (242) stops
+        # the ask and nothing else, so the seeded Whitakers would have mailed
+        # the owner a quiet-morning digest and the founder an alert, daily,
+        # about a household that does not exist. Placed at the top of the loop
+        # rather than inside the withhold rules on purpose - a withhold is a
+        # decision recorded, and there is nothing here to record.
+        if parent["family_demo"]:
+            continue
+
         # Read fresh from this cycle's query, never cached (spec 010 §3): the
         # zone is load-bearing for every slot below, and a moved parent's
         # digests fire at the NEW zone's clock from the next cycle onward.
