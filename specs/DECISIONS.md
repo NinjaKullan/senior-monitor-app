@@ -4647,3 +4647,31 @@ browser — all three adopted as the standard for future surfaces.**
        If not approved by Friday, flip on v7 and tell Amma and Appa
        to type the 👍.
      * Next number: 249.
+
+249. **(2026-09-03, 12:40pm ET) Demo family DONE in prod. Whitakers are
+     scenery; the glance reads live; digest HTML is on disk.**
+     * Migration 0023 applied to prod by PM through Supabase (one file,
+       as every prod migration has been). `scripts.migrate` is NOT for
+       prod: it replays from 0001 and failed on `families` already
+       existing, inside a transaction, so nothing changed. CC's
+       founder command in 246 was wrong on that step; the runner's
+       own docstring says it is for tests and fresh databases. Rule:
+       prod migrations are applied one file at a time, by hand or
+       through the Supabase migration tool, never via the runner.
+     * `families.demo = true` for the Whitakers only. Product
+       redeployed by the founder, so the engine skips them from the
+       next pass. Re-seeded `--through-now`: 480 pings, 127 ledger
+       rows, 3 notes; both parents "heard from" about 20 minutes
+       before the read, 08:57 Phoenix.
+     * Rendered: Aug 15 Linda morning ("Mom's morning looked like a
+       normal morning. Next note this evening.") and evening ("A
+       normal day, start to finish. Next note in the morning."); Aug
+       22 Bill morning quiet ("Quiet so far this morning. Kettle will
+       check in with Dad first if that continues."). Files in
+       product/digests/, not committed.
+     * Founder next: sign in to the app as dogooddatascience@gmail.com
+       and take the glance, detail, and Memory screenshots; open the
+       three HTML files for the digest screenshots. Asana
+       1218125400783474 done-when is met once those are in
+       design-sources/screenshots/.
+     * Next number: 250.
