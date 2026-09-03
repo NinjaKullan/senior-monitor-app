@@ -4466,3 +4466,33 @@ browser — all three adopted as the standard for future surfaces.**
        demo family is universal, that line probably should be too.
        Not changed tonight; founder to rule.
      * Next number: 243.
+
+243. **(2026-09-02, 11:45pm ET) Demo seeder built at 416c048 (product
+     570 → 589). Three rulings on the build report.**
+     * Marker `demo-seed` in pings.ip_hash and sent_messages.transport
+       ACCEPTED: neither column renders. Journal notes are owned by
+       content (the seeder deletes only bodies it is about to write):
+       ACCEPTED, no migration; a marker in a family's own record would
+       be a marker a person reads. The isolation test that plants a
+       real ping and a typed note inside the demo family and asserts
+       both survive a re-seed is the guardrail that matters here.
+     * Dad's couldn't-reach day is `follow_on_unreachable` (zero pings
+       of any grade), correctly matching 242's wording. That leaves the
+       product's central story undemoed: a changed morning, Kettle
+       asks the parent, the parent answers, the family never hears.
+       RULED: two more story days. (d) Dad, 23 days ago: normal start,
+       then quiet from about 08:30 local, the ask goes out at 11:00,
+       he replies at about 11:20, no follow-on, pings resume at
+       about 11:30. (e) Mom, 26 days ago: same changed-morning shape,
+       no reply, `follow_on_family` at the follow-on hour, pings
+       resume mid-afternoon, note that evening "Was at Carol's. Left
+       the phone on the counter." Five story days; every message kind
+       the product can send now has one example.
+     * Engine-replay test (seeded ledger discarded, real `run_outbound`
+       replayed at the schedule instants, compared) ACCEPTED and
+       named as the reason this demo stays honest: if the ladder is
+       re-timed, the demo fails rather than drifting.
+     * Order: CC adds (d) and (e), then founder provisions the
+       Whitakers in prod and seeds; PM reads the rows before any
+       screenshot.
+     * Next number: 244.
