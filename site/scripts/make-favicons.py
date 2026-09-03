@@ -17,10 +17,15 @@ is the 700px square centred on (524, 414) - the kettle plus ~4% air, soft
 shadow included. favicon.svg is NOT produced here: it is the hand-simplified
 glyph the hobnail texture cannot survive becoming at 16px, authored once and
 committed beside the rasters.
+
+Since DECISIONS 238 this also writes the WEBAPP's home-screen set into
+webapp/public/, from the same crop and the same flatten: one kettle, one
+source, and a re-run refreshes both sets.
 """
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 from PIL import Image
@@ -36,6 +41,21 @@ CANVAS = (0xF6, 0xF2, 0xEC, 0xFF)
 
 CROP_CENTER = (524, 414)
 CROP_SIDE = 700
+
+WEBAPP = SITE.parent / "webapp" / "public"
+
+#: Android renders a maskable icon through a shape of its choosing, and the
+#: only region guaranteed to survive every one of them is the CIRCLE whose
+#: diameter is 80% of the tile - so the safe radius is 0.40 of the tile, not
+#: 0.40 of its width in each direction. A square scaled to 80% is therefore
+#: NOT safe: its corners sit at 0.566 from the centre, well outside.
+MASKABLE_SAFE_RADIUS = 0.40
+
+#: Alpha above which a pixel is the kettle rather than its soft shadow. The
+#: measured extent is identical from 64 through 200, so this sits in the middle
+#: of a flat region rather than on a cliff - a threshold that has to be exactly
+#: right is a threshold that will be wrong after the next asset.
+INK_ALPHA = 64
 
 
 def master() -> Image.Image:
@@ -65,6 +85,71 @@ def on_canvas(size: int, source: Image.Image, content_fraction: float) -> Image.
     offset = (size - inner) // 2
     tile.alpha_composite(kettle, (offset, offset))
     return tile
+
+
+def ink_radius_fraction(source: Image.Image) -> float:
+    """How far the kettle itself reaches from the crop's centre, as a fraction.
+
+    Measured rather than assumed, so the safe-zone scale below follows the
+    asset instead of a number somebody typed once. Returns the largest
+    distance from the centre to any pixel that is kettle rather than shadow,
+    divided by the crop's side.
+    """
+    alpha = source.split()[3]
+    width, height = alpha.size
+    pixels = alpha.load()
+    cx, cy = (width - 1) / 2, (height - 1) / 2
+    longest = 0.0
+    for y in range(height):
+        for x in range(width):
+            if pixels[x, y] > INK_ALPHA:
+                distance = math.hypot(x - cx, y - cy)
+                if distance > longest:
+                    longest = distance
+    return longest / width
+
+
+def maskable_fraction(source: Image.Image) -> float:
+    """The tile fraction at which the kettle still fits the safe CIRCLE.
+
+    DECISIONS 238 asks for the kettle inside the central 80% so that Android's
+    circle crop keeps the spout and the handle. Those are two different things
+    when the artwork is a square: scaling this crop to 0.80 of the tile puts
+    the kettle's outermost ink at 0.80 x 0.5617 = 0.449 from the centre, which
+    is OUTSIDE the 0.40 safe radius, and the circle crop would take exactly
+    the spout tip and handle arc the ruling is protecting. So the scale is
+    derived from the safe radius instead, and it comes out near 0.71.
+    """
+    return MASKABLE_SAFE_RADIUS / ink_radius_fraction(source)
+
+
+def write_webapp_icons(source: Image.Image) -> None:
+    """The home-screen set for the installed app (DECISIONS 238).
+
+    Same crop, same ground, same flatten as the site's touch icon: the app a
+    family taps and the site they read it about are one product, and two
+    kettles drawn from two sources drift the first time either is touched.
+    """
+    WEBAPP.mkdir(parents=True, exist_ok=True)
+    fraction = maskable_fraction(source)
+
+    # iOS: no circle crop, just rounded corners, so it keeps the site's own
+    # 0.84 and the extra presence that buys.
+    on_canvas(180, source, 0.84).convert("RGB").save(
+        WEBAPP / "apple-touch-icon.png", optimize=True
+    )
+    # Android maskable: opaque to the edges, because a maskable icon's
+    # background is what the launcher's shape is cut OUT of - transparency
+    # there is a hole, not a ground.
+    for size in (192, 512):
+        on_canvas(size, source, fraction).convert("RGB").save(
+            WEBAPP / f"icon-{size}.png", optimize=True
+        )
+
+    print(f"webapp maskable scale: {fraction:.3f} of the tile")
+    for name in ("apple-touch-icon.png", "icon-192.png", "icon-512.png"):
+        path = WEBAPP / name
+        print(f"webapp/{name}: {path.stat().st_size:,} bytes")
 
 
 def main() -> None:
@@ -108,6 +193,8 @@ def main() -> None:
     ):
         path = PUBLIC / name
         print(f"{name}: {path.stat().st_size:,} bytes")
+
+    write_webapp_icons(source)
 
 
 if __name__ == "__main__":
