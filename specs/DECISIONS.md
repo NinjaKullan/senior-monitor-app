@@ -4584,3 +4584,32 @@ browser — all three adopted as the standard for future surfaces.**
        asked…" rendered, the name path is proven. Founder reacting (not
        replying) before the 13:00 follow-on hour; row to be read.
      * Next number: 247.
+
+247. **(2026-09-03, 11:58am ET) Reaction-👍 pass: FINDING. A WhatsApp
+     reaction never reaches the reply webhook.**
+     * Ask row 11:00:49 ET, delivered, "Hi. Hema asked Kettle…" (name
+       path proven, 240). Founder long-pressed and reacted 👍 at about
+     11:51 ET (screenshot: reaction bubble under the message, no sent
+       message). At 11:56 replied_utc is still null and there are no
+       ops alerts. Yesterday's typed 👍 matched within a second
+       (12:33:55 for a 12:33 send). The reaction is invisible to us.
+       This is the edge 210 named ("a reaction may never reach the
+       webhook") made real, and it is a Twilio Programmable Messaging
+       property, not a Kettle bug: the inbound webhook carries
+       messages, and a reaction is not a message.
+     * PM recommendation to the founder: do NOT type a reply now. Let
+       today run as the no-reply ladder pass instead of tomorrow:
+       follow_on to the family inbox at 13:00 ET, evening digest
+       withheld (164). That collapses two mornings into one and the
+       flip can be Friday. Founder to confirm.
+     * Product consequence for the flip: the template says "Reply
+       with a 👍 when you can." A parent who reacts instead of
+       replying has answered in their own mind and Kettle will still
+       tell the family it could not reach them. Two mitigations, both
+       for a founder ruling, neither blocking the flip since the
+       follow-on is a soft rung: (1) copy, "Send a 👍 back when you
+       can" or similar, so the instruction reads as a message, not a
+       tap (a v8 template, Meta re-approval, ~a day); (2) the family's
+       first-week note explains it. Amma and Appa can be told directly
+       for now.
+     * Next number: 248.
