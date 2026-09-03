@@ -4720,3 +4720,26 @@ browser — all three adopted as the standard for future surfaces.**
      * Not screenshot-ready until both are fixed: Memory tab. The
        glance, the parent detail, and the three rendered digests are.
      * Next number: 252.
+
+252. **(2026-09-03, ~12:50pm ET) v9 APPROVED but RECATEGORIZED to
+     MARKETING (HX53a16a951d7f10c139f73b1160848304, 12:37:58 EDT).
+     STOP: never send v9. v7 stays live. PM misread "Received" as
+     the verdict for ten minutes; the founder corrected it.**
+     * What it isolates: v9 kept v7's first sentence, so the
+       Marketing read comes from the ending. Either the conditional
+       ("If everything is okay, …") or "or a yes".
+     * RULED: one last attempt. v10 VERBATIM = v7 plus three words:
+       `Hi. {{1}} asked Kettle to check in with you when your morning
+       is not as usual. Is everything okay? Reply with a 👍 or a yes
+       when you can.` Utility → ship it (secret swap before Friday's
+       11:00 pass; founder replies "yes"). Marketing → stop iterating,
+       stay on v7, close the reaction gap by telling parents to type
+       the 👍, and revisit copy after the beta has real replies to
+       learn from.
+     * Catch-up commit (CC) waits for the v10 verdict; the Memory date
+       bug (251), the seeder retired-bodies list, and the .gitignore
+       line ship in it either way, with the ask words being whichever
+       template is live.
+     * Founder's Patel row deleted by hand (251 finding 1 closed for
+       this seed).
+     * Next number: 253.
