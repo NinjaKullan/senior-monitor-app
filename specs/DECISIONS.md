@@ -4418,3 +4418,20 @@ browser — all three adopted as the standard for future surfaces.**
        TestMom at the 11:00 ET ask. Then Fri: no-reply ladder pass.
        Then Phase 3 flip. Beta invites after the flip.
      * Next number: 241.
+
+241. **(2026-09-02, 11pm ET) 240's open items closed. Both owner
+     names are "Hema"; product redeployed; rate limit was already 30.**
+     * Suryaprakasam owner (members 7f20eb20…) display_name set from
+       the email address to "Hema" by PM via Supabase, founder's
+       go-ahead in chat; guarded update, one row returned. Both
+       families now render the name path after the flip. Removed from
+       the flip checklist's must-do.
+     * `cd product && fly deploy` re-run by the founder; safe to repeat
+       (prod = HEAD, no DB or secret change). 232's deploy owed is
+       cleared on both halves.
+     * Supabase Auth → Rate Limits → emails already 30/h (founder
+       screenshot). 234's open item was already done on the live
+       surface; the plan doc was behind again.
+     * Remaining founder item: Twilio top-up (233), before real +1
+       parents go on SMS, not before tomorrow.
+     * Next number: 242.
