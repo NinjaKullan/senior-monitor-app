@@ -259,7 +259,7 @@ set by the provisioning script from a founder-attested call.
 
 ### A.7 Data and config
 
-- Migration 0023 (Studio, founder): `parents.sms_consent_utc
+- Migration 0024 (renumbered from 0023, which families.demo took first; DECISIONS 246) (Studio, founder): `parents.sms_consent_utc
   timestamptz null`, `parents.sms_opted_out_utc timestamptz null`.
   No RLS change; no grants.
 - New kind constant `KIND_SMS_WELCOME = "sms_welcome"`; ledger and
@@ -277,7 +277,7 @@ set by the provisioning script from a founder-attested call.
    keywords default; HELP reply text = the filed HELP string (A.4).
 3. Phone Numbers → +1 984 370 4452 → confirm the SMS "Registration
    required" flag is gone (DECISIONS 230 left it unverified).
-4. Migration 0023 in Studio.
+4. Migration 0024 in Studio.
 5. Secrets: `fly secrets set TWILIO_MESSAGING_SERVICE_SID=…` then
    OUTBOUND_TRANSPORT.
 Report each as a triplet, per the 229 standing rule: a sender is not

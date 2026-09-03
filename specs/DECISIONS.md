@@ -4561,3 +4561,26 @@ browser — all three adopted as the standard for future surfaces.**
        11:30 ET, follow-on at 16:00 ET) are real and screenshot-able;
        the ops alert at noon Phoenix is expected noise, ignore it.
      * Next number: 246.
+
+246. **(2026-09-03, 11:55am ET) Demo last mile built at 6d90401
+     (product 604). Migration number corrected; today's pass under
+     way.**
+     * Migration is 0023 (`families.demo`), not 0024: main had no 0023
+       and the migrations test forbids gaps. My 0024 came from 231,
+       which had pencilled 0023 for Amendment A's SMS columns; that
+       amendment now takes 0024. Spec 011 A amended in place.
+     * Accepted: the demo skip sits above the withhold rules (nothing
+       to record, so no skipped rows and no alerts), proven with two
+       otherwise-identical families; `--through-now` writes today's
+       pings but no ledger row for today (a digest not yet sent is not
+       invented); the renderer writes sent rows only, so Bill's Aug 22
+       evening stays off disk because the family never received it.
+     * Founder order: `python -m scripts.migrate` against prod, set
+       `families.demo = true` for the Whitakers, re-seed with
+       `--through-now`, render Aug 15 (Linda) and Aug 22 (Bill).
+       Product deploy needed for the skip to take effect in the
+       running engine: `cd product && fly deploy` after migrate.
+     * Wave D reaction-👍 pass: ask delivered 11:00 ET, "Hi. Hema
+       asked…" rendered, the name path is proven. Founder reacting (not
+       replying) before the 13:00 follow-on hour; row to be read.
+     * Next number: 247.
