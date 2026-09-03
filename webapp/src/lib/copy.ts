@@ -214,7 +214,7 @@ export const LOGIN_CODE_RESEND = "Send a new code";
 export const LOGIN_CODE_WRONG =
   "That code didn't match, or it has expired. Check the newest email, or ask for a new code.";
 export const LOGIN_RATE_LIMITED =
-  "That's a few links in a row, and the mailer needs a short break. Wait a few minutes, then try once more.";
+  "That's a few codes in a row, and the mailer needs a short break. Wait a few minutes, then try once more.";
 export const LOGIN_FAILED = "That didn't go through. Check the address and try again.";
 
 /**
