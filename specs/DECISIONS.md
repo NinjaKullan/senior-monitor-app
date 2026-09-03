@@ -4436,3 +4436,33 @@ browser — all three adopted as the standard for future surfaces.**
        by hand. Nothing on the board spends it until Amendment A
        ships. 233's top-up note is closed as "not yet".
      * Next number: 242.
+
+242. **(2026-09-02, 11:15pm ET) Board hygiene applied (ten tasks) and
+     the demo family RULED (Asana 1218125400783474).**
+     * Closed as done-in-fact: W0 WhatsApp API application (222-229),
+       W1 CI GitHub Actions (ci.yml), W0 iCloud shortcut test on Mom's
+       phone (superseded by 005b), and the parent-timezone backlog
+       task, which was built Aug 26 as spec 009 §1 + spec 010 and
+       never closed. Closed as superseded: the three July Pilot tasks.
+       Re-dated: closed beta Aug 22 → Sep 12 (after the flip),
+       partnership outreach Aug 15 → Oct 3 (after launch), delete the
+       signed-files folder Aug 18 → Sep 6 (with Mom's shortcut visit).
+     * Demo family, founder ruling: names and cities that read as
+       universal to a US audience; an Indian family would read as
+       "not for me" to many. The Whitakers: Sarah (owner, Boston,
+       America/New_York); Linda "Mom" and Bill "Dad" in Phoenix
+       (America/Phoenix, no DST, so the "hours behind you" line
+       demos cleanly). Not "Kettle Demo Family" (that is the test
+       fixture, Kolkata, Demo Amma/Appa) and not a new fixture: a real
+       provisioned family in prod, flagged by having NO phone_e164 and
+       NO whatsapp_e164 on either parent, so no ask can ever go out.
+     * History is seeded by a script in the repo, not hand-typed SQL:
+       repeatable, deterministic, idempotent, and refuses any family
+       that has a phone number. Thirty days, three story days: one
+       quiet start that turned normal, one couldn't-reach that ended
+       with an all-clear, the rest normal. Brief to CC tonight.
+     * Follow-up for the founder, same reasoning: the site's ask copy
+       line uses "Priya asked Kettle…" (site/src/copy.ts:103). If the
+       demo family is universal, that line probably should be too.
+       Not changed tonight; founder to rule.
+     * Next number: 243.
