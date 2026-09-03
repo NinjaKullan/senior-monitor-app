@@ -154,6 +154,7 @@ const noop = async () => undefined;
 
 const detailProps = {
   todayDate: TODAY_DATE,
+  tz: "America/New_York",
   onBack: () => undefined,
   onAddNote: noop,
   onSteps: () => undefined,
@@ -390,6 +391,7 @@ describe("rendered copy law", () => {
         parentLabels={[{ parentId: "p1", label: "Amma" }]}
         journal={notes}
         todayDate={TODAY_DATE}
+        tz="America/New_York"
         onAddNote={noop}
       />,
     );
@@ -444,6 +446,7 @@ describe("rendered copy law", () => {
         parentLabels={[]}
         journal={[]}
         todayDate={TODAY_DATE}
+        tz="America/New_York"
         onAddNote={noop}
       />,
     );

@@ -879,3 +879,73 @@ def test_the_renderer_sends_nothing_and_cannot(conn):
     ).read_text()
     for forbidden in ("httpx", "requests", "resend", "twilio", "smtp", "ResendTransport"):
         assert forbidden not in source.lower(), forbidden
+
+
+def test_a_renamed_note_takes_its_old_body_with_it(conn, whitakers):
+    """DECISIONS 251: a renamed note cleans up after itself.
+
+    Notes are owned by content, so the re-seed deletes the bodies it is about
+    to write - and a body that was renamed is not one of them. That is how
+    Memory came to show both "Dr. Patel" and "Dr. Reed" as upcoming
+    appointments in the live app. The retired list is what closes it.
+    """
+    from scripts import seed_demo_history as seeder
+
+    seed(conn, whitakers.family_id, days=30, seed_value=42)
+    mom = parent_by(conn, whitakers.family_id, "Mom")
+
+    def bodies() -> set[str]:
+        return {
+            r["body"]
+            for r in conn.execute(
+                "select body from journal_entries where family_id = %s",
+                (whitakers.family_id,),
+            ).fetchall()
+        }
+
+    assert seeder.NOTE_APPOINTMENT in bodies()
+
+    # Rename it the way the founder's ruling did, retiring the old body.
+    old_body = seeder.NOTE_APPOINTMENT
+    monkeyed = "Dr. Ellis, Thursday 2pm"
+    seeder.NOTE_APPOINTMENT = monkeyed
+    seeder.RETIRED_NOTE_BODIES = (*seeder.RETIRED_NOTE_BODIES, old_body)
+    try:
+        seed(conn, whitakers.family_id, days=30, seed_value=42)
+        after = bodies()
+        assert monkeyed in after
+        assert old_body not in after, "the renamed note left its old row behind"
+    finally:
+        seeder.NOTE_APPOINTMENT = old_body
+        seeder.RETIRED_NOTE_BODIES = tuple(
+            b for b in seeder.RETIRED_NOTE_BODIES if b != old_body
+        )
+
+    # And the row really is gone rather than merely unread: exactly one
+    # appointment note for Mom, not two.
+    assert conn.execute(
+        "select count(*) as n from journal_entries "
+        "where family_id = %s and parent_id = %s and event_date is not null",
+        (whitakers.family_id, mom["id"]),
+    ).fetchone()["n"] == 1
+
+
+def test_the_patel_body_is_retired_and_still_swept(conn, whitakers):
+    """The first entry on the list, and the one that was actually orphaned."""
+    from scripts.seed_demo_history import NOTE_APPOINTMENT, RETIRED_NOTE_BODIES
+
+    assert "Dr. Patel, Thursday 2pm" in RETIRED_NOTE_BODIES
+    assert NOTE_APPOINTMENT == "Dr. Reed, Thursday 2pm"
+
+    # A leftover Patel row from an older seed is cleared by the next re-seed.
+    mom = parent_by(conn, whitakers.family_id, "Mom")
+    conn.execute(
+        "insert into journal_entries (family_id, parent_id, author_label, body) "
+        "values (%s, %s, 'Sarah', %s)",
+        (whitakers.family_id, mom["id"], "Dr. Patel, Thursday 2pm"),
+    )
+    seed(conn, whitakers.family_id, days=5, seed_value=42)
+    assert conn.execute(
+        "select count(*) as n from journal_entries where family_id = %s and body = %s",
+        (whitakers.family_id, "Dr. Patel, Thursday 2pm"),
+    ).fetchone()["n"] == 0

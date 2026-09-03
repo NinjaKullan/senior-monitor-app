@@ -58,6 +58,7 @@ function renderMemory(over: Partial<Parameters<typeof MemoryScreen>[0]> = {}) {
       parentLabels={[{ parentId: "p1", label: "Amma" }]}
       journal={[]}
       todayDate={TODAY}
+      tz="America/New_York"
       onAddNote={noop}
       {...over}
     />,
@@ -94,7 +95,7 @@ describe("month separators (spec 012 §2)", () => {
   });
 
   it("stays out of the parent panel, which spec 012 leaves unchanged", () => {
-    render(<NotesPanel entries={feed} todayDate={TODAY} onAdd={noop} fixedParentId="p1" />);
+    render(<NotesPanel entries={feed} todayDate={TODAY} tz="America/New_York" onAdd={noop} fixedParentId="p1" />);
     expect(screen.queryAllByTestId("month-separator")).toEqual([]);
   });
 });

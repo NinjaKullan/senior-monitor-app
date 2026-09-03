@@ -134,6 +134,19 @@ NOTE_APPOINTMENT = "Dr. Reed, Thursday 2pm"
 NOTE_CHANGED_MORNING = "Was at Carol's. Left the phone on the counter."
 NOTE_AUTHOR = "Sarah"
 
+#: Bodies this seeder used to write and no longer does (DECISIONS 251).
+#:
+#: Notes are owned by CONTENT (243), which is the right call and has one
+#: consequence: renaming a note orphans the old row. The re-seed deletes the
+#: bodies it is about to write, and the previous body is not one of them, so
+#: Memory showed both "Dr. Patel" and "Dr. Reed" as upcoming appointments.
+#: A renamed note has to clean up after itself, so every body this script
+#: retires stays listed here and keeps being deleted.
+#:
+#: Append, never edit: a body dropped from this list stops being cleaned up on
+#: any database that has not been re-seeded since it was written.
+RETIRED_NOTE_BODIES = ("Dr. Patel, Thursday 2pm",)
+
 
 class Refused(Exception):
     """A precondition failed. Nothing has been written."""
@@ -385,6 +398,10 @@ def clear_owned(conn: psycopg.Connection, family_id: Any, bodies: list[str]) -> 
     family would survive (there are none, but the delete should not depend on
     that being true). Notes go by body, because the journal has nowhere to
     keep a marker that a person would not read.
+
+    `bodies` therefore carries the notes about to be written AND the ones this
+    seeder has retired (DECISIONS 251), or a renamed note leaves its old row
+    behind and the family sees the appointment twice.
     """
     conn.execute(
         """
@@ -455,7 +472,12 @@ def seed(
     clear_owned(
         conn,
         family_id,
-        [NOTE_UNREACHABLE, NOTE_APPOINTMENT, NOTE_CHANGED_MORNING],
+        [
+            NOTE_UNREACHABLE,
+            NOTE_APPOINTMENT,
+            NOTE_CHANGED_MORNING,
+            *RETIRED_NOTE_BODIES,
+        ],
     )
 
     ping_rows: list[tuple[Any, str, datetime, str]] = []

@@ -45,19 +45,22 @@ export function MemoryScreen({
   parentLabels,
   journal,
   todayDate,
+  tz,
   onAddNote,
 }: {
   /** parentId → display name, for tags, filters and the composer's picker. */
   parentLabels: { parentId: string; label: string }[];
   journal: JournalEntry[];
   todayDate: string;
+  /** The family's timezone, for dating notes (DECISIONS 251). */
+  tz: string;
   onAddNote: (draft: NoteDraft) => Promise<void>;
 }) {
   // DECISIONS 211: All parents over three months, All-time one tap away.
   const [parentFilter, setParentFilter] = useState<string | null>(DEFAULT_PARENT_FILTER);
   const [timeframe, setTimeframe] = useState<TimeframeId>(DEFAULT_TIMEFRAME);
   const labelById = new Map(parentLabels.map((p) => [p.parentId, p.label]));
-  const shown = filterEntries(journal, todayDate, parentFilter, timeframe);
+  const shown = filterEntries(journal, todayDate, parentFilter, timeframe, tz);
   // Two different silences, and they must not read the same. Nothing written
   // yet is the ruled MEMORY_EMPTY line; nothing in THIS window is a filter
   // that went too narrow, and saying "the first ones arrive on their own" to
@@ -84,6 +87,7 @@ export function MemoryScreen({
       <NotesPanel
         entries={shown}
         todayDate={todayDate}
+        tz={tz}
         onAdd={onAddNote}
         tagOptions={tagOptions}
         tagLabelFor={(entry: JournalEntry) =>

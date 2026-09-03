@@ -41,6 +41,33 @@ export function linkify(body: string): BodySegment[] {
   return segments;
 }
 
+/**
+ * The calendar date an INSTANT fell on, in a given timezone, as "YYYY-MM-DD".
+ *
+ * DECISIONS 251. `created_utc` is a moment, not a date, and slicing its first
+ * ten characters reads the UTC day: a note written at 9:05pm in New York is
+ * already tomorrow in UTC, so it was labelled with tomorrow's date. Every
+ * family member in the Americas writing a note after about 8pm saw the wrong
+ * day, on their own note, which is the kind of small wrongness that makes a
+ * record feel untrustworthy.
+ *
+ * `en-CA` because it formats as YYYY-MM-DD, which is what the rest of this
+ * module already speaks; the value is a key, never something a person reads.
+ *
+ * Note what this is NOT for. `event_date` is a date-only string with no
+ * instant behind it, and the formatters below pin those to UTC deliberately
+ * so a bare calendar date never shifts. Convert instants here; leave dates
+ * alone.
+ */
+export function localDay(instantIso: string, tz: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(instantIso));
+}
+
 /** "Aug 24" — for entry metadata and the past-event tag. Date-only strings
  *  are pinned to UTC so a calendar date never shifts a day at render. */
 export function monthDay(isoDate: string): string {
@@ -138,7 +165,8 @@ export function timeframeStart(todayDate: string, id: TimeframeId): string | nul
  * as the spec requires — nothing here treats an authored note and a Kettle
  * line differently, because the tag is the only thing being read.
  *
- * The timeframe is measured on `created_utc`, the day the note was WRITTEN,
+ * The timeframe is measured on `created_utc` read in the FAMILY's timezone -
+ * the day the note was written where it was written -
  * so an entry does not slip out of view because someone dated an event far
  * ahead; upcoming entries are pulled out by `upcomingEntries` regardless.
  */
@@ -147,11 +175,15 @@ export function filterEntries(
   todayDate: string,
   parentId: string | null,
   timeframe: TimeframeId,
+  tz: string,
 ): JournalEntry[] {
   const start = timeframeStart(todayDate, timeframe);
   return entries.filter((entry) => {
     if (parentId !== null && entry.parent_id !== parentId) return false;
-    if (start !== null && entry.created_utc.slice(0, 10) < start) return false;
+    // The family's day, not UTC's (DECISIONS 251). A note written late on the
+    // last evening of August belongs in August, and a window that measured it
+    // in UTC would quietly drop it into the next month.
+    if (start !== null && localDay(entry.created_utc, tz) < start) return false;
     return true;
   });
 }

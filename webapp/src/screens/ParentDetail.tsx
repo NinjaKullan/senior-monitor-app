@@ -40,6 +40,7 @@ export function ParentDetail({
   state,
   notes,
   todayDate,
+  tz,
   onBack,
   onAddNote,
   onSteps,
@@ -47,6 +48,8 @@ export function ParentDetail({
   state: ParentToday;
   notes: JournalEntry[];
   todayDate: string;
+  /** The family's timezone, for dating notes (DECISIONS 251). */
+  tz: string;
   onBack: () => void;
   onAddNote: (draft: NoteDraft) => Promise<void>;
   /** The fix card's "See the simple steps →" destination (flagged call: the
@@ -226,6 +229,7 @@ export function ParentDetail({
       <NotesPanel
         entries={notes}
         todayDate={todayDate}
+        tz={tz}
         onAdd={onAddNote}
         fixedParentId={state.parentId}
       />

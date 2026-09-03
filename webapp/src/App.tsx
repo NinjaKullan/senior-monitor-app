@@ -326,6 +326,7 @@ export default function App() {
             state={openState}
             notes={snapshot.journalByParent[openState.parentId] ?? []}
             todayDate={todayDate}
+            tz={familyTz}
             onBack={() => setOpenParentId(null)}
             onAddNote={addNote}
             onSteps={() => navigate("family")}
@@ -338,6 +339,7 @@ export default function App() {
           parentLabels={states.map((s) => ({ parentId: s.parentId, label: s.label }))}
           journal={snapshot.journal}
           todayDate={todayDate}
+          tz={familyTz}
           onAddNote={addNote}
         />
       )}

@@ -38,6 +38,9 @@ import {
   DEFAULT_PARENT_FILTER,
   DEFAULT_TIMEFRAME,
   filterEntries,
+  localDay,
+  monthDay,
+  monthYear,
   timeframeStart,
 } from "@/lib/journal";
 import type { FamilyContact, JournalEntry } from "@/lib/types";
@@ -82,6 +85,7 @@ function renderMemory(over: Partial<Parameters<typeof MemoryScreen>[0]> = {}) {
       parentLabels={PARENTS}
       journal={[]}
       todayDate={TODAY}
+      tz="America/New_York"
       onAddNote={noop}
       {...over}
     />,
@@ -130,7 +134,7 @@ describe("the timeframe windows", () => {
       entry({ parent_id: "p1", created_utc: "2026-01-04T10:00:00Z", body: "old amma" }),
     ];
     const bodies = (parent: string | null, tf: "month" | "3m" | "6m" | "all") =>
-      filterEntries(entries, TODAY, parent, tf).map((e) => e.body);
+      filterEntries(entries, TODAY, parent, tf, "America/Phoenix").map((e) => e.body);
 
     expect(bodies(null, "3m")).toEqual(["recent amma", "recent appa"]);
     expect(bodies("p1", "3m")).toEqual(["recent amma"]);
@@ -149,7 +153,9 @@ describe("the timeframe windows", () => {
       body: "kettle line",
     });
     const other = entry({ parent_id: "p2", body: "other" });
-    expect(filterEntries([kettleLine, other], TODAY, "p1", "3m").map((e) => e.body)).toEqual([
+    expect(filterEntries([kettleLine, other], TODAY, "p1", "3m", "America/Phoenix").map(
+        (e) => e.body,
+      )).toEqual([
       "kettle line",
     ]);
   });
@@ -345,5 +351,71 @@ describe("the duplicated subtitle", () => {
     renderMemory({ journal: [entry({})] });
     const page = screen.getByTestId("memory-screen").textContent ?? "";
     expect(page.split(NOTES_SUB).length - 1).toBe(1);
+  });
+});
+
+/**
+ * DECISIONS 251 — a note is dated by the day it was written, where it was
+ * written.
+ *
+ * `created_utc` is a moment, not a date, and reading its first ten characters
+ * reads UTC's day. A note written at 9:05pm in New York is already tomorrow
+ * in UTC, so every family member in the Americas writing after about 8pm saw
+ * tomorrow's date on their own note. It is a small wrongness, and small
+ * wrongness is exactly what makes a record feel untrustworthy.
+ */
+describe("the date a note is filed under", () => {
+  const NY = "America/New_York";
+  // 01:05Z on Aug 23 is 9:05pm on Aug 22 in New York.
+  const LATE = "2026-08-23T01:05:00Z";
+
+  it("labels the family's day, not UTC's", () => {
+    expect(localDay(LATE, NY)).toBe("2026-08-22");
+    expect(monthDay(localDay(LATE, NY))).toBe("Aug 22");
+    expect(monthYear(localDay(LATE, NY))).toBe("August 2026");
+    // The bug, stated: the old shape read the UTC day.
+    expect(LATE.slice(0, 10)).toBe("2026-08-23");
+  });
+
+  it("shows that day on the entry, on screen", () => {
+    renderMemory({
+      journal: [entry({ created_utc: LATE, body: "written late in New York" })],
+      todayDate: "2026-08-30",
+    });
+    const meta = screen.getAllByTestId("note-meta").map((n) => n.textContent ?? "");
+    expect(meta.some((m) => m.includes("Aug 22"))).toBe(true);
+    expect(meta.some((m) => m.includes("Aug 23"))).toBe(false);
+    expect(screen.getByTestId("month-separator").textContent).toBe("August 2026");
+  });
+
+  it("counts it in August, where it was written", () => {
+    const late = entry({ created_utc: LATE, body: "late August" });
+    expect(filterEntries([late], "2026-08-30", null, "month", NY)).toEqual([late]);
+    expect(filterEntries([late], "2026-08-30", null, "3m", NY)).toEqual([late]);
+  });
+
+  it("keeps the last evening of a month out of the next one", () => {
+    // THE case the two readings disagree on. 2026-09-01T01:05Z is 9:05pm on
+    // Aug 31 in New York: written in August, and a September window must not
+    // sweep it in. Read as a UTC date it is already September and would.
+    const lastEvening = entry({
+      created_utc: "2026-09-01T01:05:00Z",
+      body: "the last evening of August",
+    });
+    expect(localDay(lastEvening.created_utc, NY)).toBe("2026-08-31");
+    expect(lastEvening.created_utc.slice(0, 10)).toBe("2026-09-01");
+
+    expect(filterEntries([lastEvening], "2026-09-05", null, "month", NY)).toEqual([]);
+    // And it is still reachable from a window that genuinely covers August.
+    expect(filterEntries([lastEvening], "2026-09-05", null, "3m", NY)).toEqual([
+      lastEvening,
+    ]);
+  });
+
+  it("moves the boundary with the timezone, rather than hardcoding one", () => {
+    // The same instant is already Aug 23 in Kolkata, and the label follows.
+    expect(localDay(LATE, "Asia/Kolkata")).toBe("2026-08-23");
+    expect(localDay(LATE, "UTC")).toBe("2026-08-23");
+    expect(localDay(LATE, "America/Phoenix")).toBe("2026-08-22");
   });
 });

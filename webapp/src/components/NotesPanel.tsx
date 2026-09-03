@@ -28,6 +28,7 @@ import {
   firstLine,
   linkify,
   monthDay,
+  localDay,
   monthYear,
   pastEntries,
   upcomingEntries,
@@ -94,6 +95,7 @@ function Body({ body }: { body: string }) {
 export function NotesPanel({
   entries,
   todayDate,
+  tz,
   onAdd,
   /** Fixed tag (the parent page) or a picker over these options (Family). */
   tagOptions,
@@ -108,6 +110,9 @@ export function NotesPanel({
 }: {
   entries: JournalEntry[];
   todayDate: string;
+  /** The family's timezone: a note is dated by the day it was written where
+   *  it was written, not by UTC's day (DECISIONS 251). */
+  tz: string;
   onAdd: (draft: NoteDraft) => Promise<void>;
   tagOptions?: TagOption[];
   fixedParentId?: string | null;
@@ -237,7 +242,8 @@ export function NotesPanel({
         <div key={entry.id}>
           {monthSeparators &&
             (index === 0 ||
-              monthYear(past[index - 1].created_utc) !== monthYear(entry.created_utc)) && (
+              monthYear(localDay(past[index - 1].created_utc, tz)) !==
+                monthYear(localDay(entry.created_utc, tz))) && (
               <div
                 style={{
                   marginTop: index === 0 ? "0.25rem" : "0.875rem",
@@ -249,7 +255,7 @@ export function NotesPanel({
                 }}
                 data-testid="month-separator"
               >
-                {monthYear(entry.created_utc)}
+                {monthYear(localDay(entry.created_utc, tz))}
               </div>
             )}
           <div
@@ -269,7 +275,8 @@ export function NotesPanel({
             data-testid="note-meta"
           >
             {tagLabelFor ? `${tagLabelFor(entry)} · ` : ""}
-            {monthDay(entry.created_utc)} · {entry.author_label || AUTHOR_FALLBACK}
+            {monthDay(localDay(entry.created_utc, tz))} ·{" "}
+            {entry.author_label || AUTHOR_FALLBACK}
             {entry.event_date ? ` · ${EVENT_FOR.replace("{date}", monthDay(entry.event_date))}` : ""}
           </div>
             <Body body={entry.body} />

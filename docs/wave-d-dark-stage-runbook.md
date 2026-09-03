@@ -38,17 +38,35 @@ order, PIXELS FIRST:
    ask; timestamps sane in parent-local terms.
 5. **ops_alerts**: none fired. If any did, each must be honest.
 6. **Repeat next quiet morning with a REACTION 👍** — long-press the
-   ask and react with 👍 instead of replying. With no button, this is
-   the likeliest thing a parent actually does, and reactions may not
-   arrive as inbound messages at all. Whatever happens is a FINDING:
-   if the ladder stands down, record it; if it does not (reaction
-   never reaches the webhook), that goes in the Day-30 memo as the
-   content-blind reply edge made concrete, and the flip decision
-   weighs it.
+   ask and react with 👍 instead of replying. RUN, ANSWERED: the
+   reaction never arrives. See "A reaction is not a reply" below.
 7. **One negative pass**: a quiet morning where nobody replies — the
    ladder proceeds exactly as it does today (follow-on email at +2h,
    evening digest, escalation copy unchanged). The real number must
    not have changed one word of the ladder.
+
+### A reaction is not a reply (DECISIONS 247)
+
+**A WhatsApp reaction never reaches the reply webhook. Only a typed
+message does.** Proven on 2026-09-03: the ask was delivered at 11:00:49
+ET, the founder long-pressed and reacted 👍 at about 11:51, and at 11:56
+`replied_utc` was still null with no ops alert. A typed 👍 the day before
+had matched within a second. The ladder ran on to the follow-on as a
+no-reply day, which is correct behaviour on the evidence it had.
+
+This is a Twilio Programmable Messaging property, not a Kettle bug: the
+inbound webhook carries MESSAGES, and a reaction is not a message. It is
+the edge DECISIONS 210 named, made real.
+
+It cannot be fixed in copy. A quick-reply button would sidestep it, and
+that was tried: v11 (v7 plus one "All good" button) came back
+Marketing, as did v10, so iteration stopped and v7 stands (253). The
+gap is closed by INSTRUCTION instead.
+
+**So the parent instruction at setup is: "type the 👍, don't react."**
+Say it while the phone is in your hand during setup, not in writing
+afterwards. A parent who reacts is a parent Kettle believes did not
+answer, and the family gets a follow-on about a morning that was fine.
 
 ## Watch items running in the background
 

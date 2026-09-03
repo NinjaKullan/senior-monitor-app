@@ -56,6 +56,7 @@ describe("linkify, over escaped text", () => {
       <NotesPanel
         entries={[entry({ id: 1, body: '<script>alert(1)</script> see kettle.example/x' })]}
         todayDate={TODAY}
+        tz="America/New_York"
         onAdd={noop}
         fixedParentId={null}
       />,
@@ -75,6 +76,7 @@ describe("linkify, over escaped text", () => {
       <NotesPanel
         entries={[entry({ id: 2, body: '<a href="https://evil.example">click</a>' })]}
         todayDate={TODAY}
+        tz="America/New_York"
         onAdd={noop}
         fixedParentId={null}
       />,
@@ -102,7 +104,7 @@ describe("the Upcoming strip and entry metadata", () => {
 
   it("renders the strip as ruled: Upcoming · first line on Weekday, Mon D · added by author", () => {
     render(
-      <NotesPanel entries={entries} todayDate={TODAY} onAdd={noop} fixedParentId={null} />,
+      <NotesPanel entries={entries} todayDate={TODAY} tz="America/New_York" onAdd={noop} fixedParentId={null} />,
     );
     const strips = screen.getAllByTestId("upcoming-entry").map((n) => n.textContent);
     expect(strips[0]).toBe("Upcoming · Eye doctor on Tue, Sep 1 · added by Hema");
@@ -112,7 +114,7 @@ describe("the Upcoming strip and entry metadata", () => {
 
   it("renders a past event inline in the metadata, not in the strip", () => {
     render(
-      <NotesPanel entries={entries} todayDate={TODAY} onAdd={noop} fixedParentId={null} />,
+      <NotesPanel entries={entries} todayDate={TODAY} tz="America/New_York" onAdd={noop} fixedParentId={null} />,
     );
     const metas = screen.getAllByTestId("note-meta").map((n) => n.textContent);
     expect(metas).toContain("Aug 21 · Ravi · for Aug 20");
@@ -161,6 +163,7 @@ describe("scoping (spec 009 §4)", () => {
         parentLabels={states.map((s) => ({ parentId: s.parentId, label: s.label }))}
         journal={journal}
         todayDate={TODAY}
+        tz="America/New_York"
         onAddNote={noop}
       />,
     );
@@ -181,7 +184,7 @@ describe("scoping (spec 009 §4)", () => {
   it("a note added from a parent page defaults to that parent", async () => {
     const onAdd = vi.fn().mockResolvedValue(undefined);
     render(
-      <NotesPanel entries={[]} todayDate={TODAY} onAdd={onAdd} fixedParentId="p1" />,
+      <NotesPanel entries={[]} todayDate={TODAY} tz="America/New_York" onAdd={onAdd} fixedParentId="p1" />,
     );
     fireEvent.change(screen.getByTestId("note-input"), { target: { value: "Hearing aid" } });
     fireEvent.click(screen.getByTestId("note-submit"));
@@ -197,7 +200,7 @@ describe("scoping (spec 009 §4)", () => {
     localStorage.removeItem("kettle-signed-as");
     const onAdd = vi.fn().mockResolvedValue(undefined);
     const first = render(
-      <NotesPanel entries={[]} todayDate={TODAY} onAdd={onAdd} fixedParentId={null} />,
+      <NotesPanel entries={[]} todayDate={TODAY} tz="America/New_York" onAdd={onAdd} fixedParentId={null} />,
     );
     fireEvent.focus(screen.getByTestId("note-input"));
     fireEvent.change(screen.getByTestId("note-author"), { target: { value: "Hema" } });
@@ -208,7 +211,7 @@ describe("scoping (spec 009 §4)", () => {
     );
     first.unmount();
 
-    render(<NotesPanel entries={[]} todayDate={TODAY} onAdd={onAdd} fixedParentId={null} />);
+    render(<NotesPanel entries={[]} todayDate={TODAY} tz="America/New_York" onAdd={onAdd} fixedParentId={null} />);
     fireEvent.focus(screen.getByTestId("note-input"));
     expect((screen.getByTestId("note-author") as HTMLInputElement).value).toBe("Hema");
   });

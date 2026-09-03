@@ -157,6 +157,7 @@ const base: ParentToday = {
 
 const detailProps = {
   notes: [],
+  tz: "America/New_York",
   todayDate: "2026-08-26",
   onBack: () => undefined,
   onAddNote: async () => undefined,
