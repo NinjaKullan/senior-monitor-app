@@ -4520,3 +4520,44 @@ browser — all three adopted as the standard for future surfaces.**
        the Wave D reaction-👍 pass on TestMom; unrelated family, no
        interaction.
      * Next number: 245.
+
+245. **(2026-09-03, 9:30am ET) Whitakers provisioned and seeded in
+     prod (family ad55ad3f…, 472 pings, 127 ledger rows, 3 notes).
+     PM read the rows: story days land where ordered. One gap found
+     that needs a build before the family is left running.**
+     * Rows: (a) Aug 28 Linda quiet-then-normal, digests only; (b) Aug
+       22 Bill ask 11:00, follow_on 13:00, all_clear 13:12, evening
+       skipped, note "Phone was in the car. All fine."; (c) Aug 15
+       Linda plain day, appointment note "Dr. Patel, Thursday 2pm"
+       dated Sep 10; (d) Aug 11 Bill ask 11:00 replied 11:20, no
+       follow-on; (e) Aug 8 Linda ask, follow_on 13:00, all_clear
+       15:00, evening skipped, note "Was at Carol's…". No foreign
+       pings, no phone numbers, both parents Phoenix.
+     * THE GAP: the outbound engine walks every parent in the database
+       (`parents_with_tz`); there is no per-family off switch
+       (`digest_enabled` and `ladder_mode` are legacy and gate
+       nothing, all three families read false/off while digests send
+       daily). So from today the Whitakers produce, every day: a
+       quiet-morning digest to the owner inbox, a skipped ask (no
+       address) with its ops alert to the founder, a
+       follow_on_unreachable email at 13:00 Phoenix, a skipped
+       evening. "No phone number" (242) stops the ask; it does not stop
+       the family emails or the alerts. Missed in 242; on record.
+     * RULED: migration 0024 `families.demo boolean not null default
+       false`; the outbound engine skips demo families before any
+       decision (no ledger rows, no alerts); the app renders them
+       unchanged. Not a general "pause" feature, which would be a spec.
+     * RULED: the seeder gains `--through-now`, so today reads as a
+       normal day in progress ("Heard from 12 minutes ago") at
+       screenshot time instead of "nothing yet"; and a
+       `scripts/render_digest.py` that writes a seeded day's digest
+       emails as HTML files from the real templates, so the normal
+       morning/evening digests can be screenshotted without the
+       engine having sent them. Both replay-tested like the rest.
+     * Copy: "Dr. Patel" → "Dr. Reed", same reason as the family
+       names (242). Changed in the seeder, not the row, because notes
+       are owned by content.
+     * Until this ships: today's Whitaker emails (quiet morning at
+       11:30 ET, follow-on at 16:00 ET) are real and screenshot-able;
+       the ops alert at noon Phoenix is expected noise, ignore it.
+     * Next number: 246.
