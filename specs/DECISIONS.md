@@ -4743,3 +4743,30 @@ browser — all three adopted as the standard for future surfaces.**
      * Founder's Patel row deleted by hand (251 finding 1 closed for
        this seed).
      * Next number: 253.
+
+253. **(2026-09-03, 1:05pm ET) v10 and v11 both RECATEGORIZED to
+     MARKETING. Iteration STOPPED; v7 is the ask. And the no-reply
+     ladder pass fired on schedule.**
+     * v10 = v7 + "or a yes" (three words). v11 = v7 body + one
+       quick-reply button "All good" (205 option b, reopened for the
+       247 gap). Both Approved/Marketing. Five submissions in one
+       day from one account; v10 is too close to the approved v7 for
+       the words alone to explain it. Reading: the classifier, not
+       the copy, is the variable today. Open diagnostic for another
+       day: submit v7's exact words as a fresh template.
+     * Ruling stands (252): v7 stays live, flip on v7, reaction gap
+       closed by instruction (Amma and Appa: type the 👍, do not
+       react). Never send v8-v11. Copy revisited after real replies.
+     * Follow-on: sent_messages follow_on for TestMom, 13:00:55 ET,
+       transport resend, to the Rehearsal owner inbox. The no-reply
+       ladder pass is proven in the ledger, a day early, because
+       today's reaction never arrived (247). Owed: founder confirms
+       the email; PM reads TestMom's evening row after 20:30 ET
+       (expected: skipped, 164).
+     * If both hold: dark stage complete. Friday Sep 4: Phase 3 flip
+       (Asana 1218116228613723), then the item-4 order in 231.
+     * CC catch-up brief now carries no copy change: Memory date bug
+       (251), seeder retired-bodies list, product/.gitignore digests/,
+       runbook note on reactions (247). The v7 words are already in
+       code (232).
+     * Next number: 254.
