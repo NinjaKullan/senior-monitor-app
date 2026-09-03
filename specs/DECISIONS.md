@@ -4675,3 +4675,24 @@ browser — all three adopted as the standard for future surfaces.**
        1218125400783474 done-when is met once those are in
        design-sources/screenshots/.
      * Next number: 250.
+
+250. **(2026-09-03, 12:50pm ET) v8 APPROVED but RECATEGORIZED to
+     MARKETING (HX48e15fb25f661e7ffb6610ff018fe56a, 12:17:38 EDT).
+     STOP: never send v8 (US block, 216). v7 stays live.**
+     * Cause: words only. 220 already established that
+       allow_category_change no longer holds a category; Meta reads
+       the copy. The console is as good as the script. 248 changed
+       two sentences at once, so the trigger is unknown.
+     * RULED: one change per submission, console is fine, category
+       UTILITY. v9 VERBATIM: `Hi. {{1}} asked
+       Kettle to check in with you when your morning is not as usual.
+       Is everything okay? If everything is okay, reply with a 👍 or a
+       yes when you can.` (v7 first sentence, proven; v7's verb
+       "reply with" kept; only the typed word and the conditional are
+       new.) If v9 is Utility: ship it, "not as usual" stays for now.
+       If v9 is rejected: v10 = v7 + "or a yes", nothing else: `…Reply
+       with a 👍 or a yes when you can.`
+     * No CC work until a verdict: 248's catch-up items (script
+       BODY, registry, pins, runbook, site line) follow whatever
+       APPROVES as Utility, in one commit after.
+     * Next number: 251.
