@@ -4496,3 +4496,27 @@ browser — all three adopted as the standard for future surfaces.**
        Whitakers in prod and seeds; PM reads the rows before any
        screenshot.
      * Next number: 244.
+
+244. **(2026-09-03, 8:55am ET) Five story days built at e7e27c0
+     (product 593). The engine won both arguments with the brief, and
+     that is the point of the replay test.**
+     * Brief said "normal start, then quiet from 08:30". A routine
+       ping before 08:30 makes the morning non-quiet and the ask never
+       arms. The shape that produces an ask is a phone awake and
+       reporting (heartbeat, charger) with the habit apps never
+       opening: alarm-grade silence, not total silence. That is what
+       (d) and (e) now seed, and it is also what separates
+       follow_on_family (e) from follow_on_unreachable (b). PM brief
+       was wrong about the mechanism; the ledger says so.
+     * Brief said "normal evening" for (d) and (e). Engine: (d) is
+       digest_evening_recovered (a quiet morning that came back); (e)
+       withholds the evening as skipped, per 164 (no evening note on a
+       day a follow-on went out). (e) also produces all_clear_family
+       when Mom's habits resume at 15:00. All accepted.
+     * All eight templates now have an example, and a test asserts the
+       set. replied_utc was outside the idempotence snapshot; added.
+     * Founder next: provision the Whitakers in prod, seed, tell PM;
+       PM reads rows before any screenshot. Today at 11:00 ET is also
+       the Wave D reaction-👍 pass on TestMom; unrelated family, no
+       interaction.
+     * Next number: 245.
