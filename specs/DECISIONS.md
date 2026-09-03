@@ -4613,3 +4613,37 @@ browser — all three adopted as the standard for future surfaces.**
        first-week note explains it. Amma and Appa can be told directly
        for now.
      * Next number: 248.
+
+248. **(2026-09-03, 12:20pm ET, founder) The ask is reworded for v8:
+     a typed word joins the 👍, and "not as usual" goes. VERBATIM, one
+     variable:**
+     `Hi. {{1}} asked Kettle to check in with you if your morning
+     looks different from usual. Is everything okay? If everything is
+     okay, send a 👍 or a yes back when you can.`
+     Bare U+1F44D, no quote marks, straight characters, {{1}} = owner
+     first name, fallback exactly "Your family" (217).
+     * Why the typed word: 247. A reaction never reaches the webhook;
+       a typed anything does, because the body is never read (spec
+       007 §2.6). "or a yes" tells the parent a true thing about what
+       counts.
+     * Why the conditional: Kettle cannot read a "no". "If everything
+       is okay, send…" gives a parent who is fine two easy ways to
+       say so and gives a parent who is not fine no instruction to
+       reply, so silence brings the family (197 unchanged).
+     * Why the echo: founder ruling, PM concurred. "Is everything
+       okay? If everything is okay" repeats on purpose; the reader
+       should never have to resolve a pronoun. "when your morning is
+       not as usual" was PM's 224 wording and reads written, not
+       spoken; "if your morning looks different from usual" is how a
+       person texts.
+     * Path: same as v7 (225, 232). CC updates the submission script
+       to v8 words, founder submits as UTILITY with
+       allow_category_change=FALSE, PM reads the template page, secret
+       swaps to the v8 SID only after v8 has delivered on the real
+       number. Registry sentence, codepoint pins, runbook, and the
+       site's ask line follow in one CC commit. v7 stays Approved as
+       the proven fallback until v8 has landed on a phone.
+     * Timing: submit today; if approved, v8 rides the Friday flip.
+       If not approved by Friday, flip on v7 and tell Amma and Appa
+       to type the 👍.
+     * Next number: 249.
