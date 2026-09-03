@@ -4696,3 +4696,27 @@ browser — all three adopted as the standard for future surfaces.**
        BODY, registry, pins, runbook, site line) follow whatever
        APPROVES as Utility, in one commit after.
      * Next number: 251.
+
+251. **(2026-09-03, ~12:35pm ET) PM read the Whitakers in the live app
+     (founder's session, Chrome). Glance is screenshot-ready; Memory
+     has two findings, one of them a real bug.**
+     * Today: "Everything looks normal today. Next note this evening."
+       Linda and Bill each "Today looks like a normal day. Heard from
+       30 minutes ago. 8:57 am Linda's time · 11:57 am your time."
+       Footer "Nothing needs you today. Kettle will write if that
+       changes." Exactly the screenshot the task wanted.
+     * Finding 1 (data): Memory shows BOTH "Dr. Patel" and "Dr. Reed"
+       as upcoming. Notes are owned by content (243), so renaming the
+       body orphaned the old row; the re-seed cannot see it. Founder
+       deletes the Patel row by hand (SQL below); the seeder gains a
+       retired-bodies list so a renamed note cleans up after itself.
+     * Finding 2 (BUG, affects real families): note dates render from
+       the UTC date of created_utc (`journal.ts` metadata label uses
+       created_utc.slice(0,10)). Bill's note written 9:05pm ET Aug 22
+       shows "Aug 23"; Linda's 10:40pm ET Aug 8 shows "Aug 9". Any
+       family member in the Americas writing a note after ~8pm gets
+       tomorrow's date. Fix: the label is the family-timezone date of
+       created_utc. Small, CC, rides with the v9 catch-up.
+     * Not screenshot-ready until both are fixed: Memory tab. The
+       glance, the parent detail, and the three rendered digests are.
+     * Next number: 252.
