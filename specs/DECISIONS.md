@@ -4432,6 +4432,7 @@ browser — all three adopted as the standard for future surfaces.**
      * Supabase Auth → Rate Limits → emails already 30/h (founder
        screenshot). 234's open item was already done on the live
        surface; the plan doc was behind again.
-     * Remaining founder item: Twilio top-up (233), before real +1
-       parents go on SMS, not before tomorrow.
+     * Twilio balance: founder RULED it stays at $20 for now, watched
+       by hand. Nothing on the board spends it until Amendment A
+       ships. 233's top-up note is closed as "not yet".
      * Next number: 242.
