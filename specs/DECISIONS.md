@@ -4828,3 +4828,27 @@ browser — all three adopted as the standard for future surfaces.**
        are on today. Open item, not an instruction: remove the
        emoji from the ask when Meta permits.
      * Next number: 256.
+
+256. **(2026-09-03, ~3pm ET) Catch-up commit 6a55ab6 REVIEWED and
+     ACCEPTED (product 606, webapp 198). Undeployed; rides the flip
+     train.**
+     * Memory date bug (251) fixed the right way: instants
+       (created_utc) fold to the family's calendar date via
+       `localDay(tz)`; date-only strings (event_date) keep their UTC
+       pin so a bare calendar date never shifts at render. `tz`
+       threads App → Memory/ParentDetail → NotesPanel, so both note
+       feeds agree.
+     * CC corrected the brief's test: my Aug 23 01:05Z example
+       discriminates the label but not the month filter (both
+       readings land in August). The discriminator is the boundary,
+       2026-09-01T01:05Z = 9:05pm Aug 31 in New York, which a
+       September window must not include. Both pinned. On record as
+       the kind of test a brief should specify: the case where the
+       two behaviours differ, not just a case where the fix is right.
+     * Seeder retired-bodies list, product/.gitignore digests/, and
+       the runbook's "A reaction is not a reply" note (below the
+       numbered steps; step 6 points at it) all in.
+     * Deploy owed: `cd webapp && npm run ci && fly deploy` for the
+       Memory fix; product needs no deploy (seeder and docs only).
+       Both can wait for the flip train tomorrow.
+     * Next number: 257.
