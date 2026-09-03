@@ -18,11 +18,14 @@ import pytest
 from kettle import db
 from kettle.provisioning import provision_family
 from scripts.seed_demo_history import (
+    ANSWERED_ASK_DAYS_AGO,
     APPOINTMENT_DAYS_AGO,
+    CHANGED_MORNING_DAYS_AGO,
     LATE_START_DAYS_AGO,
     MARKER,
     NOTE_APPOINTMENT,
     NOTE_AUTHOR,
+    NOTE_CHANGED_MORNING,
     NOTE_UNREACHABLE,
     UNREACHABLE_DAYS_AGO,
     Refused,
@@ -127,8 +130,10 @@ def snapshot(conn: psycopg.Connection, family_id) -> tuple:
         (family_id,),
     ).fetchall()
     messages = conn.execute(
-        "select parent_id, local_date, kind, template_id, status, sent_utc "
-        "from sent_messages where family_id = %s "
+        # replied_utc is in here so the answered day's reply is covered by the
+        # idempotence and determinism checks like every other seeded value.
+        "select parent_id, local_date, kind, template_id, status, sent_utc, "
+        "replied_utc from sent_messages where family_id = %s "
         "order by local_date, parent_id, kind",
         (family_id,),
     ).fetchall()
@@ -329,6 +334,129 @@ def test_the_appointment_note_is_still_ahead_of_the_demo(conn, whitakers):
     }
 
 
+
+def test_the_answered_ask_never_reaches_the_family(conn, whitakers):
+    """Day (d), and the shape the whole product exists for (DECISIONS 243).
+
+    The phone is awake all morning - off the charger, heartbeat firing - and
+    the habit apps simply never open. Kettle notices, asks HER at eleven, she
+    answers, and nobody else is told anything. No follow-on, no all-clear:
+    the ladder stopped at the person it was about.
+    """
+    seed(conn, whitakers.family_id, days=30, seed_value=42)
+    dad = parent_by(conn, whitakers.family_id, "Dad")
+    day = local_day(dad, ANSWERED_ASK_DAYS_AGO)
+
+    assert ledger(conn, dad["id"], day) == {
+        "digest_morning": ("digest_morning_quiet", "sent"),
+        "ask": ("ask_parent", "sent"),
+        "digest_evening": ("digest_evening_recovered", "sent"),
+    }
+
+    ask = conn.execute(
+        "select sent_utc, replied_utc from sent_messages where parent_id = %s "
+        "and local_date = %s and kind = 'ask'",
+        (dad["id"], day),
+    ).fetchone()
+    assert ask["replied_utc"] is not None, "the answered day has to be answered"
+    assert ask["replied_utc"] > ask["sent_utc"]
+
+    # The phone WAS reporting: this is a changed morning, not a silent phone.
+    tz = ZoneInfo(dad["tz"])
+    midnight = datetime.fromisoformat(day).replace(tzinfo=tz)
+    assert db.count_pings_between(
+        conn, dad["id"], midnight, midnight.replace(hour=11)
+    ) > 0
+    assert db.count_alarm_pings_between(
+        conn, dad["id"], midnight.replace(hour=6), midnight.replace(hour=11)
+    ) == 0
+
+
+def test_the_changed_morning_tells_the_family_and_then_resolves(conn, whitakers):
+    """Day (e): the same morning, unanswered.
+
+    Because the phone reported all morning, the escalation is the
+    changed-morning body rather than the silent-phone one - the distinction
+    DECISIONS 157/161 drew, and the one day (b) cannot demonstrate.
+    """
+    seed(conn, whitakers.family_id, days=30, seed_value=42)
+    mom = parent_by(conn, whitakers.family_id, "Mom")
+    day = local_day(mom, CHANGED_MORNING_DAYS_AGO)
+
+    assert ledger(conn, mom["id"], day) == {
+        "digest_morning": ("digest_morning_quiet", "sent"),
+        "ask": ("ask_parent", "sent"),
+        "follow_on": ("follow_on_family", "sent"),
+        "all_clear": ("all_clear_family", "sent"),
+        # A follow-on went out, so the evening note is withheld (DECISIONS 164).
+        "digest_evening": ("digest_evening_recovered", "skipped"),
+    }
+    assert conn.execute(
+        "select replied_utc from sent_messages where parent_id = %s "
+        "and local_date = %s and kind = 'ask'",
+        (mom["id"], day),
+    ).fetchone()["replied_utc"] is None
+
+    tz = ZoneInfo(mom["tz"])
+    midnight = datetime.fromisoformat(day).replace(tzinfo=tz)
+    # Reporting, but not opening anything: the two facts that together choose
+    # follow_on_family over follow_on_unreachable.
+    assert db.count_pings_between(
+        conn, mom["id"], midnight, midnight.replace(hour=13)
+    ) > 0
+    assert db.count_alarm_pings_between(
+        conn, mom["id"], midnight.replace(hour=6), midnight.replace(hour=13)
+    ) == 0
+    assert db.count_alarm_pings_between(
+        conn, mom["id"], midnight.replace(hour=15), midnight + timedelta(days=1)
+    ) > 0
+
+
+def test_the_changed_morning_carries_its_note(conn, whitakers):
+    seed(conn, whitakers.family_id, days=30, seed_value=42)
+    mom = parent_by(conn, whitakers.family_id, "Mom")
+    note = conn.execute(
+        "select parent_id, author_label, body, event_date, kind, created_utc "
+        "from journal_entries where family_id = %s and body = %s",
+        (whitakers.family_id, NOTE_CHANGED_MORNING),
+    ).fetchone()
+    assert note is not None
+    assert note["body"] == "Was at Carol's. Left the phone on the counter."
+    assert note["author_label"] == NOTE_AUTHOR
+    assert note["parent_id"] == mom["id"]
+    assert note["kind"] == "note"
+    assert note["event_date"] is None
+    # Written that evening, on the day it explains.
+    assert note["created_utc"].astimezone(ZoneInfo(mom["tz"])).date() == (
+        datetime.now(ZoneInfo(mom["tz"])).date()
+        - timedelta(days=CHANGED_MORNING_DAYS_AGO)
+    )
+
+
+def test_every_kind_the_product_can_send_has_an_example(conn, whitakers):
+    """The reason there are five story days rather than three.
+
+    A demo that cannot show a rung has no way to answer a question about it.
+    """
+    seed(conn, whitakers.family_id, days=30, seed_value=42)
+    templates = {
+        row["template_id"]
+        for row in conn.execute(
+            "select distinct template_id from sent_messages where family_id = %s",
+            (whitakers.family_id,),
+        ).fetchall()
+    }
+    assert templates == {
+        "digest_morning_normal",
+        "digest_morning_quiet",
+        "digest_evening_normal",
+        "digest_evening_recovered",
+        "ask_parent",
+        "follow_on_family",
+        "follow_on_unreachable",
+        "all_clear_family",
+    }
+
 def test_every_seeded_row_carries_the_marker(conn, whitakers):
     """The marker is what makes a re-run safe; nothing may slip past it."""
     seed(conn, whitakers.family_id, days=30, seed_value=42)
@@ -375,6 +503,13 @@ def test_the_engine_would_have_written_this_exact_ledger(conn, whitakers, notifi
     If the ladder is ever reworded or re-timed, this fails and the demo stops
     telling a story the product no longer tells.
 
+    `replied_utc` is deliberately outside the comparison: a reply arrives
+    through the webhook, not through the ladder, so no replay can produce one.
+    The answered day still reproduces its shape without it, because the
+    morning resuming before the grace mark closes the ladder on its own - the
+    reply and the resumed habits are two independent reasons the family is
+    never told, and the seeded day has both.
+
     The dark transport carries it, which is the honest comparison: what is
     being checked is which rungs fire and which template each chooses. A real
     sender would find no number on these parents and record the ask
@@ -392,6 +527,8 @@ def test_the_engine_would_have_written_this_exact_ledger(conn, whitakers, notifi
     for relationship, days_ago in (
         ("Dad", UNREACHABLE_DAYS_AGO),
         ("Mom", LATE_START_DAYS_AGO),
+        ("Dad", ANSWERED_ASK_DAYS_AGO),
+        ("Mom", CHANGED_MORNING_DAYS_AGO),
         ("Mom", 3),
     ):
         parent = dad if relationship == "Dad" else mom
@@ -405,7 +542,11 @@ def test_the_engine_would_have_written_this_exact_ledger(conn, whitakers, notifi
         midnight = datetime.fromisoformat(day).replace(tzinfo=tz)
         # Every instant the schedule turns on, in order, the way a minutely
         # loop would have reached them.
-        for hour, minute in ((8, 30), (11, 0), (13, 0), (13, 30), (20, 30)):
+        # 15:30 is there for the changed-morning day, whose all-clear waits
+        # for the habits to resume mid-afternoon; the others do not mind it.
+        for hour, minute in (
+            (8, 30), (11, 0), (13, 0), (13, 30), (15, 30), (20, 30)
+        ):
             run_outbound(
                 conn,
                 LogTransport(),

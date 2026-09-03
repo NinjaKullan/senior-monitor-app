@@ -93,9 +93,11 @@ NORMAL_DAY: tuple[Beat, ...] = (
 )
 
 #: The story days, counted back from today in the parent's own timezone.
-LATE_START_DAYS_AGO = 6      # Mom: the morning that arrived late and was fine
-UNREACHABLE_DAYS_AGO = 12    # Dad: the phone nobody could reach until the afternoon
-APPOINTMENT_DAYS_AGO = 19    # Mom: an ordinary day that carries a note
+LATE_START_DAYS_AGO = 6        # Mom: the morning that arrived late and was fine
+UNREACHABLE_DAYS_AGO = 12      # Dad: the phone nobody could reach until afternoon
+APPOINTMENT_DAYS_AGO = 19      # Mom: an ordinary day that carries a note
+ANSWERED_ASK_DAYS_AGO = 23     # Dad: asked, answered, and the family never heard
+CHANGED_MORNING_DAYS_AGO = 26  # Mom: asked, unanswered, the family heard
 
 #: Dad's day, in local time: the first ping of any kind lands after the
 #: follow-on has already gone out, which is what makes it the unreachable
@@ -105,8 +107,26 @@ UNREACHABLE_FIRST_PING = time(13, 12)
 #: so the ladder never asks her anything. A quiet start that turned normal.
 LATE_START_FIRST_PING = time(10, 40)
 
+#: The CHANGED-MORNING shape, which days (d) and (e) share (DECISIONS 243).
+#:
+#: The phone is awake and reporting all morning - it comes off the charger, the
+#: daily heartbeat fires - and the habit apps simply never open. That absence
+#: is the whole product: `is_quiet` counts alarm-grade signals only, so the
+#: 08:30 digest reads quiet and the 11:00 threshold arms the ask, while
+#: `count_pings_between` still sees a phone that reported, which is what makes
+#: the escalation `follow_on_family` rather than `follow_on_unreachable`.
+#:
+#: Worth stating because it is the one place the brief's plain-English wording
+#: and the engine part company: a "normal start" that included a routine ping
+#: would make both windows non-quiet, and then no ask could ever go out
+#: (DECISIONS 243 build note).
+ANSWERED_RESUME = time(11, 30)   # Dad's habits resume, after he has answered
+ANSWERED_REPLY = time(11, 20)    # his reply to the ask, which stops the ladder
+CHANGED_RESUME = time(15, 0)     # Mom's habits resume, mid-afternoon
+
 NOTE_UNREACHABLE = "Phone was in the car. All fine."
 NOTE_APPOINTMENT = "Dr. Patel, Thursday 2pm"
+NOTE_CHANGED_MORNING = "Was at Carol's. Left the phone on the counter."
 NOTE_AUTHOR = "Sarah"
 
 
@@ -192,6 +212,7 @@ def day_pings(
     *,
     first_alarm_at: time | None = None,
     silent_before: time | None = None,
+    alarm_silent_before: time | None = None,
 ) -> list[tuple[str, datetime]]:
     """(signal, instant) for one parent-day, in local time then made absolute.
 
@@ -200,6 +221,11 @@ def day_pings(
     `silent_before` drops everything, every grade, until that hour: a phone
     that reported nothing at all, which is what makes the follow-on the
     unreachable one rather than the changed-morning one.
+
+    `alarm_silent_before` drops only the ALARM-GRADE beats and leaves the
+    charger and the heartbeat where they were, then puts one habit ping at
+    that hour. That is the changed morning: a phone plainly awake and
+    reporting, with nobody opening anything on it.
     """
     out: list[tuple[str, datetime]] = []
     seen_alarm = False
@@ -217,7 +243,24 @@ def day_pings(
         )
         if silent_before is not None and when < _at(day, silent_before, tz):
             continue
+        if (
+            beat.role == "alarm"
+            and alarm_silent_before is not None
+            and when < _at(day, alarm_silent_before, tz)
+        ):
+            continue
         out.append((rng.choice(pool) if len(pool) > 1 else pool[0], when))
+
+    if alarm_silent_before is not None and roles["alarm"]:
+        # The moment the morning resumes. Placed explicitly rather than left to
+        # the next scheduled beat, because it is the instant the all-clear
+        # hangs on and a demo should not have it wander by half an hour.
+        resumed = _at(day, alarm_silent_before, tz) + timedelta(
+            minutes=rng.randint(0, 12), seconds=rng.randint(0, 59)
+        )
+        pool = roles["alarm"]
+        out.append((rng.choice(pool) if len(pool) > 1 else pool[0], resumed))
+
     return sorted(out, key=lambda pair: pair[1])
 
 
@@ -230,10 +273,19 @@ class LedgerRow:
     template_id: str
     sent_utc: datetime
     status: str = "sent"
+    #: Only an ask ever carries one, and only when the parent answered. It is
+    #: what stops the ladder before the family is ever told anything.
+    replied_utc: datetime | None = None
 
 
 def day_ledger(
-    day: date, tz: ZoneInfo, *, late_start: bool, unreachable: bool
+    day: date,
+    tz: ZoneInfo,
+    *,
+    late_start: bool,
+    unreachable: bool,
+    answered: bool = False,
+    changed_morning: bool = False,
 ) -> list[LedgerRow]:
     """What `run_outbound` decides for one parent-day, replayed rather than guessed.
 
@@ -252,7 +304,7 @@ def day_ledger(
     """
     morning = _at(day, MORNING_DIGEST, tz)
     evening = _at(day, EVENING_DIGEST, tz)
-    quiet_morning = late_start or unreachable
+    quiet_morning = late_start or unreachable or answered or changed_morning
     rows = [
         LedgerRow(
             "digest_morning",
@@ -277,10 +329,41 @@ def day_ledger(
         ]
         return rows
 
+    if answered:
+        # The shape the product exists for: a changed morning, Kettle asks HER,
+        # she answers, and the family is never told anything at all. The reply
+        # is what closes the ladder - but so, independently, is the morning
+        # resuming before the grace mark, which is why the replay reproduces
+        # "no follow-on" even though it cannot replay a webhook.
+        ask_at = _at(day, ASK_THRESHOLD, tz)
+        rows.append(
+            LedgerRow(
+                "ask",
+                "ask_parent",
+                ask_at,
+                replied_utc=_at(day, ANSWERED_REPLY, tz),
+            )
+        )
+
+    if changed_morning:
+        ask_at = _at(day, ASK_THRESHOLD, tz)
+        rows += [
+            LedgerRow("ask", "ask_parent", ask_at),
+            # The phone reported all morning; only the habits were missing. So
+            # the family hears about a changed morning, not about a silent
+            # phone - the distinction DECISIONS 157/161 drew.
+            LedgerRow("follow_on", "follow_on_family", ask_at + FOLLOW_ON_GRACE),
+            LedgerRow("all_clear", "all_clear_family", _at(day, CHANGED_RESUME, tz)),
+            LedgerRow("digest_evening", "digest_evening_recovered", evening, "skipped"),
+        ]
+        return rows
+
     rows.append(
         LedgerRow(
             "digest_evening",
-            "digest_evening_recovered" if late_start else "digest_evening_normal",
+            "digest_evening_recovered"
+            if (late_start or answered)
+            else "digest_evening_normal",
             evening,
         )
     )
@@ -350,10 +433,16 @@ def seed(
     ).date()
     appointment_on = next_weekday(today_family, 3)
 
-    clear_owned(conn, family_id, [NOTE_UNREACHABLE, NOTE_APPOINTMENT])
+    clear_owned(
+        conn,
+        family_id,
+        [NOTE_UNREACHABLE, NOTE_APPOINTMENT, NOTE_CHANGED_MORNING],
+    )
 
     ping_rows: list[tuple[Any, str, datetime, str]] = []
-    message_rows: list[tuple[Any, Any, str, str, str, str, datetime, str]] = []
+    message_rows: list[
+        tuple[Any, Any, str, str, str, str, datetime, str, datetime | None]
+    ] = []
     note_rows: list[tuple[Any, Any, str, str, date | None, datetime, str]] = []
 
     # The two story parents are picked by RELATIONSHIP rather than by display
@@ -381,7 +470,17 @@ def seed(
             day = today_local - timedelta(days=back)
             late_start = relationship == "mom" and back == LATE_START_DAYS_AGO
             unreachable = relationship == "dad" and back == UNREACHABLE_DAYS_AGO
+            answered = relationship == "dad" and back == ANSWERED_ASK_DAYS_AGO
+            changed_morning = (
+                relationship == "mom" and back == CHANGED_MORNING_DAYS_AGO
+            )
             rng = _rng(seed_value, parent_id, day)
+
+            alarm_silent = None
+            if answered:
+                alarm_silent = ANSWERED_RESUME
+            elif changed_morning:
+                alarm_silent = CHANGED_RESUME
 
             for signal, when in day_pings(
                 day,
@@ -390,11 +489,17 @@ def seed(
                 rng,
                 first_alarm_at=LATE_START_FIRST_PING if late_start else None,
                 silent_before=UNREACHABLE_FIRST_PING if unreachable else None,
+                alarm_silent_before=alarm_silent,
             ):
                 ping_rows.append((parent_id, signal, when, MARKER))
 
             for row in day_ledger(
-                day, tz, late_start=late_start, unreachable=unreachable
+                day,
+                tz,
+                late_start=late_start,
+                unreachable=unreachable,
+                answered=answered,
+                changed_morning=changed_morning,
             ):
                 message_rows.append(
                     (
@@ -406,6 +511,7 @@ def seed(
                         MARKER,
                         row.sent_utc,
                         row.status,
+                        row.replied_utc,
                     )
                 )
 
@@ -418,6 +524,18 @@ def seed(
                         NOTE_UNREACHABLE,
                         None,
                         _at(day, time(18, 5), tz),
+                        "note",
+                    )
+                )
+            if changed_morning:
+                note_rows.append(
+                    (
+                        family_id,
+                        parent_id,
+                        NOTE_AUTHOR,
+                        NOTE_CHANGED_MORNING,
+                        None,
+                        _at(day, time(19, 40), tz),
                         "note",
                     )
                 )
@@ -442,8 +560,8 @@ def seed(
         )
         cur.executemany(
             "insert into sent_messages (family_id, parent_id, local_date, kind, "
-            "template_id, transport, sent_utc, status) "
-            "values (%s, %s, %s, %s, %s, %s, %s, %s)",
+            "template_id, transport, sent_utc, status, replied_utc) "
+            "values (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
             message_rows,
         )
         cur.executemany(
