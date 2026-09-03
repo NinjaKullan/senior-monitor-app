@@ -4332,3 +4332,21 @@ browser — all three adopted as the standard for future surfaces.**
        §4, (2) deploy webapp, (3) §6 live check on phone and laptop.
        Deploying before (1) sends emails with no code in them.
      * Next number: 237.
+
+237. **(2026-09-03) Spec 013 LIVE and verified by the founder; one
+     copy fix owed.**
+     * Templates edited (both), deployed, §6 passed: phone code path
+       lands on Today without leaving Kettle; laptop link path lands on
+       Today; wrong code shows LOGIN_CODE_WRONG; 4th/5th send in a row
+       shows LOGIN_RATE_LIMITED and a later retry delivers a code.
+     * Copy fix: LOGIN_RATE_LIMITED still says "a few links in a row".
+       It is codes now. New VERBATIM text: "That's a few codes in a
+       row, and the mailer needs a short break. Wait a few minutes,
+       then try once more." Spec 013 §3 amended; the "unchanged" note
+       there was wrong.
+     * "Installed as an app" in §6 meant the home-screen (PWA) install
+       the manifest already allows; the founder tested in the phone
+       browser, which is the same code path. Either is fine.
+     * Spec 013 status: SHIPPED. Asana 1218034241842672 layer 1 done;
+       layer 2 (circles) stays phase 2.
+     * Next number: 238.

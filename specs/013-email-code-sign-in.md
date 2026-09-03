@@ -1,6 +1,6 @@
 # Spec 013 — Sign in with a 6-digit email code (magic link kept as the second path)
 
-Status: RATIFIED by Hema, 2026-09-02 (DECISIONS 235); BUILT 2dad423, awaiting founder template edit + deploy (DECISIONS 236): both code and
+Status: RATIFIED by Hema, 2026-09-02 (DECISIONS 235); SHIPPED 2026-09-03, §6 verified (DECISIONS 237): both code and
 link in the email, code first. Pre-beta. Asana 1218034241842672
 (layer 1). Builds on DECISIONS 115 (make failures visible) and 234
 (custom SMTP live).
@@ -62,7 +62,10 @@ token)` wraps `verifyOtp` and throws on error, same reason as 115.
 - LOGIN_CODE_RESEND = "Send a new code"
 - LOGIN_CODE_WRONG = "That code didn't match, or it has expired. Check
   the newest email, or ask for a new code."
-- LOGIN_RATE_LIMITED, LOGIN_FAILED: unchanged.
+- LOGIN_RATE_LIMITED = "That's a few codes in a row, and the mailer
+  needs a short break. Wait a few minutes, then try once more."
+  (was "links"; caught live, DECISIONS 237)
+- LOGIN_FAILED: unchanged.
 - Email subject: "Your Kettle sign-in code"
 - Email body (Supabase template, founder pastes; see §4):
   "Your sign-in code is {{ .Token }}. Type it into Kettle. It works
