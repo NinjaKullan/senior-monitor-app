@@ -4350,3 +4350,26 @@ browser — all three adopted as the standard for future surfaces.**
      * Spec 013 status: SHIPPED. Asana 1218034241842672 layer 1 done;
        layer 2 (circles) stays phase 2.
      * Next number: 238.
+
+238. **(2026-09-03) Webapp home-screen icon: replace the placeholder
+     with the kettle, derived from the same asset as the site's
+     favicon set (199).** Founder added Kettle to an iPhone home screen
+     after the 013 flip and got a teal square with a white box:
+     `webapp/public/icon-192.png` / `icon-512.png` are 506-byte and
+     2 KB stand-ins from the demo-grade PWA commit (d5db4b2), and
+     `index.html` points apple-touch-icon at the 192.
+     * Ruling: one kettle, one source. The app icon is the site's
+       apple-touch-icon treatment (the hero drawing on the canvas
+       ground, 199), not a new flat glyph. `site/scripts/make-favicons.py`
+       grows a webapp target so a re-run refreshes both sets.
+     * Outputs in `webapp/public/`: `apple-touch-icon.png` 180x180
+       (flattened, as 199), `icon-192.png`, `icon-512.png` (maskable:
+       kettle inside the central 80% safe zone so Android's circle
+       crop keeps the spout and handle), `icon.svg` = the site's
+       `favicon.svg` glyph. Manifest and head updated to match.
+     * iOS caches the old icon: after deploy the founder removes and
+       re-adds the home-screen shortcut. Noted so it is not read as a
+       failed fix.
+     * Copy fix from 237 shipped at a7fc539, undeployed; rides this
+       deploy.
+     * Next number: 239.
