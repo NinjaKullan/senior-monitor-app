@@ -4373,3 +4373,21 @@ browser — all three adopted as the standard for future surfaces.**
      * Copy fix from 237 shipped at a7fc539, undeployed; rides this
        deploy.
      * Next number: 239.
+
+239. **(2026-09-03) 238 CLOSED: icon live, founder-verified on an
+     iPhone home screen after remove-and-re-add. Deployed together
+     with the 237 copy fix.** Built at e3af8f7; webapp 193 tests,
+     site 237, site favicon outputs byte-identical on re-run.
+     * CC deviation accepted, and it corrects my brief: the maskable
+       safe zone is a circle of radius 0.40, not an 80% square. The
+       script solves the scale from the asset's measured alpha extent
+       (kettle reaches 0.5617 of the crop side, so scale 0.712 lands
+       the outermost ink at ~0.40). Derived at runtime, so it follows
+       the artwork. Only the soft shadow tail crosses the circle.
+     * Also accepted: maskable tiles opaque edge to edge (transparency
+       is a hole, not a ground), and the new test checks the manifest's
+       declared paths and sizes resolve on disk.
+     * Beta invite text should say: add Kettle to your home screen
+       (Safari: Share, Add to Home Screen); sign in with the emailed
+       code. Both now hold.
+     * Next number: 240.
