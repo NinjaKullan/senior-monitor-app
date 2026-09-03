@@ -4770,3 +4770,61 @@ browser — all three adopted as the standard for future surfaces.**
        runbook note on reactions (247). The v7 words are already in
        code (232).
      * Next number: 254.
+
+254. **(2026-09-03, 1:15pm ET) No-reply ladder pass: email CONFIRMED
+     in the Rehearsal owner inbox.** Subject "A note about Mom's
+     day", from Kettle <notes@send.heykettle.com>, 1:01 PM, sixty
+     seconds after the 13:00:55 ledger row. Body is the
+     follow_on_unreachable rung ("Mom's phone has been silent today,
+     which is different from a quiet morning. A phone that is off or
+     out of battery looks exactly like this. A call from you settles
+     it either way."), correctly chosen because a dark-stage parent
+     has zero pings of any grade; the changed-morning rung
+     (follow_on_family) is exercised by the demo seed's day (e) under
+     engine replay (244) rather than live. Timing and the no-reply
+     mechanism, which the pass existed to prove, held.
+     * Dark stage remaining: TestMom's evening digest row after 20:30
+       ET, expected skipped (164). Then Wave D dark stage is COMPLETE.
+     * Friday Sep 4: Phase 3 flip, per the runbook and the 231 order.
+       Pre-flip checklist, all done: owner names "Hema" (241), inbound
+       webhook wired and round-tripped (229/232), v7 SID live,
+       10DLC/SMS untouched until Amendment A. Founder briefs Amma and
+       Appa: type the 👍, do not react (247).
+     * Next number: 255.
+
+255. **(2026-09-03, 2:40pm ET) v12 and v13 also Marketing. Seven
+     submissions in one day, everything after v7 recategorized. The
+     emoji is RULED OUT of the ask; iteration STOPS for the day.**
+     * v12 = v7 with "Send a quick reply when you can." (no emoji).
+       v13 = "when your morning looks different… pls send a quick
+       reply when you can." Both Approved/Marketing. v12 is the
+       telling one: no emoji, no "yes", no button, and still
+       Marketing. The words have stopped being the variable; either
+       any "reply when you can" check-in reads as promotional to
+       Meta and v7 was a lucky pass, or the account is being judged
+       harder after a burst of near-identical submissions.
+     * Founder ruling, PM concurred: "tell the parents to type it"
+       is not a design. Nobody remembers an instruction in three
+       months, and a parent who reacts and is then reported as
+       unreachable loses trust in the product. The 👍 leaves the ask
+       as soon as Meta allows a replacement; until then v7 stays
+       live because it is the only deliverable template.
+     * Founder's proposed v14 (two-sentence "Kettle noticed a
+       change… we're checking in" + button "👍 Yes, I'm okay") NOT
+       submitted: an emoji in a button is a hard rejection (205), a
+       worded button is v11's shape (Marketing), and "we" plus a
+       curly apostrophe are outside the copy laws. The anchor idea
+       (say why Kettle is writing) is v7's first sentence already.
+     * Tomorrow, Fri Sep 4, 9am: ONE control submission, v7's exact
+       words as kettle_ask_parent_v14. Marketing → the classifier has
+       hardened, copy iteration is pointless for now, the structural
+       answer is Amendment A (SMS has no category) for +1 parents and
+       a later revisit for WhatsApp. Utility → words matter; submit
+       exactly one no-emoji candidate, "…Is everything okay? Write
+       back when you can.", and stop.
+     * Friday flip on v7 goes ahead regardless. The reaction gap's
+       failure mode is a "hasn't answered yet" note to the family
+       (soft rung), which is better than the sandbox Amma and Appa
+       are on today. Open item, not an instruction: remove the
+       emoji from the ask when Meta permits.
+     * Next number: 256.
