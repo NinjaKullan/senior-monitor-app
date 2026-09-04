@@ -1,6 +1,9 @@
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# Known debt, not a quiet exemption (DECISIONS 266): the printables generate the
+# site's guide PDFs, and a lint sweep there needs a re-render check first.
+extend-exclude = ["tools/printables"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "W", "C4", "SIM"]
