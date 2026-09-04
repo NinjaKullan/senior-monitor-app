@@ -4971,3 +4971,26 @@ browser — all three adopted as the standard for future surfaces.**
        approved 258 and built 259 by the second session under
        android/. Flip does not depend on it.
      * Next number: 261.
+
+261. **(2026-09-04, morning) Spec 014 handoff from the Android session
+     acknowledged; product-side work sequenced.** The Android branch
+     is merged; 257-259 and 260 sit on main in order.
+     * PM lane, ONE CC brief, after today's flip AND after the app
+       passes the §8 Xiaomi soak (the Android session's own gate,
+       accepted): (1) vocabulary keys `unlock` (alarm, "Phone
+       unlocked") and `motion` (corroborating, "Phone moved"), Android
+       default set unlock, charger, motion, device_alive keyed off
+       devices.platform (100); (2) `POST /s/{slug}/claim`; (3) the
+       setup page's Android branch (spec 014 §6); (4) wizard "Which
+       phone does Mom have?"; (5) provision `--platform android`
+       wired end to end. Until then the app sends `routine` in place
+       of `unlock` and the soak uses debug token entry (§5.4).
+     * Rulings owed by the founder (spec 014 §9), PM recommendation
+       on each: the 60-minute drop for undelivered pings — DROP (a
+       ping means "awake now"; a late one is a false timestamp, and
+       the next unlock sends a fresh one); Play distribution — the
+       closed test IS the beta channel (families install from the
+       closed-test link; 12 testers from friends; production later);
+       open the $25 developer account now so the 14-day clock can
+       start.
+     * Next number: 262.
