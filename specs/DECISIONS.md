@@ -4894,3 +4894,61 @@ browser — all three adopted as the standard for future surfaces.**
      folder on its own branch, nothing outside it; the §6 items stay with the
      PM session. Implementer build notes land here as new entries.
      * Next number: 259.
+
+259. **(2026-09-04) Spec 014 build notes: the Android app under `android/`.**
+     Claude Code, branch `claude/android-senior-app-spec-x4dttt` (the harness's
+     designated branch; the brief said `android-app`, rename on merge if wanted).
+     Everything is under `android/` plus this entry; nothing else touched.
+     * **Foreground service type (§4.1): `health`.** The service reads the
+       step sensor and the app holds `ACTIVITY_RECOGNITION`, which is the
+       reading the spec offered. Two things about Android that the spec did
+       not say: (a) on Android 14+ a `health` service will not start unless
+       one of its runtime permissions is actually granted, so a kid who taps
+       Deny on the activity dialog gets no service and therefore no unlock or
+       charger signals, not just no motion. The PERMISSIONS strings already say
+       "Tap Allow on both"; if the soak shows kids denying, the fix is
+       `specialUse` (one manifest line plus the §5.6 declaration), not a new
+       string. (b) Starting a foreground service from the background (the
+       worker restarting it after an OEM kill, the boot receiver) is allowed
+       on Android 12+ only because the app asks for the battery-optimisation
+       exemption; without that grant the worker's restart is refused and only
+       the belt's own pings (`motion`, `device_alive`) survive. The soak's
+       force-stop test (§8.1) is exactly this path.
+     * **`unlock` goes out as `routine`** behind the one constant
+       `Signals.UNLOCK`, with a comment pointing at spec 014 §9.1. `motion` goes
+       out as `motion` and 400 is ignored. Flip the constant when §6 item 1
+       lands.
+     * **No-lock-screen fallback:** decided per event, not at setup. On
+       `SCREEN_ON`, if `KeyguardManager.isKeyguardLocked` is false the screen
+       coming on is the unlock; with any lock set (even swipe) the keyguard is
+       up at that moment and `USER_PRESENT` follows. Strictly better than the
+       spec's setup-time check, and the same key and grade.
+     * **Caps** are enforced before the network attempt, so a failed attempt
+       does not re-fire on every screen-on. Unlock 30 min, charger 60 s,
+       motion 60 min, device_alive once per local calendar day. A failed ping
+       goes to a queue with its birth time; the worker retries only what is
+       under 60 minutes old (§4.4), unit-tested at the boundary.
+     * **Per-OEM guidance strings are not written.** DECISIONS 257 fixes the
+       string set and says the OEM lines come from the soak, each recorded
+       here when written. Until then `OEM_SETTING` is the guidance and "Show
+       me" opens the first known autostart or battery page that resolves
+       (Xiaomi, Samsung, Oppo/Realme, OnePlus, Vivo/iQOO, Huawei/Honor), else
+       the app's own settings page. The manifest carries a `<queries>` block
+       naming those packages so Android 11+ lets the app see them.
+     * **Debug token entry** is a long-press on the title in BEFORE_SETUP,
+       compiled only in the debug source set; the release source set holds an
+       empty `DebugSetup`. Debug builds install as
+       `com.heykettle.android.debug` so both can sit on one phone.
+     * **Not verified on a device or with the Android SDK.** This session's
+       proxy blocks `dl.google.com`, which is where the Android Gradle Plugin
+       and the SDK live, so the app was written but not compiled here. The
+       pure-JVM half (retry queue, caps, HTTP classification, the strings pin,
+       the manifest audit) was compiled and run against the real source files
+       with the Kotlin JVM plugin from Maven Central; the Android half compiles
+       first on Hema's machine (README step 2). Expect small fix-ups.
+     * **Anything outside `android/`:** none made. Needed from the PM lane,
+       unchanged from spec 014 §6: the two vocabulary keys, `--platform android`
+       provisioning, the claim route, the setup page branch, the wizard
+       question, `devices.oem` / `app_version`. Spec 014 §8.2 and §8.3 cannot
+       be run until §6 items 3 and 4 exist; `SOAK.md` says so.
+     * Next number: 260.
