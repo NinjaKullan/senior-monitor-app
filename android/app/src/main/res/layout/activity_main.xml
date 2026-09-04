@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One screen, one state at a time (spec 014 §5.4). Every view is here; the
+  activity shows the ones the current state needs. Text sizes are in sp with
+  no maxLines and no fixed heights, inside a ScrollView, so Android's largest
+  font setting reflows instead of clipping (§8.9).
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/kettle_bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="24dp"
+            android:text="@string/app_name"
+            android:textColor="@color/kettle_text"
+            android:textSize="34sp"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/spinner"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/line"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingMultiplier="1.25"
+            android:textColor="@color/kettle_text"
+            android:textSize="24sp" />
+
+        <!-- Second line: the rationales under PERMISSIONS, OEM_SETTING, OFF note. -->
+        <TextView
+            android:id="@+id/line2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:lineSpacingMultiplier="1.25"
+            android:textColor="@color/kettle_muted"
+            android:textSize="20sp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="@color/kettle_button"
+            android:minHeight="64dp"
+            android:textAllCaps="false"
+            android:textColor="@color/kettle_button_text"
+            android:textSize="22sp"
+            android:visibility="gone" />
+
+        <!-- PERMISSIONS state only: the OEM page button (§5.4 item 3). -->
+        <Button
+            android:id="@+id/button2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/kettle_button"
+            android:minHeight="64dp"
+            android:textAllCaps="false"
+            android:textColor="@color/kettle_button_text"
+            android:textSize="22sp"
+            android:visibility="gone" />
+
+        <!-- OFF_LINK: the kill switch, small, at the bottom of ON. -->
+        <TextView
+            android:id="@+id/off_link"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="48dp"
+            android:gravity="center"
+            android:minHeight="48dp"
+            android:padding="12dp"
+            android:textColor="@color/kettle_button"
+            android:textSize="18sp"
+            android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>

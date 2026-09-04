@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- High contrast (spec 014 §5.4): near-black on white, one deep button colour. -->
+<resources>
+    <color name="kettle_bg">#FFFFFFFF</color>
+    <color name="kettle_text">#FF111111</color>
+    <color name="kettle_button">#FF0B3D91</color>
+    <color name="kettle_button_text">#FFFFFFFF</color>
+    <color name="kettle_muted">#FF444444</color>
+    <color name="ic_launcher_background">#FF0B3D91</color>
+</resources>

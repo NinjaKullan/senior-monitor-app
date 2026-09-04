@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Kettle" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/kettle_bg</item>
+        <item name="android:textColorPrimary">@color/kettle_text</item>
+        <item name="colorPrimary">@color/kettle_button</item>
+        <item name="colorAccent">@color/kettle_button</item>
+        <item name="android:statusBarColor">@color/kettle_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

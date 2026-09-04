@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A plain kettle silhouette. Placeholder until a real icon is ruled. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M34,44 h36 a4,4 0 0 1 4,4 v24 a8,8 0 0 1 -8,8 h-28 a8,8 0 0 1 -8,-8 v-24 a4,4 0 0 1 4,-4 z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M74,52 h8 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-8 z M78,56 v10 h4 v-10 z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M44,44 a10,10 0 0 1 20,0 h-4 a6,6 0 0 0 -12,0 z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M52,26 h4 v10 h-4 z" />
+</vector>

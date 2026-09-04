@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Every parent-facing string, VERBATIM from DECISIONS 257 (spec 014 §5.5).
+  Nothing is added here that a parent could read. StringsTest pins each one;
+  a change here without a new DECISIONS entry is a failed build, on purpose.
+-->
+<resources>
+    <string name="app_name">Kettle</string>
+    <string name="notification">Kettle is on</string>
+
+    <string name="before_setup">Ask your family to send you the Kettle setup link, then open it on this phone.</string>
+    <string name="connecting">Connecting this phone to Kettle.</string>
+    <string name="permissions">Your phone will ask two questions. Tap Allow on both.</string>
+    <string name="permissions_button">Continue</string>
+    <string name="rationale_motion">Kettle only notices that the phone moved today. It never knows where you are.</string>
+    <string name="rationale_battery">This lets Kettle keep working every day.</string>
+    <string name="oem_setting">One more setting so this phone does not switch Kettle off.</string>
+    <string name="oem_setting_button">Show me</string>
+    <string name="verify">Turn the screen off, then unlock the phone the way you usually do.</string>
+    <string name="heard">Kettle heard it. This phone is connected. You can close this.</string>
+    <string name="on">Kettle is on. There is nothing you need to do.</string>
+    <string name="off_link">Turn Kettle off</string>
+    <string name="off_confirm">Turn Kettle off on this phone? Your family will stop hearing that your day has started.</string>
+    <string name="off_confirm_yes">Turn off</string>
+    <string name="off_confirm_no">Keep on</string>
+    <string name="off">Kettle is off on this phone.</string>
+    <string name="off_button">Reconnect</string>
+    <string name="off_note">Ask your family for a new setup link.</string>
+    <string name="revoked">Your family has turned Kettle off on this phone.</string>
+</resources>
