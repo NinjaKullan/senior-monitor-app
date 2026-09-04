@@ -1,7 +1,7 @@
 # Spec 015 — The circle: who sees a household, and who can change it
 
-Status: DRAFT for founder review, 2026-09-04. Rulings in DECISIONS 264;
-open items in §11. Asana 1218034241842672 (layer 2). Builds on 0002
+Status: RATIFIED by Hema, 2026-09-04 (DECISIONS 269): all four §11
+items as PM recommended. Rulings in DECISIONS 264. Asana 1218034241842672 (layer 2). Builds on 0002
 (RLS by membership), 0008 (claim by verified email), 265 (one-family
 scoping), spec 013 (code sign-in).
 
@@ -168,13 +168,13 @@ circles and is the first switcher user; 265's oldest-first remains
 the default. The founder's sister is the first seat added through
 the app.
 
-## 11. Founder decisions before build
+## 11. Founder decisions (RULED, DECISIONS 269)
 
-1. Drop the invite code (§4)? PM: yes.
-2. Switcher label: the family name as stored ("Suryaprakasam",
-   "Whitaker")? PM: yes, it is the one place the name may appear.
-3. §9 strings, verbatim or edited.
-4. Cap at eight?
+1. No invite code (§4).
+2. Switcher label is the family name as stored; the one place the
+   name may appear, and only for accounts in two or more circles.
+3. §9 strings stand verbatim.
+4. Cap at eight.
 
 ## 12. Tests (CC)
 

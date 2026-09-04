@@ -5240,3 +5240,18 @@ browser — all three adopted as the standard for future surfaces.**
        founder's Mac IS the Node 24 run 146 asks for). Then the
      founder's Family screen shows one household.
      * Next number: 269.
+
+269. **(2026-09-04, evening) Spec 015 (circles) RATIFIED by Hema.**
+     All four §11 items as PM recommended: no invite code (the
+     seat's email is verified by the sign-in code, a second code
+     protects nothing); the switcher label is the stored family name,
+     shown only to accounts in two or more circles; §9 strings
+     verbatim; cap eight seats. PM's call to defer the signup wizard
+     step until self-serve signup exists stands; "Add someone" on the
+     Family screen is the whole feature for now.
+     * Build shape: one CC brief, on a branch, migration numbered at
+       build time (268), SECURITY DEFINER functions as the only write
+       path to members, RLS untouched, outbound recipients widened to
+       every mail-on member. Deploys after the sandbox sunset week.
+     * First seat after deploy: the founder's sister.
+     * Next number: 270.
