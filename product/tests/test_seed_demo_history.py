@@ -768,30 +768,39 @@ def test_re_running_moves_the_front_edge_and_leaves_the_past_alone(conn, whitake
     )
 
 
-def test_today_replays_as_a_normal_day_so_far(conn, whitakers, notifier):
-    """The same replay discipline the story days get.
+def _replay_today_at(conn, whitakers, notifier, hour: int, minute: int = 0):
+    """Seed today through a PINNED instant and run the engine at that instant.
 
-    Run the real engine at this moment over today's seeded pings: a morning
-    that has reported normally owes a normal morning digest and no ask, which
-    is what a demo opened at lunchtime should be showing.
+    DECISIONS 271/272 (failure family 5): this test used to read the real
+    Phoenix wall clock, so from the 10:30 staleness cutoff until midnight it
+    asserted a morning digest the engine is built to refuse — green every
+    morning, red every afternoon, and reported green because that is when it
+    was run. The seed and the engine now share one fixed clock on today's
+    date; only the DATE comes from the machine, and the engine's verdict on a
+    given hour is the same whatever hour it is.
     """
     from kettle.outbound import LogTransport, run_outbound
 
-    seed(conn, whitakers.family_id, days=30, seed_value=42, through_now=True)
     mom = parent_by(conn, whitakers.family_id, "Mom")
     tz = ZoneInfo(mom["tz"])
-    now_local = datetime.now(tz)
-    run_outbound(conn, LogTransport(), now_local, notifier=notifier, enabled=True)
-    decided = ledger(conn, mom["id"], now_local.date().isoformat())
+    at = datetime.now(tz).replace(hour=hour, minute=minute, second=0, microsecond=0)
+    seed(conn, whitakers.family_id, days=30, seed_value=42, through_now=True, now=at)
+    run_outbound(conn, LogTransport(), at, notifier=notifier, enabled=True)
+    return ledger(conn, mom["id"], at.date().isoformat())
 
-    # Both branches assert, rather than skipping before the digest slot: a
-    # test that proves nothing between midnight and 08:30 Phoenix is a test
-    # that proves nothing on most of the runs that matter.
-    if now_local.time() < MORNING_DIGEST:
-        assert decided == {}, "nothing is due before the morning slot"
-    else:
-        assert decided.get("digest_morning") == ("digest_morning_normal", "sent")
-    # Either way, a morning that reported is never asked about.
+
+def test_before_the_morning_slot_nothing_is_due(conn, whitakers, notifier):
+    """07:00 Phoenix: today's pings so far, and the engine owes nothing yet."""
+    assert (MORNING_DIGEST.hour, MORNING_DIGEST.minute) > (7, 0)
+    assert _replay_today_at(conn, whitakers, notifier, 7, 0) == {}
+
+
+def test_today_replays_as_a_normal_day_so_far(conn, whitakers, notifier):
+    """09:00 Phoenix: a morning that reported owes a normal morning digest and
+    no ask, which is what a demo opened at breakfast should be showing."""
+    decided = _replay_today_at(conn, whitakers, notifier, 9, 0)
+    assert decided.get("digest_morning") == ("digest_morning_normal", "sent")
+    # A morning that reported is never asked about.
     assert "ask" not in decided
 
 
