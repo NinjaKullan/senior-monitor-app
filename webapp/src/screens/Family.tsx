@@ -5,10 +5,29 @@
  * Memory tab — this screen is the household's SETTINGS now, and the record
  * lives where the record lives.
  */
+import { useState } from "react";
 import { CityPicker } from "@/components/CityPicker";
 import type { CityEntry } from "@/lib/cities";
+import { circleRefusal, isAdmin, nobodyListening } from "@/lib/circle";
 import {
-  FAMILY_CIRCLE_LABEL,
+  CIRCLE_ADD,
+  CIRCLE_ADD_CANCEL,
+  CIRCLE_ADD_EMAIL,
+  CIRCLE_ADD_NAME,
+  CIRCLE_ADD_SUBMIT,
+  CIRCLE_ADDED,
+  CIRCLE_KEEP,
+  CIRCLE_LEAVE,
+  CIRCLE_MAIL_SWITCH,
+  CIRCLE_MAKE_ADMIN,
+  CIRCLE_MAKE_MEMBER,
+  CIRCLE_NO_MAIL,
+  CIRCLE_PENDING,
+  CIRCLE_REMOVE,
+  CIRCLE_REMOVE_CONFIRM,
+  CIRCLE_ROLE_ADMIN,
+  CIRCLE_ROLE_MEMBER,
+  CIRCLE_SECTION,
   FAMILY_SUB,
   FAMILY_TITLE,
   PARENTS_LABEL,
@@ -49,10 +68,56 @@ const CARD: React.CSSProperties = {
   overflow: "hidden",
 };
 
+/** What the seats list can do (spec 015 §6), each the App's thin wrapper
+ *  over one 0025 function. A refusal rejects; the screen turns the codes a
+ *  person can act on into §9's sentences and leaves the rest silent. */
+export interface CircleActions {
+  onAddSeat: (displayName: string, email: string) => Promise<void>;
+  onRemoveSeat: (memberId: string) => Promise<void>;
+  onSetRole: (memberId: string, role: "admin" | "member") => Promise<void>;
+  onSetMail: (mail: boolean) => Promise<void>;
+  onLeave: () => Promise<void>;
+}
+
+const ROW: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "0.75rem",
+  flexWrap: "wrap",
+  padding: "0.9375rem 1.25rem",
+};
+
+const SMALL_BTN: React.CSSProperties = {
+  background: "none",
+  border: "1px solid var(--hair)",
+  borderRadius: "0.75rem",
+  padding: "0.5rem 0.75rem",
+  minHeight: "2.75rem",
+  fontSize: "0.84375rem",
+  fontWeight: 600,
+  color: "var(--ink2)",
+  cursor: "pointer",
+};
+
+const FIELD: React.CSSProperties = {
+  boxSizing: "border-box",
+  width: "100%",
+  minHeight: "2.75rem",
+  padding: "0.5rem 0.75rem",
+  border: "1px solid var(--hair)",
+  borderRadius: "0.75rem",
+  background: "var(--paper)",
+  color: "var(--ink)",
+  fontSize: "0.9375rem",
+};
+
 export function FamilyScreen({
   parentStates,
   cities,
   members,
+  viewerId,
+  circle,
   setupEntries,
   onOpen,
   onPickCity,
@@ -62,6 +127,10 @@ export function FamilyScreen({
   /** parentId → current city label ("" when unset), for the §1 picker. */
   cities: Record<string, string>;
   members: Member[];
+  /** The signed-in auth user's id: which seat is "me" (own mail switch,
+   *  own leave link), and whether the admin controls render at all. */
+  viewerId: string | null;
+  circle: CircleActions;
   setupEntries: SetupEntry[];
   onOpen: (parentId: string) => void;
   /** Spec 010 §1: the picker is the one surface that moves a parent. */
@@ -185,28 +254,8 @@ export function FamilyScreen({
         )}
       </div>
 
-      <div style={KICKER}>{FAMILY_CIRCLE_LABEL}</div>
-      <div style={CARD}>
-        {members.map((member, index) => (
-          <div
-            key={member.id}
-            data-testid="roster-member"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "0.75rem",
-              padding: "0.9375rem 1.25rem",
-              borderTop: index === 0 ? "1px solid rgba(0,0,0,0)" : "1px solid var(--hair)",
-            }}
-          >
-            <span className="kt-serif" style={{ fontWeight: 500, fontSize: "1.1875rem" }}>
-              {member.display_name ?? "—"}
-            </span>
-            <span style={{ fontSize: "0.84375rem", color: "var(--ink2)" }}>{member.digest_channel}</span>
-          </div>
-        ))}
-      </div>
+      <div style={KICKER}>{CIRCLE_SECTION}</div>
+      <SeatsList members={members} viewerId={viewerId} circle={circle} />
 
       <p
         style={{ marginTop: "1.875rem", fontSize: "0.875rem", color: "var(--ink2)", lineHeight: 1.5 }}
@@ -214,6 +263,193 @@ export function FamilyScreen({
       >
         {PRIVACY_FOOTER}
       </p>
+    </div>
+  );
+}
+
+
+/**
+ * The seats list (spec 015 §8): one row per seat, "Name · Admin" or
+ * "Name · Member", a claimed seat in full ink and an unclaimed one muted with
+ * CIRCLE_PENDING. Admins see "Add someone" and the per-row controls;
+ * everyone sees their own "Kettle emails me" switch and their own leave link.
+ * Removing shows one confirm line in place of the row's controls, no dialog.
+ */
+function SeatsList({
+  members,
+  viewerId,
+  circle,
+}: {
+  members: Member[];
+  viewerId: string | null;
+  circle: CircleActions;
+}) {
+  const admin = isAdmin(members, viewerId);
+  const [note, setNote] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+
+  const attempt = async (action: () => Promise<void>, onOk?: () => void) => {
+    setNote(null);
+    try {
+      await action();
+      onOk?.();
+    } catch (error) {
+      setNote(circleRefusal(error));
+    }
+  };
+
+  const submitAdd = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await attempt(
+      () => circle.onAddSeat(name.trim(), email.trim()),
+      () => {
+        setName("");
+        setEmail("");
+        setAdding(false);
+        setNote(CIRCLE_ADDED);
+      },
+    );
+  };
+
+  return (
+    <div style={CARD} data-testid="seats">
+      {members.map((member, index) => {
+        const mine = viewerId !== null && member.auth_user_id === viewerId;
+        const pending = member.auth_user_id === null;
+        const role = member.role === "admin" ? CIRCLE_ROLE_ADMIN : CIRCLE_ROLE_MEMBER;
+        return (
+          <div
+            key={member.id}
+            data-testid="roster-member"
+            data-pending={pending ? "true" : undefined}
+            style={{
+              ...ROW,
+              borderTop: index === 0 ? "1px solid rgba(0,0,0,0)" : "1px solid var(--hair)",
+              color: pending ? "var(--mute)" : "var(--ink)",
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <span className="kt-serif" style={{ fontWeight: 500, fontSize: "1.1875rem" }}>
+                {member.display_name ?? "—"}
+              </span>
+              <span style={{ fontSize: "0.84375rem", color: "var(--ink2)" }}> · {role}</span>
+              {pending && (
+                <span
+                  style={{ display: "block", fontSize: "0.78125rem", color: "var(--mute)" }}
+                  data-testid="seat-pending"
+                >
+                  {CIRCLE_PENDING}
+                </span>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+              {mine && (
+                <label style={{ display: "flex", gap: "0.5rem", alignItems: "center", fontSize: "0.84375rem", minHeight: "2.75rem" }}>
+                  <input
+                    type="checkbox"
+                    checked={member.mail}
+                    data-testid="mail-switch"
+                    onChange={(event) => void attempt(() => circle.onSetMail(event.target.checked))}
+                  />
+                  {CIRCLE_MAIL_SWITCH}
+                </label>
+              )}
+              {mine && (
+                <button
+                  type="button"
+                  style={SMALL_BTN}
+                  data-testid="seat-leave"
+                  onClick={() => void attempt(circle.onLeave)}
+                >
+                  {CIRCLE_LEAVE}
+                </button>
+              )}
+              {admin && !mine && confirming !== member.id && (
+                <>
+                  <button
+                    type="button"
+                    style={SMALL_BTN}
+                    data-testid="seat-role"
+                    onClick={() =>
+                      void attempt(() =>
+                        circle.onSetRole(member.id, member.role === "admin" ? "member" : "admin"),
+                      )
+                    }
+                  >
+                    {member.role === "admin" ? CIRCLE_MAKE_MEMBER : CIRCLE_MAKE_ADMIN}
+                  </button>
+                  <button
+                    type="button"
+                    style={SMALL_BTN}
+                    data-testid="seat-remove"
+                    onClick={() => setConfirming(member.id)}
+                  >
+                    {CIRCLE_REMOVE}
+                  </button>
+                </>
+              )}
+              {admin && !mine && confirming === member.id && (
+                <span style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", fontSize: "0.84375rem" }} data-testid="seat-confirm">
+                  {CIRCLE_REMOVE_CONFIRM}
+                  <button
+                    type="button"
+                    style={SMALL_BTN}
+                    data-testid="seat-remove-confirm"
+                    onClick={() =>
+                      void attempt(() => circle.onRemoveSeat(member.id), () => setConfirming(null))
+                    }
+                  >
+                    {CIRCLE_REMOVE}
+                  </button>
+                  <button type="button" style={SMALL_BTN} onClick={() => setConfirming(null)}>
+                    {CIRCLE_KEEP}
+                  </button>
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+      {nobodyListening(members) && (
+        <p style={{ ...ROW, margin: 0, fontSize: "0.84375rem", color: "var(--ink2)" }} data-testid="circle-no-mail">
+          {CIRCLE_NO_MAIL}
+        </p>
+      )}
+      {admin && !adding && (
+        <div style={ROW}>
+          <button type="button" style={SMALL_BTN} data-testid="seat-add" onClick={() => setAdding(true)}>
+            {CIRCLE_ADD}
+          </button>
+        </div>
+      )}
+      {admin && adding && (
+        <form onSubmit={(event) => void submitAdd(event)} style={{ ...ROW, flexDirection: "column", alignItems: "stretch" }} data-testid="seat-add-form">
+          <label style={{ fontSize: "0.84375rem", color: "var(--ink2)" }}>
+            {CIRCLE_ADD_NAME}
+            <input style={FIELD} value={name} onChange={(event) => setName(event.target.value)} required />
+          </label>
+          <label style={{ fontSize: "0.84375rem", color: "var(--ink2)" }}>
+            {CIRCLE_ADD_EMAIL}
+            <input style={FIELD} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          </label>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button type="submit" style={SMALL_BTN} data-testid="seat-add-submit">
+              {CIRCLE_ADD_SUBMIT}
+            </button>
+            <button type="button" style={SMALL_BTN} onClick={() => setAdding(false)}>
+              {CIRCLE_ADD_CANCEL}
+            </button>
+          </div>
+        </form>
+      )}
+      {note && (
+        <p style={{ ...ROW, margin: 0, fontSize: "0.84375rem", color: "var(--ink2)" }} data-testid="circle-note">
+          {note}
+        </p>
+      )}
     </div>
   );
 }
