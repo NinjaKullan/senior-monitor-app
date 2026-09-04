@@ -4852,3 +4852,45 @@ browser — all three adopted as the standard for future surfaces.**
        Memory fix; product needs no deploy (seeder and docs only).
        Both can wait for the flip train tomorrow.
      * Next number: 257.
+
+257. **(2026-09-03, ~11:30pm ET) Spec 014 Android senior app: the three founder
+     decisions from `docs/android-signals-brief.md` are taken.** Android session
+     (scoped to specs/014-*, android/, and this ledger).
+     * Decision 1, ordering adopted as written: Wave D sunset, then Memory v1.1,
+       then the app, then Android-parent beta families. Brief item #1 (phone gone
+       silent surfacing) is already live as STATE_UNREACHABLE (161/163, 243/254).
+       Option A (MacroDroid) stays in the back pocket for one hand-held pilot
+       family only.
+     * Decision 2, wait: the beta recruiting message stays iPhone-parent only
+       until the app ships. No wording change.
+     * Decision 3, name and strings. App name: **Kettle** (the family app is a
+       PWA, nothing in Play to collide with; a qualifier reads as a label on the
+       parent). Strings v1, VERBATIM, written for the parent holding the phone
+       with the kid on a call (005b's median install); to be fixed during the
+       Xiaomi soak, not before:
+       - BEFORE_SETUP = "Ask your family to send you the Kettle setup link, then open it on this phone."
+       - CONNECTING = "Connecting this phone to Kettle."
+       - PERMISSIONS = "Your phone will ask two questions. Tap Allow on both."  Button: "Continue"
+       - RATIONALE_MOTION = "Kettle only notices that the phone moved today. It never knows where you are."
+       - RATIONALE_BATTERY = "This lets Kettle keep working every day."
+       - OEM_SETTING = "One more setting so this phone does not switch Kettle off."  Button: "Show me"
+       - VERIFY = "Turn the screen off, then unlock the phone the way you usually do."
+       - HEARD = "Kettle heard it. This phone is connected. You can close this."
+       - ON = "Kettle is on. There is nothing you need to do."
+       - NOTIFICATION = "Kettle is on"
+       - OFF_LINK = "Turn Kettle off"
+       - OFF_CONFIRM = "Turn Kettle off on this phone? Your family will stop hearing that your day has started."  Buttons: "Turn off" / "Keep on"
+       - OFF = "Kettle is off on this phone."  Button: "Reconnect"  Note: "Ask your family for a new setup link."
+       - REVOKED = "Your family has turned Kettle off on this phone."
+     * Out of the Android session's lane, flagged for the PM session, not made:
+       two new vocabulary keys (`unlock` alarm-grade, `motion` corroborating), a
+       claim route so the app can collect its token from the setup slug, the
+       setup page's Android branch (with a Play Store step zero), and the
+       wizard's phone-type question. Listed in spec 014 §6.
+     * Next number: 258.
+
+258. **(2026-09-04, ~12am ET) Spec 014 APPROVED by Hema.** Status line
+     updated in the spec. Build brief goes to Claude Code: new `android/`
+     folder on its own branch, nothing outside it; the §6 items stay with the
+     PM session. Implementer build notes land here as new entries.
+     * Next number: 259.
