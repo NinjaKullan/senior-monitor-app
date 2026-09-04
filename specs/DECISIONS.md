@@ -5141,3 +5141,27 @@ browser — all three adopted as the standard for future surfaces.**
        (untouched). Verified on Node 22.22.2 only; the founder's 24.x is
        still owed a run before deploy (146).
      * Next number: 266.
+
+266. **(2026-09-04, afternoon) 265 REVIEWED and ACCEPTED (c9fc8b1).
+     Three rulings.**
+     * "First family = oldest by created_utc" is CORRECT as built:
+       Suryaprakasam predates Rehearsal, so the founder lands on Amma
+       and Appa. No sort change. Spec 015's switcher replaces
+       `families[0]` with the chosen circle id; the per-read filter
+       shape built here is what 015 needs, so nothing is thrown away
+       (answer to the prior session's question).
+     * Ruff red under tools/printables/ is a KNOWN debt from Aug 31
+       (FLAG 6 of the metrics-email build): the folder generates the
+       site's guide PDFs and a lint sweep there needs a re-render
+       check. RULED: `[tool.ruff] extend-exclude = ["tools/printables"]`
+       with a comment citing this entry, so CI's lint step is green
+       for what it checks; the sweep plus re-render is a backlog
+       item, not a quiet exemption. Ships with the category-watch
+       commit.
+     * Product test count: 559 reported here vs 606 on Sep 3
+       (6a55ab6), same env var. Reconciliation owed by CC before the
+       next product deploy; a count that moves without a reason is a
+       guardrail nobody can read.
+     * Node 24 run by the founder still owed before the webapp deploy
+       (146), which now carries 256 and 265 together.
+     * Next number: 267.
