@@ -5026,3 +5026,79 @@ browser — all three adopted as the standard for future surfaces.**
        type the 👍), watch the first real ask live, sunset the sandbox
        after one clean week, webapp deploy for 256.
      * Next number: 263.
+
+263. **(2026-09-04, ~11:45am ET) WAVE D PHASE 3 FLIP DONE. The real
+     family is on the real number with the first-reply line armed.**
+     * `fly secrets list -a kettle-api`: TWILIO_WHATSAPP_FROM and
+       TWILIO_ASK_CONTENT_SID present (one sender, one template, for
+       every family; today's 11:00 ask arrived from +1 984 370 4452).
+       Founder set MEMORY_FIRST_REPLY=1; one restart; healthz
+       {"db":true}. Amma (America/Chicago) and Appa (Asia/Kolkata) both
+       carry whatsapp_e164; their next quiet morning sends v7 from
+       HeyKettle and is watched live (runbook "The flip decision").
+     * Owed: founder briefs Amma and Appa (HeyKettle sender; type the
+       👍, do not react). Sandbox sunset after one clean week; the
+       ledger records the retirement then. Webapp deploy for 256 when
+       convenient.
+     * FOUND (founder's Family screen): one auth user owns both the
+       Rehearsal and Suryaprakasam owner rows (0008 links every
+       matching membership by design), and the webapp merges them:
+       four parents in one list, "Hema" twice in the circle. The
+       webapp assumes one family per account (`families[0]`) but
+       reads parents, members and signals across every family the
+       account can see. Founder-only today; 0008's in-laws case makes
+       it real eventually. Post-flip CC item: scope every read to
+       the chosen family's id (first family for now); a family
+       switcher belongs to phase 2 (Asana 1218034241842672).
+     * Founder asked how to add his sister. Today: a member row by
+       hand, she signs in with a code, 0008 links her, she sees the
+       app; digests and follow-ons still go only to the owner's
+       address. No add-member screen yet. Phase 2 (circles, claimable
+       seats, per-member mail) is where this lives; founder to say
+       whether to add her now as a viewer or wait.
+     * Post-flip CC brief will carry: template-category watch (262),
+       one-family scoping (this entry), and the spec 014 §6 items
+       once the Android soak passes (261).
+     * Next number: 264.
+
+264. **(2026-09-04, midday, founder) The circle model, brainstormed
+     and RULED; spec 015 to be written this weekend.** Supersedes the
+     open items on Asana 1218034241842672 layer 2.
+     * LAW (founder): simplicity across the board. Every role and
+       every switch must be explainable in one sentence to a sibling
+       over the phone. Kettle's core is monitoring; notes, numbers
+       and documents are value-add; nothing here is a secret store.
+     * Roles: two. MEMBER writes everything a family writes (notes,
+       contacts, documents). ADMIN additionally adds and removes
+       seats, changes the parents' numbers and timezone, and
+       cancels. A circle may have several admins and must always have
+       at least one: the last admin cannot leave or demote themselves
+       without promoting someone first; setup nudges a second admin
+       from day one (the "what if the kid passes away" case).
+     * Billing: the payment method belongs to the CIRCLE (families
+       already carry stripe_customer_id), not to a person. Any admin
+       can change the card. "Who pays" is whose card is on file; no
+       payer role exists.
+     * Adding and removing: the claimable-seat pattern (task notes):
+       admin creates a seat by name and email, the person claims it
+       with the sign-in code plus a per-circle invite code
+       (rotatable), admin can unclaim or remove. A removed person sees
+       nothing and gets no message.
+     * Mail: every member gets the digests and follow-ons by default;
+       one per-member switch turns all Kettle mail off. Follow-ons
+       go to everyone opted in, admins first; if the last member opts
+       out, the app says the circle has no one listening.
+     * Seats: created on demand, never pre-created at signup beyond
+       the admin's own. Signup asks "who else should see this?" once,
+       skippable; the same screen adds seats later. Cap eight per
+       circle; premium beyond it only if cost ever argues for it.
+     * Parent-side visibility: PARKED, not a v1 question.
+     * Migration: Rehearsal, Suryaprakasam and Whitaker are circles
+       as they stand. The founder's account belongs to two and is the
+       first switcher user; one-family scoping (263) is the stopgap
+       until the switcher ships.
+     * Plan: PM drafts spec 015 (circles) Sat Sep 5; founder reviews;
+       CC builds on a branch with the RLS work fully tested; deploys
+       after the sandbox sunset week, not before beta strangers'
+       first days. Founder's sister is the first seat.
+     * Next number: 265.
