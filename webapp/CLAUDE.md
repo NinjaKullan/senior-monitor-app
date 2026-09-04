@@ -18,9 +18,14 @@ tripwire-health exemption and why it is safe.
 
 ## The laws
 
-- **This app never says which family you are looking at.** One family per account is
-  the current truth, and a header naming it would be a promise the product has not
-  made. DECISIONS 124.
+- **This app never says which family you are looking at — with ONE exception.** An
+  account in two or more circles gets the switcher, "Looking at" and the stored
+  family names, and that is the only place a name may appear (spec 015 §8,
+  DECISIONS 269). A single-circle account sees no switcher and no name; DECISIONS
+  124 stands for them. A test holds both sides.
+- **Membership is written only through the 0025 functions.** Add, remove, set role,
+  set mail, leave — never a direct write to `members`. The functions decide who
+  may; the app only renders the refusal in §9's words.
 - **`Quiet so far` is as dark as this app ever gets.** The escalation ladder owns
   everything darker and does not live here. No counts, no signal names, no trend
   anything, no person-verdict — the copy law lands the same way it does on the site,
