@@ -103,7 +103,7 @@ def add_child_email(
     """One member with an account email: where the digest goes (spec 007 §3)."""
     conn.execute(
         "insert into members (family_id, display_name, role, email) "
-        "values (%s, 'Child', 'owner', %s)",
+        "values (%s, 'Child', 'admin', %s)",
         (family_id, email),
     )
 
@@ -127,7 +127,7 @@ def as_user_with_email(
 
 
 def invite_member(
-    conn: psycopg.Connection, family_id: object, email: str, role: str = "owner"
+    conn: psycopg.Connection, family_id: object, email: str, role: str = "admin"
 ) -> object:
     """A member row as provisioning leaves it: email known, auth_user_id null."""
     return conn.execute(
@@ -140,7 +140,7 @@ def invite_member(
 
 
 def add_member(
-    conn: psycopg.Connection, family_id: object, auth_user_id: str, role: str = "owner"
+    conn: psycopg.Connection, family_id: object, auth_user_id: str, role: str = "admin"
 ) -> None:
     """Link an auth user to a family, the way signup will."""
     conn.execute(

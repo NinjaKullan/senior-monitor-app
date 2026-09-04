@@ -939,11 +939,13 @@ def test_no_address_on_an_address_requiring_transport_is_an_unroutable_skip(
     conn, notifier
 ):
     """The dark transport sends without an address by design; a real one must
-    not — no child email means the digest records 'skipped' and alerts."""
+    not — a circle with nobody listening means the digest records 'skipped'
+    and the founder hears it as circle_unreachable, once a day (spec 015 §7),
+    not as an outbound_skipped row per slot."""
     provisioned = provision_family(
         conn, "Sharma", "Asia/Kolkata", [("Amma", None, "Mom")], base_url=BASE_URL
     )
-    assert provisioned  # no child email on purpose
+    assert provisioned  # no member with an email on purpose
 
     class NeedsAddress(LogTransport):
         name = "needs-address"
@@ -952,7 +954,9 @@ def test_no_address_on_an_address_requiring_transport_is_an_unroutable_skip(
     run_twice(conn, NeedsAddress(), at(8, 30), notifier=notifier)
     assert ledger(conn) == []
     assert statuses(conn)["digest_morning"] == "skipped"
-    assert len([m for m in notifier.messages if "unroutable" in m]) == 1
+    assert len([m for m in notifier.messages if "no one in the circle" in m]) == 1
+    kinds = [r["kind"] for r in conn.execute("select kind from ops_alerts").fetchall()]
+    assert kinds == ["circle_unreachable"]
 
 
 def test_a_failing_loop_pass_alerts_the_founder_once_per_streak(notifier):

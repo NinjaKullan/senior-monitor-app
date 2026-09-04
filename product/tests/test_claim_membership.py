@@ -80,7 +80,7 @@ def test_one_email_across_two_families_links_both(conn, authed):
     sharma = _family(conn, "Sharma")
     iyer = _family(conn, "Iyer")
     invite_member(conn, sharma.family_id, EMAIL_A)
-    invite_member(conn, iyer.family_id, EMAIL_A, role="child")
+    invite_member(conn, iyer.family_id, EMAIL_A, role="member")
 
     as_user_with_email(authed, USER_A, EMAIL_A)
     assert _claim(authed) == 2

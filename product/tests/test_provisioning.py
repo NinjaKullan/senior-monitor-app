@@ -39,7 +39,7 @@ def test_provisioning_creates_the_whole_family(conn: psycopg.Connection):
     assert conn.execute("select count(*) as n from devices").fetchone()["n"] == 2
 
     owner = conn.execute("select * from members").fetchone()
-    assert owner["role"] == "owner"
+    assert owner["role"] == "admin"
     assert owner["email"] == "child@example.test"
     # The auth user does not exist until that person signs up.
     assert owner["auth_user_id"] is None
