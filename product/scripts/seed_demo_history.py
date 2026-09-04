@@ -523,14 +523,17 @@ def seed(
             now_local = clock(tz)
             today = now_local.date()
             rng = _rng(seed_value, parent_id, today)
-            for signal, when in day_pings(today, tz, roles, rng):
-                if when <= now_local:
-                    ping_rows.append((parent_id, signal, when, MARKER))
             # The front edge. Placed relative to NOW rather than to a beat, so
-            # the glance says the same thing whenever the founder re-runs this.
-            ping_rows.append(
-                (parent_id, roles["alarm"][0], now_local - THROUGH_NOW_FRESHNESS, MARKER)
-            )
+            # the glance says the same thing whenever the founder re-runs this
+            # — and it IS the front edge: no beat lands after it (DECISIONS
+            # 272). A corroborating beat in the last few minutes used to slip
+            # past it and make the newest ping a charger event, so the glance
+            # had nothing alarm-grade to say it heard from her.
+            front_edge = now_local - THROUGH_NOW_FRESHNESS
+            for signal, when in day_pings(today, tz, roles, rng):
+                if when < front_edge:
+                    ping_rows.append((parent_id, signal, when, MARKER))
+            ping_rows.append((parent_id, roles["alarm"][0], front_edge, MARKER))
 
         for back in range(days, 0, -1):
             day = today_local - timedelta(days=back)

@@ -5390,6 +5390,15 @@ browser — all three adopted as the standard for future surfaces.**
        history plus its docs commit. One conflict, this file: main's 271
        and the branch's 270 both appended at the end; resolved 270 then
        271, in order. Counter set to 273 here.
+     * **FOUND by the 07:00 clock, fixed on main after the merge:** the
+       through-now seed's "front edge" marker (an alarm-grade ping 18
+       minutes before now) was not always the newest ping — a seeded
+       corroborating beat could land in those 18 minutes, so at some
+       hours the glance test found a `charger` event newest and failed
+       (`test_through_now_makes_the_glance_read_as_live`, four of four
+       runs at 07:00 Phoenix). The seed now drops beats at or after the
+       marker, so the front edge IS the front edge. Same family, same
+       lesson: a test that reads the clock is green for part of the day.
      * Suite counts after the merge are in the merge report; nothing
        deployed, 0025 not applied (271's deploy order stands).
      * Next number: 273.
