@@ -20,7 +20,7 @@ from typing import Any
 
 import psycopg
 
-from kettle import db, site_metrics
+from kettle import db, site_metrics, template_watch
 from kettle.config import Settings
 from kettle.notify import Notifier
 from kettle.timeutil import (
@@ -61,6 +61,9 @@ class HeartbeatState:
 
     last_check_utc: datetime | None = None
     fired: list[Fired] = field(default_factory=list)
+    template_watch: template_watch.WatchState = field(
+        default_factory=template_watch.WatchState
+    )
 
 
 def _last_seen_phrase(conn: psycopg.Connection, parent_id: Any, now: datetime) -> str:
@@ -204,6 +207,17 @@ async def heartbeat_loop(
             # revived by the one that starts them. This loop is already the
             # founder-only channel, so the note belongs here.
             await asyncio.to_thread(site_metrics.maybe_send_weekly, conn, settings, now)
+            # The ask template's category, once a day (DECISIONS 262). Same
+            # reasoning as the weekly summary: founder-only, so it rides the
+            # founder-only loop and neither outbound switch can silence it.
+            await asyncio.to_thread(
+                template_watch.maybe_check,
+                conn,
+                settings,
+                notifier,
+                state.template_watch,
+                now,
+            )
         except asyncio.CancelledError:
             raise
         except Exception:  # noqa: BLE001 - the monitor must outlive any failure
