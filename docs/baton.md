@@ -38,7 +38,10 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 439, zero xfails**, **`webapp` 156**, **`site` 236**.
+Current green: **`pytest` 559, zero xfails**, **`webapp` 202**, **`site` 236**.
+**`ruff check .` is RED on main** — 25 pre-existing findings under
+`tools/printables/` at the pinned 0.16.0 (DECISIONS 265); nothing in product/
+or the webapp pass is behind it.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -99,6 +102,15 @@ number on the approved template. Everything in this file that used to say
 "rolled back", "unset by design", or "the flip is off the table" described the
 world between Sep 1 and Sep 4 and is gone; if you find that language anywhere
 else, it is stale.
+
+**One-family scoping is BUILT and unshipped (DECISIONS 263/265).** The webapp
+snapshot reads one family — the oldest the account belongs to — and scopes
+every other read to it, so the founder's two-family account no longer merges
+households on the Family screen. Webapp-only; ships with the next
+`cd webapp && fly deploy` (build-arg fly.toml, 114) alongside the 256 date
+fix. The switcher is spec 015's (264). Still owed from the 263 post-flip
+brief: the template-category watch (262) and, after the Android soak, the
+spec 014 §6 items (261).
 
 **v7 is the ask, and template iteration is STOPPED (253/262).** v7
 (`kettle_ask_parent_v7`) is the only approved-and-Utility template. Everything

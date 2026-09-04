@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 265.** This line is the one to update; the `Next number:` lines inside
+**Next number: 266.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5102,3 +5102,42 @@ browser — all three adopted as the standard for future surfaces.**
        after the sandbox sunset week, not before beta strangers'
        first days. Founder's sister is the first seat.
      * Next number: 265.
+
+## One-family scoping build notes (implementer, 2026-09-04)
+
+265. **(2026-09-04) One-family scoping BUILT (263), webapp only, unshipped.**
+     Branch `claude/kettle-implementer-uqu3gd`, merged to main. `loadSnapshot`
+     reads the family first and alone, then scopes every other read to it —
+     `family_id` on parents, members, journal_entries and family_contacts;
+     the chosen family's parent ids (PostgREST `in`) on parent_signals and
+     setup_links, which carry no family_id. No family → empty snapshot, no
+     further reads. `oneFamily.test.ts` plants the founder's shape (two
+     families, one account) and pins each scope at the query; every
+     assertion was verified by planting its regression. Webapp suite
+     198 → 202. No migration, no product change, no new dependency.
+     * **Which family is "first" is now defined: the OLDEST by
+       `created_utc`.** 263 said "first family for now" without saying
+       which, and PostgREST's unordered answer was arbitrary, so the
+       founder could have landed on a different household on each load.
+       Oldest is deterministic and explainable, and it is a guess about
+       which of Rehearsal and Suryaprakasam the founder wants to see until
+       the switcher (264) ships. If it is the wrong one, the ruling is a
+       one-line change to the order (`created_utc` descending), not a
+       redesign — PM to say.
+     * **Two file headers changed their law.** `data.ts` and `queries.ts`
+       both said "no query names a family; RLS decides." Both now say RLS
+       decides what an account MAY see and the filters choose which of its
+       own families the app SHOWS — shape filters, never isolation. The
+       product-side contract test (`test_webapp_contract.py`) is unaffected:
+       it parses READ_SURFACE, which did not change, and proves the RLS
+       surface over two families exactly as before.
+     * **FLAG, not mine, pre-existing on main: `ruff check .` is RED.** 25
+       findings (24 UP031, 1 SIM105), all under `tools/printables/`, at the
+       pinned ruff 0.16.0 that CI runs. The baton's "ruff clean" is stale.
+       Whoever owns the printables scripts fixes or excludes them; a
+       `[tool.ruff] extend-exclude` line would also do it if the PM prefers.
+     * **Counts as of this pass:** product `pytest` 559 (KETTLE_REQUIRE_POSTGRES=1,
+       pg_isready before and after), webapp 202, both green. Site not run
+       (untouched). Verified on Node 22.22.2 only; the founder's 24.x is
+       still owed a run before deploy (146).
+     * Next number: 266.
