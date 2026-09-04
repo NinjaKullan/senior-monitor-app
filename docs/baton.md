@@ -93,37 +93,36 @@ journal read 400s. At the Phase 3
 flip, also set `MEMORY_FIRST_REPLY=1` on kettle-api (DECISIONS 203) so the
 first_reply journal line arms with the real number.
 
-**Wave D is ROLLED BACK to the sandbox, and both secrets are UNSET BY DESIGN
-(DECISIONS 216).** The v4 template was approved but recategorized Marketing,
-and Meta refuses marketing templates to US numbers: a real send to TestMom went
-Undelivered with error 63049 and reached nobody. `TWILIO_ASK_CONTENT_SID` is
-unset and `TWILIO_WHATSAPP_FROM` is back to `whatsapp:+14155238886`, the
-sandbox, which is the production path. **Do not read either empty secret as
-work left undone — the emptiness IS the rollback.** One trap recorded in 216:
-unsetting `TWILIO_WHATSAPP_FROM` outright fails the app closed at startup, so
-it is restored to the sandbox value rather than removed.
+**Wave D is FLIPPED. The dark stage is complete (DECISIONS 260) and Phase 3
+ran on Fri Sep 4 (263).** The ask now goes to real parents from the registered
+number on the approved template. Everything in this file that used to say
+"rolled back", "unset by design", or "the flip is off the table" described the
+world between Sep 1 and Sep 4 and is gone; if you find that language anywhere
+else, it is stale.
 
-**The v4 Content SID `HXdb4e38c90d0ccc51bbcd264a002d0a8a` is retired.** It is
-Marketing-categorized and undeliverable to +1 for good; setting it again would
-reproduce 63049. It is recorded here only so nobody re-finds it in an old note
-and treats it as the current SID.
+**v7 is the ask, and template iteration is STOPPED (253/262).** v7
+(`kettle_ask_parent_v7`) is the only approved-and-Utility template. Everything
+after it — v8 through v14, including a control submission of v7's own exact
+words — came back Marketing, which is what closed the question: the classifier
+was the variable, not the copy. Do not submit another template hoping for a
+better category; that road was walked to the end. `tools/submit_ask_template.py`
+is a RECORD of what was submitted, not something to run.
 
-**The v5 Utility attempt is BUILT and unsubmitted (DECISIONS 217/218).** The
-ask is reworded to name who asked for it, which is what Meta's Utility category
-means, and `tools/submit_ask_template.py` creates and submits it through the
-Content API with `allow_category_change=false` so Meta must approve as Utility
-or reject outright rather than silently downgrading it again. **The founder
-runs that script with his own credentials; a v5 Content SID does not exist
-until he has.** The script prints the SID and polls to a verdict, printing
-Meta's rejection words verbatim.
+**A WhatsApp reaction is not a reply (247), and the fix is an instruction.**
+Only a typed message reaches the inbound webhook. A parent who long-presses
+and reacts 👍 is a parent Kettle believes did not answer, and the family gets a
+follow-on about a morning that was fine. The gap is closed at setup by saying
+"type the 👍, don't react" while the phone is in your hand. A quick-reply
+button would sidestep it and was tried; it came back Marketing.
 
-Meanwhile the sandbox already says the v5 sentence: the registry body changed
-with it, so a sandbox parent and a future real-number parent read the identical
-ask (DECISIONS 209). At any future flip, three values, none set today:
-`TWILIO_WHATSAPP_FROM=whatsapp:+19843704452`, `TWILIO_ASK_CONTENT_SID=<the v5
-SID the script prints>`, and `MEMORY_FIRST_REPLY=1` (203). The flip itself is
-off the table until a template is seen delivering to a US number in a dark-stage
-pass (216).
+**The demo family (the Whitakers) is scenery and must stay that way.**
+`families.demo` is true for them (migration 0023), and the outbound engine
+skips demo families before it decides anything: no ledger rows, no ops alerts,
+no sends. That flag is the ONLY thing stopping them mailing the owner a digest
+and the founder an alert every day — "no phone number" (242) stops the ask and
+nothing else. The app renders them unchanged. Re-seed with
+`scripts.seed_demo_history --through-now`; retired note bodies live in a list
+in that script so a renamed note cleans up after itself (251).
 
 **The weekly log-summary job is BUILT and unshipped (DECISIONS 212).** Option C
 from docs/log-summary-job-design.md: a counter beside nginx in the site image
