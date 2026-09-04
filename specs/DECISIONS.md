@@ -5255,3 +5255,37 @@ browser — all three adopted as the standard for future surfaces.**
        every mail-on member. Deploys after the sandbox sunset week.
      * First seat after deploy: the founder's sister.
      * Next number: 270.
+
+271. **(2026-09-04, evening) Spec 015 BUILT on branch
+     claude/kettle-implementer-uqu3gd at 1fa74ad; REVIEWED and
+     ACCEPTED; not merged until main is green. (270 is the build
+     notes, on the branch; it merges with it. This entry takes 271 on
+     main so the two do not collide.)**
+     * Accepted as built: migration 0025_circles (Amendment A moves to
+       0026; specs stop pencilling numbers, 268); digest_sends check
+       constraint widened so per-member idempotency is real for the
+       follow-on (the brief's "nothing else in the schema" was wrong
+       on this point); app_set_mail and app_leave_circle take the
+       family id (own row is ambiguous for a two-circle account);
+       three strings added, VERBATIM: CIRCLE_DUPLICATE "Someone in
+       the circle already uses that email.", CIRCLE_KEEP "Keep them",
+       CIRCLE_ADD_CANCEL "Not now"; the per-slot unroutable skip
+       replaced by one circle_unreachable alert per day; a slot's
+       ledger row reads sent only when every listening member was
+       reached, so a partial failure retries to the missed members
+       only.
+     * FOUND (pre-existing, main): the 246 replay test runs at the
+       real Phoenix wall clock and asserts a sent morning digest, which
+       the engine refuses after the 10:30 cutoff. Main's root suite is
+       red from 10:30 Phoenix to midnight every day and green in the
+       morning, which is why every report so far was green. Failure
+       family 5 (time-dependent tests). Fix on main BEFORE merging
+       015: the replay pins its "now" to a fixed instant per branch
+       (before 08:30 Phoenix, and 09:00 Phoenix) instead of reading
+       the clock.
+     * Order: CC fixes the replay test on main; rebase or merge the
+       015 branch onto green main; deploy waits for the sandbox
+       sunset week (264). Deploy order then: PM applies 0025 (it
+       rewrites role values), product deploys, webapp deploys last
+       (the members read wants the new `mail` column).
+     * Next number: 272.
