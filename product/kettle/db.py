@@ -143,11 +143,12 @@ def setup_link_by_slug(conn: psycopg.Connection, slug: str) -> Row | None:
 
 
 def family_owner_name(conn: psycopg.Connection, family_id: Any) -> str | None:
-    """The family's owner, by display name — the setup page's "From {name}"."""
+    """The family's first admin (spec 015: `owner` became `admin`), by display
+    name — the setup page's "From {name}" and the ask's "{owner_name}"."""
     row = conn.execute(
         """
         select display_name from members
-        where family_id = %s and role = 'owner'
+        where family_id = %s and role = 'admin'
         order by created_utc, id limit 1
         """,
         (family_id,),
@@ -376,6 +377,55 @@ def record_digest_send(
     return row is not None
 
 
+def member_send_sent(
+    conn: psycopg.Connection,
+    family_id: Any,
+    parent_id: Any,
+    kind: str,
+    local_date: Any,
+    member_id: Any,
+) -> bool:
+    """Has this member already RECEIVED this slot (spec 015 §7)? Sent rows
+    only: a failed row keeps the member due, the way the ledger's statuses
+    work (0015)."""
+    row = conn.execute(
+        """
+        select 1 from digest_sends
+        where family_id = %s and parent_id = %s and kind = %s
+          and local_date = %s and member_id = %s and status = 'sent'
+        limit 1
+        """,
+        (family_id, parent_id, kind, local_date, member_id),
+    ).fetchone()
+    return row is not None
+
+
+def record_member_send(
+    conn: psycopg.Connection,
+    family_id: Any,
+    parent_id: Any,
+    kind: str,
+    local_date: Any,
+    member_id: Any,
+    channel: str,
+    status: str,
+    ts_utc: datetime,
+) -> None:
+    """One member's outcome for one slot. A failed row is overwritten by the
+    retry that reaches them; a sent row is final."""
+    conn.execute(
+        """
+        insert into digest_sends
+            (family_id, parent_id, kind, local_date, member_id, channel, status, ts_utc)
+        values (%s, %s, %s, %s, %s, %s, %s, %s)
+        on conflict (family_id, parent_id, kind, local_date, member_id) do update
+            set channel = excluded.channel, status = excluded.status, ts_utc = excluded.ts_utc
+            where digest_sends.status <> 'sent'
+        """,
+        (family_id, parent_id, kind, local_date, member_id, channel, status, ts_utc),
+    )
+
+
 def count_any_pings_between(
     conn: psycopg.Connection, parent_id: Any, start: datetime, end: datetime
 ) -> int:
@@ -428,7 +478,7 @@ def ladder_recipients(conn: psycopg.Connection, family_id: Any) -> list[Row]:
         where family_id = %s
           and digest_channel <> 'none'
           and phone_e164 is not null and phone_e164 <> ''
-        order by (role = 'owner') desc, created_utc, id
+        order by (role = 'admin') desc, created_utc, id
         """,
         (family_id,),
     ).fetchall()
@@ -661,23 +711,24 @@ def ops_alert_exists_with_detail(
 # --- the outbound channel's ledger (spec 007) --------------------------------
 
 
-def outbound_contacts(conn: psycopg.Connection, family_id: Any) -> Row | None:
-    """Where this family's two audiences are reached, if anywhere yet.
+def outbound_contacts(conn: psycopg.Connection, family_id: Any) -> list[Row]:
+    """Everyone in the circle Kettle's mail goes to (spec 015 §7).
 
-    One row: the child's digest address (their account email, which has existed
-    since 0001 — spec 007 §3 sends the digest there) and nothing else, because
-    the parent's number is per parent and travels with the parent row.
+    Every member with `mail` on and an email on file, admins first, then by
+    created order. Digests, follow-ons and all-clears go to all of them; the
+    per-member idempotency rides `digest_sends`. Empty means nobody is
+    listening — the engine sends nothing and raises `circle_unreachable`
+    once a day.
     """
     return conn.execute(
         """
-        select m.email as child_email
+        select m.id as member_id, m.email
         from members m
-        where m.family_id = %s and m.email is not null
-        order by (m.role = 'owner') desc, m.created_utc
-        limit 1
+        where m.family_id = %s and m.mail and m.email is not null and m.email <> ''
+        order by (m.role = 'admin') desc, m.created_utc, m.id
         """,
         (family_id,),
-    ).fetchone()
+    ).fetchall()
 
 
 def parent_whatsapp(conn: psycopg.Connection, parent_id: Any) -> str | None:

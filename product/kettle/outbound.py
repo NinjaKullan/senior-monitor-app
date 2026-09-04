@@ -526,8 +526,10 @@ def run_outbound(
         # digests fire at the NEW zone's clock from the next cycle onward.
         tz_name = effective_tz(parent["parent_tz"], parent["family_tz"])
         plan = schedule_for(now, tz_name)
-        contacts = db.outbound_contacts(conn, parent["family_id"])
-        child_address = (contacts or {}).get("child_email") or ""
+        # Spec 015 §7: everyone in the circle with mail on and an email,
+        # admins first. Digests, follow-ons and all-clears fan out to all of
+        # them; the ask below still goes to the parent alone.
+        recipients = db.outbound_contacts(conn, parent["family_id"])
         label = f"{parent['family_name']} / {parent['parent_name']}"
 
         _alert_tz_change_once(conn, notifier, parent, tz_name, now)
@@ -665,33 +667,42 @@ def run_outbound(
                 )
                 continue
 
-            recipient = (
-                db.parent_whatsapp(conn, decision.parent_id) or ""
-                if decision.kind == KIND_ASK
-                else child_address
-            )
-            if carrier.requires_address and not recipient:
-                skip(
-                    f"{decision.template_id} for {label} skipped: unroutable, "
-                    f"no address on file for the {carrier.name} transport"
-                )
+            if decision.kind == KIND_ASK:
+                recipient = db.parent_whatsapp(conn, decision.parent_id) or ""
+                if carrier.requires_address and not recipient:
+                    skip(
+                        f"{decision.template_id} for {label} skipped: unroutable, "
+                        f"no address on file for the {carrier.name} transport"
+                    )
+                    continue
+                result = _attempt(carrier, recipient, decision, variables)
+                if result.delivered:
+                    if _record_outcome(
+                        conn, notifier, decision, result.transport, "sent", "", now
+                    ):
+                        decisions.append(decision)
+                else:
+                    _record_failed(conn, notifier, decision, result, label, now)
                 continue
 
-            try:
-                result = carrier.send(
-                    recipient,
-                    decision.template_id,
-                    variables,
-                    relationship=decision.relationship,
+            # The circle (spec 015 §7). An address-requiring transport with
+            # nobody listening is the one absence that is not a transport
+            # problem: recorded as skipped, alerted once a day as
+            # circle_unreachable, never as outbound_skipped.
+            if carrier.requires_address and not recipients:
+                skip(
+                    f"{decision.template_id} for {label} skipped: no one in the "
+                    "circle is getting Kettle's mail",
+                    alert=False,
                 )
-            except Exception as exc:  # noqa: BLE001 - one send must not kill the pass
-                log.exception("outbound: %s transport raised", carrier.name)
-                result = DeliveryResult(
-                    delivered=False, transport=carrier.name, detail=type(exc).__name__
-                )
-            if result.delivered:
+                _alert_circle_unreachable(conn, notifier, parent, plan, now)
+                continue
+            outcome = _send_to_circle(
+                conn, carrier, decision, variables, recipients, now
+            )
+            if outcome.delivered_to_all:
                 if _record_outcome(
-                    conn, notifier, decision, result.transport, "sent", "", now
+                    conn, notifier, decision, outcome.transport, "sent", "", now
                 ):
                     decisions.append(decision)
                     if decision.kind in (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING):
@@ -709,18 +720,142 @@ def run_outbound(
                             decision.kind,
                         )
             else:
-                why = f" ({result.detail})" if result.detail else ""
-                _record_outcome(
-                    conn,
-                    notifier,
-                    decision,
-                    result.transport,
-                    "failed",
-                    f"{decision.template_id} for {label} failed on the "
-                    f"{result.transport} transport{why}; slot stays retryable",
-                    now,
-                )
+                _record_failed(conn, notifier, decision, outcome.result, label, now)
     return decisions
+
+
+def _attempt(
+    carrier: Any, recipient: str, decision: Decision, variables: Mapping[str, str]
+) -> DeliveryResult:
+    """One send. A transport that throws is a failed send, never a dead pass."""
+    try:
+        return carrier.send(
+            recipient,
+            decision.template_id,
+            variables,
+            relationship=decision.relationship,
+        )
+    except Exception as exc:  # noqa: BLE001 - one send must not kill the pass
+        log.exception("outbound: %s transport raised", carrier.name)
+        return DeliveryResult(
+            delivered=False, transport=carrier.name, detail=type(exc).__name__
+        )
+
+
+def _record_failed(
+    conn: psycopg.Connection,
+    notifier: Notifier | None,
+    decision: Decision,
+    result: DeliveryResult,
+    label: str,
+    now: datetime,
+) -> None:
+    why = f" ({result.detail})" if result.detail else ""
+    _record_outcome(
+        conn,
+        notifier,
+        decision,
+        result.transport,
+        "failed",
+        f"{decision.template_id} for {label} failed on the "
+        f"{result.transport} transport{why}; slot stays retryable",
+        now,
+    )
+
+
+@dataclass(frozen=True)
+class CircleOutcome:
+    """What one slot's fan-out to the circle came to."""
+
+    delivered_to_all: bool
+    transport: str
+    result: DeliveryResult
+
+
+def _send_to_circle(
+    conn: psycopg.Connection,
+    carrier: Any,
+    decision: Decision,
+    variables: Mapping[str, str],
+    recipients: list[Any],
+    now: datetime,
+) -> CircleOutcome:
+    """Send one decision to every listening member, once each (spec 015 §7).
+
+    Per-member idempotency lives in `digest_sends`, keyed (family, parent,
+    kind, local day, member): a member with a SENT row is skipped, so a slot
+    retried after one failure reaches only the members it missed. The slot's
+    own ledger row (`sent_messages`) says 'sent' only when every member has
+    been reached — anything less stays 'failed' and retryable, which is what
+    makes the next pass finish the job rather than declare it done.
+
+    A transport that needs no address (the dark console) with nobody in the
+    circle sends once to nobody, exactly as it always has.
+    """
+    if not recipients:
+        result = _attempt(carrier, "", decision, variables)
+        return CircleOutcome(result.delivered, result.transport, result)
+    last = DeliveryResult(delivered=True, transport=carrier.name, detail="")
+    missed = 0
+    for member in recipients:
+        member_id = member["member_id"]
+        if db.member_send_sent(
+            conn, decision.family_id, decision.parent_id, decision.kind,
+            decision.local_date, member_id,
+        ):
+            continue
+        result = _attempt(carrier, member["email"] or "", decision, variables)
+        db.record_member_send(
+            conn,
+            decision.family_id,
+            decision.parent_id,
+            decision.kind,
+            decision.local_date,
+            member_id,
+            result.transport,
+            "sent" if result.delivered else "failed",
+            now,
+        )
+        if not result.delivered:
+            missed += 1
+            last = result
+    if missed:
+        detail = f"{missed} of {len(recipients)} in the circle not reached"
+        if last.detail:
+            detail = f"{detail}: {last.detail}"
+        last = DeliveryResult(delivered=False, transport=last.transport, detail=detail)
+    return CircleOutcome(missed == 0, last.transport, last)
+
+
+OPS_CIRCLE_UNREACHABLE = "circle_unreachable"
+
+
+def _alert_circle_unreachable(
+    conn: psycopg.Connection,
+    notifier: Notifier | None,
+    parent: Any,
+    plan: Schedule,
+    now: datetime,
+) -> None:
+    """Once per family per local day: nobody in the circle is getting mail."""
+    family_id = parent["family_id"]
+    # The local date rides in the text, and the text is the dedupe key
+    # (`ops_alert_exists_with_detail`, the per-member pattern): one row per
+    # family per local day, however many parents and slots go unsent.
+    message = (
+        f"⚠️ outbound: {parent['family_name']}: no one in the circle is getting "
+        f"Kettle's notes on {plan.local_date} (every member has mail off or no "
+        "email); nothing sent"
+    )
+    if db.ops_alert_exists_with_detail(
+        conn, OPS_CIRCLE_UNREACHABLE, family_id, None, message,
+        now - timedelta(days=2), now + timedelta(minutes=1),
+    ):
+        return
+    db.insert_ops_alert(conn, family_id, None, OPS_CIRCLE_UNREACHABLE, message, now)
+    if notifier is not None:
+        notifier.send(message)
+    log.warning("outbound: %s", message)
 
 
 def _due_for_parent(
