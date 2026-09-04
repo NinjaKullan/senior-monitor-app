@@ -5213,3 +5213,30 @@ browser — all three adopted as the standard for future surfaces.**
      * **Verified by planting:** dedupe removed, gate never claiming the
        day, fetch failure raising, migration absent — each failed by name.
      * Next number: 268.
+
+268. **(2026-09-04, afternoon) 267 REVIEWED and ACCEPTED (60dde6f).
+     Migration 0024 applied to prod by PM. Deploy train open.**
+     * Count reconciliation accepted: 606/614 is the root run (pilot
+       47 + product), 559/567 is product alone. From now on the ROOT
+       number is the one reported, as CI prints it; the Sep 3 reports
+       were root numbers too, so nothing ever moved.
+     * Ruff clean at the pinned version with tools/printables excluded
+       (266); the sweep-plus-re-render pass is a backlog item.
+     * Migration 0024 (ops_alerts.family_id nullable) applied to prod
+       through the Supabase migration tool, one file, before the
+       product deploy that carries the watch. NUMBERING: 246 had
+       pencilled 0024 for Amendment A's SMS columns; the watch took
+       it first. Amendment A now takes 0025. Spec 011 A to be amended
+       when that build starts.
+     * Three judgement calls accepted: the watch day is a UTC day;
+       a rejected or pending status alerts like Marketing does (any
+       state other than Approved/Utility is a delivery risk); the
+       once-a-day gate is in-process, so a restart re-fetches once,
+       which is harmless and self-healing.
+     * DEPLOY TRAIN (founder): `cd product && fly deploy` (carries
+       the watch and the demo skip from 246 is already live); `cd
+       webapp && npm run ci && fly deploy` on Node 24 (carries 256's
+       Memory dates and 265's one-family scoping; the ci run on the
+       founder's Mac IS the Node 24 run 146 asks for). Then the
+     founder's Family screen shows one household.
+     * Next number: 269.
