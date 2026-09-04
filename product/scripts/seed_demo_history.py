@@ -441,8 +441,14 @@ def seed(
     seed_value: int = 42,
     *,
     through_now: bool = False,
+    now: datetime | None = None,
 ) -> Seeded:
     """Write the history. Refuses first, deletes its own, then rewrites.
+
+    `now` is the clock `through_now` builds today from (DECISIONS 272): the
+    replay tests pin it so their verdict does not depend on the hour they run
+    at. Omitted, it is the real clock, which is what the founder's re-run
+    wants. Timezone-aware; converted to each parent's own zone here.
 
     One transaction: a half-seeded family is a demo that shows the wrong thing
     without anybody knowing it is wrong.
@@ -462,7 +468,10 @@ def seed(
     # The appointment note is the one row whose date has to stay ahead of the
     # demo rather than behind it: an "upcoming" entry the app files in the
     # past is just an old note. Thursday, because that is what it says.
-    today_family = datetime.now(
+    def clock(tz: ZoneInfo) -> datetime:
+        return now.astimezone(tz) if now is not None else datetime.now(tz)
+
+    today_family = clock(
         ZoneInfo(conn.execute(
             "select tz from families where id = %s", (family_id,)
         ).fetchone()["tz"])
@@ -505,13 +514,13 @@ def seed(
                 "there is no morning for the demo to show"
             )
         relationship = relationships[parent_id]
-        today_local = datetime.now(tz).date()
+        today_local = clock(tz).date()
 
         # Today first when asked for, then the finished days behind it. Today
         # is the only day whose shape depends on the clock rather than on the
         # seed, which is why it is built apart from the loop below.
         if through_now:
-            now_local = datetime.now(tz)
+            now_local = clock(tz)
             today = now_local.date()
             rng = _rng(seed_value, parent_id, today)
             for signal, when in day_pings(today, tz, roles, rng):
