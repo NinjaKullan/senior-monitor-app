@@ -38,10 +38,10 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 559, zero xfails**, **`webapp` 202**, **`site` 236**.
-**`ruff check .` is RED on main** — 25 pre-existing findings under
-`tools/printables/` at the pinned 0.16.0 (DECISIONS 265); nothing in product/
-or the webapp pass is behind it.
+Current green: **`pytest` 614 from the repo root** (567 product + 47 pilot —
+the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 202**,
+**`site` 236**. `ruff check .` clean; `tools/printables/` is excluded by ruling
+(266) pending its own lint-and-re-render pass.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
   ruled (DECISIONS 153) and the marker became a plain assertion in the same commit.
@@ -111,6 +111,14 @@ households on the Family screen. Webapp-only; ships with the next
 fix. The switcher is spec 015's (264). Still owed from the 263 post-flip
 brief: the template-category watch (262) and, after the Android soak, the
 spec 014 §6 items (261).
+
+**The template-category watch is BUILT and unshipped (DECISIONS 262/267).**
+Once a UTC day the heartbeat asks Twilio's Content API what v7's WhatsApp
+status and category are and raises one founder-only `template_category` ops
+alert per day on anything but approved/Utility. Owed, in order: the PM
+applies migration **0024** (ops_alerts.family_id nullable — the alert is
+about no family), then `cd product && fly deploy`. Until that deploy the
+founder keeps reading the v7 template page each Monday (262).
 
 **v7 is the ask, and template iteration is STOPPED (253/262).** v7
 (`kettle_ask_parent_v7`) is the only approved-and-Utility template. Everything
