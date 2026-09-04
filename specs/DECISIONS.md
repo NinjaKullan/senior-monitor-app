@@ -4952,3 +4952,22 @@ browser — all three adopted as the standard for future surfaces.**
        question, `devices.oem` / `app_version`. Spec 014 §8.2 and §8.3 cannot
        be run until §6 items 3 and 4 exist; `SOAK.md` says so.
      * Next number: 260.
+
+260. **(2026-09-04, 12:10am ET) Wave D dark stage COMPLETE.** TestMom's
+     Sep 3 evening digest row: status skipped at 20:30:57 ET (164: no
+     evening note on a day a follow-on went out). TestDad's sent
+     beside it, as the control. Every rung the dark stage was built
+     to prove has now fired on the real number: delivery (224/229),
+     name path (247), typed reply round-trip (229), reaction not a
+     reply (247), no-reply follow-on at the follow-on hour (253/254),
+     evening withheld (this entry), cancellation on reply (240).
+     * Today, Fri Sep 4: 9am ET control submission of v7's exact
+       words as kettle_ask_parent_v14 (255). 11:00 ET ask on TestMom
+       runs on v7 as a final same-day sanity check; founder replies
+       with a typed 👍. Afternoon: Phase 3 flip per the runbook
+       (Asana 1218116228613723), then the webapp deploy for the
+       Memory date fix (256) on the same train.
+     * Parallel track, no interaction: spec 014 Android senior app,
+       approved 258 and built 259 by the second session under
+       android/. Flip does not depend on it.
+     * Next number: 261.
