@@ -1,0 +1,15 @@
+-- 0024 — an ops alert that is about no family (DECISIONS 262/267).
+--
+-- Every ops alert so far has been about one family or one parent: a quiet
+-- noon, a silent pipeline, a skipped send. The template-category watch is
+-- about the ask template itself — one Content SID shared by every family —
+-- so an alert that Meta re-reviewed v7 into Marketing has no family to hang
+-- on. Pinning it to an arbitrary family would cascade-delete with that
+-- family and would read as that family's problem in the ledger.
+--
+-- family_id becomes nullable; nothing else changes. Existing rows are
+-- untouched, RLS stays on with no policy (no client reads this table), and
+-- the dedupe index already keys on (kind, parent_id, ts_utc). Family-scoped
+-- reads use `family_id = %s`, which a null row can never match, so no
+-- existing query starts seeing the new kind by accident.
+alter table ops_alerts alter column family_id drop not null;
