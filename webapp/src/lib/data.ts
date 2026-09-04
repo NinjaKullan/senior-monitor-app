@@ -1,18 +1,28 @@
 /**
  * Every read the app performs, in one file.
  *
- * No query names a family: RLS decides what comes back. The client asking
- * politely for its own rows would only mask a policy bug, and this is the layer
- * a future spec is most likely to extend carelessly.
+ * RLS decides what an account MAY see; this file decides what the app SHOWS,
+ * and since DECISIONS 263 those are different questions. An account can
+ * belong to more than one family (0008 links every matching membership, and
+ * the founder's account owns two), and a snapshot that read every visible row
+ * merged them into one household — four parents on Today, the same person
+ * twice in the circle. So the snapshot now chooses ONE family and scopes
+ * every other read to it: by family_id where the table carries one, by that
+ * family's parent ids where it does not. These filters are shape filters,
+ * not isolation filters — RLS still decides what comes back, and the family
+ * chosen is always one the account is entitled to. A family switcher belongs
+ * to a later spec (264); until then the choice is the oldest family the
+ * account belongs to, so the same account always lands on the same one.
  *
  * **No unbounded read of a growing table** (DECISIONS 160). PostgREST caps an
  * unlimited select at 1000 rows and says nothing — the read "works", the data
  * is simply incomplete — and prod pings crossed that cliff and showed a stale
- * "Last routine seen" over a parent who was actively pinging. `readAll` is
+ * "Last routine seen" over a parent who was actively pinging. The unbounded
+ * reads (the family itself, then readAllInFamily and readParentRows) are
  * therefore only for tables that cannot plausibly reach 1000 rows per family
  * under RLS, each with its reason:
  *
- *   families       — exactly one per account.
+ *   families       — the handful an account belongs to (263); one is chosen.
  *   parents        — a handful of people.
  *   members        — a handful of people.
  *   parent_signals — parents × the fixed signal vocabulary (≤ ~8 each).
@@ -20,8 +30,8 @@
  *                    but at human pace, decades from four figures.
  *
  * `pings` is the one table that grows without bound, and it gets its own
- * bounded read below. A new table joins `readAll` only with a written reason
- * it cannot grow, or it gets the bounded treatment.
+ * bounded read below. A new table joins the unbounded reads only with a
+ * written reason it cannot grow, or it gets the bounded treatment.
  */
 
 import { supabase } from "./supabase";
@@ -40,8 +50,47 @@ import type {
 /** What the latest-ping reads need from a signal row to key one query. */
 type SignalKey = Pick<ParentSignal, "parent_id" | "signal">;
 
-async function readAll<T>(table: keyof typeof READ_SURFACE): Promise<T[]> {
-  const { data, error } = await supabase.from(table).select(READ_SURFACE[table]);
+/**
+ * The family the whole snapshot is about (DECISIONS 263). Every family the
+ * account can see comes back — a handful at most — and the oldest is chosen,
+ * so the pick is deterministic rather than whatever order PostgREST happened
+ * to answer in. Null when the account belongs to no family yet.
+ */
+async function readChosenFamily(): Promise<Family | null> {
+  const { data, error } = await supabase
+    .from("families")
+    .select(READ_SURFACE.families)
+    .order("created_utc", { ascending: true });
+  if (error) throw error;
+  const families = (data ?? []) as Family[];
+  return families[0] ?? null;
+}
+
+/** A small table keyed by parent rather than family, scoped by the chosen
+ *  family's parent ids. An empty id list reads nothing rather than everything:
+ *  PostgREST's `in.()` matches no row, which is the right answer for a family
+ *  with no parents yet. */
+async function readParentRows<T>(
+  table: "parent_signals" | "setup_links",
+  parentIds: string[],
+): Promise<T[]> {
+  const { data, error } = await supabase
+    .from(table)
+    .select(READ_SURFACE[table])
+    .in("parent_id", parentIds);
+  if (error) throw error;
+  return (data ?? []) as T[];
+}
+
+/** A small table that carries family_id, read whole within the chosen family. */
+async function readAllInFamily<T>(
+  table: "parents" | "members",
+  familyId: string,
+): Promise<T[]> {
+  const { data, error } = await supabase
+    .from(table)
+    .select(READ_SURFACE[table])
+    .eq("family_id", familyId);
   if (error) throw error;
   return (data ?? []) as T[];
 }
@@ -58,8 +107,7 @@ async function readAll<T>(table: keyof typeof READ_SURFACE): Promise<T[]> {
  * Per parent rather than per family, so one prolific phone cannot crowd
  * another parent's pings out of a shared cap. The `eq(parent_id)` here is a
  * shape filter, not an isolation filter — it partitions the limit between
- * parents the snapshot already holds; RLS still decides what is visible, and
- * no query names a family.
+ * parents the snapshot already holds; RLS still decides what is visible.
  */
 export const PINGS_WINDOW_DAYS = 14;
 export const PINGS_LIMIT_PER_PARENT = 500;
@@ -126,10 +174,11 @@ async function readRecentPings(parentIds: string[], now: Date): Promise<Ping[]> 
  */
 export const JOURNAL_LIMIT_PER_SCOPE = 50;
 
-async function readJournalFamily(): Promise<JournalEntry[]> {
+async function readJournalFamily(familyId: string): Promise<JournalEntry[]> {
   const { data, error } = await supabase
     .from("journal_entries")
     .select(READ_SURFACE.journal_entries)
+    .eq("family_id", familyId)
     .order("created_utc", { ascending: false })
     .limit(JOURNAL_LIMIT_PER_SCOPE);
   if (error) throw error;
@@ -172,10 +221,11 @@ export async function addJournalEntry(entry: {
 
 /* --- the contacts sheet (spec 012 §4) ------------------------------------ */
 
-async function readContacts(): Promise<FamilyContact[]> {
+async function readContacts(familyId: string): Promise<FamilyContact[]> {
   const { data, error } = await supabase
     .from("family_contacts")
     .select(READ_SURFACE.family_contacts)
+    .eq("family_id", familyId)
     .order("position", { ascending: true })
     .order("id", { ascending: true })
     .limit(50);
@@ -349,30 +399,49 @@ export async function claimMembership(): Promise<void> {
 }
 
 export async function loadSnapshot(now: Date = new Date()): Promise<FamilySnapshot> {
-  const [families, parents, members, signals, setupLinks] = await Promise.all([
-    readAll<Family>("families"),
-    readAll<Parent>("parents"),
-    readAll<Member>("members"),
-    readAll<ParentSignal>("parent_signals"),
-    readAll<SetupLink>("setup_links"),
+  // The family first, alone: everything below is scoped to it (DECISIONS
+  // 263), so nothing else can be asked for until it is known. No family means
+  // an empty snapshot — the NoFamily screen, not a merge of nothing.
+  const family = await readChosenFamily();
+  if (!family) {
+    return {
+      family: null,
+      parents: [],
+      members: [],
+      signals: [],
+      pings: [],
+      latestPings: [],
+      setupLinks: [],
+      journal: [],
+      journalByParent: {},
+      contacts: [],
+    };
+  }
+  const [parents, members] = await Promise.all([
+    readAllInFamily<Parent>("parents", family.id),
+    readAllInFamily<Member>("members", family.id),
+  ]);
+  const parentIds = parents.map((parent) => parent.id);
+  // parent_signals and setup_links carry no family_id; the chosen family's
+  // parent ids are their scope.
+  const [signals, setupLinks] = await Promise.all([
+    readParentRows<ParentSignal>("parent_signals", parentIds),
+    readParentRows<SetupLink>("setup_links", parentIds),
   ]);
   // The bounded reads wait for the earlier rows: pings per parent and per
   // (parent, signal), journal per family and per parent — every one ordered
   // and limited.
   const [pings, latestPings, journal, journalByParent, contacts] = await Promise.all([
-    readRecentPings(
-      parents.map((parent) => parent.id),
-      now,
-    ),
+    readRecentPings(parentIds, now),
     readLatestPings(
       signals.map(({ parent_id, signal }) => ({ parent_id, signal })),
     ),
-    readJournalFamily(),
-    readJournalByParent(parents.map((parent) => parent.id)),
-    readContacts(),
+    readJournalFamily(family.id),
+    readJournalByParent(parentIds),
+    readContacts(family.id),
   ]);
   return {
-    family: families[0] ?? null,
+    family,
     parents,
     members,
     signals,

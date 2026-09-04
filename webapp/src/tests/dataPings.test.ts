@@ -28,6 +28,7 @@ interface Executed {
   table: string;
   columns: string;
   eq: Record<string, unknown>;
+  in: Record<string, unknown[]>;
   gte: Record<string, string>;
   order: { column: string; ascending: boolean } | null;
   limit: number | null;
@@ -40,7 +41,7 @@ class FakeQuery {
   private call: Executed;
 
   constructor(private table: string) {
-    this.call = { table, columns: "", eq: {}, gte: {}, order: null, limit: null };
+    this.call = { table, columns: "", eq: {}, in: {}, gte: {}, order: null, limit: null };
   }
 
   select(columns: string) {
@@ -50,6 +51,11 @@ class FakeQuery {
 
   eq(column: string, value: unknown) {
     this.call.eq[column] = value;
+    return this;
+  }
+
+  in(column: string, values: unknown[]) {
+    this.call.in[column] = values;
     return this;
   }
 
@@ -76,6 +82,9 @@ class FakeQuery {
     let rows = [...(tables[this.table] ?? [])];
     for (const [column, value] of Object.entries(this.call.eq)) {
       rows = rows.filter((row) => row[column] === value);
+    }
+    for (const [column, values] of Object.entries(this.call.in)) {
+      rows = rows.filter((row) => values.includes(row[column]));
     }
     for (const [column, value] of Object.entries(this.call.gte)) {
       rows = rows.filter((row) => String(row[column]) >= value);
