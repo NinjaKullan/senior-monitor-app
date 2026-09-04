@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 266.** This line is the one to update; the `Next number:` lines inside
+**Next number: 268.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5165,3 +5165,51 @@ browser — all three adopted as the standard for future surfaces.**
      * Node 24 run by the founder still owed before the webapp deploy
        (146), which now carries 256 and 265 together.
      * Next number: 267.
+
+## Template-category watch build notes (implementer, 2026-09-04)
+
+267. **(2026-09-04) Template-category watch BUILT (262, item 1 of the 263
+     brief); ruff exclusion per 266; product count RECONCILED.** Branch
+     `claude/kettle-implementer-uqu3gd`, merged to main, not deployed.
+     * **The count.** CI runs bare `pytest` from the repo root, where
+       `pyproject.toml` sets `testpaths = ["tests", "product/tests"]`:
+       the 47-test pilot suite (`tests/`, SQLite) plus the product suite.
+       Sep 3's 606 was that root run: 559 product + 47 pilot. My 559 was
+       `pytest product` from the root, which collects `product/tests`
+       only. Same tests, same env var, no skips, no deselection, nothing
+       removed — one number is a superset of the other. After this pass:
+       root **614** = product **567** + pilot 47 (eight watch tests).
+       Both runs `pg_isready` before and after. Report the root number
+       from now on; it is the one CI prints.
+     * **Ruff:** `extend-exclude = ["tools/printables"]` with the 266
+       comment. `ruff check .` clean at the pinned 0.16.0.
+     * **The watch** (`product/kettle/template_watch.py`): once per UTC
+       day the heartbeat loop GETs
+       `content.twilio.com/v1/Content/{TWILIO_ASK_CONTENT_SID}/ApprovalRequests`
+       with the account SID and auth token, reads `whatsapp.status` and
+       `whatsapp.category`, and raises one `ops_alert` (kind
+       `template_category`, detail with SID, status, category) per day on
+       anything but approved/utility — deduped in the database, so a
+       restart adds nothing. A failed fetch (transport error, non-2xx, a
+       body with no `whatsapp` block) logs a warning and is retried after
+       an hour; it never alerts, because an API outage says nothing about
+       the template. No-op until all three Twilio settings exist. No new
+       settings, no new dependency (httpx is already the transport's).
+     * **Migration 0024, file only:** `ops_alerts.family_id` becomes
+       nullable. The alert is about no family; pinning it to one would
+       cascade-delete with that family and read as its problem. The PM
+       applies it BEFORE the kettle-api deploy that carries this watch —
+       on an unmigrated prod the first non-Utility day fails the insert
+       (the loop survives; the alert does not fire). Utility days write
+       nothing, so the order matters only on the day it matters.
+     * **Judgement calls, PM to confirm or overrule:** (a) the day is a
+       UTC day, not ET — the founder's Monday read was ET, but the alert
+       needs one clock and the API has none; (b) "rejected/UTILITY" and
+       "pending/UTILITY" alert too, since the rule is anything-but
+       approved/utility and a rejected template is worse news than a
+       recategorised one; (c) the once-a-day gate lives in process
+       (`HeartbeatState.template_watch`), so a restart re-fetches once —
+       harmless, and it keeps the day gate out of the schema.
+     * **Verified by planting:** dedupe removed, gate never claiming the
+       day, fetch failure raising, migration absent — each failed by name.
+     * Next number: 268.

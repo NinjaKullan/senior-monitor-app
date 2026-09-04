@@ -91,12 +91,19 @@ effective timezone** (parent `tz` when set, else family `tz`).
 | Noon (12:00 local) | zero alarm-grade pings since 05:00 local | per parent |
 | Evening (20:00 local) | still zero, **and** the noon alert already fired | per parent |
 | Infra | no ping from any device in the family for 24 h, once the family has ever pinged | per family |
+| Template category | the live ask template (`TWILIO_ASK_CONTENT_SID`) is anything but approved/Utility at Twilio's Content API, checked once a UTC day | one row, no family (0024) |
 
 Each `(kind, parent-or-family)` fires at most once per local day, so running every
 minute is safe. Every alert is written to `ops_alerts` and sent to the founder's
 ntfy topic. Nothing family- or parent-facing fires from the heartbeat itself;
 family-facing sending lives in the digest (003) and the ladder (004), each behind
 its own switches.
+
+The template-category row (DECISIONS 262/267) is the one alert about no family:
+Meta can re-review a template into Marketing without notice, and a non-Utility
+template stops US delivery with no error on our side. The watch is a no-op
+until the three Twilio settings exist; a failed fetch is a warning and an hourly
+retry, never an alert.
 
 ## Digests (spec 003) — RETIRED
 
