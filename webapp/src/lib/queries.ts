@@ -32,7 +32,12 @@ export const READ_SURFACE = {
   // adds tz_changed_utc: the changeover-day marker the Recent-days dots
   // classify by — an instant, never rendered as text.
   parents: "id, family_id, display_name, tz, phone_e164, whatsapp_e164, relationship, city_label, tz_changed_utc",
-  members: "id, family_id, display_name, role, digest_channel",
+  // Spec 015: the seats list. auth_user_id is read for two facts and rendered
+  // for neither — null means "Not signed in yet", and equality with the
+  // session's own id marks the viewer's own row (the mail switch). `mail` is
+  // the one per-member switch. digest_channel rides along un-rendered until
+  // its cleanup (spec 015 §5).
+  members: "id, family_id, display_name, role, digest_channel, auth_user_id, mail",
   parent_signals: "parent_id, signal, alarm_grade, active",
   pings: "parent_id, signal, ts_utc",
   // Spec 005b: the family's own setup links, so the Family screen can offer

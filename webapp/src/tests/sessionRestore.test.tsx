@@ -77,6 +77,12 @@ async function mount(overrides: Partial<Harness> = {}) {
     // Nothing this file asserts changed.
     sendSignInCode: vi.fn().mockResolvedValue(undefined),
     verifySignInCode: vi.fn().mockResolvedValue(undefined),
+    // Spec 015's five circle writes, imported by App and never reached here.
+    addSeat: vi.fn(),
+    removeSeat: vi.fn(),
+    setSeatRole: vi.fn(),
+    setOwnMail: vi.fn(),
+    leaveCircle: vi.fn(),
   }));
 
   const { default: App } = await import("@/App");

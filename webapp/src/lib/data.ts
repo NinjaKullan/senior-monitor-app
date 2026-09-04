@@ -51,19 +51,25 @@ import type {
 type SignalKey = Pick<ParentSignal, "parent_id" | "signal">;
 
 /**
- * The family the whole snapshot is about (DECISIONS 263). Every family the
- * account can see comes back — a handful at most — and the oldest is chosen,
- * so the pick is deterministic rather than whatever order PostgREST happened
- * to answer in. Null when the account belongs to no family yet.
+ * Every circle the account belongs to, oldest first (DECISIONS 263, spec
+ * 015 §8). A handful at most. The snapshot is about ONE of them: the one the
+ * caller asks for when it is in the list, else the oldest — so the pick is
+ * deterministic rather than whatever order PostgREST happened to answer in,
+ * and a remembered choice that no longer applies (a circle left) falls back
+ * rather than failing.
  */
-async function readChosenFamily(): Promise<Family | null> {
+async function readFamilies(): Promise<Family[]> {
   const { data, error } = await supabase
     .from("families")
     .select(READ_SURFACE.families)
     .order("created_utc", { ascending: true });
   if (error) throw error;
-  const families = (data ?? []) as Family[];
-  return families[0] ?? null;
+  return (data ?? []) as Family[];
+}
+
+/** Pure, so the fallback is testable without a client. */
+export function chooseFamily(families: Family[], preferredId: string | null): Family | null {
+  return families.find((family) => family.id === preferredId) ?? families[0] ?? null;
 }
 
 /** A small table keyed by parent rather than family, scoped by the chosen
@@ -332,6 +338,9 @@ export async function savePlace(
 }
 
 export interface FamilySnapshot {
+  /** Every circle the account belongs to, oldest first (spec 015 §8): the
+   *  switcher's list. One is chosen and everything else is about it. */
+  families: Family[];
   family: Family | null;
   parents: Parent[];
   members: Member[];
@@ -348,6 +357,44 @@ export interface FamilySnapshot {
   journalByParent: Record<string, JournalEntry[]>;
   /** The family's contacts sheet (spec 012 §4): small, read whole. */
   contacts: FamilyContact[];
+}
+
+/* --- the circle (spec 015 §6) ------------------------------------------- */
+
+/**
+ * The five membership writes, each a SECURITY DEFINER function (0025) and
+ * the ONLY write path to `members`. No family id travels that the caller
+ * does not belong to — the functions check membership against the JWT, and
+ * a refusal comes back as an error whose message is one of the short codes
+ * `circleRefusal` below turns into words.
+ */
+export async function addSeat(familyId: string, displayName: string, email: string): Promise<void> {
+  const { error } = await supabase.rpc("app_add_seat", {
+    p_family_id: familyId,
+    p_display_name: displayName,
+    p_email: email,
+  });
+  if (error) throw error;
+}
+
+export async function removeSeat(memberId: string): Promise<void> {
+  const { error } = await supabase.rpc("app_remove_seat", { p_member_id: memberId });
+  if (error) throw error;
+}
+
+export async function setSeatRole(memberId: string, role: "admin" | "member"): Promise<void> {
+  const { error } = await supabase.rpc("app_set_role", { p_member_id: memberId, p_role: role });
+  if (error) throw error;
+}
+
+export async function setOwnMail(familyId: string, mail: boolean): Promise<void> {
+  const { error } = await supabase.rpc("app_set_mail", { p_family_id: familyId, p_mail: mail });
+  if (error) throw error;
+}
+
+export async function leaveCircle(familyId: string): Promise<void> {
+  const { error } = await supabase.rpc("app_leave_circle", { p_family_id: familyId });
+  if (error) throw error;
 }
 
 /**
@@ -398,13 +445,19 @@ export async function claimMembership(): Promise<void> {
   if (error) throw error;
 }
 
-export async function loadSnapshot(now: Date = new Date()): Promise<FamilySnapshot> {
-  // The family first, alone: everything below is scoped to it (DECISIONS
-  // 263), so nothing else can be asked for until it is known. No family means
-  // an empty snapshot — the NoFamily screen, not a merge of nothing.
-  const family = await readChosenFamily();
+export async function loadSnapshot(
+  now: Date = new Date(),
+  preferredFamilyId: string | null = null,
+): Promise<FamilySnapshot> {
+  // The families first, alone: everything below is scoped to the chosen one
+  // (DECISIONS 263), so nothing else can be asked for until it is known. No
+  // family means an empty snapshot — the NoFamily screen, not a merge of
+  // nothing.
+  const families = await readFamilies();
+  const family = chooseFamily(families, preferredFamilyId);
   if (!family) {
     return {
+      families,
       family: null,
       parents: [],
       members: [],
@@ -441,6 +494,7 @@ export async function loadSnapshot(now: Date = new Date()): Promise<FamilySnapsh
     readContacts(family.id),
   ]);
   return {
+    families,
     family,
     parents,
     members,

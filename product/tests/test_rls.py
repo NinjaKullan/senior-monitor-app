@@ -322,7 +322,7 @@ def test_service_role_still_sees_everything(two_families, conn):
 
 def test_policies_survive_a_second_membership(two_families, authed, conn):
     """A child in two families (their parents and their in-laws) sees both."""
-    add_member(conn, two_families["b"].family_id, USER_A, role="child")
+    add_member(conn, two_families["b"].family_id, USER_A, role="member")
     as_user(authed, USER_A)
     names = sorted(r["name"] for r in _rows(authed, "select name from families"))
     assert names == ["Iyer", "Sharma"]

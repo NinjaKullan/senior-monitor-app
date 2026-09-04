@@ -176,7 +176,7 @@ family does not exist yet:
 DATABASE_URL=... python -m scripts.provision --demo
 DATABASE_URL=... psql "$DATABASE_URL" -c \
   "insert into members (family_id, display_name, role, email)
-   select id, 'Hema', 'owner', 'you@example.com' from families
+   select id, 'Hema', 'admin', 'you@example.com' from families
    where name = 'Kettle Demo Family';"
 
 # 2. Sign in at https://kettle-app.fly.dev with that email, open Today.

@@ -136,9 +136,18 @@ complete and runs in production **dark**: it evaluates each day, writes its
 ledger, and hands every message to a transport that writes a log line. Waves B
 to D add transports that actually send, each gated on one founder errand.
 
-Three message kinds and nothing else speaks: the **digest** to the child twice
+Three message kinds and nothing else speaks: the **digest** to the circle twice
 daily, the **ask** to the parent on a quiet morning, and the **follow-on** to
-the child only after the ask has gone unanswered past a grace window.
+the circle only after the ask has gone unanswered past a grace window.
+
+"The circle" (spec 015 §7, migration 0025) is every member with `mail` on and an
+email on file, admins first. Each slot fans out to all of them; per-member
+idempotency lives in `digest_sends`, and the slot's ledger row says 'sent' only
+when everyone has been reached — a partial failure stays retryable and the
+retry reaches only the members it missed. Nobody listening is a skip plus one
+`circle_unreachable` ops alert per family per day. Membership itself changes
+only through the five `app_*` functions in 0025 (add, remove, set role, set
+mail, leave); the last admin cannot leave, be demoted or be removed.
 
 | Piece | Where |
 |---|---|

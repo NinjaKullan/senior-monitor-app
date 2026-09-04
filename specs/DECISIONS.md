@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 268.** This line is the one to update; the `Next number:` lines inside
+**Next number: 273.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5256,6 +5256,80 @@ browser — all three adopted as the standard for future surfaces.**
      * First seat after deploy: the founder's sister.
      * Next number: 270.
 
+## Spec 015 build notes (implementer, 2026-09-04)
+
+270. **(2026-09-04, evening) Spec 015 (circles) BUILT, product and webapp,
+     on `claude/kettle-implementer-uqu3gd`; NOT deployed; migration NOT
+     applied.** Six commits, split by concern. Migration file:
+     `product/migrations/0025_circles.sql` (0025 was the next free file;
+     268 pencilled it for Amendment A, which now takes 0026 — spec 011 A
+     to be amended when that build starts).
+     * **Counts.** Root `pytest`: 634 collected, **633 passed, 1 failed**
+       — the failure is `test_today_replays_as_a_normal_day_so_far`
+       (test_seed_demo_history), which fails on MAIN too at this hour: it
+       runs the engine at `datetime.now(Phoenix)` and asserts a SENT
+       morning digest, so from 10:30 Phoenix (the 2h staleness cutoff
+       after the 08:30 slot) until midnight it asserts something the engine
+       is built to refuse. Failure family 5, the test that is only green
+       for part of the day. Reproduced by stashing this branch and running
+       main's code: same failure. Not touched (not this spec's); fix is a
+       fixed instant inside the window, PM to assign. Product alone 587.
+       Webapp **218** (202 + 16). Site untouched, not run. Ruff clean.
+       Postgres died twice mid-session; `pg_isready` before and after
+       every count above.
+     * **Where the spec and the code disagreed — four places:**
+       1. **§7 says `digest_sends` "already has" the per-member key.** It
+          has the columns; its 0005 check constraint admits only
+          'morning'/'evening' (spec 003's vocabulary), so a follow-on or
+          all-clear could not record a per-member row at all. The brief
+          said "nothing else in the schema"; 0025 widens that one
+          constraint anyway (old values kept), because without it §7's
+          "idempotent per member" is false for exactly the message that
+          matters most. Reverting is one `alter table` if the PM prefers
+          per-slot-only idempotency for follow-ons.
+       2. **§6 writes `app_set_mail(mail)` and `app_leave_circle()` with
+          no circle.** "Own row" is ambiguous for the account this spec
+          exists for (two circles, two rows). Both take `p_family_id`.
+       3. **§9 names no string for a refused duplicate email, no keep
+          button beside the confirm line, and no cancel for the add
+          form.** Three FLAGGED strings in copy.ts: CIRCLE_DUPLICATE
+          ("Someone in the circle already uses that email."), CIRCLE_KEEP
+          ("Keep them"), CIRCLE_ADD_CANCEL ("Not now"). PM may reword or
+          strike.
+       4. **§7's empty-list alert.** The engine used to alert
+          `outbound_skipped` per slot for a missing address; now nobody
+          listening is one `circle_unreachable` per family per local day
+          and the slot records 'skipped' quietly. The old
+          unroutable-skip test was rewritten to say so.
+     * **Judgement calls, PM to confirm:** (a) the slot's `sent_messages`
+       row is 'sent' only when EVERY listening member was reached; a
+       partial failure keeps the slot retryable and alerts `outbound_failed`
+       once with "N of M in the circle not reached"; (b) the members read
+       surface gains `auth_user_id` (rendered nowhere; null = pending,
+       equal to the session's id = own row) and `mail` — the alternative,
+       a read function, was more surface for the same two facts; (c) the
+       switcher is a `<select>` in both layouts, labelled by
+       CIRCLE_SWITCHER_LABEL; (d) refusals other than last_admin /
+       circle_full / duplicate_email render nothing and leave the row as it
+       was — a stranger's probe learns nothing from the screen either;
+       (e) `family_owner_name` (the ask's "{owner_name}", the setup page's
+       "From") now reads the FIRST admin by created order, which is the
+       same person for every existing family.
+     * **Deploy order, when the sandbox sunset week is done (269):** PM
+       applies 0025 (data migration inside: owner→admin, child→member —
+       read the row counts back) → `cd product && fly deploy` (the fan-out
+       and the admin-role reads; on an unmigrated prod every member read
+       would still work but every role read would see 'owner' and find no
+       admin) → `cd webapp && fly deploy` (the members read asks for
+       `mail`, so 0025 MUST precede it or every snapshot 400s). First seat:
+       the founder's sister, through "Add someone".
+     * **Verified by planting** (eight): last-admin guard off in
+       app_set_role, off in app_leave_circle, per-member idempotency
+       dropped, admins-first dropped, switcher shown for one circle, admin
+       controls shown to members, preferred id ignored, choice not
+       remembered. Each failed by name.
+     * Next number: 271.
+
 271. **(2026-09-04, evening) Spec 015 BUILT on branch
      claude/kettle-implementer-uqu3gd at 1fa74ad; REVIEWED and
      ACCEPTED; not merged until main is green. (270 is the build
@@ -5289,3 +5363,33 @@ browser — all three adopted as the standard for future surfaces.**
        rewrites role values), product deploys, webapp deploys last
        (the members read wants the new `mail` column).
      * Next number: 272.
+
+## The replay test fix and the 015 merge (implementer, 2026-09-04)
+
+272. **(2026-09-04, night) Replay test pinned (failure family 5) and spec
+     015 MERGED onto green main.**
+     * **The fix, on main at `1c0d81a`** (two commits: the seed's clock
+       seam, then the test). `scripts.seed_demo_history.seed` gains a
+       keyword-only `now`, defaulting to the real clock, and every
+       `datetime.now` inside it reads through it; the replay seeds today
+       through a PINNED Phoenix instant and runs the engine at the same
+       instant. Two tests now: 07:00 asserts nothing due, 09:00 asserts
+       `digest_morning_normal` sent and no ask. Only the date comes from
+       the machine.
+     * **Proof at two faked clocks.** The whole root suite ran under
+       time-machine (installed to a scratch directory, NOT a repo
+       dependency) with the process clock pinned to 07:00 and to 15:00
+       Phoenix: **615 passed** both times. One caveat worth a line in
+       failure-families: faking Python's clock BACKWARDS while Postgres's
+       `now()` stays real trips three unrelated tests (the through-now
+       glance age and two setup-page expiry tests compare a Python instant
+       with a database one); pinned forward (07:00 tomorrow) they pass.
+       That is the faking tool's artefact, not a suite defect — a real
+       07:00 has both clocks agreeing.
+     * **The merge**, `--no-ff`, keeping the branch's six-by-concern
+       history plus its docs commit. One conflict, this file: main's 271
+       and the branch's 270 both appended at the end; resolved 270 then
+       271, in order. Counter set to 273 here.
+     * Suite counts after the merge are in the merge report; nothing
+       deployed, 0025 not applied (271's deploy order stands).
+     * Next number: 273.

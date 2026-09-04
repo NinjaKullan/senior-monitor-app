@@ -174,7 +174,34 @@ export const FAMILY_TITLE = "Family";
 export const FAMILY_SUB =
   "Everyone here sees the same Today screen and gets the same notes.";
 export const PARENTS_LABEL = "Parents";
-export const FAMILY_CIRCLE_LABEL = "Family circle";
+/* Spec 015 §9, VERBATIM (DECISIONS 269): the circle. Role words are nouns a
+   sibling already knows; "owner" and "seat" never render. */
+export const CIRCLE_SECTION = "Family circle";
+export const CIRCLE_ROLE_ADMIN = "Admin";
+export const CIRCLE_ROLE_MEMBER = "Member";
+export const CIRCLE_PENDING = "Not signed in yet";
+export const CIRCLE_ADD = "Add someone";
+export const CIRCLE_ADD_NAME = "Their name";
+export const CIRCLE_ADD_EMAIL = "Their email";
+export const CIRCLE_ADD_SUBMIT = "Add";
+export const CIRCLE_ADDED = "Kettle will let them in when they sign in with this email.";
+export const CIRCLE_MAKE_ADMIN = "Make admin";
+export const CIRCLE_MAKE_MEMBER = "Make member";
+export const CIRCLE_REMOVE = "Remove";
+export const CIRCLE_REMOVE_CONFIRM = "Remove them from the circle? They will not be told.";
+export const CIRCLE_LAST_ADMIN = "Make someone else an admin first.";
+export const CIRCLE_FULL = "This circle has eight people, which is the most for now.";
+export const CIRCLE_MAIL_SWITCH = "Kettle emails me";
+export const CIRCLE_NO_MAIL = "No one in the circle is getting Kettle's notes.";
+export const CIRCLE_SWITCHER_LABEL = "Looking at";
+export const CIRCLE_LEAVE = "Leave this circle";
+/* FLAGGED (DECISIONS): §9 names no string for a duplicate email, which
+   app_add_seat refuses. Spec-silent, PM may reword. */
+export const CIRCLE_DUPLICATE = "Someone in the circle already uses that email.";
+/* FLAGGED (DECISIONS): the confirm line's two buttons. §9 gives the line and
+   no buttons; "Remove" reuses CIRCLE_REMOVE, the other is spec-silent. */
+export const CIRCLE_KEEP = "Keep them";
+export const CIRCLE_ADD_CANCEL = "Not now";
 export const TAGLINE = "For checking in, not checking up.";
 export const BACK_TO_TODAY = "Today";
 /** DECISIONS 172's veto: the empty state says only what is true about setup. */

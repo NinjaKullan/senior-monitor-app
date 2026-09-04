@@ -189,9 +189,10 @@ def provision_family(
     tz_or_None, relationship); a per-parent tz overrides the family tz, and the
     relationship is the label outbound copy renders (DECISIONS 149) — it must
     come from `RELATIONSHIP_LABELS`, and omitting it leaves the parent out of
-    relationship-bearing messages until it is set. An owner member is created
-    only when an email is supplied — the row's `auth_user_id` stays null until
-    that person actually signs up through Supabase Auth.
+    relationship-bearing messages until it is set. An admin seat (spec 015: the
+    role `owner` became `admin`) is created only when an email is supplied — the
+    row's `auth_user_id` stays null until that person actually signs up through
+    Supabase Auth.
 
     `signals` chooses the allowlist at provisioning time (DECISIONS 94) instead
     of seeding the standard set and editing afterwards. Keys must be in the
@@ -216,7 +217,7 @@ def provision_family(
         conn.execute(
             """
             insert into members (family_id, display_name, role, email, created_utc)
-            values (%s, %s, 'owner', %s, %s)
+            values (%s, %s, 'admin', %s, %s)
             """,
             (family_id, owner_name or owner_email, owner_email, created),
         )

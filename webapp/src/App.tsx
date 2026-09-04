@@ -3,9 +3,14 @@ import type { Session } from "@supabase/supabase-js";
 import {
   addContact,
   addJournalEntry,
+  addSeat,
   claimMembership,
   deleteContact,
+  leaveCircle,
   loadSnapshot,
+  removeSeat,
+  setOwnMail,
+  setSeatRole,
   placeUpdate,
   saveCityLabel,
   savePlace,
@@ -16,7 +21,15 @@ import {
   type ContactDraft,
   type FamilySnapshot,
 } from "@/lib/data";
-import { AUTO_NOTE_AUTHOR, CITY_CHANGED_NOTE, TAGLINE, WHO_TO_CALL_TAB } from "@/lib/copy";
+import {
+  AUTO_NOTE_AUTHOR,
+  CIRCLE_SWITCHER_LABEL,
+  CITY_CHANGED_NOTE,
+  TAGLINE,
+  WHO_TO_CALL_TAB,
+} from "@/lib/copy";
+import { rememberCircle, rememberedCircle } from "@/lib/circle";
+import type { Family } from "@/lib/types";
 import { isKnownIana, type CityEntry } from "@/lib/cities";
 import { computeParentToday, computeRollup, type ParentToday } from "@/lib/parentState";
 import { buildSetupEntries } from "@/lib/setupLinks";
@@ -79,6 +92,9 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("today");
   /** The parent whose detail is open, or null for the Today card grid. */
   const [openParentId, setOpenParentId] = useState<string | null>(null);
+  /** The chosen circle (spec 015 §8): remembered per browser, oldest by
+   *  default. The snapshot loader falls back when it no longer applies. */
+  const [circleId, setCircleId] = useState<string | null>(() => rememberedCircle());
   const [now, setNow] = useState(() => new Date());
   const [width, setWidth] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1200,
@@ -130,7 +146,7 @@ export default function App() {
   const refresh = useCallback(async () => {
     if (!session) return;
     try {
-      setSnapshot(await loadSnapshot());
+      setSnapshot(await loadSnapshot(new Date(), circleId));
       setNow(new Date());
     } catch (error) {
       // A read refused for authentication reasons is the session ending, whether
@@ -140,7 +156,7 @@ export default function App() {
       // would be its own bug.
       if (isAuthFailure(error)) await failToLogin();
     }
-  }, [session, failToLogin]);
+  }, [session, circleId, failToLogin]);
 
   useEffect(() => {
     if (!session) {
@@ -209,6 +225,41 @@ export default function App() {
 
   const familyTz = snapshot.family.tz;
   const familyId = snapshot.family.id;
+  const viewerId = session?.user?.id ?? null;
+
+  // Spec 015 §8: choosing a circle is remembered and reloads the snapshot;
+  // the open parent closes because it belonged to the other household.
+  const chooseCircle = (id: string) => {
+    rememberCircle(id);
+    setOpenParentId(null);
+    setCircleId(id);
+  };
+  const circle = {
+    onAddSeat: async (displayName: string, email: string) => {
+      await addSeat(familyId, displayName, email);
+      await refresh();
+    },
+    onRemoveSeat: async (memberId: string) => {
+      await removeSeat(memberId);
+      await refresh();
+    },
+    onSetRole: async (memberId: string, role: "admin" | "member") => {
+      await setSeatRole(memberId, role);
+      await refresh();
+    },
+    onSetMail: async (mail: boolean) => {
+      await setOwnMail(familyId, mail);
+      await refresh();
+    },
+    onLeave: async () => {
+      await leaveCircle(familyId);
+      // Leaving may have left the account with another circle or none; the
+      // remembered id no longer applies either way, so the loader's fallback
+      // (oldest, or the NoFamily screen) decides.
+      setCircleId(null);
+      await refresh();
+    },
+  };
   // The two ping sets keep their audiences (DECISIONS 160/166): the windowed
   // set feeds today's state, the unwindowed latest rows feed the tripwire ages
   // inside computeParentToday and the setup card's has-ever-pinged check.
@@ -319,6 +370,9 @@ export default function App() {
       onSignOut={() => supabase.auth.signOut()}
       tab={tab}
       onNavigate={navigate}
+      families={snapshot.families}
+      circleId={familyId}
+      onChooseCircle={chooseCircle}
     >
       {tab === "today" &&
         (openState ? (
@@ -360,6 +414,8 @@ export default function App() {
             snapshot.parents.map((parent) => [parent.id, parent.city_label ?? ""]),
           )}
           members={snapshot.members}
+          viewerId={viewerId}
+          circle={circle}
           setupEntries={buildSetupEntries(
             snapshot.parents,
             snapshot.setupLinks,
@@ -420,14 +476,27 @@ function Shell({
   isWide,
   tab,
   onNavigate,
+  families = [],
+  circleId = null,
+  onChooseCircle,
 }: {
   children: React.ReactNode;
   onSignOut?: () => void;
   isWide: boolean;
   tab?: Tab;
   onNavigate?: (tab: Tab) => void;
+  /** Spec 015 §8: the switcher, rendered ONLY for two or more circles. A
+   *  single-circle account sees no switcher and no family name (DECISIONS
+   *  124 stands for them); the name shows here and nowhere else (269). */
+  families?: Family[];
+  circleId?: string | null;
+  onChooseCircle?: (id: string) => void;
 }) {
   const showNav = Boolean(tab && onNavigate);
+  const switcher =
+    families.length >= 2 && onChooseCircle ? (
+      <CircleSwitcher families={families} circleId={circleId} onChoose={onChooseCircle} />
+    ) : null;
   return (
     <div style={{ minHeight: "100vh", display: "flex", background: "var(--paper)" }}>
       {isWide && (
@@ -446,6 +515,7 @@ function Shell({
           }}
         >
           <Wordmark size="rail" />
+          {switcher}
           {showNav && (
             <nav aria-label="Screens" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {TABS.map((entry) => {
@@ -531,6 +601,7 @@ function Shell({
               }}
             >
               <Wordmark size="header" />
+              {switcher}
               {onSignOut && (
                 <button
                   type="button"
@@ -592,5 +663,48 @@ function Shell({
         )}
       </div>
     </div>
+  );
+}
+
+/** The circle switcher (spec 015 §8): "Looking at" and the circle names as
+ *  stored, one row at the top of the rail (a select in the narrow header). */
+function CircleSwitcher({
+  families,
+  circleId,
+  onChoose,
+}: {
+  families: Family[];
+  circleId: string | null;
+  onChoose: (id: string) => void;
+}) {
+  return (
+    <label
+      data-testid="circle-switcher"
+      style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 12, fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--mute)" }}
+    >
+      {CIRCLE_SWITCHER_LABEL}
+      <select
+        value={circleId ?? ""}
+        onChange={(event) => onChoose(event.target.value)}
+        style={{
+          minHeight: "2.75rem",
+          padding: "0.5rem 0.75rem",
+          border: "1px solid var(--hair)",
+          borderRadius: "0.75rem",
+          background: "var(--card)",
+          color: "var(--ink)",
+          fontSize: "0.9375rem",
+          fontWeight: 600,
+          textTransform: "none",
+          letterSpacing: 0,
+        }}
+      >
+        {families.map((family) => (
+          <option key={family.id} value={family.id}>
+            {family.name}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

@@ -355,7 +355,7 @@ def test_the_ask_carries_the_owner_first_name_from_the_database(
     member whose role is owner, reduced to its first word.
     """
     conn.execute(
-        "update members set display_name = %s where family_id = %s and role = 'owner'",
+        "update members set display_name = %s where family_id = %s and role = 'admin'",
         ("Priya Sharma", family.family_id),
     )
     assert ask_body_sent(conn).startswith("Hi. Priya asked Kettle to check in with you")
@@ -377,7 +377,7 @@ def test_a_family_with_no_usable_owner_name_still_gets_a_whole_sentence(
     owner name is not a reason to leave a parent unasked.
     """
     conn.execute(
-        "update members set display_name = %s where family_id = %s and role = 'owner'",
+        "update members set display_name = %s where family_id = %s and role = 'admin'",
         (stored, family.family_id),
     )
     assert ask_body_sent(conn).startswith(

@@ -60,12 +60,17 @@ export interface FamilyContact {
   position: number;
 }
 
+/** A seat in the circle (spec 015). `role` is 'admin' or 'member' (0025);
+ *  a null auth_user_id is a seat nobody has signed in to yet; `mail` is the
+ *  one switch a person holds over Kettle's mail to them. */
 export interface Member {
   id: string;
   family_id: string;
   display_name: string | null;
   role: string;
   digest_channel: string;
+  auth_user_id: string | null;
+  mail: boolean;
 }
 
 export interface ParentSignal {

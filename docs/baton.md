@@ -38,9 +38,11 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 614 from the repo root** (567 product + 47 pilot —
-the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 202**,
-**`site` 236**. `ruff check .` clean; `tools/printables/` is excluded by ruling
+Current green: **`pytest` 633 of 634 from the repo root** (587 product + 47
+pilot — the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp`
+218**, **`site` 236**. The one red is `test_today_replays_as_a_normal_day_so_far`,
+which fails on main from 10:30 Phoenix to midnight (failure family 5, DECISIONS
+270) — not a branch regression, and owed a fix. `ruff check .` clean; `tools/printables/` is excluded by ruling
 (266) pending its own lint-and-re-render pass.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
@@ -102,6 +104,17 @@ number on the approved template. Everything in this file that used to say
 "rolled back", "unset by design", or "the flip is off the table" described the
 world between Sep 1 and Sep 4 and is gone; if you find that language anywhere
 else, it is stale.
+
+**Spec 015 (circles) is BUILT and unshipped (DECISIONS 270).** Two roles
+(admin/member; every owner row becomes admin), one mail switch, five
+SECURITY DEFINER functions as the only write path to `members`, digests and
+follow-ons to every listening member with per-member idempotency, the
+switcher for two-circle accounts and the seats list on Family. Owed, in
+order, after the sandbox sunset week (269): PM applies **0025** (it rewrites
+role values — read the counts back) → `cd product && fly deploy` →
+`cd webapp && fly deploy` (the members read asks for `mail`; on an
+unmigrated prod every snapshot 400s). Four spec/code disagreements and five
+judgement calls are in 270 for the PM.
 
 **One-family scoping is BUILT and unshipped (DECISIONS 263/265).** The webapp
 snapshot reads one family — the oldest the account belongs to — and scopes
