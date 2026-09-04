@@ -168,6 +168,15 @@ decides whether the images move or the scan learns to skip a directory with no
 
 ## 3. Live state — do not break
 
+> **STALE BELOW THIS LINE (swept 2026-09-04).** Most of §3 and §4 was written
+> between Aug 18 and Aug 23 and describes a world three waves back: Wave A
+> unstarted, the site in a redirect loop, migrations 0012 to 0016 unapplied.
+> All of that shipped long ago — the schema is at 0023, Wave D is flipped, and
+> the site has been live for weeks. §1 and §2 above are current; the DECISIONS
+> log is authoritative for anything here that looks like present tense. Left in
+> place rather than deleted because the reasoning in it is still worth reading;
+> trust the dates, not the tense.
+
 * **Both parents are live in production.** Amma on the old per-app keys (never rebuilt
   remotely for elegance, DECISIONS 107); Appa on merged routine+charger (126).
 * **Amma is physically in Texas while provisioned `Asia/Kolkata`** (108, backlog). A
@@ -182,11 +191,11 @@ decides whether the images move or the scan learns to skip a directory with no
   stays RLS deny-all; no client ever reads it.
 * **The waitlist form is CORS-dead** until `WAITLIST_ORIGINS` on kettle-api includes the
   serving origin. Unconfirmed whether it was ever set. See §4.
-* **kettle-site is serving a redirect loop in production right now.** The domain
+* **(RESOLVED, Aug 2026) kettle-site was serving a redirect loop.** The domain
   cascade shipped a config in which `heykettle.com` matched no `server_name`, fell
   into the fly.dev redirect block and 301'd to itself (DECISIONS 148 — my bug;
-  `server_name _` is not a default server). **The fix is committed and NOT deployed.**
-  Until `fly deploy` runs, the site is unreachable.
+  `server_name _` is not a default server). Fixed and deployed; the site has
+  been live since. Kept for the lesson, which is the whole of DECISIONS 148.
 
 **Deployed as of 2026-08-18 (founder-reported):** migration 0011 applied and verified in
 the live database; kettle-api healthy (`/healthz` → `{"db":true}`); kettle-site at
@@ -221,8 +230,9 @@ The loop is wired as of this pass and starts, dark, with the next kettle-api dep
 3. **`fly deploy` kettle-app.** Carries the 112 cache headers — until then deploys
    white-screen returning browsers — plus the login words, the Setup card, and now the
    session-restore fix (144).
-4. **Apply migrations 0012, 0013, 0015 and 0016, then `fly deploy` kettle-api —
-   this deploy starts Wave A, dark** (DECISIONS 154/155/159/163). 0013 decides
+4. **(DONE, Aug 2026) Apply migrations 0012, 0013, 0015 and 0016, then
+   `fly deploy` kettle-api — this deploy starts Wave A, dark** (DECISIONS
+   154/155/159/163). All applied; the schema is at 0023. 0013 decides
    per-table at apply time and prints notices saying what it did; read them. 0012
    creates `sent_messages`, which the loop writes — deploying before applying it
    means a loop that fails every pass — 0015 adds the status column the engine
