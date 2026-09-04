@@ -4994,3 +4994,35 @@ browser — all three adopted as the standard for future surfaces.**
        open the $25 developer account now so the 14-day clock can
        start.
      * Next number: 262.
+
+262. **(2026-09-04, 11:30am ET) Control submission: v7's EXACT words
+     as kettle_ask_parent_v14 (HXe87c09cabc54dbf58cfd6860f29e874a,
+     11:16:09 EDT) came back Approved / MARKETING.** The classifier
+     has moved since Sep 1; the words are not the variable. Copy
+     iteration through Meta is closed for now (255 stands).
+     * v7 (HX1ebee977bfd531bf7fdee2bf0d1484ad) keeps its Sep 1
+       Utility approval and delivered to a US phone at 11:00:01 today
+     (260); it stays the live ask. Same-day sanity check passed:
+       typed 👍 matched at 11:05:00.
+     * NEW WATCH ITEM, structural: if Meta re-reviews v7 into
+       Marketing, US delivery stops silently (216). Post-flip CC
+       item: the heartbeat fetches the live template's category via
+       the Content API daily and raises an ops_alert on anything but
+       Utility. Until it ships, the founder reads the v7 template
+       page each Monday.
+     * Founder options, cheap, not urgent: dispute v12's category
+       through Twilio support (a human may read "send a quick reply"
+       differently from the classifier); no further template
+       submissions this week.
+     * Structural answers already in motion: Amendment A (SMS has no
+       category) for +1 parents; for non-US parents the 216 block
+       does not apply, so a no-emoji Marketing template would still
+       deliver there. Per-recipient template selection is a later
+       spec, not a reflex.
+     * Phase 3 today is not a config change: FROM and SID have
+       pointed at the real number and v7 since Sep 1 for every
+       family, and Amma and Appa carry their WhatsApp numbers. Remaining:
+       arm MEMORY_FIRST_REPLY=1, brief the parents (HeyKettle sender,
+       type the 👍), watch the first real ask live, sunset the sandbox
+       after one clean week, webapp deploy for 256.
+     * Next number: 263.
