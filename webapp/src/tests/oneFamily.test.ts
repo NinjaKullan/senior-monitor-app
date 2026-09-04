@@ -120,8 +120,8 @@ function seedTwoFamilies() {
     parent("testdad", "newer"),
   ];
   tables.members = [
-    { id: "m1", family_id: "older", display_name: "Hema", role: "owner", digest_channel: "email" },
-    { id: "m2", family_id: "newer", display_name: "Hema", role: "owner", digest_channel: "email" },
+    { id: "m1", family_id: "older", display_name: "Hema", role: "admin", digest_channel: "email", auth_user_id: "u1", mail: true },
+    { id: "m2", family_id: "newer", display_name: "Hema", role: "admin", digest_channel: "email", auth_user_id: "u1", mail: true },
   ];
   tables.parent_signals = [
     { parent_id: "amma", signal: "whatsapp", alarm_grade: true, active: true },
@@ -192,6 +192,16 @@ describe("one family per snapshot (DECISIONS 263)", () => {
             (call.in.parent_id as string[]).every((id) => ["amma", "appa"].includes(id));
       expect(byFamily || byParent, `${call.table} read is not scoped to the chosen family`).toBe(true);
     }
+  });
+
+  it("a preferred circle is chosen when the account belongs to it, else the oldest (spec 015)", async () => {
+    seedTwoFamilies();
+    const chosen = await loadSnapshot(NOW, "newer");
+    expect(chosen.family?.id).toBe("newer");
+    expect(chosen.parents.map((p) => p.id).sort()).toEqual(["testdad", "testmom"]);
+    expect(chosen.families.map((f) => f.id)).toEqual(["older", "newer"]);
+    const fallen = await loadSnapshot(NOW, "left-this-one");
+    expect(fallen.family?.id).toBe("older");
   });
 
   it("no family means an empty snapshot and no further reads", async () => {

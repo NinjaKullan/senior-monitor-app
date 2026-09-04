@@ -84,8 +84,16 @@ const parents: Parent[] = [
   },
 ];
 const members: Member[] = [
-  { id: "m1", family_id: "f1", display_name: "Hema", role: "owner", digest_channel: "sms" },
+  { id: "m1", family_id: "f1", display_name: "Hema", role: "admin", digest_channel: "sms", auth_user_id: "u1", mail: true },
+  { id: "m2", family_id: "f1", display_name: "Priya", role: "member", digest_channel: "sms", auth_user_id: null, mail: true },
 ];
+const circleNoop = {
+  onAddSeat: async () => undefined,
+  onRemoveSeat: async () => undefined,
+  onSetRole: async () => undefined,
+  onSetMail: async () => undefined,
+  onLeave: async () => undefined,
+};
 const signals: ParentSignal[] = parents.flatMap((p) => [
   { parent_id: p.id, signal: "whatsapp", alarm_grade: true, active: true },
   { parent_id: p.id, signal: "device_alive", alarm_grade: false, active: true },
@@ -372,6 +380,8 @@ describe("rendered copy law", () => {
         parentStates={statesAt()}
         cities={{ p1: "Chennai", p2: "", p3: "" }}
         members={members}
+        viewerId="u1"
+        circle={circleNoop}
         setupEntries={setupEntries}
         onOpen={() => undefined}
         onPickCity={noop}
@@ -380,7 +390,11 @@ describe("rendered copy law", () => {
     );
     const text = renderedText();
     expect(screen.getByTestId("privacy-footer")).toHaveTextContent(PRIVACY_FOOTER);
-    expect(text).toContain("sms");
+    // Spec 015 §8: roles are the row's second word; the channel column is gone.
+    expect(text).toContain("Hema · Admin");
+    expect(text).toContain("Priya · Member");
+    expect(text).toContain("Not signed in yet");
+    expect(text).not.toContain("sms");
     expect(text).toContain("Ready to send");
     assertCopyLaw(text, [...SHARE_CTA_EXEMPTION, ...APP_ALLOW]);
   });
