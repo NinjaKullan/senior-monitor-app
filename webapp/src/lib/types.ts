@@ -43,6 +43,10 @@ export interface JournalEntry {
   event_date: string | null;
   created_utc: string;
   kind: string;
+  /** Spec 016: null on a note, the note's id on a reply. One level only —
+   *  the schema refuses a reply to a reply — and a reply inherits the note's
+   *  parent tag (the trigger writes it) and carries no event date. */
+  parent_entry_id: number | null;
 }
 
 /** One line of the family's own contacts sheet (spec 012 §4). UNLIKE the

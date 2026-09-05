@@ -220,6 +220,9 @@ export async function addJournalEntry(entry: {
   /** Spec 012 §5: the webapp's own auto note names its kind (city_change);
    *  a plain family note omits this and the schema defaults it to 'note'. */
   kind?: string;
+  /** Spec 016: set on a reply. The row's parent_id is then the NOTE's — the
+   *  0026 trigger overwrites whatever travels here — so callers pass null. */
+  parent_entry_id?: number;
 }): Promise<void> {
   const { error } = await supabase.from("journal_entries").insert(entry);
   if (error) throw error;
