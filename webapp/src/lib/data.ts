@@ -493,6 +493,15 @@ export async function pauseParent(parentId: string, duration: "week" | "open", n
   if (error) throw error;
 }
 
+/* --- SMS consent (spec 011 Amendment A.6) -------------------------------- */
+
+/** Admin only, checked server-side (0030): records the parent's verbal yes
+ *  once. Refused for a parent with a WhatsApp number or a non-+1 phone. */
+export async function smsConsent(parentId: string): Promise<void> {
+  const { error } = await supabase.rpc("app_sms_consent", { p_parent_id: parentId });
+  if (error) throw error;
+}
+
 export async function resumeParent(parentId: string): Promise<void> {
   const { error } = await supabase.rpc("app_resume_parent", { p_parent_id: parentId });
   if (error) throw error;

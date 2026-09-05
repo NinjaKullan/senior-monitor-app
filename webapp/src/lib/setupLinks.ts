@@ -23,10 +23,20 @@ export const SETUP_PAGE_BASE = "https://kettle-api.fly.dev";
  *  watching, whatever the phone is doing. */
 export type SetupStatus = "reporting" | "ready" | "needs_link" | "paused";
 
+/**
+ * Amendment A.6: the parent's texting state, beside the link state rather
+ * than instead of it — a parent whose texts are on may still be waiting for
+ * their setup link, and the share control keys on `status`. "offer" is the
+ * three conditions of DECISIONS 290 (a +1 phone, no WhatsApp number, no
+ * consent yet); the screen shows the script and the button for it to admins.
+ */
+export type SmsState = "offer" | "on" | "stopped" | null;
+
 export interface SetupEntry {
   parentId: string;
   parentName: string;
   status: SetupStatus;
+  sms: SmsState;
   /** The page URL, href-only — never rendered as text. */
   url: string | null;
   /** WhatsApp share intent carrying the link (spec: share intent first). */
@@ -44,6 +54,15 @@ export function shareText(parentName: string, url: string): string {
   return `${parentName}'s Kettle setup: ${url}\nOpen it when the button files arrive in this chat.`;
 }
 
+export function smsStateFor(parent: Parent): SmsState {
+  if (parent.whatsapp_e164) return null;
+  const phone = parent.phone_e164 ?? "";
+  if (!phone.startsWith("+1")) return null;
+  if (parent.sms_consent_utc === null) return "offer";
+  if (parent.sms_opted_out_utc !== null) return "stopped";
+  return "on";
+}
+
 export function buildSetupEntries(
   parents: Parent[],
   links: SetupLink[],
@@ -58,6 +77,7 @@ export function buildSetupEntries(
         parentId: parent.id,
         parentName: parent.display_name,
         status: "paused" as const,
+        sms: smsStateFor(parent),
         url: null,
         shareHref: null,
         expiresDate: null,
@@ -70,6 +90,7 @@ export function buildSetupEntries(
         parentId: parent.id,
         parentName: parent.display_name,
         status: "reporting" as const,
+        sms: smsStateFor(parent),
         url: null,
         shareHref: null,
         expiresDate: null,
@@ -90,6 +111,7 @@ export function buildSetupEntries(
         parentId: parent.id,
         parentName: parent.display_name,
         status: "needs_link" as const,
+        sms: smsStateFor(parent),
         url: null,
         shareHref: null,
         expiresDate: null,
@@ -101,6 +123,7 @@ export function buildSetupEntries(
       parentId: parent.id,
       parentName: parent.display_name,
       status: "ready" as const,
+      sms: smsStateFor(parent),
       url,
       shareHref: `https://wa.me/?text=${encodeURIComponent(shareText(parent.display_name, url))}`,
       expiresDate: live.expires_utc.slice(0, 10),

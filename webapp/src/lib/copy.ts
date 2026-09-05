@@ -316,6 +316,19 @@ export const PAUSED_SETUP = "Paused";
 /** The digest's line lives product-side (outbound_templates); named here
  *  only so the copy-law walk and the spec read the same words. */
 export const PAUSED_DIGEST = "Kettle is paused for {name}. Nothing to report.";
+/* Spec 011 Amendment A.6, VERBATIM (DECISIONS 290): texts for a +1 parent.
+   The script is the carrier-filed consent wording (DECISIONS 228), shown to
+   the admin as words to say; the button is the enrollment action itself. */
+export const SMS_SCRIPT_LABEL = "Say this to {name}, then tap the button.";
+export const SMS_CONSENT_SCRIPT =
+  "Kettle is a service from HeyKettle. It sends you a short text when your morning is not as usual, " +
+  "to ask if everything is okay. You would get at most one question a day, and one reminder if you " +
+  "do not reply. Message and data rates may apply. You can reply HELP for help, or STOP to end the " +
+  "texts at any time. The terms are at heykettle.com/terms.html and the privacy policy at " +
+  "heykettle.com/privacy.html. Do you want these texts? Please say yes or no.";
+export const SMS_CONSENT_BUTTON = "They said yes";
+export const SMS_ROW_ON = "Texts on";
+export const SMS_ROW_STOPPED = "Texts stopped by {name}";
 export const SETUP_SEND_LABEL = "Send on WhatsApp";
 export const SETUP_EXPIRES = "Link works until {date}";
 export const SETUP_HOW = [
