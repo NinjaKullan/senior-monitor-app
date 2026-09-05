@@ -34,7 +34,7 @@ import { isKnownIana, type CityEntry } from "@/lib/cities";
 import { computeParentToday, computeRollup, type ParentToday } from "@/lib/parentState";
 import { buildSetupEntries } from "@/lib/setupLinks";
 import { localDate } from "@/lib/time";
-import type { NoteDraft } from "@/components/NotesPanel";
+import type { NoteDraft, ReplyDraft } from "@/components/NotesPanel";
 import {
   RESTORE_TIMEOUT_MS,
   clearStoredSession,
@@ -294,6 +294,20 @@ export default function App() {
     await refresh();
   };
 
+  // Spec 016: a reply is the same insert with parent_entry_id; the tag is
+  // the note's and the 0026 trigger writes it, so null travels here.
+  const addReply = async (draft: ReplyDraft) => {
+    await addJournalEntry({
+      family_id: familyId,
+      parent_id: null,
+      author_label: draft.authorLabel,
+      body: draft.body,
+      event_date: null,
+      parent_entry_id: draft.parentEntryId,
+    });
+    await refresh();
+  };
+
   // Spec 010 §1/§4: one pick writes label + zone (+ the changeover stamp
   // when the zone actually moved), validated against the shipped list, and
   // the journal remembers the move in the product's own hand.
@@ -383,6 +397,7 @@ export default function App() {
             tz={familyTz}
             onBack={() => setOpenParentId(null)}
             onAddNote={addNote}
+            onAddReply={addReply}
             onSteps={() => navigate("family")}
           />
         ) : (
@@ -395,6 +410,7 @@ export default function App() {
           todayDate={todayDate}
           tz={familyTz}
           onAddNote={addNote}
+          onAddReply={addReply}
         />
       )}
       {tab === "who" && (
