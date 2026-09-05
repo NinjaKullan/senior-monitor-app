@@ -119,6 +119,8 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         site_metrics_token="",
         site_metrics_email="",
         waitlist_origins=("https://heykettle.com",),
+        app_origin="https://kettle-app.test",
+        supabase_jwks_url="",
     )
     with TestClient(create_app(settings, notifier)) as fresh_client:
         assert fresh_client.get("/healthz").json() == {"db": True}

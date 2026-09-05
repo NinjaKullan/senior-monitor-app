@@ -87,6 +87,15 @@ class Settings:
     # wildcard: this is the only route a browser ever calls, and the landing
     # page is served from origins we control (spec 006 §7).
     waitlist_origins: tuple[str, ...]
+    # Spec 019: the family app's origin. /oauth/authorize sends the person to
+    # `{app_origin}/connect`, and /oauth/approve's CORS is locked to it (the
+    # waitlist pattern). One origin: the app is served from one place.
+    app_origin: str
+    # Spec 019 (PM, Sep 5): the Supabase project's JWKS, where the ES256 key
+    # that signs the family's sessions is published. /oauth/approve verifies
+    # the session it is handed against this and nothing else; empty means
+    # approve refuses every session, so an unconfigured deploy fails closed.
+    supabase_jwks_url: str
 
 
 def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
@@ -107,18 +116,14 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         ip_hash_salt=salt,
         default_tz=src.get("DEFAULT_TZ", "").strip() or "Asia/Kolkata",
         public_base_url=(
-            src.get("PUBLIC_BASE_URL", "").strip().rstrip("/")
-            or "https://kettle-api.fly.dev"
+            src.get("PUBLIC_BASE_URL", "").strip().rstrip("/") or "https://kettle-api.fly.dev"
         ),
         heartbeat_loop=_flag(src, "HEARTBEAT_LOOP", default=True),
         outbound_enabled=_flag(src, "OUTBOUND_ENABLED", default=False),
         outbound_loop=_flag(src, "OUTBOUND_LOOP", default=False),
         outbound_transport=src.get("OUTBOUND_TRANSPORT", "").strip() or "console",
         resend_api_key=src.get("RESEND_API_KEY", "").strip(),
-        resend_from=(
-            src.get("RESEND_FROM", "").strip()
-            or "Kettle <notes@send.heykettle.com>"
-        ),
+        resend_from=(src.get("RESEND_FROM", "").strip() or "Kettle <notes@send.heykettle.com>"),
         twilio_account_sid=src.get("TWILIO_ACCOUNT_SID", "").strip(),
         twilio_auth_token=src.get("TWILIO_AUTH_TOKEN", "").strip(),
         twilio_whatsapp_from=src.get("TWILIO_WHATSAPP_FROM", "").strip(),
@@ -128,6 +133,8 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         site_metrics_token=src.get("SITE_METRICS_TOKEN", "").strip(),
         site_metrics_email=src.get("SITE_METRICS_EMAIL", "").strip(),
         waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
+        app_origin=(src.get("APP_ORIGIN", "").strip().rstrip("/") or "https://kettle-app.fly.dev"),
+        supabase_jwks_url=src.get("SUPABASE_JWKS_URL", "").strip(),
     )
 
 
