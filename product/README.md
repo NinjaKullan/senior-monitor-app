@@ -149,6 +149,13 @@ retry reaches only the members it missed. Nobody listening is a skip plus one
 only through the five `app_*` functions in 0025 (add, remove, set role, set
 mail, leave); the last admin cannot leave, be demoted or be removed.
 
+A **paused** parent (spec 017, migration 0027: `parents.paused_until`, admin-only
+`app_pause_parent` / `app_resume_parent`) is skipped above the withhold rules,
+in the demo skip's place: no ask, no follow-on, no evening, no skipped rows, no
+alerts. The one thing said is the morning note, `digest_morning_paused`, once a
+day. The resume day fires nothing that fell due while paused; the fields clear
+on the first pass after that day.
+
 | Piece | Where |
 |---|---|
 | Quiet-morning evaluation, the scheduler, the transport seam | `kettle/outbound.py` |

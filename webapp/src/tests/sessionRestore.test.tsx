@@ -83,6 +83,8 @@ async function mount(overrides: Partial<Harness> = {}) {
     setSeatRole: vi.fn(),
     setOwnMail: vi.fn(),
     leaveCircle: vi.fn(),
+    pauseParent: vi.fn(),
+    resumeParent: vi.fn(),
   }));
 
   const { default: App } = await import("@/App");

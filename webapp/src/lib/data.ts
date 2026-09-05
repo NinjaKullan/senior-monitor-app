@@ -400,6 +400,23 @@ export async function leaveCircle(familyId: string): Promise<void> {
   if (error) throw error;
 }
 
+/* --- the pause (spec 017 §3) --------------------------------------------- */
+
+/** Admin only, checked server-side (0027). "week" is seven days from now;
+ *  "open" stores 'infinity', which the read surface hands back as the
+ *  string "infinity". */
+export async function pauseParent(parentId: string, duration: "week" | "open", now: Date = new Date()): Promise<void> {
+  const until =
+    duration === "open" ? "infinity" : new Date(now.getTime() + 7 * 86_400_000).toISOString();
+  const { error } = await supabase.rpc("app_pause_parent", { p_parent_id: parentId, p_until: until });
+  if (error) throw error;
+}
+
+export async function resumeParent(parentId: string): Promise<void> {
+  const { error } = await supabase.rpc("app_resume_parent", { p_parent_id: parentId });
+  if (error) throw error;
+}
+
 /**
  * Request a magic link, and make failures visible (DECISIONS 115).
  *

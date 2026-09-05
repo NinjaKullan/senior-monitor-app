@@ -153,6 +153,8 @@ const base: ParentToday = {
   famSub: "Nine and a half hours ahead of you",
   needsFix: false,
   timeZone: "Asia/Kolkata",
+  paused: false,
+  pausedLine: null,
 };
 
 const detailProps = {

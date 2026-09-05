@@ -28,6 +28,10 @@ export interface Parent {
    *  changeover-conservatism clock, and the webapp's changeover-day marker
    *  for the Recent-days dots. */
   tz_changed_utc: string | null;
+  /** Spec 017: Kettle is paused for this parent until this instant — the
+   *  string "infinity" for the open-ended pause. Null or past = running. */
+  paused_until: string | null;
+  paused_since: string | null;
 }
 
 /** A family note (spec 009 §4): plain text, an optional date, an optional

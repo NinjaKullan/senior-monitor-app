@@ -38,11 +38,10 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 633 of 634 from the repo root** (587 product + 47
-pilot — the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp`
-218**, **`site` 236**. The one red is `test_today_replays_as_a_normal_day_so_far`,
-which fails on main from 10:30 Phoenix to midnight (failure family 5, DECISIONS
-270) — not a branch regression, and owed a fix. `ruff check .` clean; `tools/printables/` is excluded by ruling
+Current green: **`pytest` 661 from the repo root** (614 product + 47 pilot —
+the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 240**,
+**`site` 236**. The replay test is pinned to fixed Phoenix instants (272) and
+the root suite is green at any hour. `ruff check .` clean; `tools/printables/` is excluded by ruling
 (266) pending its own lint-and-re-render pass.
 
 * The 145 xfail is **gone the right way**: the midnight-reply defect was fixed as
@@ -104,6 +103,14 @@ number on the approved template. Everything in this file that used to say
 "rolled back", "unset by design", or "the flip is off the table" described the
 world between Sep 1 and Sep 4 and is gone; if you find that language anywhere
 else, it is stale.
+
+**Spec 017 (pause Kettle for one parent) is BUILT and unshipped (DECISIONS
+276).** Migration **0027** (the pause pair and two admin-only functions); the
+engine skips a paused parent above the withhold rules and says one line a
+morning; the Today card, the setup row and the rollup know. Owed: PM applies
+0027 → `cd product && fly deploy` → `cd webapp && fly deploy`. Three spec/code
+disagreements are in 276, the largest being that resume ends the pause now
+rather than nulling the fields, so the resume day can work.
 
 **Spec 016 (replies on a note) is BUILT and unshipped (DECISIONS 275).** One
 level of replies under a family note, enforced by a trigger in migration

@@ -135,7 +135,7 @@ describe("scoping (spec 009 §4)", () => {
     whatsapp_e164: null,
     relationship: null,
     city_label: null,
-    tz_changed_utc: null,
+    tz_changed_utc: null, paused_until: null, paused_since: null,
   };
   const mom: Parent = { id: "p1", family_id: "f1", display_name: "Amma", ...bare, relationship: "Mom" };
   const dad: Parent = { id: "p2", family_id: "f1", display_name: "Appa", ...bare, relationship: "Dad" };

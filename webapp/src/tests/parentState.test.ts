@@ -39,7 +39,7 @@ const amma: Parent = {
   whatsapp_e164: null,
   relationship: "Mom",
   city_label: "Chennai",
-  tz_changed_utc: null,
+  tz_changed_utc: null, paused_until: null, paused_since: null,
 };
 
 const signals: ParentSignal[] = [

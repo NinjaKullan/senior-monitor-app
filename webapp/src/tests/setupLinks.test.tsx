@@ -27,7 +27,7 @@ const bare = {
   whatsapp_e164: null,
   relationship: null,
   city_label: null,
-  tz_changed_utc: null,
+  tz_changed_utc: null, paused_until: null, paused_since: null,
 };
 const parents: Parent[] = [
   { id: "p1", family_id: "f1", display_name: "Amma", ...bare },

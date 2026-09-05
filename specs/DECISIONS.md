@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 276.** This line is the one to update; the `Next number:` lines inside
+**Next number: 277.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5513,3 +5513,70 @@ browser — all three adopted as the standard for future surfaces.**
        every snapshot 400s). No product deploy needed: the backend's own
        journal writers never set the column.
      * Next number: 276.
+
+## Spec 017 build notes (implementer, 2026-09-05)
+
+276. **(2026-09-05) Spec 017 (pause Kettle for one parent) BUILT,
+     product and webapp, merged to main; NOT deployed; migration NOT
+     applied.** Migration file: `product/migrations/0027_pause.sql`. Six
+     commits by concern.
+     * **Where the spec and the code disagreed — three places:**
+       1. **§3/§7 "app_resume_parent sets both to null" vs §4's
+          resume-day rule.** A nulled row cannot carry the instant the
+          pause ended, and the resume day needs it: the rule is that
+          slots which fell due WHILE paused do not fire late (a morning
+          Kettle was not watching cannot arm an ask). So resume ends the
+          pause now — `paused_until = now()`, `paused_since` kept — and a
+          manual resume and a week's expiry are one path; the engine
+          clears both fields on its first pass after that local day,
+          exactly as §4 says it does after an expiry. The app reads a
+          past `paused_until` as running, so the card flips at once.
+       2. **§2 "no digests while paused" vs §2/274 "LOUD in the morning
+          digest, one line instead of their section".** Digests are per
+          parent (there is no family digest with sections), so the only
+          way the morning note can carry the line is to send it: a
+          registered template `digest_morning_paused`, kind
+          digest_morning, "Kettle is paused for {name}. Nothing to
+          report.", one message a day at the morning slot through the
+          circle, then nothing else — no evening, no ask, no follow-on,
+          no alerts, no circle alert. The ledger records it as the day's
+          morning digest; it does not earn the first-morning journal
+          line. If the PM would rather a paused parent be silent
+          entirely, deleting the one call is the change.
+       3. **§4 "clears both fields on the first pass after expiry."**
+          Cleared on the first pass after the resume DAY, not the first
+          pass after the instant — the day needs the instant (1). Same
+          end state one local midnight later.
+     * **Judgement calls:** (a) the fresh-first-day rule is implemented
+       as "a slot due before the resume instant does not fire" — this
+       engine has no cross-day baseline, so that is the only thing
+       "baseline predating the pause" can mean here; the evening on a
+       resume day reads the day's own pings and may say "recovered",
+       which is the engine's true word for a quiet morning and a normal
+       afternoon; (b) a paused parent leaves the rollup and the footer —
+       neither quiet nor normal; (c) the parent detail page is
+       unchanged (§5 names the card and the setup row); (d) 'infinity'
+       is stored as §3 says, and read by the engine through a
+       year-9999 clamp because psycopg refuses to load it — with a CASE
+       around `least()`, which ignores NULLs and paused every parent in
+       the first draft, caught by the tests; (e) the open-ended value
+       reaches the webapp as the string "infinity" from PostgREST and
+       isPaused reads it as such; (f) `name` joins the template
+       variable allowlist (the paused line names the parent, not the
+       label, which may be unset while the pause is not).
+     * **Counts:** root `pytest` **661** (eighteen new on 016's 643:
+       twelve in test_pause, six more from the paused template joining
+       the per-template copy scans), webapp **240** (ten new), ruff
+       clean, Postgres up before and after.
+     * **Verified by planting** (eight): the pause skip removed, the
+       resume-day rule removed, the fields never cleared, the admin
+       check removed, the open-ended value ignored, the rollup counting
+       a paused parent, the footer counting one, the setup row ignoring
+       the pause — each failed by name. The rollup test had to be
+       strengthened first: its paused fixture had pinged, so the plant
+       passed; a silent paused parent is what the test now uses.
+     * **Deploy order:** PM applies 0027 → `cd product && fly deploy`
+       (the engine reads the columns; on an unmigrated prod every pass
+       fails on the query) → `cd webapp && fly deploy` (the parents read
+       asks for the columns first). 0026 and 0027 can ride one train.
+     * Next number: 277.

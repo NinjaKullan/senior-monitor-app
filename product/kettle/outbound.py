@@ -526,6 +526,29 @@ def run_outbound(
         # digests fire at the NEW zone's clock from the next cycle onward.
         tz_name = effective_tz(parent["parent_tz"], parent["family_tz"])
         plan = schedule_for(now, tz_name)
+
+        # Spec 017: a paused parent, in the demo skip's place — above every
+        # withhold rule, so nothing is decided, recorded or alerted. The one
+        # exception is the morning note itself, which says the parent is
+        # paused (loud, §2): one message a day, through the circle like any
+        # digest, and then nothing else until the pause ends.
+        paused_until = parent["paused_until"]
+        if paused_until is not None and paused_until > now:
+            decisions.extend(
+                _paused_morning_note(conn, transport, notifier, parent, plan, now)
+            )
+            continue
+        # The resume day (§4): from the instant the pause ended until that
+        # local day is over, slots that fell due while paused do not fire late
+        # — a morning Kettle was not watching cannot arm an ask, and "the
+        # morning looked normal" cannot be said of it. After that day both
+        # fields are cleared and the parent is an ordinary parent again.
+        resumed_at = None
+        if paused_until is not None and parent["paused_since"] is not None:
+            if to_local(paused_until, tz_name).date().isoformat() < plan.local_date:
+                db.clear_pause(conn, parent["parent_id"])
+            else:
+                resumed_at = paused_until
         # Spec 015 §7: everyone in the circle with mail on and an email,
         # admins first. Digests, follow-ons and all-clears fan out to all of
         # them; the ask below still goes to the parent alone.
@@ -547,6 +570,9 @@ def run_outbound(
         )
 
         for decision in _due_for_parent(conn, parent, plan, now):
+            if resumed_at is not None and _due_at(conn, decision, plan) < resumed_at:
+                continue
+
             def skip(
                 detail: str, decision: Decision = decision, alert: bool = True
             ) -> None:
@@ -644,6 +670,7 @@ def run_outbound(
                 "owner_name": owner_first_name(
                     db.family_owner_name(conn, parent["family_id"])
                 ),
+                "name": parent["parent_name"],
             }
             variables = {
                 name: available[name] for name in template(decision.template_id).variables
@@ -705,7 +732,10 @@ def run_outbound(
                     conn, notifier, decision, outcome.transport, "sent", "", now
                 ):
                     decisions.append(decision)
-                    if decision.kind in (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING):
+                    if (
+                        decision.kind in (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING)
+                        and decision.template_id != "digest_morning_paused"
+                    ):
                         # Spec 012 §3.2: the family's memory notes the first
                         # daily note. Called after every sent digest; the
                         # writer itself checks the LEDGER for prior history in
@@ -856,6 +886,68 @@ def _alert_circle_unreachable(
     if notifier is not None:
         notifier.send(message)
     log.warning("outbound: %s", message)
+
+
+def _due_at(conn: psycopg.Connection, decision: Decision, plan: Schedule) -> datetime:
+    """The instant a decision became due, for the resume-day rule (spec 017)."""
+    if decision.kind == KIND_DIGEST_MORNING:
+        return plan.morning_digest
+    if decision.kind == KIND_ASK:
+        return plan.ask_threshold
+    if decision.kind == KIND_DIGEST_EVENING:
+        return plan.evening_digest
+    if decision.kind == KIND_FOLLOW_ON:
+        ask = db.message_row(
+            conn, decision.family_id, decision.parent_id, decision.local_date, KIND_ASK
+        )
+        return ask["sent_utc"] + FOLLOW_ON_GRACE if ask else plan.ask_threshold
+    # The all-clear follows a follow-on that fired after the resume: now.
+    return datetime.max.replace(tzinfo=UTC)
+
+
+def _paused_morning_note(
+    conn: psycopg.Connection,
+    transport: Transport,
+    notifier: Notifier | None,
+    parent: Any,
+    plan: Schedule,
+    now: datetime,
+) -> list[Decision]:
+    """The one thing Kettle says about a paused parent (spec 017 §2): the
+    registry's digest_morning_paused line at the morning slot, and nothing
+    else all day. Same slot, same ledger row, same circle as the digest it
+    stands in for, so the day it was paused (whatever went out stands,
+    nothing more) and every later day read the same."""
+    if now < plan.morning_digest or now >= plan.morning_digest + MORNING_STALE_CUTOFF:
+        return []
+    if db.sent_message(
+        conn, parent["family_id"], parent["parent_id"], plan.local_date, KIND_DIGEST_MORNING
+    ):
+        return []
+    decision = Decision(
+        family_id=parent["family_id"],
+        parent_id=parent["parent_id"],
+        relationship=parent["relationship"],
+        local_date=plan.local_date,
+        kind=KIND_DIGEST_MORNING,
+        template_id="digest_morning_paused",
+    )
+    carrier = carrier_for(transport, decision.kind)
+    if carrier is None:
+        return []
+    recipients = db.outbound_contacts(conn, parent["family_id"])
+    if carrier.requires_address and not recipients:
+        return []  # paused raises nothing, the circle alert included (§2)
+    variables = {"name": parent["parent_name"]}
+    outcome = _send_to_circle(conn, carrier, decision, variables, recipients, now)
+    if outcome.delivered_to_all and _record_outcome(
+        conn, notifier, decision, outcome.transport, "sent", "", now
+    ):
+        return [decision]
+    if not outcome.delivered_to_all:
+        label = f"{parent['family_name']} / {parent['parent_name']}"
+        _record_failed(conn, notifier, decision, outcome.result, label, now)
+    return []
 
 
 def _due_for_parent(

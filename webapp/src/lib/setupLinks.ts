@@ -9,6 +9,7 @@
  * answers "does {name} still need their link, and how do I send it".
  */
 
+import { isPaused } from "./parentState";
 import type { Parent, Ping, SetupLink } from "./types";
 
 /**
@@ -18,7 +19,9 @@ import type { Parent, Ping, SetupLink } from "./types";
  */
 export const SETUP_PAGE_BASE = "https://kettle-api.fly.dev";
 
-export type SetupStatus = "reporting" | "ready" | "needs_link";
+/** "paused" (spec 017) wins over the rest: the row says Kettle is not
+ *  watching, whatever the phone is doing. */
+export type SetupStatus = "reporting" | "ready" | "needs_link" | "paused";
 
 export interface SetupEntry {
   parentId: string;
@@ -50,6 +53,16 @@ export function buildSetupEntries(
 ): SetupEntry[] {
   const heard = new Set(pings.map((p) => p.parent_id));
   return parents.map((parent) => {
+    if (isPaused(parent, now)) {
+      return {
+        parentId: parent.id,
+        parentName: parent.display_name,
+        status: "paused" as const,
+        url: null,
+        shareHref: null,
+        expiresDate: null,
+      };
+    }
     // A phone that has ever reported is set up; the link's remaining life is
     // irrelevant and offering to re-send it would only confuse.
     if (heard.has(parent.id)) {

@@ -31,6 +31,7 @@ import {
   FAMILY_SUB,
   FAMILY_TITLE,
   PARENTS_LABEL,
+  PAUSED_SETUP,
   PRIVACY_FOOTER,
   SETUP_EXPIRES,
   SETUP_HOW,
@@ -48,6 +49,7 @@ const SETUP_STATUS_LABEL = {
   reporting: SETUP_REPORTING,
   ready: SETUP_READY,
   needs_link: SETUP_NEEDS_LINK,
+  paused: PAUSED_SETUP,
 } as const;
 
 const KICKER: React.CSSProperties = {
