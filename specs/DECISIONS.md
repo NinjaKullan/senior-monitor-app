@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 294.** This line is the one to update; the `Next number:` lines inside
+**Next number: 295.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6050,3 +6050,31 @@ browser — all three adopted as the standard for future surfaces.**
        SMS; 👍, STOP, START each checked against the ledger; then PM
        restores whatsapp_e164.
      * Next number: 294.
+
+294. **(2026-09-05, ~9:45pm ET) Amendment A DEPLOYED (942805c; Fly
+     kettle-api v36, one machine, checks passing). Dark stage A.10
+     three of four steps VERIFIED on TestMom; the SMS ask is owed
+     tomorrow 11:00 Raleigh.**
+     * Welcome: PM moved TestMom's number from whatsapp_e164 to
+       phone_e164; founder tapped "They said yes" on the Family screen
+       (real path, not SQL); `sms_welcome` sent by twilio_sms 44 s
+       later; the text matched A.4 word for word (screenshot).
+     * STOP / START, first try: both reached /outbound/reply WITHOUT
+       OptOutType and were treated as replies with no pending ask
+       (logged, nothing recorded). Cause: Advanced Opt-Out was NOT
+       enabled on the Messaging Service; the keyword page was filled
+       in but the "Enable advanced opt-out" button had never been
+       pressed, and Twilio's stock confirmations were the tell.
+       CORRECTION to 292, which PM logged as verified on the strength
+       of the keyword list: item 2 was not done. Founder pressed the
+       button; second try: `sms_opt_out` alert 21:38:18Z, `sms_opt_in`
+       21:38:23Z, opted_out cleared, no reply row. Verified.
+     * Deploy lesson: `fly secrets set` restarts the machine with the
+       OLD image, which refuses to boot on an unknown transport (fail
+       closed, 154/159), so the CLI timed out on health checks until
+       `fly deploy` replaced it. For any new transport: deploy the code
+       first, then set OUTBOUND_TRANSPORT. Runbook note owed.
+     * Side finding: the heartbeat "noon" alert still fires for the
+       demo Whitakers (families.demo skips the outbound engine, not the
+       heartbeat). Backlog, small.
+     * Next number: 295.
