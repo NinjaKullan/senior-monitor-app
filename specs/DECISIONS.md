@@ -5720,7 +5720,8 @@ browser — all three adopted as the standard for future surfaces.**
        from §7 (Suryaprakasam tz → America/New_York) is independent.
      * Next number: 282.
 
-282. **(2026-09-05, ~1am ET) 281 REVIEWED and ACCEPTED (a021706).
+282. **(2026-09-05, ~8:15am ET; the build ran overnight) 281 REVIEWED and
+     ACCEPTED (a021706).
      Migration 0028 applied to prod by PM. Webapp-only deploy owed.**
      * Accepted: the composer lock is a ref as well as state, because
        the founder's double post is two events in one tick and a
@@ -5732,3 +5733,18 @@ browser — all three adopted as the standard for future surfaces.**
      * Deploy: `cd webapp && npm run ci && fly deploy`. No product
        deploy. Suryaprakasam tz already corrected (280).
      * Next number: 283.
+
+283. **(2026-09-05, 8:30am ET) Spec 018 DEPLOYED and VERIFIED LIVE
+     (webapp only). PM read Memory in the founder's session: Edit and
+     Delete on the family's notes and replies, none on Kettle's lines;
+     reply dates now read Sep 4 (viewer zone). The duplicate "ist
+     reply" awaits the founder's Delete.**
+     * Live as of this morning, in order shipped this week: code
+       sign-in (013), home-screen icon, demo family, one-family
+       scoping, Memory dates, Wave D flip, template watch, circles
+       (015), replies (016), pause (017), edit/delete/optimistic
+       composer/viewer-zone dates (018).
+     * Next: Amendment A (SMS for +1 parents; spec 011 A, migration
+       0029 at build time), then spec 019 (read-only MCP). Monday:
+       first beta invitations.
+     * Next number: 284.
