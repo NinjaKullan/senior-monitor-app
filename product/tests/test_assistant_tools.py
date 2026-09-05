@@ -314,6 +314,18 @@ def test_every_rendered_answer_obeys_the_copy_law(connected, conn, whitakers):
     assert_assistant_copy_law(connected.text("who_to_call", parent="Linda"), digits_ok=True)
 
 
+def test_every_tool_says_it_only_reads(connected, api):
+    """DECISIONS 286: readOnlyHint on all five, openWorldHint off, so the
+    assistant does not ask permission on every question."""
+    from testsupport_assistant import mcp_call
+
+    tools = mcp_call(api, connected.access_token, "tools/list").json()["result"]["tools"]
+    assert len(tools) == 5
+    for tool in tools:
+        assert tool["annotations"]["readOnlyHint"] is True, tool["name"]
+        assert tool["annotations"]["openWorldHint"] is False, tool["name"]
+
+
 def test_tool_descriptions_are_the_ruled_words(connected, api):
     from testsupport_assistant import mcp_call
 

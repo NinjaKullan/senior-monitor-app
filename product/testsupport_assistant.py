@@ -216,8 +216,16 @@ def mcp_call(
     headers = {"accept": "application/json, text/event-stream", "content-type": "application/json"}
     if token:
         headers["authorization"] = f"Bearer {token}"
-    return client.post(
+    # follow_redirects=False (DECISIONS 286): a Mount used to answer /mcp
+    # with a 307 the test client silently followed, so the suite never saw
+    # that the bearer check ran one redirect too late. /mcp answers directly.
+    response = client.post(
         "/mcp",
+        follow_redirects=False,
         content=json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params or {}}),
         headers=headers,
     )
+    assert response.status_code < 300 or response.status_code >= 400, (
+        f"/mcp redirected ({response.status_code}) instead of answering"
+    )
+    return response
