@@ -39,7 +39,7 @@ cd site   && npm run ci
 ```
 
 Current green: **`pytest` 674 from the repo root** (627 product + 47 pilot —
-the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 240**,
+the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 253**,
 **`site` 236**. The replay test is pinned to fixed Phoenix instants (272) and
 the root suite is green at any hour. `ruff check .` clean; `tools/printables/` is excluded by ruling
 (266) pending its own lint-and-re-render pass.
