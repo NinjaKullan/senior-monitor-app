@@ -115,6 +115,17 @@ _REGISTRY: tuple[Template, ...] = (
         body="A quiet start, then a normal day. Next note in the morning.",
     ),
     Template(
+        # Spec 017: the morning note for a PAUSED parent. Loud on purpose —
+        # a paused parent is never quietly forgotten — and it is the one
+        # thing Kettle says about them while paused: no evening, no ask, no
+        # follow-on. Rendered with the parent's name, not the label.
+        id="digest_morning_paused",
+        kind=KIND_DIGEST_MORNING,
+        audience=AUDIENCE_CHILD,
+        body="Kettle is paused for {name}. Nothing to report.",
+        variables=("name",),
+    ),
+    Template(
         # Sent only when the digest time lands before the ask threshold on a day
         # that is quiet so far — which in v1 it always does (08:30 against
         # 11:00). It reports the absence and says what happens next; it does not

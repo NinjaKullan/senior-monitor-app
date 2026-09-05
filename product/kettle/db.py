@@ -187,13 +187,24 @@ def parents_with_tz(conn: psycopg.Connection) -> list[Row]:
     `family_demo` rides along too (0023): the engine drops those parents before
     it decides anything, and reading the flag here rather than filtering it out
     in SQL keeps this one query the single description of what a parent IS,
-    with the decision about what to do with one staying in the engine.
+    with the decision about what to do with one staying in the engine. The
+    pause columns (0027) ride for the same reason.
     """
     return conn.execute(
         """
         select p.id as parent_id, p.display_name as parent_name, p.tz as parent_tz,
                p.relationship as relationship,
                p.city_label as city_label, p.tz_changed_utc as tz_changed_utc,
+               -- 'infinity' is what the open-ended pause stores (spec 017 §3)
+               -- and what psycopg refuses to load; clamped to a year-9999
+               -- instant here, which the engine's "paused_until > now" reads
+               -- identically. Nothing writes this value back. The CASE is
+               -- load-bearing: least() ignores NULLs, so without it every
+               -- unpaused parent would read as paused until the year 9999.
+               case when p.paused_until is null then null
+                    else least(p.paused_until, timestamptz '9999-12-31 00:00:00+00')
+               end as paused_until,
+               p.paused_since as paused_since,
                f.id as family_id, f.name as family_name, f.tz as family_tz,
                f.demo as family_demo
         from parents p
@@ -201,6 +212,14 @@ def parents_with_tz(conn: psycopg.Connection) -> list[Row]:
         order by f.name, p.display_name
         """
     ).fetchall()
+
+
+def clear_pause(conn: psycopg.Connection, parent_id: Any) -> None:
+    """The pause is over and its day is done (spec 017 §4): both fields null."""
+    conn.execute(
+        "update parents set paused_until = null, paused_since = null where id = %s",
+        (parent_id,),
+    )
 
 
 def families_with_tz(conn: psycopg.Connection) -> list[Row]:
