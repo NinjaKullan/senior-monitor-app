@@ -58,7 +58,7 @@ const parents: Parent[] = [
     whatsapp_e164: null,
     relationship: "Mom",
     city_label: "Chennai",
-    tz_changed_utc: null,
+    tz_changed_utc: null, paused_until: null, paused_since: null,
   },
   {
     id: "p2",
@@ -69,7 +69,7 @@ const parents: Parent[] = [
     whatsapp_e164: "+919876500000",
     relationship: "Dad",
     city_label: null,
-    tz_changed_utc: null,
+    tz_changed_utc: null, paused_until: null, paused_since: null,
   },
   {
     id: "p3",
@@ -80,7 +80,7 @@ const parents: Parent[] = [
     whatsapp_e164: null,
     relationship: "Grandma",
     city_label: null,
-    tz_changed_utc: null,
+    tz_changed_utc: null, paused_until: null, paused_since: null,
   },
 ];
 const members: Member[] = [
@@ -307,6 +307,27 @@ describe("rendered copy law", () => {
     expect(text).toContain("Quiet so far today.");
     expect(text).toContain("Kettle can't hear from Paati's phone right now.");
     assertCopyLaw(text, APP_ALLOW);
+  });
+
+  it("holds for a paused card, its controls open, and the pause choices (spec 017)", () => {
+    const paused = { ...parents[0], paused_until: "2026-08-10T20:30:00Z", paused_since: null };
+    const states = [stateFor(paused), stateFor(parents[1])];
+    render(
+      <Today
+        states={states}
+        rollup={computeRollup(states, IST, NOON_IST)}
+        dateLine="Wednesday · August 26"
+        onOpen={() => undefined}
+        pause={{ onPause: async () => undefined, onResume: async () => undefined }}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("pause-link"));
+    const text = renderedText();
+    expect(text).toContain("Kettle is paused for Amma.");
+    expect(text).toContain("Back on Aug 11.");
+    expect(text).toContain("Turn Kettle back on");
+    expect(text).toContain("Until I turn it back on");
+    assertCopyLaw(text, [...APP_ALLOW, MONTH_DAY]);
   });
 
   it("holds for the parent detail in each of the three states", () => {
