@@ -160,7 +160,7 @@ export const CONNECT_EXPIRED = "That link has expired. Start again from your ass
 export const ASSISTANT_FALLBACK = "An assistant";
 export const ASSISTANTS_SECTION = "Assistants";
 export const ASSISTANTS_INTRO =
-  "Ask Kettle from Claude or another assistant. Add Kettle as a connector once, on a computer, with this address. After that you just ask.";
+  "Ask Kettle from Claude or another assistant. Add Kettle as a connector once, on a computer, with this address. After that you just ask. In Claude, set Kettle's tools to Always allow so it never stops to ask.";
 export const ASSISTANTS_COPY = "Copy";
 export const ASSISTANTS_COPIED = "Copied";
 export const ASSISTANTS_NONE = "Nothing is connected yet.";

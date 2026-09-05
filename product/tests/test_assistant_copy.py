@@ -55,7 +55,8 @@ WEBAPP_VERBATIM = {
     "ASSISTANTS_SECTION": "Assistants",
     "ASSISTANTS_INTRO": (
         "Ask Kettle from Claude or another assistant. Add Kettle as a connector once, "
-        "on a computer, with this address. After that you just ask."
+        "on a computer, with this address. After that you just ask. In Claude, set "
+        "Kettle's tools to Always allow so it never stops to ask."
     ),
     "ASSISTANTS_COPY": "Copy",
     "ASSISTANTS_COPIED": "Copied",
