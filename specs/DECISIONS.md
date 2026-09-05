@@ -5632,3 +5632,27 @@ browser — all three adopted as the standard for future surfaces.**
      * Deploy order unchanged from 277: product, then webapp, founder
        watching.
      * Next number: 279.
+
+279. **(2026-09-04, ~11:45pm ET) Specs 016 and 017 DEPLOYED and
+     VERIFIED LIVE (7d74437). Founder ran product then webapp; PM read
+     the app in the founder's session.**
+     * Today: "Pause Kettle" under both parents' cards (admin).
+       Memory: "Reply" under the family's notes and not under Kettle's
+       lines; the founder posted four replies under "Test" and they
+       render indented beneath it.
+     * FOUND: reply dates read "Sep 5" for replies written at ~11:30pm
+       ET on Sep 4, because 251's rule renders the FAMILY timezone's
+       day and the Suryaprakasam family row carries Asia/Kolkata from
+       its July provisioning. Correct rule, wrong-looking result, and
+       it will recur for any family split across zones (most). RULED:
+       note and reply dates and times render in the VIEWER's browser
+       zone (what messaging apps do); the family zone stays for the
+       parents' clocks only. Small webapp fix; spec with the next
+       pass. Also: the founder's family row tz should be corrected to
+       America/New_York regardless (a data fix, PM to do).
+     * Possible double-submit: "ist reply" appears twice; founder to
+       say whether he tapped once. If once, the composer needs its
+       button disabled while a send is in flight.
+     * Asana: Memory v1.1 (1218017356495916) and pause
+       (1218194014017087) tasks closed.
+     * Next number: 280.
