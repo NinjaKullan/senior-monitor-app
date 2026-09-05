@@ -27,6 +27,9 @@ TABLES = (
     "family_contacts",
     "site_daily_counts",
     "site_weekly_sends",
+    "assistant_clients",
+    "assistant_requests",
+    "assistant_grants",
 )
 
 
@@ -45,8 +48,20 @@ SERVICE_ONLY_TABLES = (
     "sent_messages",
     "site_daily_counts",
     "site_weekly_sends",
+    # Spec 019: what an assistant registered and what it is asking for are
+    # the authorization server's own bookkeeping; no family session reads them.
+    "assistant_clients",
+    "assistant_requests",
 )
-FAMILY_TABLES = tuple(t for t in TABLES if t not in SERVICE_ONLY_TABLES)
+# Spec 019: a person's own connections, readable on the rendered columns
+# only — a COLUMN grant, so the token hashes are not selectable at all. Column
+# grants live in pg_attribute, not relacl, so it is neither a family table
+# (table-level SELECT) nor service-only (no policy); test_assistant_oauth
+# asserts its shape.
+COLUMN_GRANT_TABLES = ("assistant_grants",)
+FAMILY_TABLES = tuple(
+    t for t in TABLES if t not in SERVICE_ONLY_TABLES and t not in COLUMN_GRANT_TABLES
+)
 
 # Actual granted privileges on public tables and sequences, straight from the
 # catalog. information_schema.role_table_grants hides grants the caller cannot
@@ -88,13 +103,9 @@ class RecordingNotifier:
         return True
 
 
-def set_parent_whatsapp(
-    conn: psycopg.Connection, parent_id: object, number: str
-) -> None:
+def set_parent_whatsapp(conn: psycopg.Connection, parent_id: object, number: str) -> None:
     """Give a monitored person a number spec 007's ask can reach (0012)."""
-    conn.execute(
-        "update parents set whatsapp_e164 = %s where id = %s", (number, parent_id)
-    )
+    conn.execute("update parents set whatsapp_e164 = %s where id = %s", (number, parent_id))
 
 
 def add_child_email(
@@ -116,9 +127,7 @@ def as_user(authed_conn: psycopg.Connection, auth_user_id: str) -> None:
     )
 
 
-def as_user_with_email(
-    authed_conn: psycopg.Connection, auth_user_id: str, email: str
-) -> None:
+def as_user_with_email(authed_conn: psycopg.Connection, auth_user_id: str, email: str) -> None:
     """Present a Supabase Auth user *and* their verified email, as Auth does."""
     authed_conn.execute(
         "select set_config('request.jwt.claims', %s, false)",
