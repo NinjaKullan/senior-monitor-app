@@ -5442,3 +5442,28 @@ browser — all three adopted as the standard for future surfaces.**
        (iPhone-only message, 257). Two CC sessions may run in parallel
        on disjoint files.
      * Next number: 274.
+
+274. **(2026-09-04, night) Specs 016 (replies on a note) and 017
+     (pause Kettle for one parent) RATIFIED by Hema, strings
+     verbatim. Memory v1.1 itself (filters, scrolling list, Who to
+     call) was found already live since Aug 31 (215); its Asana task
+     closes with the replies build. MCP read-only moves to spec 018.**
+     * 016: one level only; any member replies; a reply inherits the
+       note's parent tag and date; Kettle-authored lines take no
+       replies; replies always shown, no collapse. Strings: "Reply",
+       "Add to this note", "Add", "Not now".
+     * 017: admin only; per parent; "For a week" or "Until I turn it
+       back on"; engine skips the parent above the withhold rules
+       (demo-skip placement, 267); pause day sends nothing further;
+       resume day is a fresh first day; paused state is LOUD on the
+       Today card, the Family setup row and the morning digest.
+       Strings: "Pause Kettle", "Kettle is paused for {name}.", "Back
+       on {date}.", "Until someone turns it back on.", "Turn Kettle
+       back on", "Paused", "Kettle is paused for {name}. Nothing to
+       report."
+     * Build: two CC sessions in parallel on disjoint files (016 is
+       journal + Memory tab; 017 is parents + engine + Today card).
+       Migrations numbered at build time; the second to land takes
+       the next number. Deploy when green with the founder watching
+       (273).
+     * Next number: 275.
