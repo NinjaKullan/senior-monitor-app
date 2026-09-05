@@ -24,6 +24,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.routing import Route
 
 from kettle import assistant_auth, assistant_tools, db, site_metrics, waitlist
 from kettle.config import Settings, settings_from_env
@@ -85,7 +86,7 @@ def create_app(
     # the session manager's own lifespan runs inside ours below.
     mcp_server = assistant_tools.build_server(lambda: app.state.pool.connection(), clock)
     mcp_asgi = mcp_server.streamable_http_app(
-        streamable_http_path="/",
+        streamable_http_path="/mcp",
         stateless_http=True,
         json_response=True,
         # Host checks belong to Fly's edge and the public URL, not to this
@@ -384,35 +385,45 @@ def create_app(
     app.add_api_route("/oauth/approve", oauth.approve, methods=["POST"])
     app.add_api_route("/oauth/pending", oauth.pending, methods=["GET"])
 
-    async def mcp_guarded(scope, receive, send):  # type: ignore[no-untyped-def]
+    class GuardedMcp:
         """The bearer check in front of the SDK app (§4): a missing or dead
         token is a 401 with the resource_metadata header, never a tool error.
         A live one resolves to exactly one person for the length of the
-        request, through CURRENT_USER."""
-        if scope["type"] != "http":
-            await mcp_asgi(scope, receive, send)
-            return
-        headers = {k.decode().lower(): v.decode() for k, v in scope.get("headers", [])}
-        auth = headers.get("authorization", "")
-        user = None
-        if auth.lower().startswith("bearer "):
-            with app.state.pool.connection() as conn:
-                user = assistant_auth.resolve_bearer(conn, auth[7:].strip(), clock())
-        if user is None:
-            response = PlainTextResponse(
-                "unauthorized",
-                status_code=401,
-                headers={"WWW-Authenticate": assistant_auth.www_authenticate(cfg.public_base_url)},
-            )
-            await response(scope, receive, send)
-            return
-        token = assistant_tools.CURRENT_USER.set(user)
-        try:
-            await mcp_asgi(scope, receive, send)
-        finally:
-            assistant_tools.CURRENT_USER.reset(token)
+        request, through CURRENT_USER.
 
-    app.mount("/mcp", mcp_guarded)
+        An exact Route rather than a Mount (DECISIONS 286): a Mount answers
+        /mcp with a 307 to /mcp/ BEFORE anything here runs, so an assistant
+        following the redirect never saw the header it discovers the
+        authorization server from. A class, because Starlette treats a plain
+        function endpoint as a request handler and an object as an ASGI app.
+        """
+
+        async def __call__(self, scope, receive, send):  # type: ignore[no-untyped-def]
+            headers = {k.decode().lower(): v.decode() for k, v in scope.get("headers", [])}
+            auth = headers.get("authorization", "")
+            user = None
+            if auth.lower().startswith("bearer "):
+                with app.state.pool.connection() as conn:
+                    user = assistant_auth.resolve_bearer(conn, auth[7:].strip(), clock())
+            if user is None:
+                response = PlainTextResponse(
+                    "unauthorized",
+                    status_code=401,
+                    headers={
+                        "WWW-Authenticate": assistant_auth.www_authenticate(cfg.public_base_url)
+                    },
+                )
+                await response(scope, receive, send)
+                return
+            token = assistant_tools.CURRENT_USER.set(user)
+            try:
+                await mcp_asgi(scope, receive, send)
+            finally:
+                assistant_tools.CURRENT_USER.reset(token)
+
+    app.router.routes.append(
+        Route("/mcp", endpoint=GuardedMcp(), methods=["GET", "POST", "DELETE"])
+    )
 
     @app.get("/healthz")
     async def healthz(request: Request) -> JSONResponse:
