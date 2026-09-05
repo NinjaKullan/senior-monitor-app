@@ -275,7 +275,10 @@ def test_no_template_names_the_parent_it_is_about():
     number (216). So the allowlist is two names wide and each is justified,
     rather than open.
     """
-    ALLOWED = {"relationship", "owner_name"}
+    # "name" joined with spec 017 §6 (DECISIONS 274): the paused line names
+    # the parent, not the label — a pause is about a person, and the
+    # label may be unset while the pause is not.
+    ALLOWED = {"relationship", "owner_name", "name"}
     for template in TEMPLATES.values():
         assert set(template.variables) <= ALLOWED, (
             f"{template.id} takes {template.variables} — only {ALLOWED} are ruled"
