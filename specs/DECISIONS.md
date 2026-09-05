@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 288.** This line is the one to update; the `Next number:` lines inside
+**Next number: 291.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5908,3 +5908,47 @@ browser — all three adopted as the standard for future surfaces.**
      * Founder to brief Amma and Appa on the 👍 reply (still owed);
        phone-side ask to be reported when tried.
      * Next number: 288.
+
+288. **(2026-09-05, ~4:25pm ET) Phone-side acceptance for 019 done.**
+     Founder asked the Claude app "How's Amma" from a phone. Claude
+     returned Kettle's follow-on sentence intact, restated the heard
+     line and the Austin clock in its own words, and added one line of
+     its own advice (call her; offer the circle's contacts). No count,
+     no verdict, no how: the copy laws survived a second voice. Claude's
+     thinking label ("Assessing a possible wellness…") is Claude's, not
+     Kettle's, and is out of our hands. Nothing to change.
+     * Next number: 289.
+
+289. **(2026-09-05, ~6:00pm ET) Backlog, not ruled: other ways Kettle
+     can hear from a parent (home assistants, Alexa, Google Home, Home
+     Assistant, SmartThings) by giving the family per-signal ping
+     addresses and recipes; the family configures, Kettle only shows.
+     Founder: "we just show them and let them figure it out", later.**
+     * PM's one constraint for when it is specced: each address is
+       created as person-grade (the parent did something, e.g. a voice
+       routine) or household-grade (the house did, e.g. motion, a
+       plug); household-grade corroborates and never greens a verify
+       (product law, LAW-8). Filed in docs/feature-backlog.md §3 with
+       the 019 follow-ups.
+     * Founder texted Amma about the 👍 reply; Appa next.
+     * Next number: 290.
+
+290. **(2026-09-05, ~6:30pm ET) Spec 011 Amendment A (SMS for +1
+     parents) UPDATED for build; two rulings by Hema.**
+     * "They said yes" lives on the Family screen, on the parent's
+       setup row, admins only, shown only for a +1 phone with no
+       WhatsApp number and no consent yet; the script sits above it as
+       words to say; after the tap the row reads "Texts on" and the
+       welcome text goes once. `app_sms_consent(parent_id)` SECURITY
+       DEFINER, the 017 pattern. Strings in A.6.
+     * Amma stays on WhatsApp for now; "move Amma to texts" is on the
+       list for after the TestMom dark stage (a data change, not a
+       switch).
+     * References refreshed: migration numbered at build time (0030
+       next free), applied by PM; {{1}} still resolves through the
+       first admin (db.family_owner_name, unchanged by 015); paused and
+       demo parents skip above routing. A.8 console items 1 to 3 are
+       still the founder's, needed before the dark stage, not before
+       the build; PM to verify them in the founder's Chrome.
+     * Next: CC brief for Amendment A.
+     * Next number: 291.

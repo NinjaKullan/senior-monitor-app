@@ -145,6 +145,22 @@ before paying". Then give a top-10 with one sentence each on why.
   card. Size S. Clears if what-never-how. PM position: keep as is.
   Source: Asana 1218133142343268, revisit after flip.
 
+- [R] Other ways Kettle can hear from a parent (founder, Sep 5, after
+  spec 019 went live). A page on the parent's setup listing one ping
+  address per signal plus one-line recipes for Home Assistant,
+  SmartThings, IFTTT (Alexa, Google Home); the family configures it,
+  Kettle only shows the addresses. Each address answers one question
+  at creation: does it fire because the parent did something (voice
+  routine: person-grade) or because the house did (motion, plug:
+  household-grade, LAW-8, corroborates only). Per-address token,
+  revocable. Size M. Law check: clears with the person/house split;
+  app names are mechanism vocabulary on a setup page only (LAW-7).
+  Source: founder, DECISIONS 289.
+- [R] Assistant follow-ups from 019 (DECISIONS 287): Today card ruled
+  off the ledger; full stop before the heard line; ASSISTANTS_INTRO
+  says to set Kettle's tools to Always allow in Claude; CIMD instead
+  of DCR; add_note by voice (019 §11). Size S each.
+
 ## 4. Creative pass (unreviewed)
 
 Empty. Filled by the separate session per §0. Keep the date on each

@@ -257,11 +257,31 @@ separate gate, not a truthful label on the button that enrols. No
 extra screen, no checkbox. Rejected alternative: `sms_consent_utc`
 set by the provisioning script from a founder-attested call.
 
+Placement (RULED 2026-09-05, DECISIONS 290): the Family screen, on
+that parent's setup row, admins only (015), shown only when the parent
+has a +1 `phone_e164`, no `whatsapp_e164`, and no `sms_consent_utc`.
+Above the button, the consent script verbatim (228) as words to say.
+After the tap the row reads SMS_ROW_ON in place of SETUP_REPORTING,
+and the engine sends `sms_welcome` once. Written through a SECURITY
+DEFINER function `app_sms_consent(parent_id)` (admin only, same
+pattern as 017's pause); no client UPDATE on parents. Members see the
+row state, not the button. An opted-out parent's row reads
+SMS_ROW_STOPPED (family-facing copy for the rest of opt-out stays
+deferred, A.5).
+
+Strings (VERBATIM; copy laws), `copy.ts`:
+- SMS_SCRIPT_LABEL = "Say this to {name}, then tap the button."
+- SMS_CONSENT_BUTTON = "They said yes"
+- SMS_ROW_ON = "Texts on"
+- SMS_ROW_STOPPED = "Texts stopped by {name}"
+
+
 ### A.7 Data and config
 
-- Migration 0024 (renumbered from 0023, which families.demo took first; DECISIONS 246) (Studio, founder): `parents.sms_consent_utc
-  timestamptz null`, `parents.sms_opted_out_utc timestamptz null`.
-  No RLS change; no grants.
+- Migration numbered at build time (268; 0030 is the next free as of
+  Sep 5), applied to prod by PM (249): `parents.sms_consent_utc
+  timestamptz null`, `parents.sms_opted_out_utc timestamptz null`,
+  and `app_sms_consent(parent_id)` (A.6). No other RLS change.
 - New kind constant `KIND_SMS_WELCOME = "sms_welcome"`; ledger and
   scheduler treat it as send-once.
 - Secrets on kettle-api: `TWILIO_MESSAGING_SERVICE_SID`
@@ -277,7 +297,7 @@ set by the provisioning script from a founder-attested call.
    keywords default; HELP reply text = the filed HELP string (A.4).
 3. Phone Numbers → +1 984 370 4452 → confirm the SMS "Registration
    required" flag is gone (DECISIONS 230 left it unverified).
-4. Migration 0024 in Studio.
+4. Migration applied by PM (249), before `cd product && fly deploy`.
 5. Secrets: `fly secrets set TWILIO_MESSAGING_SERVICE_SID=…` then
    OUTBOUND_TRANSPORT.
 Report each as a triplet, per the 229 standing rule: a sender is not
@@ -307,6 +327,12 @@ ratified body; typed 👍 → `replied_utc` set, no follow_on; text STOP →
 `sms_opted_out_utc` set, ask row NOT answered, ops_alert row; text
 START → cleared; then restore `whatsapp_e164`. Result → one DECISIONS
 entry. Only then does a real +1 parent get enrolled by SMS.
+
+After the dark stage passes (founder, Sep 5): decide whether Amma's
+ask moves to SMS. Routing is unchanged, so that is a data change
+(clear her `whatsapp_e164`), not a switch; it is on the list, not
+ruled. The engine skips paused (017) and demo (0023) parents above
+every routing decision here, as it does for WhatsApp.
 
 ### A.11 Out of scope
 
