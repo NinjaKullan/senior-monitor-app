@@ -6,6 +6,8 @@ import {
   addSeat,
   claimMembership,
   deleteContact,
+  deleteEntry,
+  editEntry,
   leaveCircle,
   loadSnapshot,
   pauseParent,
@@ -228,6 +230,22 @@ export default function App() {
   const familyTz = snapshot.family.tz;
   const familyId = snapshot.family.id;
   const viewerId = session?.user?.id ?? null;
+  // Spec 018: the viewer's seat decides whose Edit and Delete render; the
+  // functions decide server-side regardless. Journal dates render on the
+  // viewer's own clock (DECISIONS 279); the family zone stays for parents.
+  const viewer = {
+    memberId: snapshot.members.find((m) => m.auth_user_id === viewerId)?.id ?? null,
+    admin: isAdmin(snapshot.members, viewerId),
+  };
+  const viewerTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const editNote = async (entryId: number, body: string) => {
+    await editEntry(entryId, body);
+    await refresh();
+  };
+  const deleteNote = async (entryId: number) => {
+    await deleteEntry(entryId);
+    await refresh();
+  };
 
   // Spec 015 §8: choosing a circle is remembered and reloads the snapshot;
   // the open parent closes because it belonged to the other household.
@@ -410,10 +428,13 @@ export default function App() {
             state={openState}
             notes={snapshot.journalByParent[openState.parentId] ?? []}
             todayDate={todayDate}
-            tz={familyTz}
+            tz={viewerTz}
             onBack={() => setOpenParentId(null)}
             onAddNote={addNote}
             onAddReply={addReply}
+            viewer={viewer}
+            onEdit={editNote}
+            onDelete={deleteNote}
             onSteps={() => navigate("family")}
           />
         ) : (
@@ -424,9 +445,12 @@ export default function App() {
           parentLabels={states.map((s) => ({ parentId: s.parentId, label: s.label }))}
           journal={snapshot.journal}
           todayDate={todayDate}
-          tz={familyTz}
+          tz={viewerTz}
           onAddNote={addNote}
           onAddReply={addReply}
+          viewer={viewer}
+          onEdit={editNote}
+          onDelete={deleteNote}
         />
       )}
       {tab === "who" && (

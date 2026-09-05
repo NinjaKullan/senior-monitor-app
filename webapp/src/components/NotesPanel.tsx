@@ -9,11 +9,20 @@
  * Nothing here asks anything of a parent, and nothing turns into a chore.
  */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ADDED_BY,
   AUTHOR_FALLBACK,
+  COMPOSER_FAILED,
   DATE_CHIP_LABEL,
+  DELETE_CANCEL,
+  DELETE_CONFIRM_YES,
+  DELETE_LINK,
+  DELETE_NOTE_CONFIRM,
+  DELETE_REPLY_CONFIRM,
+  EDITED_MARK,
+  EDIT_CANCEL,
+  EDIT_LINK,
   EVENT_FOR,
   NOTES_SUB,
   NOTES_TITLE,
@@ -24,11 +33,14 @@ import {
   REPLY_LINK,
   REPLY_PLACEHOLDER,
   REPLY_SUBMIT,
+  SAVE,
   SIGNED_AS_LABEL,
   UPCOMING_LABEL,
   UPCOMING_ON,
 } from "@/lib/copy";
 import {
+  canDelete,
+  canEdit,
   canReply,
   firstLine,
   linkify,
@@ -39,6 +51,7 @@ import {
   splitThreads,
   upcomingEntries,
   weekdayMonthDay,
+  type Viewer,
 } from "@/lib/journal";
 import type { JournalEntry } from "@/lib/types";
 
@@ -80,35 +93,44 @@ export interface TagOption {
   label: string;
 }
 
-/** A note's replies, indented beneath it (spec 016 §4; DECISIONS 277: in
- *  the upcoming strip as well as the list — the sibling who writes "I'll
- *  take her" the day before must be visible the day before). */
-function Replies({ replies, tz }: { replies: JournalEntry[]; tz: string }) {
-  return (
-    <>
-      {replies.map((reply) => (
-        <div
-          key={reply.id}
-          data-testid="note-reply"
-          style={{
-            marginTop: "0.5rem",
-            marginLeft: "1rem",
-            paddingLeft: "0.75rem",
-            borderLeft: "2px solid var(--hair)",
-          }}
-        >
-          <div
-            style={{ fontSize: "0.71875rem", color: "var(--mute)", letterSpacing: ".03em", fontWeight: 600 }}
-            data-testid="reply-meta"
-          >
-            {monthDay(localDay(reply.created_utc, tz))} · {reply.author_label || AUTHOR_FALLBACK}
-          </div>
-          <Body body={reply.body} />
-        </div>
-      ))}
-    </>
-  );
-}
+const PILL_INPUT: React.CSSProperties = {
+  flex: "1 1 10rem",
+  background: "var(--paper)",
+  border: "1px solid var(--hair)",
+  borderRadius: "999px",
+  padding: "0.5rem 0.875rem",
+  fontSize: "0.8125rem",
+  color: "var(--ink)",
+  minHeight: "2.75rem",
+  boxSizing: "border-box",
+};
+const PILL_BUTTON: React.CSSProperties = {
+  border: "1px solid var(--hair)",
+  borderRadius: "999px",
+  padding: "0.5rem 0.875rem",
+  fontSize: "0.8125rem",
+  color: "var(--inkmid)",
+  background: "var(--card)",
+  cursor: "pointer",
+  minHeight: "2.75rem",
+};
+const PILL_PRIMARY: React.CSSProperties = {
+  ...PILL_BUTTON,
+  border: "1px solid var(--copperbd)",
+  fontWeight: 600,
+  color: "var(--copperdeep)",
+  background: "var(--coppertint)",
+};
+const LINK_BUTTON: React.CSSProperties = {
+  background: "none",
+  border: "none",
+  padding: 0,
+  fontSize: "0.71875rem",
+  fontWeight: 600,
+  letterSpacing: ".03em",
+  color: "var(--copperdeep)",
+  cursor: "pointer",
+};
 
 function Body({ body }: { body: string }) {
   return (
@@ -142,6 +164,9 @@ export function NotesPanel({
   tz,
   onAdd,
   onReply,
+  viewer,
+  onEdit,
+  onDelete,
   /** Fixed tag (the parent page) or a picker over these options (Family). */
   tagOptions,
   fixedParentId,
@@ -161,6 +186,11 @@ export function NotesPanel({
   onAdd: (draft: NoteDraft) => Promise<void>;
   /** Spec 016 §4: the Reply link renders only when this is given. */
   onReply?: (draft: ReplyDraft) => Promise<void>;
+  /** Spec 018: who is looking decides which Edit and Delete links render;
+   *  without a viewer, none do. */
+  viewer?: Viewer;
+  onEdit?: (entryId: number, body: string) => Promise<void>;
+  onDelete?: (entryId: number) => Promise<void>;
   tagOptions?: TagOption[];
   fixedParentId?: string | null;
   tagLabelFor?: (entry: JournalEntry) => string;
@@ -190,35 +220,203 @@ export function NotesPanel({
   /** The note whose reply composer is open, and what is typed in it. */
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyBody, setReplyBody] = useState("");
+  /**
+   * Spec 018 §2, the optimistic composer. A sent note or reply appears in
+   * the list at once as a PENDING row (a negative id nothing on the server
+   * can collide with); the composer clears and LOCKS until the server
+   * answers, so Enter and Add are one action that cannot fire twice; on
+   * failure the row is removed and the text returns with COMPOSER_FAILED.
+   * A ref, not only state, guards the lock: two events in one tick see the
+   * same state and would both pass a state check.
+   */
+  const [pending, setPending] = useState<JournalEntry[]>([]);
+  const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
+  const [failed, setFailed] = useState<string | null>(null);
+  const [replyFailed, setReplyFailed] = useState<string | null>(null);
+  /** Spec 018 §4: the entry being edited inline, and the confirm line's target. */
+  const [editing, setEditing] = useState<{ id: number; body: string } | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   // Spec 016: the strip and the feed are NOTES; replies hang under theirs.
-  const { notes, repliesByNote } = splitThreads(entries);
+  // Pending rows ride in front, where a just-written note belongs.
+  const { notes, repliesByNote } = splitThreads([...pending, ...entries]);
   const upcoming = upcomingEntries(notes, todayDate);
   const past = pastEntries(notes, todayDate);
 
+  function optimistic(fields: Partial<JournalEntry>): JournalEntry {
+    return {
+      id: -Date.now() - Math.floor(Math.random() * 1000),
+      family_id: entries[0]?.family_id ?? "",
+      parent_id: null,
+      author_label: author.trim(),
+      body: "",
+      event_date: null,
+      created_utc: new Date().toISOString(),
+      kind: "note",
+      parent_entry_id: null,
+      author_member_id: viewer?.memberId ?? null,
+      edited_utc: null,
+      ...fields,
+    };
+  }
+
   async function submitReply(parentEntryId: number) {
     const trimmed = replyBody.trim();
-    if (!trimmed || !onReply) return;
+    if (!trimmed || !onReply || sendingRef.current) return;
+    sendingRef.current = true;
+    setSending(true);
+    setReplyFailed(null);
     rememberAuthor(author);
-    await onReply({ parentEntryId, body: trimmed, authorLabel: author.trim() });
+    const row = optimistic({ body: trimmed, parent_entry_id: parentEntryId });
+    setPending((rows) => [row, ...rows]);
     setReplyBody("");
     setReplyingTo(null);
+    try {
+      await onReply({ parentEntryId, body: trimmed, authorLabel: author.trim() });
+    } catch {
+      setReplyBody(trimmed);
+      setReplyingTo(parentEntryId);
+      setReplyFailed(COMPOSER_FAILED);
+    } finally {
+      setPending((rows) => rows.filter((r) => r.id !== row.id));
+      sendingRef.current = false;
+      setSending(false);
+    }
   }
 
   async function submit() {
     const trimmed = body.trim();
-    if (!trimmed) return;
+    if (!trimmed || sendingRef.current) return;
+    sendingRef.current = true;
+    setSending(true);
+    setFailed(null);
     rememberAuthor(author);
-    await onAdd({
-      parentId: fixedParentId !== undefined ? fixedParentId : tag === "" ? null : tag,
+    const parentId = fixedParentId !== undefined ? fixedParentId : tag === "" ? null : tag;
+    const draft: NoteDraft = {
+      parentId,
       body: trimmed,
       authorLabel: author.trim(),
       eventDate: eventDate || null,
-    });
+    };
+    const row = optimistic({ body: trimmed, parent_id: parentId, event_date: draft.eventDate });
+    setPending((rows) => [row, ...rows]);
     setBody("");
     setEventDate("");
     setShowDate(false);
     setExpanded(false);
+    try {
+      await onAdd(draft);
+    } catch {
+      setBody(trimmed);
+      setEventDate(draft.eventDate ?? "");
+      setFailed(COMPOSER_FAILED);
+    } finally {
+      setPending((rows) => rows.filter((r) => r.id !== row.id));
+      sendingRef.current = false;
+      setSending(false);
+    }
+  }
+
+  async function saveEdit() {
+    if (!editing || !onEdit) return;
+    const trimmed = editing.body.trim();
+    if (!trimmed) return;
+    await onEdit(editing.id, trimmed);
+    setEditing(null);
+  }
+
+  async function confirmDelete(entryId: number) {
+    if (!onDelete) return;
+    await onDelete(entryId);
+    setDeleting(null);
+  }
+
+  /** "Aug 22 · edited · Priya": the date, the mark when edited, the author. */
+  function metaFor(entry: JournalEntry): string {
+    const date = monthDay(localDay(entry.created_utc, tz));
+    const mark = entry.edited_utc ? ` · ${EDITED_MARK}` : "";
+    return `${date}${mark} · ${entry.author_label || AUTHOR_FALLBACK}`;
+  }
+
+  /** The Edit and Delete links, the inline editor and the confirm line, for
+   *  a note or a reply (spec 018 §4). Nothing renders on a pending row. */
+  function renderControls(entry: JournalEntry, isReply: boolean) {
+    if (!viewer || entry.id < 0) return null;
+    const editable = Boolean(onEdit) && canEdit(entry, viewer);
+    const deletable = Boolean(onDelete) && canDelete(entry, viewer);
+    if (!editable && !deletable) return null;
+    if (editing?.id === entry.id) {
+      return (
+        <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.375rem", flexWrap: "wrap" }} data-testid="edit-composer">
+          <input
+            type="text"
+            value={editing.body}
+            autoFocus
+            maxLength={2000}
+            onChange={(event) => setEditing({ id: entry.id, body: event.target.value })}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") void saveEdit();
+              if (event.key === "Escape") setEditing(null);
+            }}
+            style={PILL_INPUT}
+            data-testid="edit-input"
+          />
+          <button type="button" onClick={() => void saveEdit()} style={PILL_PRIMARY} data-testid="edit-save">
+            {SAVE}
+          </button>
+          <button type="button" onClick={() => setEditing(null)} style={PILL_BUTTON} data-testid="edit-cancel">
+            {EDIT_CANCEL}
+          </button>
+        </div>
+      );
+    }
+    if (deleting === entry.id) {
+      return (
+        <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.375rem", alignItems: "center", flexWrap: "wrap", fontSize: "0.8125rem" }} data-testid="delete-confirm">
+          {isReply ? DELETE_REPLY_CONFIRM : DELETE_NOTE_CONFIRM}
+          <button type="button" onClick={() => void confirmDelete(entry.id)} style={PILL_BUTTON} data-testid="delete-yes">
+            {DELETE_CONFIRM_YES}
+          </button>
+          <button type="button" onClick={() => setDeleting(null)} style={PILL_BUTTON} data-testid="delete-cancel">
+            {DELETE_CANCEL}
+          </button>
+        </div>
+      );
+    }
+    return (
+      <span style={{ display: "inline-flex", gap: "0.75rem", marginLeft: "0.75rem" }}>
+        {editable && (
+          <button type="button" style={LINK_BUTTON} data-testid="edit-link" onClick={() => setEditing({ id: entry.id, body: entry.body })}>
+            {EDIT_LINK}
+          </button>
+        )}
+        {deletable && (
+          <button type="button" style={LINK_BUTTON} data-testid="delete-link" onClick={() => setDeleting(entry.id)}>
+            {DELETE_LINK}
+          </button>
+        )}
+      </span>
+    );
+  }
+
+  /** A note's replies, indented beneath it (spec 016 §4; DECISIONS 277: in
+   *  the upcoming strip as well as the list). */
+  function renderReplies(noteId: number) {
+    return (repliesByNote.get(noteId) ?? []).map((reply) => (
+      <div
+        key={reply.id}
+        data-testid="note-reply"
+        data-pending={reply.id < 0 ? "true" : undefined}
+        style={{ marginTop: "0.5rem", marginLeft: "1rem", paddingLeft: "0.75rem", borderLeft: "2px solid var(--hair)" }}
+      >
+        <div style={{ fontSize: "0.71875rem", color: "var(--mute)", letterSpacing: ".03em", fontWeight: 600 }} data-testid="reply-meta">
+          {metaFor(reply)}
+          {renderControls(reply, true)}
+        </div>
+        {editing?.id === reply.id ? null : <Body body={reply.body} />}
+      </div>
+    ));
   }
 
   return (
@@ -287,7 +485,7 @@ export function NotesPanel({
           )}
           {" · "}
           {ADDED_BY.replace("{author}", entry.author_label || AUTHOR_FALLBACK)}
-          <Replies replies={repliesByNote.get(entry.id) ?? []} tz={tz} />
+          {renderReplies(entry.id)}
         </div>
       ))}
 
@@ -326,6 +524,7 @@ export function NotesPanel({
               borderTop: index === 0 || monthSeparators ? "none" : "1px solid var(--hair)",
             }}
             data-testid="note-entry"
+            data-pending={entry.id < 0 ? "true" : undefined}
           >
           <div
             style={{
@@ -337,12 +536,12 @@ export function NotesPanel({
             data-testid="note-meta"
           >
             {tagLabelFor ? `${tagLabelFor(entry)} · ` : ""}
-            {monthDay(localDay(entry.created_utc, tz))} ·{" "}
-            {entry.author_label || AUTHOR_FALLBACK}
+            {metaFor(entry)}
             {entry.event_date ? ` · ${EVENT_FOR.replace("{date}", monthDay(entry.event_date))}` : ""}
+            {renderControls(entry, false)}
           </div>
-            <Body body={entry.body} />
-            <Replies replies={repliesByNote.get(entry.id) ?? []} tz={tz} />
+            {editing?.id === entry.id ? null : <Body body={entry.body} />}
+            {renderReplies(entry.id)}
             {onReply && canReply(entry) && replyingTo !== entry.id && (
               <button
                 type="button"
@@ -394,6 +593,7 @@ export function NotesPanel({
                     boxSizing: "border-box",
                   }}
                   data-testid="reply-input"
+                  disabled={sending}
                 />
                 <button
                   type="button"
@@ -410,9 +610,15 @@ export function NotesPanel({
                     minHeight: "2.75rem",
                   }}
                   data-testid="reply-submit"
+                  disabled={sending}
                 >
                   {REPLY_SUBMIT}
                 </button>
+                {replyFailed && (
+                  <span style={{ flexBasis: "100%", fontSize: "0.78125rem", color: "var(--ink2)" }} data-testid="reply-failed">
+                    {replyFailed}
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => setReplyingTo(null)}
@@ -449,6 +655,7 @@ export function NotesPanel({
             if (event.key === "Enter") void submit();
           }}
           maxLength={2000}
+          disabled={sending}
           style={{
             flex: "1 1 12rem",
             background: "var(--paper)",
@@ -513,10 +720,16 @@ export function NotesPanel({
             minHeight: "2.75rem",
           }}
           data-testid="note-submit"
+          disabled={sending}
         >
           {NOTE_SUBMIT_LABEL}
         </button>
       </div>
+      {failed && (
+        <div style={{ marginTop: "0.375rem", fontSize: "0.78125rem", color: "var(--ink2)" }} data-testid="composer-failed">
+          {failed}
+        </div>
+      )}
       {expanded && (
         <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
           {tagOptions && fixedParentId === undefined && (
