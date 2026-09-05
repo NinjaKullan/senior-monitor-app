@@ -22,6 +22,7 @@ from typing import Any
 import anyio
 import psycopg
 from mcp.server.mcpserver import MCPServer
+from mcp.types import ToolAnnotations
 
 from kettle import assistant_copy as copy
 from kettle import db
@@ -39,6 +40,9 @@ KIND_WORDS = {
     "all_clear": copy.ALL_CLEAR_SENT,
 }
 MEMORY_CAP = 40
+#: Every tool reads and nothing else (spec 019 §1; DECISIONS 286): said in the
+#: annotations, so the assistant does not ask permission on every question.
+READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=False)
 DAY_FLOOR = timedelta(days=60)
 
 
@@ -328,7 +332,7 @@ def build_server(connect: Callable[[], Any], clock: Callable[[], datetime] = now
         circles = circles_for(conn, user)
         return circles, parents_in(conn, [c["id"] for c in circles])
 
-    @server.tool(name="today", description=copy.TOOL_TODAY)
+    @server.tool(name="today", description=copy.TOOL_TODAY, annotations=READ_ONLY)
     async def today(parent: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
             circles, parents = visible(conn, user)
@@ -341,7 +345,7 @@ def build_server(connect: Callable[[], Any], clock: Callable[[], datetime] = now
 
         return await anyio.to_thread.run_sync(run(go))
 
-    @server.tool(name="parent_day", description=copy.TOOL_PARENT_DAY)
+    @server.tool(name="parent_day", description=copy.TOOL_PARENT_DAY, annotations=READ_ONLY)
     async def parent_day(parent: str, date: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
             _, parents = visible(conn, user)
@@ -363,7 +367,7 @@ def build_server(connect: Callable[[], Any], clock: Callable[[], datetime] = now
 
         return await anyio.to_thread.run_sync(run(go))
 
-    @server.tool(name="memory", description=copy.TOOL_MEMORY)
+    @server.tool(name="memory", description=copy.TOOL_MEMORY, annotations=READ_ONLY)
     async def memory(parent: str | None = None, since: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
             circles, parents = visible(conn, user)
@@ -378,7 +382,7 @@ def build_server(connect: Callable[[], Any], clock: Callable[[], datetime] = now
 
         return await anyio.to_thread.run_sync(run(go))
 
-    @server.tool(name="who_to_call", description=copy.TOOL_WHO_TO_CALL)
+    @server.tool(name="who_to_call", description=copy.TOOL_WHO_TO_CALL, annotations=READ_ONLY)
     async def who_to_call(parent: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
             _, parents = visible(conn, user)
@@ -391,7 +395,7 @@ def build_server(connect: Callable[[], Any], clock: Callable[[], datetime] = now
 
         return await anyio.to_thread.run_sync(run(go))
 
-    @server.tool(name="circles", description=copy.TOOL_CIRCLES)
+    @server.tool(name="circles", description=copy.TOOL_CIRCLES, annotations=READ_ONLY)
     async def circles() -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
             found = circles_for(conn, user)
