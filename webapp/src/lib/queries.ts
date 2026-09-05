@@ -31,7 +31,10 @@ export const READ_SURFACE = {
   // city_label (§5, the city line; the tz control since spec 010). Spec 010
   // adds tz_changed_utc: the changeover-day marker the Recent-days dots
   // classify by — an instant, never rendered as text.
-  parents: "id, family_id, display_name, tz, phone_e164, whatsapp_e164, relationship, city_label, tz_changed_utc",
+  // Spec 017 adds the pause pair: paused_until (an instant, or "infinity"
+  // for the open-ended pause) and paused_since; rendered only as the
+  // family-day date of paused_until, never as an instant.
+  parents: "id, family_id, display_name, tz, phone_e164, whatsapp_e164, relationship, city_label, tz_changed_utc, paused_until, paused_since",
   // Spec 015: the seats list. auth_user_id is read for two facts and rendered
   // for neither — null means "Not signed in yet", and equality with the
   // session's own id marks the viewer's own row (the mail switch). `mail` is

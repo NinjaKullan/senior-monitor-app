@@ -261,6 +261,20 @@ export const SETUP_TITLE = "Setup";
 export const SETUP_READY = "Ready to send";
 export const SETUP_REPORTING = "Set up and reporting";
 export const SETUP_NEEDS_LINK = "Needs a fresh link";
+
+/* Spec 017 §6, VERBATIM (DECISIONS 274): pause Kettle for one parent. */
+export const PAUSE_LINK = "Pause Kettle";
+export const PAUSE_WEEK = "For a week";
+export const PAUSE_OPEN = "Until I turn it back on";
+export const PAUSE_CANCEL = "Not now";
+export const PAUSED_CARD = "Kettle is paused for {name}.";
+export const PAUSED_UNTIL = "Back on {date}.";
+export const PAUSED_OPEN_ENDED = "Until someone turns it back on.";
+export const RESUME_BUTTON = "Turn Kettle back on";
+export const PAUSED_SETUP = "Paused";
+/** The digest's line lives product-side (outbound_templates); named here
+ *  only so the copy-law walk and the spec read the same words. */
+export const PAUSED_DIGEST = "Kettle is paused for {name}. Nothing to report.";
 export const SETUP_SEND_LABEL = "Send on WhatsApp";
 export const SETUP_EXPIRES = "Link works until {date}";
 export const SETUP_HOW = [

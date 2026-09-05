@@ -16,6 +16,8 @@
  */
 
 import {
+  PAUSED_OPEN_ENDED,
+  PAUSED_UNTIL,
   ARC_AHEAD,
   ARC_HEARD,
   ARC_QUIET,
@@ -123,6 +125,12 @@ export interface ParentToday {
   famSub: string;
   needsFix: boolean;
   timeZone: string;
+  /** Spec 017: Kettle is paused for this parent right now. The card shows
+   *  PAUSED_CARD and `pausedLine` instead of a day; the rollup and the
+   *  footer leave a paused parent out, neither quiet nor normal. */
+  paused: boolean;
+  /** "Back on Sep 11." (family-day date) or "Until someone turns it back on." */
+  pausedLine: string | null;
 }
 
 export function localHourMinute(
@@ -243,6 +251,8 @@ export function computeParentToday(
 ): ParentToday {
   const timeZone = effectiveTz(parent.tz, familyTz);
   const label = labelFor(parent);
+  const paused = isPaused(parent, now);
+  const pausedLine = paused ? pausedLineFor(parent, familyTz) : null;
   const clock = renderClock(label);
   const alarm = alarmGradeSignals(signals, parent.id);
 
@@ -428,6 +438,8 @@ export function computeParentToday(
     famSub: tzNote.replace(/\.$/, ""),
     needsFix: tripwires.needsRepair,
     timeZone,
+    paused,
+    pausedLine,
   };
 }
 
@@ -435,11 +447,36 @@ export function computeParentToday(
  * The Today rollup (spec 009 §2), precedence unreachable > quiet > normal,
  * and its next-note sub-line flipped on the family-local evening digest slot.
  */
+/* --- spec 017: the pause ------------------------------------------------- */
+
+/** Paused right now: an instant ahead of `now`, or the open-ended
+ *  "infinity" PostgREST returns for the open-ended pause. */
+export function isPaused(parent: Pick<Parent, "paused_until">, now: Date): boolean {
+  const until = parent.paused_until;
+  if (until === null) return false;
+  if (until === "infinity") return true;
+  return new Date(until).getTime() > now.getTime();
+}
+
+/** The card's second line while paused (§5): the family-day date the pause
+ *  ends on, or the open-ended sentence. */
+export function pausedLineFor(parent: Pick<Parent, "paused_until">, familyTz: string): string {
+  const until = parent.paused_until;
+  if (until === null || until === "infinity") return PAUSED_OPEN_ENDED;
+  const day = new Intl.DateTimeFormat("en-US", { timeZone: familyTz, month: "short", day: "numeric" }).format(
+    new Date(until),
+  );
+  return PAUSED_UNTIL.replace("{date}", day);
+}
+
 export function computeRollup(
-  states: ParentToday[],
+  allStates: ParentToday[],
   familyTz: string,
   now: Date,
 ): { line: string; sub: string } {
+  // A paused parent is neither quiet nor normal: the rollup is about the
+  // parents Kettle is watching (spec 017).
+  const states = allStates.filter((s) => !s.paused);
   const firstUnreachable = states.find((s) => s.kind === "unreachable");
   const quiet = states.filter((s) => s.kind === "quiet");
   const line = firstUnreachable
