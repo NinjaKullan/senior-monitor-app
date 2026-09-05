@@ -400,6 +400,20 @@ export async function leaveCircle(familyId: string): Promise<void> {
   if (error) throw error;
 }
 
+/* --- edit and delete (spec 018 §3) --------------------------------------- */
+
+/** Two SECURITY DEFINER functions are the only paths after the insert (0028):
+ *  the author edits their own text; the author or an admin deletes. */
+export async function editEntry(entryId: number, body: string): Promise<void> {
+  const { error } = await supabase.rpc("app_edit_entry", { p_entry_id: entryId, p_body: body });
+  if (error) throw error;
+}
+
+export async function deleteEntry(entryId: number): Promise<void> {
+  const { error } = await supabase.rpc("app_delete_entry", { p_entry_id: entryId });
+  if (error) throw error;
+}
+
 /* --- the pause (spec 017 §3) --------------------------------------------- */
 
 /** Admin only, checked server-side (0027). "week" is seven days from now;

@@ -51,6 +51,11 @@ export interface JournalEntry {
    *  the schema refuses a reply to a reply — and a reply inherits the note's
    *  parent tag (the trigger writes it) and carries no event date. */
   parent_entry_id: number | null;
+  /** Spec 018: the seat that wrote it, set server-side from the JWT; null
+   *  on Kettle's lines and on rows from before the column existed. */
+  author_member_id: string | null;
+  /** Spec 018: when the author last edited it; null = never. */
+  edited_utc: string | null;
 }
 
 /** One line of the family's own contacts sheet (spec 012 §4). UNLIKE the
