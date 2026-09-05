@@ -6090,4 +6090,24 @@ browser — all three adopted as the standard for future surfaces.**
      directory; the custom-app route needs Developer mode and a plan
      that offers it (Business/Enterprise/Edu; Pro for read-only). A
      directory listing is a separate, later submission (backlog).
-     * Next number: 296.
+
+296. **(2026-09-06) Small build, four items, on main (287 backlog b and c,
+     294 side finding, ASSISTANTS_INTRO sentence).**
+     * Assistant answers: `join_sentences` closes every part with a full
+       stop before the next begins; the heard line and the city line are
+       sentences of their own. The test that let a bare "Heard from 12
+       minutes ago" through now asserts the closed form.
+     * CIMD beside DCR: a client_id that is an https URL is fetched (5 s
+       timeout, cached an hour per URL), must name itself, and its
+       redirect_uris and client_name are the registration. Discovery says
+       `client_id_metadata_document_supported`. One judgement call: the
+       requests and grants tables reference assistant_clients (0029), so
+       a CIMD client is MIRRORED as one row keyed by its URL and refreshed
+       from the document, never a kc_ row per connect; a revoke cascades
+       as before, and no migration was needed. If the PM would rather
+       drop the references, that is a 0031.
+     * Heartbeat skips a demo family's parents at the loop's top, the
+       outbound engine's placement; the infra (24 h) check is per family
+       and untouched, as briefed.
+     * Counts: root pytest 803 → 810 (product 756 → 763); webapp 276.
+     * Next number: 297.
