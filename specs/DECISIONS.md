@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 279.** This line is the one to update; the `Next number:` lines inside
+**Next number: 282.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5674,3 +5674,48 @@ browser — all three adopted as the standard for future surfaces.**
      * Build: one CC pass, first thing Sat Sep 5; migration numbered
        at build time; deploy when green with the founder watching.
      * Next number: 281.
+
+## Spec 018 build notes (implementer, 2026-09-05)
+
+281. **(2026-09-05) Spec 018 (notes: edit, delete, optimistic composer,
+     viewer-zone dates) BUILT, product and webapp, merged to main; NOT
+     deployed; migration NOT applied.** Migration file:
+     `product/migrations/0028_notes_edit_delete.sql`. Five commits by
+     concern.
+     * **Where the spec and the code disagreed — none of substance.**
+       Two small readings, filed so nobody is surprised: (a) §4 says
+       "dates and times" in the viewer's zone; the panel renders DATES
+       only (there has never been a time on a note), so the change is
+       the day the date names; the family zone still feeds the parents'
+       clocks and nothing else; (b) §2's "the composer clears and locks"
+       — the lock is a ref as well as state, because the founder's
+       double post is two events in one tick, and a state-only lock
+       passes its own test while letting the second fire through
+       (found by the plant: with one event per render the DISABLED
+       field was doing the lock's job, so the test now fires
+       Enter-Add-Enter inside one React batch).
+     * **Judgement calls:** (a) the timeframe filter keys on the
+       viewer's day too, so a note labelled "Sep 4" is never filtered
+       as Sep 5; (b) a pending (optimistic) row carries no Edit, Delete
+       or Reply link and a negative id nothing on the server can
+       collide with; the real row arrives with the refresh the App
+       awaits inside onAdd, so the pending row is dropped only after
+       that resolves — no flicker, no gap; (c) the edited mark reads
+       "Sep 1 · edited · Hema"; (d) a legacy row's Edit and Delete
+       render for admins only, matching the functions; (e) a forged
+       client author is overwritten rather than refused — refusing
+       would break every insert from an app that does not know the
+       column yet.
+     * **Counts:** root `pytest` **674** (eleven new), webapp **253**
+       (thirteen new), ruff clean, Postgres up before and after.
+     * **Verified by planting** (six): trigger trusting the client's
+       author, admin edit allowed (schema), delete opened to any member,
+       admin edit allowed (webapp), the composer lock removed, failure
+       losing the text — each failed by name.
+     * **Deploy order:** PM applies 0028 (it replaces the 0026 trigger
+       function in place and adds two columns) → `cd webapp && fly
+       deploy` (the journal read asks for the two columns first). No
+       product deploy needed; the backend's journal writers are
+       untouched and their rows simply get a null author. PM data fix
+       from §7 (Suryaprakasam tz → America/New_York) is independent.
+     * Next number: 282.

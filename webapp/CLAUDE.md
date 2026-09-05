@@ -41,7 +41,14 @@ tripwire-health exemption and why it is safe.
   scoped to `data-testid="contact-phone"` and removed as a NODE before the copy
   scan's digit walk. The exemption is the element, never the digits; a number
   rendered anywhere else still fails the scan, and a plant proves it.
-- **The journal is insert-only; contacts are editable.** A note is record and a
+- **Journal dates render on the VIEWER's clock, parents' clocks on the family's.**
+  DECISIONS 279/spec 018: a note is dated the way a messaging app dates it. The
+  family zone still drives every parent-facing time. A test holds 03:30Z as two
+  different days for New York and Kolkata viewers.
+- **Notes are edited and deleted only through the 0028 functions.** The author
+  edits their own; the author or an admin deletes; Kettle's lines never. The
+  panel renders links only where the functions would say yes.
+- **The journal is insert-only from the client's own SQL; contacts are editable.** A note is record and a
   correction is a new entry; a contact is reference data the family owns and may
   change or remove. Kettle's own lines (spec 012 §3) are written by the backend,
   never this app — the one auto note the app writes is the city change, and it now
