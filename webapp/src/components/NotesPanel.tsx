@@ -80,6 +80,36 @@ export interface TagOption {
   label: string;
 }
 
+/** A note's replies, indented beneath it (spec 016 §4; DECISIONS 277: in
+ *  the upcoming strip as well as the list — the sibling who writes "I'll
+ *  take her" the day before must be visible the day before). */
+function Replies({ replies, tz }: { replies: JournalEntry[]; tz: string }) {
+  return (
+    <>
+      {replies.map((reply) => (
+        <div
+          key={reply.id}
+          data-testid="note-reply"
+          style={{
+            marginTop: "0.5rem",
+            marginLeft: "1rem",
+            paddingLeft: "0.75rem",
+            borderLeft: "2px solid var(--hair)",
+          }}
+        >
+          <div
+            style={{ fontSize: "0.71875rem", color: "var(--mute)", letterSpacing: ".03em", fontWeight: 600 }}
+            data-testid="reply-meta"
+          >
+            {monthDay(localDay(reply.created_utc, tz))} · {reply.author_label || AUTHOR_FALLBACK}
+          </div>
+          <Body body={reply.body} />
+        </div>
+      ))}
+    </>
+  );
+}
+
 function Body({ body }: { body: string }) {
   return (
     <p style={{ fontSize: "0.875rem", lineHeight: 1.5, marginTop: "0.1875rem", margin: 0, overflowWrap: "anywhere" }}>
@@ -257,6 +287,7 @@ export function NotesPanel({
           )}
           {" · "}
           {ADDED_BY.replace("{author}", entry.author_label || AUTHOR_FALLBACK)}
+          <Replies replies={repliesByNote.get(entry.id) ?? []} tz={tz} />
         </div>
       ))}
 
@@ -311,26 +342,7 @@ export function NotesPanel({
             {entry.event_date ? ` · ${EVENT_FOR.replace("{date}", monthDay(entry.event_date))}` : ""}
           </div>
             <Body body={entry.body} />
-            {(repliesByNote.get(entry.id) ?? []).map((reply) => (
-              <div
-                key={reply.id}
-                data-testid="note-reply"
-                style={{
-                  marginTop: "0.5rem",
-                  marginLeft: "1rem",
-                  paddingLeft: "0.75rem",
-                  borderLeft: "2px solid var(--hair)",
-                }}
-              >
-                <div
-                  style={{ fontSize: "0.71875rem", color: "var(--mute)", letterSpacing: ".03em", fontWeight: 600 }}
-                  data-testid="reply-meta"
-                >
-                  {monthDay(localDay(reply.created_utc, tz))} · {reply.author_label || AUTHOR_FALLBACK}
-                </div>
-                <Body body={reply.body} />
-              </div>
-            ))}
+            <Replies replies={repliesByNote.get(entry.id) ?? []} tz={tz} />
             {onReply && canReply(entry) && replyingTo !== entry.id && (
               <button
                 type="button"

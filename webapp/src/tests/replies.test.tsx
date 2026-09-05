@@ -126,13 +126,17 @@ describe("how replies render", () => {
     expect(lineEntry).not.toContainElement(replies[1]);
   });
 
-  it("the upcoming strip shows the note only", () => {
+  it("the upcoming strip shows a note's replies beneath it (DECISIONS 277)", () => {
     const upcoming = entry({ id: 9, event_date: "2026-09-20", body: "Eye doctor" });
-    const reply = entry({ id: 10, parent_entry_id: 9, body: "I will take her" });
+    const reply = entry({ id: 10, parent_entry_id: 9, author_label: "Arun", body: "I will drive" });
     renderPanel([upcoming, reply]);
-    expect(screen.getByTestId("upcoming-entry")).toHaveTextContent("Eye doctor");
-    expect(screen.getByTestId("upcoming-entry")).not.toHaveTextContent("I will take her");
-    expect(screen.queryByTestId("note-reply")).toBeNull();
+    const strip = screen.getByTestId("upcoming-entry");
+    expect(strip).toHaveTextContent("Eye doctor");
+    expect(strip).toContainElement(screen.getByTestId("note-reply"));
+    expect(screen.getByTestId("note-reply")).toHaveTextContent("Aug 20 · Arun");
+    expect(screen.getByTestId("note-reply")).toHaveTextContent("I will drive");
+    // The strip stays a strip: no Reply link and no list entry for it.
+    expect(screen.queryByTestId("note-entry")).toBeNull();
   });
 });
 
