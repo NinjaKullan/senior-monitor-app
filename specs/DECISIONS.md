@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 287.** This line is the one to update; the `Next number:` lines inside
+**Next number: 288.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5875,3 +5875,36 @@ browser — all three adopted as the standard for future surfaces.**
        deploy` → PM curls `/mcp` for the 401 → founder connects on
        claude.ai and asks from the phone.
      * Next number: 287.
+
+287. **(2026-09-05, ~4:15pm ET) Spec 019 DEPLOYED and VERIFIED LIVE
+     (f52ac82; 0029 applied 286). Founder connected Kettle on claude.ai
+     as a custom connector; Claude detected OAuth and DCR from the
+     discovery documents with nothing typed but the address; the five
+     tools showed up grouped as read-only.**
+     * PM probed the door from the founder's browser before connecting:
+       POST /mcp with no token answered 401 with the resource_metadata
+       header on the first reply (no redirect), both .well-known
+       documents correct, healthz 200, Family screen showing the
+       Assistants section.
+     * Acceptance: PM called `today("Amma")` through the founder's own
+       connection. The answer was Kettle's follow-on, verbatim, because
+       today was Amma's first real changed morning: quiet note 8:30
+       Austin, WhatsApp ask 11:00, no reply, follow-on to the family
+       13:00. The founder's sister confirmed Amma was fine. The loop
+       worked end to end on its first real day, before the assistant
+       existed.
+     * One Claude-side step the spec did not know about: new connectors
+       default to "Needs approval" per tool; the founder set the
+       read-only group to "Always allow". ASSISTANTS_INTRO should say
+       so in one sentence (backlog).
+     * Backlog from the day: (a) the app's Today card said "Today looks
+       like a normal day" for Amma at 11:48 ET while the engine had
+       sent the quiet note at 9:30 ET; the card and the engine judge a
+       morning differently, and the ledger is the truth (019 §2) — rule
+       the card off the ledger; (b) assistant answers join sentences
+       without a full stop before the heard line; (c) CIMD instead of
+       DCR so each connect does not register a new client; (d) add_note
+       amendment (019 §11), not ruled.
+     * Founder to brief Amma and Appa on the 👍 reply (still owed);
+       phone-side ask to be reported when tried.
+     * Next number: 288.
