@@ -47,7 +47,8 @@ export const READ_SURFACE = {
   // Spec 009 §4: the family's notes. Grows without bound, so it NEVER rides
   // readAll — every read is newest-first with an explicit limit (the
   // DECISIONS 160 discipline), one bounded read per scope.
-  journal_entries: "id, family_id, parent_id, author_label, body, event_date, created_utc, kind",
+  // Spec 016: parent_entry_id is null on a note and the note's id on a reply.
+  journal_entries: "id, family_id, parent_id, author_label, body, event_date, created_utc, kind, parent_entry_id",
   // Spec 012 §4: the family's own contacts sheet — small by nature (a
   // handful of rows), read whole, ordered by position. phone_e164 exists
   // client-side solely to become a tel: href (the DECISIONS 167 law);

@@ -20,17 +20,23 @@ import {
   NOTE_PLACEHOLDER,
   NOTE_SUBMIT_LABEL,
   NOTE_TAG_LABEL,
+  REPLY_CANCEL,
+  REPLY_LINK,
+  REPLY_PLACEHOLDER,
+  REPLY_SUBMIT,
   SIGNED_AS_LABEL,
   UPCOMING_LABEL,
   UPCOMING_ON,
 } from "@/lib/copy";
 import {
+  canReply,
   firstLine,
   linkify,
   monthDay,
   localDay,
   monthYear,
   pastEntries,
+  splitThreads,
   upcomingEntries,
   weekdayMonthDay,
 } from "@/lib/journal";
@@ -59,6 +65,14 @@ export interface NoteDraft {
   body: string;
   authorLabel: string;
   eventDate: string | null;
+}
+
+/** Spec 016: a reply is a body and an author, on one note. The tag and the
+ *  date are the note's; the server writes the tag, there is no date. */
+export interface ReplyDraft {
+  parentEntryId: number;
+  body: string;
+  authorLabel: string;
 }
 
 export interface TagOption {
@@ -97,6 +111,7 @@ export function NotesPanel({
   todayDate,
   tz,
   onAdd,
+  onReply,
   /** Fixed tag (the parent page) or a picker over these options (Family). */
   tagOptions,
   fixedParentId,
@@ -114,6 +129,8 @@ export function NotesPanel({
    *  it was written, not by UTC's day (DECISIONS 251). */
   tz: string;
   onAdd: (draft: NoteDraft) => Promise<void>;
+  /** Spec 016 §4: the Reply link renders only when this is given. */
+  onReply?: (draft: ReplyDraft) => Promise<void>;
   tagOptions?: TagOption[];
   fixedParentId?: string | null;
   tagLabelFor?: (entry: JournalEntry) => string;
@@ -140,9 +157,23 @@ export function NotesPanel({
   const [showDate, setShowDate] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [tag, setTag] = useState<string>("");
+  /** The note whose reply composer is open, and what is typed in it. */
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyBody, setReplyBody] = useState("");
 
-  const upcoming = upcomingEntries(entries, todayDate);
-  const past = pastEntries(entries, todayDate);
+  // Spec 016: the strip and the feed are NOTES; replies hang under theirs.
+  const { notes, repliesByNote } = splitThreads(entries);
+  const upcoming = upcomingEntries(notes, todayDate);
+  const past = pastEntries(notes, todayDate);
+
+  async function submitReply(parentEntryId: number) {
+    const trimmed = replyBody.trim();
+    if (!trimmed || !onReply) return;
+    rememberAuthor(author);
+    await onReply({ parentEntryId, body: trimmed, authorLabel: author.trim() });
+    setReplyBody("");
+    setReplyingTo(null);
+  }
 
   async function submit() {
     const trimmed = body.trim();
@@ -280,6 +311,115 @@ export function NotesPanel({
             {entry.event_date ? ` · ${EVENT_FOR.replace("{date}", monthDay(entry.event_date))}` : ""}
           </div>
             <Body body={entry.body} />
+            {(repliesByNote.get(entry.id) ?? []).map((reply) => (
+              <div
+                key={reply.id}
+                data-testid="note-reply"
+                style={{
+                  marginTop: "0.5rem",
+                  marginLeft: "1rem",
+                  paddingLeft: "0.75rem",
+                  borderLeft: "2px solid var(--hair)",
+                }}
+              >
+                <div
+                  style={{ fontSize: "0.71875rem", color: "var(--mute)", letterSpacing: ".03em", fontWeight: 600 }}
+                  data-testid="reply-meta"
+                >
+                  {monthDay(localDay(reply.created_utc, tz))} · {reply.author_label || AUTHOR_FALLBACK}
+                </div>
+                <Body body={reply.body} />
+              </div>
+            ))}
+            {onReply && canReply(entry) && replyingTo !== entry.id && (
+              <button
+                type="button"
+                className="kt-link"
+                onClick={() => {
+                  setReplyingTo(entry.id);
+                  setReplyBody("");
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: "0.5rem 0 0",
+                  fontSize: "0.78125rem",
+                  fontWeight: 600,
+                  color: "var(--copperdeep)",
+                  cursor: "pointer",
+                  minHeight: "2.75rem",
+                }}
+                data-testid="reply-link"
+              >
+                {REPLY_LINK}
+              </button>
+            )}
+            {onReply && replyingTo === entry.id && (
+              <div
+                style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", marginLeft: "1rem", flexWrap: "wrap" }}
+                data-testid="reply-composer"
+              >
+                <input
+                  type="text"
+                  value={replyBody}
+                  placeholder={REPLY_PLACEHOLDER}
+                  autoFocus
+                  onChange={(event) => setReplyBody(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") void submitReply(entry.id);
+                    if (event.key === "Escape") setReplyingTo(null);
+                  }}
+                  maxLength={2000}
+                  style={{
+                    flex: "1 1 10rem",
+                    background: "var(--paper)",
+                    border: "1px solid var(--hair)",
+                    borderRadius: "999px",
+                    padding: "0.5rem 0.875rem",
+                    fontSize: "0.8125rem",
+                    color: "var(--ink)",
+                    minHeight: "2.75rem",
+                    boxSizing: "border-box",
+                  }}
+                  data-testid="reply-input"
+                />
+                <button
+                  type="button"
+                  onClick={() => void submitReply(entry.id)}
+                  style={{
+                    border: "1px solid var(--copperbd)",
+                    borderRadius: "999px",
+                    padding: "0.5rem 0.875rem",
+                    fontSize: "0.8125rem",
+                    fontWeight: 600,
+                    color: "var(--copperdeep)",
+                    background: "var(--coppertint)",
+                    cursor: "pointer",
+                    minHeight: "2.75rem",
+                  }}
+                  data-testid="reply-submit"
+                >
+                  {REPLY_SUBMIT}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReplyingTo(null)}
+                  style={{
+                    border: "1px solid var(--hair)",
+                    borderRadius: "999px",
+                    padding: "0.5rem 0.875rem",
+                    fontSize: "0.8125rem",
+                    color: "var(--inkmid)",
+                    background: "var(--card)",
+                    cursor: "pointer",
+                    minHeight: "2.75rem",
+                  }}
+                  data-testid="reply-cancel"
+                >
+                  {REPLY_CANCEL}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ))}

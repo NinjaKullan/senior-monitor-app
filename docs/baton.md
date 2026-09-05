@@ -105,6 +105,12 @@ number on the approved template. Everything in this file that used to say
 world between Sep 1 and Sep 4 and is gone; if you find that language anywhere
 else, it is stale.
 
+**Spec 016 (replies on a note) is BUILT and unshipped (DECISIONS 275).** One
+level of replies under a family note, enforced by a trigger in migration
+**0026**; the Memory and parent-page panels carry the Reply link and composer.
+Owed: PM applies 0026 → `cd webapp && fly deploy` (the journal read asks for
+the new column first). Product needs no deploy for this one.
+
 **Spec 015 (circles) is BUILT and unshipped (DECISIONS 270).** Two roles
 (admin/member; every owner row becomes admin), one mail switch, five
 SECURITY DEFINER functions as the only write path to `members`, digests and

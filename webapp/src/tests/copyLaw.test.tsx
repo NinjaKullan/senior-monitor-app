@@ -145,6 +145,7 @@ const notes: JournalEntry[] = [
     event_date: null,
     created_utc: "2026-08-01T10:00:00Z",
     kind: "note",
+    parent_entry_id: null,
   },
   {
     id: 2,
@@ -155,6 +156,7 @@ const notes: JournalEntry[] = [
     event_date: "2026-09-01",
     created_utc: "2026-08-02T10:00:00Z",
     kind: "note",
+    parent_entry_id: null,
   },
 ];
 const TODAY_DATE = "2026-08-03";
@@ -400,15 +402,33 @@ describe("rendered copy law", () => {
   });
 
   it("holds for the Memory screen and its feed (spec 012, filters in §9.1)", () => {
+    // Spec 016: a reply under the first note, and the composer opened, so
+    // the reply metadata, the link, the placeholder and the two buttons all
+    // walk under the law.
+    const reply: JournalEntry = {
+      id: 3,
+      family_id: "f1",
+      parent_id: "p1",
+      author_label: "Priya",
+      body: "Went well, next visit in October.",
+      event_date: null,
+      created_utc: "2026-08-02T10:00:00Z",
+      kind: "note",
+      parent_entry_id: 1,
+    };
     render(
       <MemoryScreen
         parentLabels={[{ parentId: "p1", label: "Amma" }]}
-        journal={notes}
+        journal={[...notes, reply]}
         todayDate={TODAY_DATE}
         tz="America/New_York"
         onAddNote={noop}
+        onAddReply={noop}
       />,
     );
+    fireEvent.click(screen.getAllByTestId("reply-link")[0]);
+    expect(screen.getByTestId("reply-composer")).toBeInTheDocument();
+    expect(screen.getAllByTestId("note-reply")).toHaveLength(1);
     const text = renderedText();
     expect(text).toContain("Family notes");
     expect(text).toContain("Upcoming");

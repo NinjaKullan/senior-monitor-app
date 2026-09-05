@@ -126,6 +126,14 @@ export const NOTE_SUBMIT_LABEL = "Add";
  *  needs an accessible name the spec does not provide. */
 export const NOTE_TAG_LABEL = "Who this note is about";
 
+/* Spec 016 §5, VERBATIM (DECISIONS 274): replies on a note. */
+export const REPLY_LINK = "Reply";
+export const REPLY_PLACEHOLDER = "Add to this note";
+export const REPLY_SUBMIT = "Add";
+export const REPLY_CANCEL = "Not now";
+/** Reserved by §5, not shown in v1. */
+export const REPLY_COUNT_ONE = "1 reply";
+
 /* ---------------------------------------------------------------------- */
 /* City label (spec 009 §5)                                                 */
 /* ---------------------------------------------------------------------- */

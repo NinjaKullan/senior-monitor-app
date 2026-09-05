@@ -9,7 +9,7 @@
  */
 import { useState } from "react";
 import { FilterChips } from "@/components/FilterChips";
-import { NotesPanel, type NoteDraft, type TagOption } from "@/components/NotesPanel";
+import { NotesPanel, type NoteDraft, type ReplyDraft, type TagOption } from "@/components/NotesPanel";
 import {
   AUTHOR_FALLBACK,
   FILTER_ALL_PARENTS,
@@ -47,6 +47,7 @@ export function MemoryScreen({
   todayDate,
   tz,
   onAddNote,
+  onAddReply,
 }: {
   /** parentId → display name, for tags, filters and the composer's picker. */
   parentLabels: { parentId: string; label: string }[];
@@ -55,6 +56,8 @@ export function MemoryScreen({
   /** The family's timezone, for dating notes (DECISIONS 251). */
   tz: string;
   onAddNote: (draft: NoteDraft) => Promise<void>;
+  /** Spec 016: replies, on a note, from anyone in the circle. */
+  onAddReply?: (draft: ReplyDraft) => Promise<void>;
 }) {
   // DECISIONS 211: All parents over three months, All-time one tap away.
   const [parentFilter, setParentFilter] = useState<string | null>(DEFAULT_PARENT_FILTER);
@@ -89,6 +92,7 @@ export function MemoryScreen({
         todayDate={todayDate}
         tz={tz}
         onAdd={onAddNote}
+        onReply={onAddReply}
         tagOptions={tagOptions}
         tagLabelFor={(entry: JournalEntry) =>
           entry.parent_id === null

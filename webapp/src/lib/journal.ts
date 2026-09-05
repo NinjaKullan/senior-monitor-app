@@ -103,6 +103,44 @@ export function firstLine(body: string): string {
   return body.split("\n")[0].trim();
 }
 
+/* --- spec 016: threads --------------------------------------------------- */
+
+/** A reply can be written on a family note and nothing else: a top-level
+ *  row of kind 'note'. Kettle's own lines are the house speaking. */
+export function canReply(entry: JournalEntry): boolean {
+  return entry.parent_entry_id === null && entry.kind === "note";
+}
+
+/** The notes (top level) and, for each, its replies oldest first. Both come
+ *  from the same bounded read; a reply whose note fell outside the read
+ *  window is dropped rather than shown loose. */
+export function splitThreads(entries: JournalEntry[]): {
+  notes: JournalEntry[];
+  repliesByNote: Map<number, JournalEntry[]>;
+} {
+  const notes = entries.filter((e) => e.parent_entry_id === null);
+  const ids = new Set(notes.map((e) => e.id));
+  const repliesByNote = new Map<number, JournalEntry[]>();
+  for (const entry of entries) {
+    const parent = entry.parent_entry_id;
+    if (parent === null || !ids.has(parent)) continue;
+    const list = repliesByNote.get(parent) ?? [];
+    list.push(entry);
+    repliesByNote.set(parent, list);
+  }
+  for (const list of repliesByNote.values()) {
+    list.sort((a, b) => a.created_utc.localeCompare(b.created_utc) || a.id - b.id);
+  }
+  return { notes, repliesByNote };
+}
+
+/** Replies travel with their note (§4): given the notes a filter kept, the
+ *  entries to render are those notes plus every reply of theirs. */
+export function withReplies(kept: JournalEntry[], all: JournalEntry[]): JournalEntry[] {
+  const { repliesByNote } = splitThreads(all);
+  return kept.flatMap((note) => [note, ...(repliesByNote.get(note.id) ?? [])]);
+}
+
 /** Entries whose event date is today or later, soonest first. `todayDate` is
  *  the viewer's local calendar date (YYYY-MM-DD). */
 export function upcomingEntries(entries: JournalEntry[], todayDate: string): JournalEntry[] {
@@ -178,7 +216,10 @@ export function filterEntries(
   tz: string,
 ): JournalEntry[] {
   const start = timeframeStart(todayDate, timeframe);
-  return entries.filter((entry) => {
+  // Spec 016 §4: filters apply to the NOTE; its replies travel with it, and
+  // the timeframe keys on the note's written-at, never a reply's.
+  const kept = entries.filter((entry) => {
+    if (entry.parent_entry_id !== null) return false;
     if (parentId !== null && entry.parent_id !== parentId) return false;
     // The family's day, not UTC's (DECISIONS 251). A note written late on the
     // last evening of August belongs in August, and a window that measured it
@@ -186,4 +227,5 @@ export function filterEntries(
     if (start !== null && localDay(entry.created_utc, tz) < start) return false;
     return true;
   });
+  return withReplies(kept, entries);
 }
