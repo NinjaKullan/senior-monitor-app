@@ -9,7 +9,20 @@ import { useState } from "react";
 import { CityPicker } from "@/components/CityPicker";
 import type { CityEntry } from "@/lib/cities";
 import { circleRefusal, isAdmin, nobodyListening } from "@/lib/circle";
+import { MCP_URL } from "@/lib/data";
+import { localDay, monthDay } from "@/lib/journal";
 import {
+  ASSISTANTS_COPIED,
+  ASSISTANTS_COPY,
+  ASSISTANTS_DISCONNECT,
+  ASSISTANTS_DISCONNECT_CONFIRM,
+  ASSISTANTS_DISCONNECT_NO,
+  ASSISTANTS_DISCONNECT_YES,
+  ASSISTANTS_INTRO,
+  ASSISTANTS_NONE,
+  ASSISTANTS_SECTION,
+  ASSISTANTS_SINCE,
+  ASSISTANT_FALLBACK,
   CIRCLE_ADD,
   CIRCLE_ADD_CANCEL,
   CIRCLE_ADD_EMAIL,
@@ -43,7 +56,7 @@ import {
 } from "@/lib/copy";
 import type { ParentToday } from "@/lib/parentState";
 import type { SetupEntry } from "@/lib/setupLinks";
-import type { Member } from "@/lib/types";
+import type { AssistantGrant, Member } from "@/lib/types";
 
 const SETUP_STATUS_LABEL = {
   reporting: SETUP_REPORTING,
@@ -124,6 +137,9 @@ export function FamilyScreen({
   onOpen,
   onPickCity,
   onClearCity,
+  assistants = [],
+  onRevokeAssistant,
+  viewerTz = "UTC",
 }: {
   parentStates: ParentToday[];
   /** parentId → current city label ("" when unset), for the §1 picker. */
@@ -138,6 +154,11 @@ export function FamilyScreen({
   /** Spec 010 §1: the picker is the one surface that moves a parent. */
   onPickCity: (parentId: string, entry: CityEntry) => Promise<void>;
   onClearCity: (parentId: string) => Promise<void>;
+  /** Spec 019 §6: the viewer's own assistant connections and the disconnect. */
+  assistants?: AssistantGrant[];
+  onRevokeAssistant?: (grantId: string) => Promise<void>;
+  /** The viewer's browser zone, for "since {date}" (279). */
+  viewerTz?: string;
 }) {
   return (
     <div className="kt-view" style={{ maxWidth: "43.75rem", margin: "0 auto" }} data-testid="family-screen">
@@ -258,6 +279,9 @@ export function FamilyScreen({
 
       <div style={KICKER}>{CIRCLE_SECTION}</div>
       <SeatsList members={members} viewerId={viewerId} circle={circle} />
+
+      <div style={KICKER}>{ASSISTANTS_SECTION}</div>
+      <Assistants grants={assistants} onRevoke={onRevokeAssistant} viewerTz={viewerTz} />
 
       <p
         style={{ marginTop: "1.875rem", fontSize: "0.875rem", color: "var(--ink2)", lineHeight: 1.5 }}
@@ -452,6 +476,87 @@ function SeatsList({
           {note}
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * The Assistants section (spec 019 §6): how to add Kettle as a connector, the
+ * address with Copy, and the viewer's own connections with Disconnect behind
+ * one confirm line. The assistant's own Connectors screen is canonical; this
+ * explains it and lists what is connected.
+ */
+function Assistants({
+  grants,
+  onRevoke,
+  viewerTz,
+}: {
+  grants: AssistantGrant[];
+  onRevoke?: (grantId: string) => Promise<void>;
+  viewerTz: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [confirming, setConfirming] = useState<string | null>(null);
+  const copyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(MCP_URL);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
+  return (
+    <div style={CARD} data-testid="assistants">
+      <p style={{ ...ROW, margin: 0, fontSize: "0.875rem", lineHeight: 1.5, color: "var(--ink2)" }}>
+        {ASSISTANTS_INTRO}
+      </p>
+      <div style={ROW}>
+        <code style={{ fontSize: "0.84375rem", overflowWrap: "anywhere" }} data-testid="mcp-url">
+          {MCP_URL}
+        </code>
+        <button type="button" style={SMALL_BTN} data-testid="mcp-copy" onClick={() => void copyAddress()}>
+          {copied ? ASSISTANTS_COPIED : ASSISTANTS_COPY}
+        </button>
+      </div>
+      {grants.length === 0 && (
+        <p style={{ ...ROW, margin: 0, fontSize: "0.84375rem", color: "var(--ink2)" }} data-testid="assistants-none">
+          {ASSISTANTS_NONE}
+        </p>
+      )}
+      {grants.map((grant) => {
+        const client = grant.client_name ?? ASSISTANT_FALLBACK;
+        return (
+          <div key={grant.id} style={{ ...ROW, borderTop: "1px solid var(--hair)" }} data-testid="assistant-grant">
+            <span style={{ fontSize: "0.9375rem" }}>
+              {ASSISTANTS_SINCE.replace("{client}", client).replace(
+                "{date}",
+                monthDay(localDay(grant.created_utc, viewerTz)),
+              )}
+            </span>
+            {onRevoke && confirming !== grant.id && (
+              <button type="button" style={SMALL_BTN} data-testid="assistant-disconnect" onClick={() => setConfirming(grant.id)}>
+                {ASSISTANTS_DISCONNECT}
+              </button>
+            )}
+            {onRevoke && confirming === grant.id && (
+              <span style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", fontSize: "0.84375rem" }} data-testid="assistant-confirm">
+                {ASSISTANTS_DISCONNECT_CONFIRM.replace("{client}", client)}
+                <button
+                  type="button"
+                  style={SMALL_BTN}
+                  data-testid="assistant-disconnect-yes"
+                  onClick={() => void onRevoke(grant.id).then(() => setConfirming(null))}
+                >
+                  {ASSISTANTS_DISCONNECT_YES}
+                </button>
+                <button type="button" style={SMALL_BTN} onClick={() => setConfirming(null)}>
+                  {ASSISTANTS_DISCONNECT_NO}
+                </button>
+              </span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
