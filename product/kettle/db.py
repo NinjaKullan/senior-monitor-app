@@ -195,6 +195,8 @@ def parents_with_tz(conn: psycopg.Connection) -> list[Row]:
         select p.id as parent_id, p.display_name as parent_name, p.tz as parent_tz,
                p.relationship as relationship,
                p.city_label as city_label, p.tz_changed_utc as tz_changed_utc,
+               p.phone_e164 as phone_e164, p.whatsapp_e164 as whatsapp_e164,
+               p.sms_consent_utc as sms_consent_utc, p.sms_opted_out_utc as sms_opted_out_utc,
                -- 'infinity' is what the open-ended pause stores (spec 017 §3)
                -- and what psycopg refuses to load; clamped to a year-9999
                -- instant here, which the engine's "paused_until > now" reads
@@ -923,6 +925,38 @@ def record_reply(conn: psycopg.Connection, parent_id: Any, when: datetime) -> bo
         returning id
         """,
         (when, parent_id, when),
+    ).fetchone()
+    return row is not None
+
+
+def sms_welcome_sent(conn: psycopg.Connection, parent_id: Any) -> bool:
+    """Has the welcome text ever gone to this parent (Amendment A.4: keyed
+    by (parent_id, kind), never by day)?"""
+    row = conn.execute(
+        "select 1 from sent_messages where parent_id = %s and kind = 'sms_welcome' "
+        "and status = 'sent' limit 1",
+        (parent_id,),
+    ).fetchone()
+    return row is not None
+
+
+def set_sms_opted_out(conn: psycopg.Connection, parent_id: Any, now: datetime) -> bool:
+    """STOP arrived (or Twilio said 21610): record it once. True when this
+    call set it; False when it was already set."""
+    row = conn.execute(
+        "update parents set sms_opted_out_utc = %s "
+        "where id = %s and sms_opted_out_utc is null returning id",
+        (now, parent_id),
+    ).fetchone()
+    return row is not None
+
+
+def clear_sms_opted_out(conn: psycopg.Connection, parent_id: Any) -> bool:
+    """START arrived: the parent is texting again. True when something changed."""
+    row = conn.execute(
+        "update parents set sms_opted_out_utc = null "
+        "where id = %s and sms_opted_out_utc is not null returning id",
+        (parent_id,),
     ).fetchone()
     return row is not None
 

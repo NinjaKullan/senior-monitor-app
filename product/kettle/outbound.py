@@ -46,6 +46,7 @@ from kettle.outbound_templates import (
     KIND_DIGEST_EVENING,
     KIND_DIGEST_MORNING,
     KIND_FOLLOW_ON,
+    KIND_SMS_WELCOME,
     KINDS,
     owner_first_name,
     render,
@@ -118,11 +119,16 @@ def schedule_for(now: datetime, tz_name: str) -> Schedule:
 
 @dataclass(frozen=True)
 class DeliveryResult:
-    """What a transport reports back. `delivered` gates the ledger write."""
+    """What a transport reports back. `delivered` gates the ledger write.
+
+    `opted_out` (Amendment A.5): the SMS transport saw Twilio's 21610, the
+    recipient has unsubscribed — the engine records STOP as if it had
+    arrived, and the parent is a quiet recorded skip from the next pass."""
 
     delivered: bool
     transport: str
     detail: str = ""
+    opted_out: bool = False
 
 
 class Transport(Protocol):
@@ -212,6 +218,16 @@ def _resend_transport(settings: Any) -> Transport:
     return ResendTransport(settings.resend_api_key, settings.resend_from)
 
 
+def _twilio_sms_transport(settings: Any) -> Transport:
+    from kettle.outbound_sms import TwilioSMSTransport
+
+    return TwilioSMSTransport(
+        settings.twilio_account_sid,
+        settings.twilio_auth_token,
+        settings.twilio_messaging_service_sid,
+    )
+
+
 def _twilio_transport(settings: Any) -> Transport:
     from kettle.outbound_whatsapp import TwilioWhatsAppTransport
 
@@ -241,9 +257,7 @@ class TransportRoster:
         if not transports:  # pragma: no cover - transport_from_name guards
             raise RuntimeError("a transport roster needs at least one transport")
         self._transports = transports
-        self.kinds = tuple(
-            kind for kind in KINDS if any(kind in t.kinds for t in transports)
-        )
+        self.kinds = tuple(kind for kind in KINDS if any(kind in t.kinds for t in transports))
 
     def for_kind(self, kind: str) -> Transport | None:
         for transport in self._transports:
@@ -272,6 +286,70 @@ def carrier_for(transport: Transport, kind: str) -> Transport | None:
     return transport if kind in transport.kinds else None
 
 
+def leaves(transport: Transport) -> list[Transport]:
+    """The leaf transports behind the seam: the roster's members, or the one."""
+    members = getattr(transport, "_transports", None)
+    return list(members) if members is not None else [transport]
+
+
+def carrier_named(transport: Transport, name: str, kind: str) -> Transport | None:
+    """The leaf transport of this NAME that carries the kind (Amendment A.2:
+    the parent's channel picks the carrier). The dark console transport is
+    nameless in this sense and stands in for either channel — a dark run's
+    ledger is a record of decisions, and the decision is what is routed."""
+    for leaf in leaves(transport):
+        if leaf.name == name and kind in leaf.kinds:
+            return leaf
+    # No leaf of that name: anything else that carries the kind may stand in
+    # (the dark console, a test's own channel) — except the OTHER Twilio
+    # route, which is exactly the cross-transport fallback A.2 forbids.
+    other = ROUTE_SMS if name == ROUTE_WHATSAPP else ROUTE_WHATSAPP
+    for leaf in leaves(transport):
+        if leaf.name != other and kind in leaf.kinds:
+            return leaf
+    return None
+
+
+#: Amendment A.2: where a parent's ask goes, decided per parent.
+ROUTE_WHATSAPP = "twilio_whatsapp"
+ROUTE_SMS = "twilio_sms"
+
+
+@dataclass(frozen=True)
+class AskRoute:
+    """One parent's channel for the ask, or the condition that failed."""
+
+    carrier_name: str | None
+    to: str
+    template_id: str
+    reason: str = ""
+    quiet: bool = False
+
+
+def ask_route(parent: Any) -> AskRoute:
+    """A.2, in order: a WhatsApp number wins; else a +1 phone with consent and
+    no opt-out goes by SMS; else a recorded skip naming what failed. No
+    cross-transport fallback, and a non-+1 phone never texts."""
+    whatsapp = (parent.get("whatsapp_e164") or "").strip()
+    if whatsapp:
+        return AskRoute(ROUTE_WHATSAPP, whatsapp, "ask_parent")
+    phone = (parent.get("phone_e164") or "").strip()
+    if not phone:
+        return AskRoute(None, "", "", reason="no WhatsApp number and no phone number on file")
+    if not phone.startswith("+1"):
+        return AskRoute(None, "", "", reason="no WhatsApp number and the phone is not a +1 number")
+    if parent.get("sms_consent_utc") is None:
+        return AskRoute(None, "", "", reason="no WhatsApp number and no SMS consent recorded")
+    if parent.get("sms_opted_out_utc") is not None:
+        return AskRoute(None, "", "", reason="texts stopped by the parent (STOP)", quiet=True)
+    return AskRoute(ROUTE_SMS, phone, "ask_parent_sms")
+
+
+def sms_welcome_due(parent: Any) -> bool:
+    """A.4/A.6: the welcome goes once, to a parent routed to SMS."""
+    return ask_route(parent).carrier_name == ROUTE_SMS
+
+
 #: Every transport the loop can be configured to use, by the name OUTBOUND_TRANSPORT
 #: carries. A new entry here is a spec change, not a deploy-time discovery: the
 #: registry is what makes a misconfigured name fail closed instead of falling
@@ -281,6 +359,10 @@ TRANSPORTS: dict[str, Callable[[Any], Transport]] = {
     "console": _console_transport,
     "resend": _resend_transport,
     "twilio_whatsapp": _twilio_transport,
+    # Spec 011 Amendment A: the SMS carrier for +1 parents. Which of the two
+    # Twilio transports carries a given parent's ask is the engine's per-
+    # parent routing (`ask_route`), not the roster's first-match by kind.
+    "twilio_sms": _twilio_sms_transport,
 }
 
 
@@ -320,9 +402,7 @@ def transport_from_name(name: str, settings: Any) -> Transport:
 # --- the evaluator (§2.1) ----------------------------------------------------
 
 
-def is_quiet(
-    conn: psycopg.Connection, parent_id: Any, start: datetime, end: datetime
-) -> bool:
+def is_quiet(conn: psycopg.Connection, parent_id: Any, start: datetime, end: datetime) -> bool:
     """True when no alarm-grade ping arrived in [start, end).
 
     Absence, stated as absence. The grade comes from this parent's own
@@ -410,8 +490,7 @@ def _alert_tz_change_once(
     old = _previous_zone(last, parent["family_tz"])
     city = parent["city_label"] or "unset"
     message = (
-        f"{parent['parent_name']}: timezone changed {old} → {tz_name} "
-        f"(city {city}) via webapp."
+        f"{parent['parent_name']}: timezone changed {old} → {tz_name} (city {city}) via webapp."
     )
     db.insert_ops_alert(
         conn, parent["family_id"], parent["parent_id"], OPS_TZ_CHANGED, message, now
@@ -458,9 +537,7 @@ def _record_outcome(
         if alert:
             kind = OPS_SEND_FAILED if status == "failed" else OPS_SEND_SKIPPED
             message = f"⚠️ outbound: {detail}"
-            db.insert_ops_alert(
-                conn, decision.family_id, decision.parent_id, kind, message, now
-            )
+            db.insert_ops_alert(conn, decision.family_id, decision.parent_id, kind, message, now)
             if notifier is not None:
                 notifier.send(message)
             log.warning("outbound: %s %s: %s", decision.template_id, status, detail)
@@ -535,9 +612,7 @@ def run_outbound(
         # pause ends. The card and the Family row carry the state after that.
         paused_until = parent["paused_until"]
         if paused_until is not None and paused_until > now:
-            decisions.extend(
-                _paused_morning_note(conn, transport, notifier, parent, plan, now)
-            )
+            decisions.extend(_paused_morning_note(conn, transport, notifier, parent, plan, now))
             continue
         # The resume day (§4): from the instant the pause ended until that
         # local day is over, slots that fell due while paused do not fire late
@@ -562,9 +637,7 @@ def run_outbound(
         # escalation writes nothing at all. Keyed to the month rather than
         # the day (a scheduler asleep on the 1st writes it on the 2nd, not
         # never), and every guard lives in the writer.
-        journal.note_clean_month(
-            conn, parent["family_id"], parent["parent_id"], plan.local_date
-        )
+        journal.note_clean_month(conn, parent["family_id"], parent["parent_id"], plan.local_date)
         tz_changed = parent["tz_changed_utc"]
         in_changeover = tz_changed is not None and now < first_new_zone_midnight(
             tz_changed, tz_name
@@ -574,9 +647,7 @@ def run_outbound(
             if resumed_at is not None and _due_at(conn, decision, plan) < resumed_at:
                 continue
 
-            def skip(
-                detail: str, decision: Decision = decision, alert: bool = True
-            ) -> None:
+            def skip(detail: str, decision: Decision = decision, alert: bool = True) -> None:
                 _record_outcome(
                     conn,
                     notifier,
@@ -623,13 +694,17 @@ def run_outbound(
                 )
                 continue
 
-            if decision.kind == KIND_DIGEST_EVENING and db.sent_message(
-                conn,
-                decision.family_id,
-                decision.parent_id,
-                decision.local_date,
-                KIND_FOLLOW_ON,
-            ) is not None:
+            if (
+                decision.kind == KIND_DIGEST_EVENING
+                and db.sent_message(
+                    conn,
+                    decision.family_id,
+                    decision.parent_id,
+                    decision.local_date,
+                    KIND_FOLLOW_ON,
+                )
+                is not None
+            ):
                 # DECISIONS 164: a followed-up day gets no evening digest — the
                 # follow-on and, when earned, the all-clear already told the
                 # day's story, and a normal-day sentence would be a false
@@ -668,14 +743,10 @@ def run_outbound(
             # gets a sentence that reads whole.
             available = {
                 "relationship": parent["relationship"] or "",
-                "owner_name": owner_first_name(
-                    db.family_owner_name(conn, parent["family_id"])
-                ),
+                "owner_name": owner_first_name(db.family_owner_name(conn, parent["family_id"])),
                 "name": parent["parent_name"],
             }
-            variables = {
-                name: available[name] for name in template(decision.template_id).variables
-            }
+            variables = {name: available[name] for name in template(decision.template_id).variables}
             if any(not value for value in variables.values()):
                 # DECISIONS 152: a message with a blank where the label goes is
                 # worse than one that waits. The skip claims the slot; setting
@@ -687,30 +758,79 @@ def run_outbound(
                 )
                 continue
 
+            if decision.kind in (KIND_ASK, KIND_SMS_WELCOME):
+                # Amendment A.2: the parent's channel picks the carrier, per
+                # parent rather than per kind. A failed condition is a
+                # recorded skip naming it; STOP is a quiet one (A.5).
+                if carrier_for(transport, decision.kind) is None:
+                    # Nothing configured carries this kind at all: the same
+                    # skip as before Amendment A, named for the transport.
+                    skip(
+                        f"{decision.template_id} for {label} skipped: the "
+                        f"{transport.name} transport does not carry {decision.kind}"
+                    )
+                    continue
+                route = ask_route(parent)
+                if route.carrier_name is None:
+                    # No channel. A transport that needs no address — the
+                    # dark console — still records the decision as sent,
+                    # exactly as Wave A's ledger always has (a dark run is a
+                    # record of decisions, and the demo replays depend on it);
+                    # anything real is a skip naming the failed condition.
+                    dark = next(
+                        (
+                            leaf
+                            for leaf in leaves(transport)
+                            if not leaf.requires_address and decision.kind in leaf.kinds
+                        ),
+                        None,
+                    )
+                    if dark is None:
+                        skip(
+                            f"{decision.template_id} for {label} skipped: {route.reason}",
+                            alert=not route.quiet,
+                        )
+                        continue
+                    route = AskRoute(dark.name, "", decision.template_id)
+                carrier = carrier_named(transport, route.carrier_name, decision.kind)
+                if carrier is None:
+                    skip(
+                        f"{decision.template_id} for {label} skipped: the "
+                        f"{transport.name} transport does not carry {decision.kind} "
+                        f"on the {route.carrier_name} channel"
+                    )
+                    continue
+                routed = Decision(
+                    family_id=decision.family_id,
+                    parent_id=decision.parent_id,
+                    relationship=decision.relationship,
+                    local_date=decision.local_date,
+                    kind=decision.kind,
+                    template_id=(
+                        route.template_id if decision.kind == KIND_ASK else decision.template_id
+                    ),
+                )
+                variables = {
+                    name: available[name] for name in template(routed.template_id).variables
+                }
+                result = _attempt(carrier, route.to, routed, variables)
+                if result.delivered:
+                    if _record_outcome(conn, notifier, routed, result.transport, "sent", "", now):
+                        decisions.append(routed)
+                else:
+                    if result.opted_out:
+                        _record_sms_opt_out(conn, notifier, parent, now, "Twilio 21610")
+                    _record_failed(
+                        conn, notifier, routed, result, label, now, alert=not result.opted_out
+                    )
+                continue
+
             carrier = carrier_for(transport, decision.kind)
             if carrier is None:
                 skip(
                     f"{decision.template_id} for {label} skipped: the "
                     f"{transport.name} transport does not carry {decision.kind}"
                 )
-                continue
-
-            if decision.kind == KIND_ASK:
-                recipient = db.parent_whatsapp(conn, decision.parent_id) or ""
-                if carrier.requires_address and not recipient:
-                    skip(
-                        f"{decision.template_id} for {label} skipped: unroutable, "
-                        f"no address on file for the {carrier.name} transport"
-                    )
-                    continue
-                result = _attempt(carrier, recipient, decision, variables)
-                if result.delivered:
-                    if _record_outcome(
-                        conn, notifier, decision, result.transport, "sent", "", now
-                    ):
-                        decisions.append(decision)
-                else:
-                    _record_failed(conn, notifier, decision, result, label, now)
                 continue
 
             # The circle (spec 015 §7). An address-requiring transport with
@@ -725,13 +845,9 @@ def run_outbound(
                 )
                 _alert_circle_unreachable(conn, notifier, parent, plan, now)
                 continue
-            outcome = _send_to_circle(
-                conn, carrier, decision, variables, recipients, now
-            )
+            outcome = _send_to_circle(conn, carrier, decision, variables, recipients, now)
             if outcome.delivered_to_all:
-                if _record_outcome(
-                    conn, notifier, decision, outcome.transport, "sent", "", now
-                ):
+                if _record_outcome(conn, notifier, decision, outcome.transport, "sent", "", now):
                     decisions.append(decision)
                     if (
                         decision.kind in (KIND_DIGEST_MORNING, KIND_DIGEST_EVENING)
@@ -768,9 +884,7 @@ def _attempt(
         )
     except Exception as exc:  # noqa: BLE001 - one send must not kill the pass
         log.exception("outbound: %s transport raised", carrier.name)
-        return DeliveryResult(
-            delivered=False, transport=carrier.name, detail=type(exc).__name__
-        )
+        return DeliveryResult(delivered=False, transport=carrier.name, detail=type(exc).__name__)
 
 
 def _record_failed(
@@ -780,6 +894,7 @@ def _record_failed(
     result: DeliveryResult,
     label: str,
     now: datetime,
+    alert: bool = True,
 ) -> None:
     why = f" ({result.detail})" if result.detail else ""
     _record_outcome(
@@ -791,7 +906,32 @@ def _record_failed(
         f"{decision.template_id} for {label} failed on the "
         f"{result.transport} transport{why}; slot stays retryable",
         now,
+        alert=alert,
     )
+
+
+OPS_SMS_OPT_OUT = "sms_opt_out"
+OPS_SMS_OPT_IN = "sms_opt_in"
+
+
+def _record_sms_opt_out(
+    conn: psycopg.Connection, notifier: Notifier | None, parent: Any, now: datetime, how: str
+) -> bool:
+    """STOP, however it arrived (Amendment A.5): set once, one alert once.
+    Returns True when this call was the one that recorded it."""
+    if not db.set_sms_opted_out(conn, parent["parent_id"], now):
+        return False
+    message = (
+        f"⚠️ sms: {parent['family_name']} / {parent['parent_name']} stopped texts ({how}); "
+        "the ask is a quiet skip until START"
+    )
+    db.insert_ops_alert(
+        conn, parent["family_id"], parent["parent_id"], OPS_SMS_OPT_OUT, message, now
+    )
+    if notifier is not None:
+        notifier.send(message)
+    log.warning("outbound: %s", message)
+    return True
 
 
 @dataclass(frozen=True)
@@ -831,8 +971,12 @@ def _send_to_circle(
     for member in recipients:
         member_id = member["member_id"]
         if db.member_send_sent(
-            conn, decision.family_id, decision.parent_id, decision.kind,
-            decision.local_date, member_id,
+            conn,
+            decision.family_id,
+            decision.parent_id,
+            decision.kind,
+            decision.local_date,
+            member_id,
         ):
             continue
         result = _attempt(carrier, member["email"] or "", decision, variables)
@@ -879,8 +1023,13 @@ def _alert_circle_unreachable(
         "email); nothing sent"
     )
     if db.ops_alert_exists_with_detail(
-        conn, OPS_CIRCLE_UNREACHABLE, family_id, None, message,
-        now - timedelta(days=2), now + timedelta(minutes=1),
+        conn,
+        OPS_CIRCLE_UNREACHABLE,
+        family_id,
+        None,
+        message,
+        now - timedelta(days=2),
+        now + timedelta(minutes=1),
     ):
         return
     db.insert_ops_alert(conn, family_id, None, OPS_CIRCLE_UNREACHABLE, message, now)
@@ -989,6 +1138,12 @@ def _due_for_parent(
             )
         )
 
+    # Amendment A.4/A.6: the welcome text, once per parent EVER — keyed by
+    # (parent_id, kind) in the ledger, never by day — the moment a parent is
+    # routed to SMS. First, so enrollment day reads welcome then ask.
+    if sms_welcome_due(parent) and not db.sms_welcome_sent(conn, parent_id):
+        due.append(decision(KIND_SMS_WELCOME, "sms_welcome"))
+
     # The ask, addressed to the parent, if the morning never showed up. Due
     # until a SENT ask exists: a skipped or failed slot keeps retrying.
     if (
@@ -1045,9 +1200,7 @@ def _due_for_parent(
     # finish" would be a false sentence for it. Every withhold rule around
     # the slot (164's followed-up skip, the evidence gate) is unchanged.
     if now >= plan.evening_digest and not already(KIND_DIGEST_EVENING):
-        morning_quiet = is_quiet(
-            conn, parent_id, plan.window_start, plan.morning_digest
-        )
+        morning_quiet = is_quiet(conn, parent_id, plan.window_start, plan.morning_digest)
         recovered = morning_quiet and not is_quiet(
             conn, parent_id, plan.morning_digest, plan.evening_digest
         )
@@ -1062,6 +1215,68 @@ def _due_for_parent(
 
 
 # --- reply intake (§2.6) -----------------------------------------------------
+
+
+#: Twilio's Advanced Opt-Out adds OptOutType to the webhook (Amendment A.5).
+OPT_OUT_STOP = "STOP"
+OPT_IN_WORDS = ("START", "UNSTOP", "YES")
+
+
+def parent_for_sender(conn: psycopg.Connection, raw_from: str) -> Any | None:
+    """The channel of arrival decides the lookup (A.5): a `whatsapp:` prefix
+    matches whatsapp_e164, a bare number matches phone_e164, so one number
+    in both columns of two parents cannot cross."""
+    sender = (raw_from or "").strip()
+    if not sender:
+        return None
+    if sender.startswith("whatsapp:"):
+        return db.parent_by_whatsapp(conn, sender.removeprefix("whatsapp:"))
+    return db.parent_by_phone(conn, sender)
+
+
+def record_inbound(
+    conn: psycopg.Connection,
+    raw_from: str,
+    opt_out_type: str | None,
+    now: datetime,
+    *,
+    notifier: Notifier | None = None,
+    note_first_reply: bool = False,
+) -> bool:
+    """One inbound message, content unread (A.5): STOP and START change the
+    parent's texting state and are never replies; HELP is nothing; anything
+    else is a reply and goes where replies have always gone."""
+    keyword = (opt_out_type or "").strip().upper()
+    if keyword:
+        parent = parent_for_sender(conn, raw_from)
+        if parent is None:
+            return False
+        if keyword == OPT_OUT_STOP:
+            _record_sms_opt_out(conn, notifier, _with_names(conn, parent), now, "STOP")
+        elif keyword in OPT_IN_WORDS and db.clear_sms_opted_out(conn, parent["parent_id"]):
+            named = _with_names(conn, parent)
+            message = (
+                f"sms: {named['family_name']} / {named['parent_name']} started texts again (START)"
+            )
+            db.insert_ops_alert(
+                conn, named["family_id"], named["parent_id"], OPS_SMS_OPT_IN, message, now
+            )
+            if notifier is not None:
+                notifier.send(message)
+        # HELP: Twilio answers it; nothing to record. Never a reply.
+        return False
+    return record_parent_reply(conn, raw_from, now, note_first_reply=note_first_reply)
+
+
+def _with_names(conn: psycopg.Connection, parent: Any) -> dict[str, Any]:
+    """The family name for the alert, whichever lookup found the parent."""
+    row = dict(parent)
+    if "family_name" not in row:
+        found = conn.execute(
+            "select name from families where id = %s", (row["family_id"],)
+        ).fetchone()
+        row["family_name"] = found["name"] if found else ""
+    return row
 
 
 def record_parent_reply(
@@ -1086,7 +1301,18 @@ def record_parent_reply(
     reply answers, it is not an open question of Kettle's, and un-answering
     is not a thing a late reply can do. Nothing calls this until Wave C.
     """
-    parent = db.parent_by_whatsapp(conn, number) if number else None
+    # A bare number is the SMS channel (A.5); the WhatsApp channel arrives
+    # prefixed and is matched by whatsapp_e164, as it always was. A number
+    # with no prefix that is somebody's WhatsApp still matches WhatsApp — the
+    # sandbox era's callers passed bare numbers — unless a phone matches first.
+    if number and number.startswith("whatsapp:"):
+        parent = db.parent_by_whatsapp(conn, number.removeprefix("whatsapp:"))
+    else:
+        parent = (
+            (db.parent_by_phone(conn, number) or db.parent_by_whatsapp(conn, number))
+            if number
+            else None
+        )
     if parent is None:
         return False
     matched = db.record_reply(conn, parent["parent_id"], now)
