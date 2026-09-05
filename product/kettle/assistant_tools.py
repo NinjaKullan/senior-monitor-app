@@ -147,6 +147,21 @@ def clock_words(instant: datetime, tz_name: str) -> str:
     return f"{hour}:{local.minute:02d} {'am' if local.hour < 12 else 'pm'}"
 
 
+def join_sentences(parts: list[str]) -> str:
+    """One answer from several sentences: a full stop and a space between
+    them (DECISIONS 287 backlog b). The heard line and the city line carry no
+    stop of their own on the app's screen; read aloud by an assistant they
+    are sentences, and a sentence that runs on from the one before it reads
+    as a fault."""
+    ended = []
+    for part in parts:
+        text = part.strip()
+        if text and text[-1] not in ".!?":
+            text += "."
+        ended.append(text)
+    return " ".join(ended)
+
+
 def heard_line(conn: psycopg.Connection, parent_id: Any, now: datetime) -> str:
     last = db.last_alarm_ping(conn, parent_id)
     if last is None:
@@ -200,7 +215,7 @@ def today_for(conn: psycopg.Connection, parent: dict[str, Any], now: datetime) -
     city = city_now(parent, now)
     if city:
         lines.append(city)
-    return " ".join(lines)
+    return join_sentences(lines)
 
 
 def parent_day_for(conn: psycopg.Connection, parent: dict[str, Any], day: str) -> str:
@@ -211,7 +226,7 @@ def parent_day_for(conn: psycopg.Connection, parent: dict[str, Any], day: str) -
     for row in rows:
         word = KIND_WORDS.get(row["kind"], row["kind"]).replace("{name}", parent["display_name"])
         parts.append(f"{word}: {render_row(conn, parent, row)}")
-    return " ".join(parts)
+    return join_sentences(parts)
 
 
 def memory_for(

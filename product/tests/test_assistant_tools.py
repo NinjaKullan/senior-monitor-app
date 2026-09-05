@@ -125,7 +125,49 @@ def test_nothing_yet_today_and_the_heard_line_stand_on_their_own(api, conn, cloc
     db.insert_ping(
         conn, family.parents[0].parent_id, "whatsapp", clock.now - timedelta(minutes=12), None
     )
-    assert assistant.text("today").endswith("Heard from 12 minutes ago")
+    # Every sentence ends with a full stop before the next begins (287 b):
+    # the heard line never runs on from the sentence before it.
+    assert assistant.text("today") == (
+        "Amma: Kettle has not written about Amma yet today. Heard from 12 minutes ago."
+    )
+
+
+def test_the_heard_and_city_lines_are_sentences_of_their_own(connected, conn, whitakers):
+    """Phoenix in a New York circle: three sentences, a full stop and a
+    space between each, and the city line closed like the rest."""
+    from kettle.assistant_tools import join_sentences
+
+    assert join_sentences(["One.", "Heard from moments ago", "Phoenix · 8:04 pm there now"]) == (
+        "One. Heard from moments ago. Phoenix · 8:04 pm there now."
+    )
+    assert join_sentences(["Is everything okay?", "Heard from 1 hour ago"]) == (
+        "Is everything okay? Heard from 1 hour ago."
+    )
+    linda_text = connected.text("today", parent="Linda")
+    assert "yet today. Heard from " in linda_text
+    assert " ago. Phoenix · " in linda_text
+    assert linda_text.endswith(" there now.")
+    assert ".." not in linda_text
+
+
+def test_parent_day_closes_each_part_before_the_next(conn, whitakers, monkeypatch):
+    """A day's parts are sentences too: a body without a stop of its own is
+    closed before the next 'word:' begins, never run on."""
+    from kettle import assistant_tools
+    from kettle.assistant_tools import parent_day_for, parents_in
+
+    linda = whitakers.parents[0].parent_id
+    for kind, template_id in (("digest_morning", "digest_morning_quiet"), ("ask", "ask_parent")):
+        conn.execute(
+            "insert into sent_messages (family_id, parent_id, local_date, kind, template_id, "
+            "transport, sent_utc, status) values (%s, %s, %s, %s, %s, 'log', %s, 'sent')",
+            (whitakers.family_id, linda, _day(60), kind, template_id, NOW - timedelta(days=60)),
+        )
+    monkeypatch.setattr(assistant_tools, "render_row", lambda conn, parent, row: "no stop here")
+    [parent] = [p for p in parents_in(conn, [whitakers.family_id]) if p["id"] == linda]
+    answer = parent_day_for(conn, parent, _day(60))
+    assert answer.count("no stop here.") == 2
+    assert "here. " in answer and "here Ask" not in answer
 
 
 def test_a_paused_parent_gets_the_pause_lines(api, conn, whitakers, clock):
