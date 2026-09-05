@@ -38,8 +38,8 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 674 from the repo root** (627 product + 47 pilot —
-the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 253**,
+Current green: **`pytest` 752 from the repo root** (705 product + 47 pilot —
+the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 264**,
 **`site` 236**. The replay test is pinned to fixed Phoenix instants (272) and
 the root suite is green at any hour. `ruff check .` clean; `tools/printables/` is excluded by ruling
 (266) pending its own lint-and-re-render pass.
@@ -103,6 +103,14 @@ number on the approved template. Everything in this file that used to say
 "rolled back", "unset by design", or "the flip is off the table" described the
 world between Sep 1 and Sep 4 and is gone; if you find that language anywhere
 else, it is stale.
+
+**Spec 019 (ask Kettle from an assistant, read-only MCP) is BUILT and unshipped
+(DECISIONS 285).** kettle-api is the MCP server (/mcp, official SDK) and the
+OAuth authorization server; consent lives at the webapp's /connect; Family has
+the Assistants section. Migration **0029**; new env `SUPABASE_JWKS_URL` (JWKS,
+ES256 only — no JWT secret). Owed, in order: PM applies 0029 → the JWKS secret →
+`cd product && fly deploy` → `cd webapp && fly deploy` → the founder connects
+from claude.ai on a computer and asks from the phone.
 
 **Spec 018 (notes: edit, delete, the optimistic composer, viewer-zone dates)
 is BUILT and unshipped (DECISIONS 281).** Migration **0028** (author from the

@@ -48,6 +48,11 @@ tripwire-health exemption and why it is safe.
 - **Notes are edited and deleted only through the 0028 functions.** The author
   edits their own; the author or an admin deletes; Kettle's lines never. The
   panel renders links only where the functions would say yes.
+- **`/connect` is the one route, and `assistant_grants` the one per-person read.**
+  Spec 019: the consent screen is reached from kettle-api with a request id in
+  the URL and posts Allow with the Supabase session; the grants read is keyed on
+  the viewer by RLS, never on a circle, and the token hashes are not granted at
+  all. The address the family copies is the API host's `/mcp` and nothing else.
 - **The journal is insert-only from the client's own SQL; contacts are editable.** A note is record and a
   correction is a new entry; a contact is reference data the family owns and may
   change or remove. Kettle's own lines (spec 012 §3) are written by the backend,
