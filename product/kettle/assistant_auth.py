@@ -45,6 +45,11 @@ ACCESS_LIFE = timedelta(hours=1)
 REFRESH_LIFE = timedelta(days=90)
 REQUEST_SWEEP = timedelta(hours=1)
 CLAUDE_CALLBACK = "https://claude.ai/api/mcp/auth_callback"
+#: Client ID Metadata Documents (CIMD): a client_id that is an https URL
+#: names a JSON document the client hosts; its redirect_uris and client_name
+#: are the registration, so no row is created per connect.
+CIMD_TIMEOUT = 5.0
+CIMD_CACHE_LIFE = timedelta(hours=1)
 
 
 def sha256(value: str) -> str:
@@ -115,6 +120,7 @@ def authorization_server_metadata(base: str) -> dict[str, Any]:
         "grant_types_supported": ["authorization_code", "refresh_token"],
         "code_challenge_methods_supported": ["S256"],
         "token_endpoint_auth_methods_supported": ["none"],
+        "client_id_metadata_document_supported": True,
     }
 
 
@@ -222,6 +228,65 @@ def client_row(conn: psycopg.Connection, client_id: str) -> dict[str, Any] | Non
         "select client_id, client_name, redirect_uris from assistant_clients where client_id = %s",
         (client_id,),
     ).fetchone()
+
+
+def is_cimd_client_id(client_id: str) -> bool:
+    return client_id.startswith("https://")
+
+
+class ClientDocuments:
+    """CIMD documents, fetched once an hour per client_id and never on the
+    token path's hot loop: a document that cannot be fetched or does not
+    describe itself is no client at all (invalid_client)."""
+
+    def __init__(self, client: httpx.Client | None = None) -> None:
+        self._client = client or httpx.Client(timeout=CIMD_TIMEOUT)
+        self._cache: dict[str, tuple[datetime, dict[str, Any]]] = {}
+
+    def fetch(self, client_id: str, now: datetime) -> dict[str, Any] | None:
+        cached = self._cache.get(client_id)
+        if cached is not None and now - cached[0] < CIMD_CACHE_LIFE:
+            return cached[1]
+        try:
+            response = self._client.get(
+                client_id, headers={"accept": "application/json"}, timeout=CIMD_TIMEOUT
+            )
+            document = response.json() if response.status_code == 200 else None
+        except (httpx.HTTPError, ValueError):
+            document = None
+        parsed = _parse_cimd(client_id, document)
+        if parsed is None:
+            log.warning("assistant: client document at %s refused", client_id)
+            return None
+        self._cache[client_id] = (now, parsed)
+        return parsed
+
+
+def _parse_cimd(client_id: str, document: Any) -> dict[str, Any] | None:
+    if not isinstance(document, dict) or document.get("client_id") != client_id:
+        return None
+    uris = document.get("redirect_uris")
+    if not isinstance(uris, list) or not uris or not all(isinstance(u, str) and u for u in uris):
+        return None
+    name = document.get("client_name")
+    client_name = name.strip()[:120] if isinstance(name, str) and name.strip() else None
+    return {"client_id": client_id, "client_name": client_name, "redirect_uris": uris}
+
+
+def mirror_client(conn: psycopg.Connection, client: dict[str, Any], now: datetime) -> None:
+    """One assistant_clients row per CIMD client_id, keyed by the URL and
+    refreshed from the document — never a row per connect. The requests and
+    grants tables reference assistant_clients, and a revoke cascades the way
+    it does for a registered client."""
+    conn.execute(
+        """
+        insert into assistant_clients (client_id, client_name, redirect_uris, created_utc)
+        values (%s, %s, %s, %s)
+        on conflict (client_id) do update
+            set client_name = excluded.client_name, redirect_uris = excluded.redirect_uris
+        """,
+        (client["client_id"], client["client_name"], client["redirect_uris"], now),
+    )
 
 
 def sweep_requests(conn: psycopg.Connection, now: datetime) -> None:
@@ -379,11 +444,22 @@ class OAuthRoutes:
         app_origin: str,
         verifier: JwksVerifier,
         clock: Callable[[], datetime] = now_utc,
+        documents: ClientDocuments | None = None,
     ) -> None:
         self.base = base
         self.app_origin = app_origin
         self.verifier = verifier
         self.clock = clock
+        self.documents = documents or ClientDocuments()
+
+    def client_for(self, conn: psycopg.Connection, client_id: str) -> dict[str, Any] | None:
+        """A registered client by its kc_ id, or a CIMD client by its URL."""
+        if not is_cimd_client_id(client_id):
+            return client_row(conn, client_id)
+        client = self.documents.fetch(client_id, self.clock())
+        if client is not None:
+            mirror_client(conn, client, self.clock())
+        return client
 
     async def register(self, request: Request) -> JSONResponse:
         try:
@@ -405,7 +481,7 @@ class OAuthRoutes:
         redirect_uri = q.get("redirect_uri", "")
         state = q.get("state")
         with request.app.state.pool.connection() as conn:
-            client = client_row(conn, client_id)
+            client = self.client_for(conn, client_id)
             if client is None:
                 return _oauth_error("invalid_client")
             if not redirect_uri or not redirect_allowed(
@@ -501,7 +577,7 @@ class OAuthRoutes:
         client_id = form.get("client_id", "")
         now = self.clock()
         with request.app.state.pool.connection() as conn:
-            if client_row(conn, client_id) is None:
+            if self.client_for(conn, client_id) is None:
                 return _oauth_error("invalid_client", status=401)
             if grant_type == "authorization_code":
                 tokens = exchange_code(

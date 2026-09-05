@@ -63,6 +63,7 @@ def create_app(
     notifier: Notifier | None = None,
     clock: Callable[[], datetime] = now_utc,
     jwks_client: httpx.Client | None = None,
+    cimd_client: httpx.Client | None = None,
 ) -> FastAPI:
     """Build the application. `settings`/`notifier`/`clock` are injectable for tests.
 
@@ -100,6 +101,7 @@ def create_app(
         cfg.app_origin,
         assistant_auth.JwksVerifier(cfg.supabase_jwks_url, jwks_client),
         clock,
+        assistant_auth.ClientDocuments(cimd_client),
     )
 
     @asynccontextmanager

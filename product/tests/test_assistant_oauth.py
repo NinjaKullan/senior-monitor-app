@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from urllib.parse import parse_qs, urlsplit
 
+import httpx
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
@@ -75,6 +76,8 @@ def test_discovery_documents_carry_the_fields_in_section_4(api, settings):
     assert "none" in server["token_endpoint_auth_methods_supported"]
     assert server["authorization_endpoint"] == f"{base}/oauth/authorize"
     assert server["token_endpoint"] == f"{base}/oauth/token"
+    # CIMD alongside DCR: a client_id that is an https URL names its own document.
+    assert server["client_id_metadata_document_supported"] is True
 
 
 def test_mcp_without_a_token_is_a_401_with_the_header_verbatim(api, settings):
@@ -392,3 +395,107 @@ def test_a_person_reads_their_own_grants_on_the_rendered_columns_and_never_a_has
 
 def test_the_jwks_is_the_shape_supabase_publishes():
     assert JWKS["keys"][0]["kty"] == "EC" and JWKS["keys"][0]["crv"] == "P-256"
+
+
+# --- Client ID Metadata Documents (CIMD), beside dynamic registration ----------------
+
+CIMD_ID = "https://assistant.test/.well-known/oauth-client"
+CIMD_REDIRECT = "https://assistant.test/callback"
+
+
+def cimd_document(**over):
+    return {
+        "client_id": CIMD_ID,
+        "client_name": "Documented",
+        "redirect_uris": [CIMD_REDIRECT],
+        "token_endpoint_auth_method": "none",
+        "grant_types": ["authorization_code", "refresh_token"],
+        "response_types": ["code"],
+        **over,
+    }
+
+
+def cimd_client(document=None, status: int = 200, calls: list[str] | None = None) -> httpx.Client:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if calls is not None:
+            calls.append(str(request.url))
+        if str(request.url) == CIMD_ID:
+            return httpx.Response(
+                status, json=document if document is not None else cimd_document()
+            )
+        return httpx.Response(404)
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+@pytest.fixture
+def cimd_api_factory(settings, notifier, conn, clock):
+    def make(client: httpx.Client):
+        return TestClient(
+            create_app(settings, notifier, clock, jwks_client=jwks_client(), cimd_client=client)
+        )
+
+    return make
+
+
+def test_a_cimd_client_connects_without_registering(cimd_api_factory, conn, family):
+    calls: list[str] = []
+    with cimd_api_factory(cimd_client(calls=calls)) as api:
+        assistant = Assistant(api, redirect_uri=CIMD_REDIRECT)
+        assistant.client_id = CIMD_ID  # never POSTs /oauth/register
+        _, challenge = pkce_pair()
+        sent = assistant.authorize(challenge)
+        assert sent.status_code == 302, sent.text
+        request_id = parse_qs(urlsplit(sent.headers["location"]).query)["request"][0]
+        # The consent screen learns the name from the document.
+        assert api.get("/oauth/pending", params={"request": request_id}).json() == {
+            "client_name": "Documented"
+        }
+        assistant.connect(USER)
+        assert mcp_call(api, assistant.access_token, "tools/list").status_code == 200
+        # Connect twice more: one row for the client, keyed by its URL, never a
+        # kc_ row per connect; the document was fetched once (cached).
+        assistant.connect(USER)
+        assistant.connect(USER)
+    rows = conn.execute("select client_id, client_name from assistant_clients").fetchall()
+    assert [(r["client_id"], r["client_name"]) for r in rows] == [(CIMD_ID, "Documented")]
+    assert calls == [CIMD_ID]
+    assert {g["client_id"] for g in _grants(conn)} == {CIMD_ID}
+
+
+def test_an_unreachable_or_self_contradicting_document_is_no_client(cimd_api_factory, family):
+    for client in (
+        cimd_client(status=404),
+        cimd_client(status=500),
+        cimd_client(document={"not": "json shaped"}),
+        cimd_client(document=cimd_document(client_id="https://other.test/doc")),
+        cimd_client(document=cimd_document(redirect_uris=[])),
+    ):
+        with cimd_api_factory(client) as api:
+            assistant = Assistant(api, redirect_uri=CIMD_REDIRECT)
+            assistant.client_id = CIMD_ID
+            _, challenge = pkce_pair()
+            refused = assistant.authorize(challenge)
+            assert refused.status_code == 400
+            assert refused.json()["error"] == "invalid_client"
+            assert assistant.token(grant_type="refresh_token", refresh_token="x").status_code == 401
+
+
+def test_a_cimd_redirect_outside_the_document_is_refused(cimd_api_factory, family):
+    with cimd_api_factory(cimd_client()) as api:
+        assistant = Assistant(api, redirect_uri=CIMD_REDIRECT)
+        assistant.client_id = CIMD_ID
+        _, challenge = pkce_pair()
+        refused = assistant.authorize(challenge, redirect_uri="https://evil.test/cb")
+        assert refused.status_code == 400
+        assert refused.json()["error"] == "invalid_request"
+        # And the document's own redirect still works in the same app.
+        assert assistant.authorize(challenge).status_code == 302
+
+
+def test_dynamic_registration_still_works_beside_cimd(cimd_api_factory, conn, family):
+    with cimd_api_factory(cimd_client()) as api:
+        assistant = Assistant(api)
+        assistant.connect(USER)
+        assert assistant.client_id.startswith("kc_")
+        assert mcp_call(api, assistant.access_token, "tools/list").status_code == 200
