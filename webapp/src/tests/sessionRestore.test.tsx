@@ -84,6 +84,8 @@ async function mount(overrides: Partial<Harness> = {}) {
     setOwnMail: vi.fn(),
     leaveCircle: vi.fn(),
     pauseParent: vi.fn(),
+    editEntry: vi.fn(),
+    deleteEntry: vi.fn(),
     resumeParent: vi.fn(),
   }));
 
