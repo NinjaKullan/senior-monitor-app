@@ -134,6 +134,18 @@ export const REPLY_CANCEL = "Not now";
 /** Reserved by §5, not shown in v1. */
 export const REPLY_COUNT_ONE = "1 reply";
 
+/* Spec 018 §5, VERBATIM (DECISIONS 280): edit, delete, the composer. */
+export const EDIT_LINK = "Edit";
+export const DELETE_LINK = "Delete";
+export const SAVE = "Save";
+export const EDIT_CANCEL = "Not now";
+export const DELETE_NOTE_CONFIRM = "Delete this note? Its replies go with it.";
+export const DELETE_REPLY_CONFIRM = "Delete this reply?";
+export const DELETE_CONFIRM_YES = "Delete";
+export const DELETE_CANCEL = "Keep it";
+export const EDITED_MARK = "edited";
+export const COMPOSER_FAILED = "That didn't save. Try again.";
+
 /* ---------------------------------------------------------------------- */
 /* City label (spec 009 §5)                                                 */
 /* ---------------------------------------------------------------------- */

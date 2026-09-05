@@ -51,7 +51,9 @@ export const READ_SURFACE = {
   // readAll — every read is newest-first with an explicit limit (the
   // DECISIONS 160 discipline), one bounded read per scope.
   // Spec 016: parent_entry_id is null on a note and the note's id on a reply.
-  journal_entries: "id, family_id, parent_id, author_label, body, event_date, created_utc, kind, parent_entry_id",
+  // Spec 018: author_member_id (server-set from the JWT) decides whose Edit
+  // and Delete links render; edited_utc is the "edited" mark.
+  journal_entries: "id, family_id, parent_id, author_label, body, event_date, created_utc, kind, parent_entry_id, author_member_id, edited_utc",
   // Spec 012 §4: the family's own contacts sheet — small by nature (a
   // handful of rows), read whole, ordered by position. phone_e164 exists
   // client-side solely to become a tel: href (the DECISIONS 167 law);

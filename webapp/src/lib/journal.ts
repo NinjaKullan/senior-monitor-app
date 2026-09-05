@@ -111,6 +111,32 @@ export function canReply(entry: JournalEntry): boolean {
   return entry.parent_entry_id === null && entry.kind === "note";
 }
 
+/** Who is looking (spec 018): their seat in this circle, and whether it is
+ *  an admin seat. Null memberId = no seat found (a stale snapshot). */
+export interface Viewer {
+  memberId: string | null;
+  admin: boolean;
+}
+
+/** Edit: the author, on their own text; a legacy row (no author) by an
+ *  admin only. Kettle's lines never. */
+export function canEdit(entry: JournalEntry, viewer: Viewer): boolean {
+  if (entry.kind !== "note") return false;
+  if (entry.author_member_id === null) return viewer.admin;
+  return viewer.memberId !== null && entry.author_member_id === viewer.memberId;
+}
+
+/** Delete: the author, or any admin. Kettle's lines never. */
+export function canDelete(entry: JournalEntry, viewer: Viewer): boolean {
+  if (entry.kind !== "note") return false;
+  if (viewer.admin) return true;
+  return (
+    entry.author_member_id !== null &&
+    viewer.memberId !== null &&
+    entry.author_member_id === viewer.memberId
+  );
+}
+
 /** The notes (top level) and, for each, its replies oldest first. Both come
  *  from the same bounded read; a reply whose note fell outside the read
  *  window is dropped rather than shown loose. */

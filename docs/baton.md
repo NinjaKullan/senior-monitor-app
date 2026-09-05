@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 663 from the repo root** (616 product + 47 pilot —
+Current green: **`pytest` 674 from the repo root** (627 product + 47 pilot —
 the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 240**,
 **`site` 236**. The replay test is pinned to fixed Phoenix instants (272) and
 the root suite is green at any hour. `ruff check .` clean; `tools/printables/` is excluded by ruling
@@ -103,6 +103,11 @@ number on the approved template. Everything in this file that used to say
 "rolled back", "unset by design", or "the flip is off the table" described the
 world between Sep 1 and Sep 4 and is gone; if you find that language anywhere
 else, it is stale.
+
+**Spec 018 (notes: edit, delete, the optimistic composer, viewer-zone dates)
+is BUILT and unshipped (DECISIONS 281).** Migration **0028** (author from the
+JWT, edited_utc, two functions; replaces the 0026 trigger function in place).
+Owed: PM applies 0028 → `cd webapp && fly deploy`. No product deploy.
 
 **Spec 017 (pause Kettle for one parent) is BUILT and unshipped (DECISIONS
 276).** Migration **0027** (the pause pair and two admin-only functions); the

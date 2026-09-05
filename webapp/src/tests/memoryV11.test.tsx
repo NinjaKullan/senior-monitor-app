@@ -59,6 +59,8 @@ const entry = (over: Partial<JournalEntry>): JournalEntry => ({
   created_utc: "2026-08-24T10:00:00Z",
   kind: "note",
   parent_entry_id: null,
+  author_member_id: null,
+  edited_utc: null,
   ...over,
 });
 

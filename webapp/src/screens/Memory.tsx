@@ -10,6 +10,7 @@
 import { useState } from "react";
 import { FilterChips } from "@/components/FilterChips";
 import { NotesPanel, type NoteDraft, type ReplyDraft, type TagOption } from "@/components/NotesPanel";
+import type { Viewer } from "@/lib/journal";
 import {
   AUTHOR_FALLBACK,
   FILTER_ALL_PARENTS,
@@ -48,16 +49,24 @@ export function MemoryScreen({
   tz,
   onAddNote,
   onAddReply,
+  viewer,
+  onEdit,
+  onDelete,
 }: {
   /** parentId → display name, for tags, filters and the composer's picker. */
   parentLabels: { parentId: string; label: string }[];
   journal: JournalEntry[];
   todayDate: string;
-  /** The family's timezone, for dating notes (DECISIONS 251). */
+  /** The VIEWER's browser timezone (spec 018, DECISIONS 279): a note is
+   *  dated the way a messaging app dates it, on the reader's own clock. */
   tz: string;
   onAddNote: (draft: NoteDraft) => Promise<void>;
   /** Spec 016: replies, on a note, from anyone in the circle. */
   onAddReply?: (draft: ReplyDraft) => Promise<void>;
+  /** Spec 018: who is looking, and the edit and delete paths. */
+  viewer?: Viewer;
+  onEdit?: (entryId: number, body: string) => Promise<void>;
+  onDelete?: (entryId: number) => Promise<void>;
 }) {
   // DECISIONS 211: All parents over three months, All-time one tap away.
   const [parentFilter, setParentFilter] = useState<string | null>(DEFAULT_PARENT_FILTER);
@@ -93,6 +102,9 @@ export function MemoryScreen({
         tz={tz}
         onAdd={onAddNote}
         onReply={onAddReply}
+        viewer={viewer}
+        onEdit={onEdit}
+        onDelete={onDelete}
         tagOptions={tagOptions}
         tagLabelFor={(entry: JournalEntry) =>
           entry.parent_id === null

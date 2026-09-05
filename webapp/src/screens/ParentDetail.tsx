@@ -7,6 +7,7 @@
 import { DayArc } from "@/components/DayArc";
 import { KettleGlyph } from "@/components/KettleGlyph";
 import { NotesPanel, type NoteDraft, type ReplyDraft } from "@/components/NotesPanel";
+import type { Viewer } from "@/lib/journal";
 import { RecentDots } from "@/components/RecentDots";
 import {
   BACK_TO_TODAY,
@@ -44,6 +45,9 @@ export function ParentDetail({
   onBack,
   onAddNote,
   onAddReply,
+  viewer,
+  onEdit,
+  onDelete,
   onSteps,
 }: {
   state: ParentToday;
@@ -54,6 +58,9 @@ export function ParentDetail({
   onBack: () => void;
   onAddNote: (draft: NoteDraft) => Promise<void>;
   onAddReply?: (draft: ReplyDraft) => Promise<void>;
+  viewer?: Viewer;
+  onEdit?: (entryId: number, body: string) => Promise<void>;
+  onDelete?: (entryId: number) => Promise<void>;
   /** The fix card's "See the simple steps →" destination (flagged call: the
    *  Family screen's setup card is the steps surface that exists). */
   onSteps: () => void;
@@ -234,6 +241,9 @@ export function ParentDetail({
         tz={tz}
         onAdd={onAddNote}
         onReply={onAddReply}
+        viewer={viewer}
+        onEdit={onEdit}
+        onDelete={onDelete}
         fixedParentId={state.parentId}
       />
     </div>

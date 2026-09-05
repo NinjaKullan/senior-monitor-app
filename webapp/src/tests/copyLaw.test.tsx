@@ -146,6 +146,8 @@ const notes: JournalEntry[] = [
     created_utc: "2026-08-01T10:00:00Z",
     kind: "note",
     parent_entry_id: null,
+    author_member_id: null,
+    edited_utc: null,
   },
   {
     id: 2,
@@ -157,6 +159,8 @@ const notes: JournalEntry[] = [
     created_utc: "2026-08-02T10:00:00Z",
     kind: "note",
     parent_entry_id: null,
+    author_member_id: null,
+    edited_utc: null,
   },
 ];
 const TODAY_DATE = "2026-08-03";
@@ -436,6 +440,8 @@ describe("rendered copy law", () => {
       created_utc: "2026-08-02T10:00:00Z",
       kind: "note",
       parent_entry_id: 1,
+      author_member_id: null,
+      edited_utc: null,
     };
     render(
       <MemoryScreen
