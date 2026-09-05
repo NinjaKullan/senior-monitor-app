@@ -91,6 +91,7 @@ def settings(database_url: str) -> Settings:
         # Empty: the sandbox body send, which is what the suite exercises
         # unless a test builds the transport with a SID of its own.
         twilio_ask_content_sid="",
+        twilio_messaging_service_sid="",
         outbound_reply_token="test-reply-token",
         # Off, like production's default (DECISIONS 203): the first_reply line
         # is armed at the Phase 3 flip; tests that exercise it pass

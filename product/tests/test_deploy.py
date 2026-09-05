@@ -114,6 +114,7 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
         # Empty: the sandbox body send, which is what the suite exercises
         # unless a test builds the transport with a SID of its own.
         twilio_ask_content_sid="",
+        twilio_messaging_service_sid="",
         outbound_reply_token="",
         memory_first_reply=False,
         site_metrics_token="",
