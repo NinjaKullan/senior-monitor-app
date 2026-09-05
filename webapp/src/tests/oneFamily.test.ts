@@ -183,7 +183,9 @@ describe("one family per snapshot (DECISIONS 263)", () => {
     seedTwoFamilies();
     await loadSnapshot(NOW);
     for (const call of executed) {
-      if (call.table === "families") continue;
+      // families is the choice itself; assistant_grants (spec 019) is the
+      // viewer's own, keyed on the person by RLS and never on a circle.
+      if (call.table === "families" || call.table === "assistant_grants") continue;
       const byFamily = call.eq.family_id === "older";
       const byParent =
         "parent_id" in call.eq
@@ -204,12 +206,22 @@ describe("one family per snapshot (DECISIONS 263)", () => {
     expect(fallen.family?.id).toBe("older");
   });
 
+  it("carries the viewer's live assistant connections and not the revoked ones (spec 019)", async () => {
+    seedTwoFamilies();
+    tables.assistant_grants = [
+      { id: "g-old", client_name: "Claude", created_utc: "2026-09-01T00:00:00Z", last_used_utc: "2026-09-01T00:00:00Z", revoked_utc: "2026-09-02T00:00:00Z" },
+      { id: "g-live", client_name: "Claude", created_utc: "2026-09-03T00:00:00Z", last_used_utc: "2026-09-03T00:00:00Z", revoked_utc: null },
+    ];
+    const snapshot = await loadSnapshot(NOW);
+    expect(snapshot.assistants.map((g) => g.id)).toEqual(["g-live"]);
+  });
+
   it("no family means an empty snapshot and no further reads", async () => {
     seedTwoFamilies();
     tables.families = [];
     const snapshot = await loadSnapshot(NOW);
     expect(snapshot.family).toBeNull();
     expect(snapshot.parents).toEqual([]);
-    expect(executed.map((call) => call.table)).toEqual(["families"]);
+    expect(executed.map((call) => call.table)).toEqual(["families", "assistant_grants"]);
   });
 });

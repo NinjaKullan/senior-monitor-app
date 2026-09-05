@@ -58,6 +58,7 @@ function snapshotOf(families: Family[], family: Family): FamilySnapshot {
     journal: [],
     journalByParent: {},
     contacts: [],
+    assistants: [],
   };
 }
 
@@ -90,6 +91,10 @@ async function mountApp(families: Family[]) {
     leaveCircle: vi.fn(),
     pauseParent: vi.fn(),
     editEntry: vi.fn(),
+    approveConnect: vi.fn(),
+    loadConnectNames: vi.fn().mockResolvedValue([]),
+    pendingConnect: vi.fn().mockResolvedValue(null),
+    revokeAssistant: vi.fn(),
     deleteEntry: vi.fn(),
     resumeParent: vi.fn(),
   }));

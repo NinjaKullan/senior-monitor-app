@@ -18,6 +18,7 @@
  */
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { ConnectScreen } from "@/screens/Connect";
 import { FamilyScreen } from "@/screens/Family";
 import { MemoryScreen } from "@/screens/Memory";
 import { WhoToCallScreen } from "@/screens/WhoToCall";
@@ -424,6 +425,42 @@ describe("rendered copy law", () => {
     expect(text).not.toContain("sms");
     expect(text).toContain("Ready to send");
     assertCopyLaw(text, [...SHARE_CTA_EXEMPTION, ...APP_ALLOW]);
+  });
+
+  it("holds for the consent screen and the Assistants section (spec 019)", () => {
+    render(
+      <ConnectScreen
+        state={{ kind: "ready", clientName: "Claude", names: ["Amma", "Appa"] }}
+        onAllow={noop}
+        onCancel={noop}
+      />,
+    );
+    assertCopyLaw(renderedText(), APP_ALLOW);
+    document.body.innerHTML = "";
+    render(
+      <FamilyScreen
+        parentStates={statesAt()}
+        cities={{ p1: "Chennai", p2: "", p3: "" }}
+        members={members}
+        viewerId="u1"
+        circle={circleNoop}
+        setupEntries={[]}
+        onOpen={() => undefined}
+        onPickCity={noop}
+        onClearCity={noop}
+        assistants={[
+          { id: "g1", client_name: "Claude", created_utc: "2026-08-02T10:00:00Z", last_used_utc: "2026-08-02T10:00:00Z", revoked_utc: null },
+        ]}
+        onRevokeAssistant={noop}
+        viewerTz="America/New_York"
+      />,
+    );
+    fireEvent.click(screen.getByTestId("assistant-disconnect"));
+    const text = renderedText();
+    expect(text).toContain("Claude · since Aug 2");
+    // The address is the one URL the app prints as text; its host carries no
+    // digits, and the scan masks it as the mechanism it names.
+    assertCopyLaw(text, [...SHARE_CTA_EXEMPTION, ...APP_ALLOW, "kettle-api.fly.dev/mcp", "Ask Kettle from Claude or another assistant. Add Kettle as a connector once, on a computer, with this address."]);
   });
 
   it("holds for the Memory screen and its feed (spec 012, filters in §9.1)", () => {
