@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 282.** This line is the one to update; the `Next number:` lines inside
+**Next number: 285.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5748,3 +5748,37 @@ browser — all three adopted as the standard for future surfaces.**
        0029 at build time), then spec 019 (read-only MCP). Monday:
        first beta invitations.
      * Next number: 284.
+
+284. **(2026-09-05, 8:45am ET) Spec 019 (ask Kettle from an assistant,
+     read-only MCP) RATIFIED by Hema; written at `specs/019-mcp.md`.
+     Reordered ahead of Amendment A at the founder's ask.**
+     * Sign-in rethought from first principles at the founder's ask.
+       The token-paste idea (never logged, never built) is dropped:
+       on a phone nobody copies a token between apps. Kettle is one
+       more connector in the assistant, the way Gmail is: OAuth on
+       top of the 013 email code, one consent screen, Allow. Connect
+       once, seated; ask forever with nothing in the way.
+     * Founder ruling on privacy in public: the burden is the
+       person's. If they ask for Mom's status in a cafe or a car,
+       Kettle answers. No gate, no read-aloud restriction, no extra
+       confirmation. Answers stay one to three of Kettle's sentences
+       because they may be read aloud.
+     * One truth: the tools read the ledger (what Kettle already
+       said, rendered through the template registry) plus the heard
+       line; nothing judges a day except the engine.
+     * Verified against Claude's connector docs (Sep 2026): custom
+       connectors are added on claude.ai on a computer and then work
+       in the phone app; DCR, PKCE S256, 401 with resource_metadata,
+       rotating refresh tokens, callback
+       `https://claude.ai/api/mcp/auth_callback`; Claude Code uses a
+       loopback redirect with any port. Free plan allows one custom
+       connector.
+     * Data: `assistant_requests`, `assistant_clients`,
+       `assistant_grants` (tokens hashed), `app_revoke_assistant`;
+       migration numbered at build time. New secret
+       `SUPABASE_JWT_SECRET` on kettle-api.
+     * Family screen: "Assistants" section with the address, Copy,
+       and the person's connections with Disconnect. Strings in 019
+       §8, verbatim.
+     * Next: CC brief for 019; then Amendment A.
+     * Next number: 285.
