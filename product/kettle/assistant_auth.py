@@ -171,12 +171,11 @@ class JwksVerifier:
         if key is None:
             return None
         try:
-            claims = jwt.decode(
-                token,
-                key.key,
-                algorithms=[header.get("alg", "ES256")],
-                options={"verify_aud": False},
-            )
+            # ES256 and nothing else (PM, Sep 5): the algorithm list is
+            # fixed here, never read from the token, so a token claiming
+            # another algorithm against this key is refused rather than
+            # confused.
+            claims = jwt.decode(token, key.key, algorithms=["ES256"], options={"verify_aud": False})
         except jwt.PyJWTError:
             return None
         sub = claims.get("sub")
