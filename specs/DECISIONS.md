@@ -5719,3 +5719,16 @@ browser — all three adopted as the standard for future surfaces.**
        untouched and their rows simply get a null author. PM data fix
        from §7 (Suryaprakasam tz → America/New_York) is independent.
      * Next number: 282.
+
+282. **(2026-09-05, ~1am ET) 281 REVIEWED and ACCEPTED (a021706).
+     Migration 0028 applied to prod by PM. Webapp-only deploy owed.**
+     * Accepted: the composer lock is a ref as well as state, because
+       the founder's double post is two events in one tick and a
+       state-only lock passes its own test while letting the second
+       through (the plant proved it); "dates and times" in §4 was one
+       thing, the day, since no time is rendered on a note; Kettle's
+       lines keep a null author because the server writes them with
+       no signed-in user, which is what makes them untouchable.
+     * Deploy: `cd webapp && npm run ci && fly deploy`. No product
+       deploy. Suryaprakasam tz already corrected (280).
+     * Next number: 283.
