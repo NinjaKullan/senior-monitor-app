@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 661 from the repo root** (614 product + 47 pilot —
+Current green: **`pytest` 663 from the repo root** (616 product + 47 pilot —
 the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 240**,
 **`site` 236**. The replay test is pinned to fixed Phoenix instants (272) and
 the root suite is green at any hour. `ruff check .` clean; `tools/printables/` is excluded by ruling
@@ -106,8 +106,8 @@ else, it is stale.
 
 **Spec 017 (pause Kettle for one parent) is BUILT and unshipped (DECISIONS
 276).** Migration **0027** (the pause pair and two admin-only functions); the
-engine skips a paused parent above the withhold rules and says one line a
-morning; the Today card, the setup row and the rollup know. Owed: PM applies
+engine skips a paused parent above the withhold rules and says one line at the
+first morning of the pause (277); the Today card, the setup row and the rollup know. Owed: PM applies
 0027 → `cd product && fly deploy` → `cd webapp && fly deploy`. Three spec/code
 disagreements are in 276, the largest being that resume ends the pause now
 rather than nulling the fields, so the resume day can work.

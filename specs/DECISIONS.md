@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 277.** This line is the one to update; the `Next number:` lines inside
+**Next number: 279.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5604,3 +5604,31 @@ browser — all three adopted as the standard for future surfaces.**
      * Memory v1.1 Asana task (1218017356495916) closes with this
        deploy; the pause task (1218194014017087) likewise.
      * Next number: 278.
+
+## The two 277 rulings (implementer, 2026-09-05)
+
+278. **(2026-09-05) DECISIONS 277's two rulings BUILT on main; NOT
+     deployed.**
+     * **Ruling 1 (016 §4):** the upcoming strip shows a note's replies
+       beneath it, the same indented block the list renders — one
+       `Replies` component now serves both. The strip stays a strip: no
+       Reply link there (a reply is written from the list, where the
+       composer lives), and the note has no list entry. Test: an
+       upcoming note with one reply renders the reply inside the strip;
+       planted (strip without replies) and it failed by name.
+     * **Ruling 2 (017 §2):** the paused line goes out ONCE per pause —
+       at the first morning slot after the pause began, keyed on
+       `paused_since` (`paused_line_sent_since`: a sent
+       digest_morning_paused row at or after the pause's start means
+       silence). Paused at noon after the day's digest went out, the
+       first morning of the pause is tomorrow, and that is when it goes.
+       Resume day sends the normal digest, as before. Tests: seven days
+       of full-day replay under a week pause produce one ledger row,
+       delivered once to each of the three listening members, then an
+       ordinary morning after the pause; the noon-pause case; planted
+       (once-per-pause check removed) and it failed by name.
+     * **Counts:** root `pytest` **663** (two new), webapp **240**
+       (one rewritten), ruff clean, Postgres up before and after.
+     * Deploy order unchanged from 277: product, then webapp, founder
+       watching.
+     * Next number: 279.
