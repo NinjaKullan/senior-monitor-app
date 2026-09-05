@@ -529,9 +529,10 @@ def run_outbound(
 
         # Spec 017: a paused parent, in the demo skip's place — above every
         # withhold rule, so nothing is decided, recorded or alerted. The one
-        # exception is the morning note itself, which says the parent is
-        # paused (loud, §2): one message a day, through the circle like any
-        # digest, and then nothing else until the pause ends.
+        # exception is the paused line itself (loud, §2): ONCE per pause, at
+        # the first morning slot after the pause began (DECISIONS 277),
+        # through the circle like any digest, and then nothing until the
+        # pause ends. The card and the Family row carry the state after that.
         paused_until = parent["paused_until"]
         if paused_until is not None and paused_until > now:
             decisions.extend(
@@ -914,11 +915,16 @@ def _paused_morning_note(
     now: datetime,
 ) -> list[Decision]:
     """The one thing Kettle says about a paused parent (spec 017 §2): the
-    registry's digest_morning_paused line at the morning slot, and nothing
-    else all day. Same slot, same ledger row, same circle as the digest it
-    stands in for, so the day it was paused (whatever went out stands,
-    nothing more) and every later day read the same."""
+    registry's digest_morning_paused line, at the first morning slot after
+    the pause began, once per pause (DECISIONS 277). Same slot, same ledger
+    row, same circle as the digest it stands in for, so on the day it was
+    paused whatever went out stands and nothing more follows; every later
+    morning of the pause is silent. Idempotent per (parent, pause start):
+    a restart, a re-decide, or a week of passes lands one row."""
     if now < plan.morning_digest or now >= plan.morning_digest + MORNING_STALE_CUTOFF:
+        return []
+    since = parent["paused_since"] or now
+    if db.paused_line_sent_since(conn, parent["parent_id"], since):
         return []
     if db.sent_message(
         conn, parent["family_id"], parent["parent_id"], plan.local_date, KIND_DIGEST_MORNING

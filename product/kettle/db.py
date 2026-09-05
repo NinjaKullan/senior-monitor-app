@@ -214,6 +214,21 @@ def parents_with_tz(conn: psycopg.Connection) -> list[Row]:
     ).fetchall()
 
 
+def paused_line_sent_since(conn: psycopg.Connection, parent_id: Any, since: datetime) -> bool:
+    """Has the paused line gone out during THIS pause (DECISIONS 277: once
+    per pause, keyed on the pause's start)?"""
+    row = conn.execute(
+        """
+        select 1 from sent_messages
+        where parent_id = %s and template_id = 'digest_morning_paused'
+          and status = 'sent' and sent_utc >= %s
+        limit 1
+        """,
+        (parent_id, since),
+    ).fetchone()
+    return row is not None
+
+
 def clear_pause(conn: psycopg.Connection, parent_id: Any) -> None:
     """The pause is over and its day is done (spec 017 §4): both fields null."""
     conn.execute(

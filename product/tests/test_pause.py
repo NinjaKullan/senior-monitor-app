@@ -158,6 +158,41 @@ def test_the_resume_day_fires_nothing_that_fell_due_while_paused(conn, two_paren
     assert _rows(conn, amma)[-1] == ("digest_morning", "digest_morning_normal", "sent")
 
 
+def test_a_week_pause_says_the_paused_line_once_and_ends_by_itself(conn, two_parents):
+    """DECISIONS 277: seven days of full-day passes, ONE paused send — the
+    first morning — then silence, then an ordinary morning after the pause."""
+    amma = two_parents.parents[0].parent_id
+    _pause(conn, amma, at(28, 7, 0), since=at(21, 7, 0))
+    transport = LogTransport()
+    for day in range(21, 28):
+        _full_day(conn, transport, day)
+    # One paused send: one ledger row, delivered once to each listening member.
+    paused_sends = [t for t, _ in transport.sent if t == "digest_morning_paused"]
+    assert len(paused_sends) == len(db.outbound_contacts(conn, two_parents.family_id)) == 3
+    assert _rows(conn, amma) == [("digest_morning", "digest_morning_paused", "sent")]
+    # Day 28: the pause ended at 07:00, before the slot — a normal morning.
+    db.insert_ping(conn, amma, "whatsapp", at(28, 7, 30), None)
+    run_outbound(conn, transport, at(28, 8, 30))
+    assert _rows(conn, amma)[-1] == ("digest_morning", "digest_morning_normal", "sent")
+
+
+def test_a_paused_line_missed_on_the_pause_day_goes_out_the_next_morning(conn, two_parents):
+    """Paused at noon, after the day's digest went out: the first morning of
+    the pause is tomorrow, and that is when the line goes, once."""
+    amma = two_parents.parents[0].parent_id
+    transport = LogTransport()
+    db.insert_ping(conn, amma, "whatsapp", at(21, 7, 0), None)
+    run_outbound(conn, transport, at(21, 8, 30))
+    _pause(conn, amma, INFINITY, since=at(21, 12, 0))
+    _full_day(conn, transport, 21)
+    _full_day(conn, transport, 22)
+    _full_day(conn, transport, 23)
+    assert _rows(conn, amma) == [
+        ("digest_morning", "digest_morning_normal", "sent"),
+        ("digest_morning", "digest_morning_paused", "sent"),
+    ]
+
+
 def test_a_week_pause_ends_by_itself(conn, two_parents):
     amma = two_parents.parents[0].parent_id
     _pause(conn, amma, at(21, 8, 0), since=at(14, 8))
