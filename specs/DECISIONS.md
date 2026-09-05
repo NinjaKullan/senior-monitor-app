@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 273.** This line is the one to update; the `Next number:` lines inside
+**Next number: 276.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5467,3 +5467,49 @@ browser — all three adopted as the standard for future surfaces.**
        the next number. Deploy when green with the founder watching
        (273).
      * Next number: 275.
+
+## Spec 016 build notes (implementer, 2026-09-05)
+
+275. **(2026-09-05) Spec 016 (replies on a note) BUILT, product and
+     webapp, merged to main; NOT deployed; migration NOT applied.**
+     Migration file: `product/migrations/0026_replies.sql`. Five commits
+     by concern.
+     * **Trigger, not an insert function** (§3 left it to CC): a BEFORE
+       INSERT trigger keeps the app's one write path — a plain insert
+       under 0017's policy — as the write path; a reply is the same
+       insert with one more column. It refuses by name (reply_to_reply,
+       reply_to_kettle_line, reply_with_date, reply_must_be_note,
+       reply_across_families, reply_parent_missing; errcode 23514) and
+       WRITES the note's parent tag onto the reply, so §2's "inherits the
+       tag" is enforced rather than asked of the client. The function is
+       SECURITY DEFINER so a reply aimed at a foreign note is refused as
+       what it is instead of "no such note"; 0017's WITH CHECK still
+       bounds the row's own family. RLS unchanged.
+     * **Where the spec and the code disagreed — one place, small.** §4
+       says the upcoming strip shows the note only and "replies appear
+       when the note is opened in the list below, as now". There is no
+       opening: an upcoming note lives in the strip and NOT in the list
+       (pastEntries excludes it), so its replies are not shown until the
+       event date passes. Built as the words say — strip shows the note
+       alone — and the test pins it. If the PM wants an upcoming note's
+       replies visible before the day, that is a strip change, one line.
+     * **Judgement calls:** (a) the Reply link renders only when a
+       screen passes a reply path (`onReply`), so both notes panels —
+       Memory and the parent page — offer it and nothing else does; (b)
+       the composer reuses the note composer's signed-as author, which
+       is what "author label like a note" reads as; (c) a reply whose
+       note fell outside the bounded read is dropped rather than shown
+       loose (splitThreads); (d) REPLY_COUNT_ONE is in copy.ts as
+       reserved and rendered nowhere.
+     * **Counts:** root `pytest` **643** (eight new), webapp **230**
+       (twelve new), ruff clean, Postgres up before and after.
+     * **Verified by planting** (five): reply-to-reply guard off,
+       Kettle-line guard off, tag inheritance off, the filter dropping
+       replies, Reply offered on Kettle lines — each failed by name. The
+       copy-law walk caught its own fixture body ("Took her") on the
+       pronoun ban, which is the law working; the fixture was reworded.
+     * **Deploy order:** PM applies 0026 → `cd webapp && fly deploy`
+       (the journal read asks for parent_entry_id; on an unmigrated prod
+       every snapshot 400s). No product deploy needed: the backend's own
+       journal writers never set the column.
+     * Next number: 276.
