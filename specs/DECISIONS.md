@@ -5656,3 +5656,21 @@ browser — all three adopted as the standard for future surfaces.**
      * Asana: Memory v1.1 (1218017356495916) and pause
        (1218194014017087) tasks closed.
      * Next number: 280.
+
+280. **(2026-09-05, ~12:15am ET) Spec 018 (notes: edit, delete,
+     optimistic composer, viewer-zone dates) RATIFIED by Hema; MCP
+     read-only moves to spec 019.**
+     * Founder's account of the double post: typed, pressed Enter, no
+       visible change for a second or two, pressed Add. Two posts.
+       Fix is optimistic render plus a locked single-fire composer,
+       not a faster server.
+     * Rulings: author edits and deletes own; admin deletes anyone's
+       but edits nobody else's; Kettle lines untouchable; "edited"
+       marker; author member id recorded server-side from the JWT;
+       legacy rows admin-only. Strings verbatim in §5.
+     * Dates and times on notes render in the viewer's browser zone
+       (279); family zone stays for parent clocks. PM data fix:
+       Suryaprakasam family tz → America/New_York.
+     * Build: one CC pass, first thing Sat Sep 5; migration numbered
+       at build time; deploy when green with the founder watching.
+     * Next number: 281.
