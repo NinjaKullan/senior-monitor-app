@@ -5410,3 +5410,35 @@ browser — all three adopted as the standard for future surfaces.**
      * Suite counts after the merge are in the merge report; nothing
        deployed, 0025 not applied (271's deploy order stands).
      * Next number: 273.
+
+273. **(2026-09-04, night) Spec 015 (circles) DEPLOYED and VERIFIED
+     LIVE, three days ahead of the Monday plan.**
+     * Founder challenged the calendar ("we should be accelerating,
+       not following 9-to-5 Monday-to-Friday"); PM agreed the only
+     real waits are Meta's classifier, the Xiaomi soak, the seven-day
+       sandbox retirement and the first real ask, none of which any
+       deploy depends on. RULED: deploys happen when the code is green
+       and the founder is at the keyboard, any day, any hour.
+     * Sequence: PM verified both check-constraint names in prod, then
+       applied 0025 through the Supabase migration tool (roles owner →
+       admin, child → member; `mail` on; digest_sends kinds widened;
+       five SECURITY DEFINER functions). All three owners read admin,
+       mail on. Founder ran `fly deploy` in product, then `npm run ci
+       && fly deploy` in webapp.
+     * Verified by the founder in the live app: Family shows "Hema ·
+       Admin" with the mail switch and "Leave this circle"; "Add
+       someone" created a member seat for dogooddatascience@gmail.com;
+       signing in with that email claimed the seat (0008) and that
+       account now sees BOTH Suryaprakasam and Whitaker through the
+       switcher. The founder's own account is the other two-circle
+       user. The merged Family screen from 263 is retired.
+     * Note: the new seat has mail on, so that inbox now receives the
+       real family's digests as well; founder may untick it.
+     * Sister's seat: founder adds it when he has her email; no PM
+       action needed.
+     * Weekend plan (founder-paced): Sat, Memory v1.1 with replies and
+       the pause control (spec, then build); Sun, Amendment A (SMS)
+       and spec 016 (read-only MCP); Mon, first beta invitations
+       (iPhone-only message, 257). Two CC sessions may run in parallel
+       on disjoint files.
+     * Next number: 274.
