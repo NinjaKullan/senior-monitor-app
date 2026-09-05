@@ -5580,3 +5580,27 @@ browser — all three adopted as the standard for future surfaces.**
        fails on the query) → `cd webapp && fly deploy` (the parents read
        asks for the columns first). 0026 and 0027 can ride one train.
      * Next number: 277.
+
+277. **(2026-09-04, late) 275 and 276 REVIEWED. Migrations 0026 and
+     0027 applied to prod by PM. Two rulings before deploy.**
+     * Accepted as built: the reply trigger writes the note's parent
+       tag server-side rather than trusting the client; resume ends a
+       pause by setting paused_until = now and keeping paused_since,
+       so a manual resume and a week's expiry share one engine path,
+       with both fields cleared a local day later (the resume-day rule
+       needs the instant); the least()-ignores-NULL bug caught by the
+       tests and guarded with CASE.
+     * RULING 1 (016 §4 was wrong): an upcoming note in the strip
+       shows its replies beneath it, same as a note in the list. The
+       sibling who writes "I'll take her" the day before must be
+       visible the day before. One-line strip change.
+     * RULING 2 (017 §2 was ambiguous): the paused line goes out ONCE,
+       the first morning of the pause, not every morning. A week of
+       "Nothing to report" emails is noise; the Today card and the
+       Family row carry the loud state for the rest. Resume day sends
+       the normal digest.
+     * Both rulings are one CC pass before the deploy; then product,
+       then webapp, with the founder watching (273).
+     * Memory v1.1 Asana task (1218017356495916) closes with this
+       deploy; the pause task (1218194014017087) likewise.
+     * Next number: 278.
