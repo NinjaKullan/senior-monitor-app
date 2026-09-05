@@ -68,7 +68,7 @@ production.
 | `GET\|POST /p/{device_token}/{signal}` | record a ping; returns `ok` |
 | `GET /s/{slug}` | one parent's setup page (spec 005b), or a plain-language dead end |
 | `GET /s/{slug}/state` | the page's live verify check; `?since=` compares against alarm-grade pings only |
-| `POST /outbound/reply` | a parent's reply to the ask (spec 007); **404 unless `OUTBOUND_REPLY_TOKEN` is set** |
+| `POST /outbound/reply` | a parent's reply to the ask (spec 007); **404 unless `OUTBOUND_REPLY_TOKEN` is set**. Amendment A: `OptOutType` STOP/START/HELP change the parent's texting state and are never replies; a bare `From` matches `phone_e164`, a `whatsapp:` one matches `whatsapp_e164` |
 | `GET /healthz` | `{"db": true}`, no auth, for Fly health checks |
 
 The device token *is* the identity: there is no `who` in the URL to guess. Unknown,
@@ -558,4 +558,6 @@ person, never a family.
 | `WAITLIST_ORIGINS` | comma-separated browser origins allowed to POST /waitlist (default: the heykettle.com pair plus localhost dev; setting it REPLACES the default) |
 | `OUTBOUND_ENABLED` | global outbound-channel kill-switch; "on" still reaches nobody in Wave A | **off** |
 | `OUTBOUND_REPLY_TOKEN` | shared secret `/outbound/reply` requires; empty means the route 404s | empty |
+| `OUTBOUND_TRANSPORT` | comma roster of transports: `console`, `resend`, `twilio_whatsapp`, `twilio_sms`; an unknown name refuses to boot | `console` |
+| `TWILIO_MESSAGING_SERVICE_SID` | spec 011 Amendment A: the Messaging Service (10DLC campaign) every SMS names; required when the roster selects `twilio_sms` | empty = `twilio_sms` refuses to boot |
 | `TEST_DATABASE_URL` | tests only | local `kettle_test` |

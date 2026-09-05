@@ -41,6 +41,7 @@ import {
   CIRCLE_ROLE_ADMIN,
   CIRCLE_ROLE_MEMBER,
   CIRCLE_SECTION,
+  COMPOSER_FAILED,
   FAMILY_SUB,
   FAMILY_TITLE,
   PARENTS_LABEL,
@@ -53,6 +54,11 @@ import {
   SETUP_REPORTING,
   SETUP_SEND_LABEL,
   SETUP_TITLE,
+  SMS_CONSENT_BUTTON,
+  SMS_CONSENT_SCRIPT,
+  SMS_ROW_ON,
+  SMS_ROW_STOPPED,
+  SMS_SCRIPT_LABEL,
 } from "@/lib/copy";
 import type { ParentToday } from "@/lib/parentState";
 import type { SetupEntry } from "@/lib/setupLinks";
@@ -64,6 +70,15 @@ const SETUP_STATUS_LABEL = {
   needs_link: SETUP_NEEDS_LINK,
   paused: PAUSED_SETUP,
 } as const;
+
+/** The row's state line (Amendment A.6): Paused wins; then the texting
+ *  state stands in for the link state; else the link state. */
+function setupRowLabel(entry: SetupEntry): string {
+  if (entry.status === "paused") return PAUSED_SETUP;
+  if (entry.sms === "on") return SMS_ROW_ON;
+  if (entry.sms === "stopped") return SMS_ROW_STOPPED.replace("{name}", entry.parentName);
+  return SETUP_STATUS_LABEL[entry.status];
+}
 
 const KICKER: React.CSSProperties = {
   marginTop: "1.75rem",
@@ -137,6 +152,7 @@ export function FamilyScreen({
   onOpen,
   onPickCity,
   onClearCity,
+  onSmsConsent,
   assistants = [],
   onRevokeAssistant,
   viewerTz = "UTC",
@@ -154,6 +170,9 @@ export function FamilyScreen({
   /** Spec 010 §1: the picker is the one surface that moves a parent. */
   onPickCity: (parentId: string, entry: CityEntry) => Promise<void>;
   onClearCity: (parentId: string) => Promise<void>;
+  /** Amendment A.6: present for admins only (App decides, as for the
+   *  pause); a member's row carries the state and never the button. */
+  onSmsConsent?: (parentId: string) => Promise<void>;
   /** Spec 019 §6: the viewer's own assistant connections and the disconnect. */
   assistants?: AssistantGrant[];
   onRevokeAssistant?: (grantId: string) => Promise<void>;
@@ -231,9 +250,12 @@ export function FamilyScreen({
                 {entry.parentName}
               </span>
               <span style={{ color: "var(--ink2)", fontSize: "0.84375rem" }} data-testid="setup-status">
-                {SETUP_STATUS_LABEL[entry.status]}
+                {setupRowLabel(entry)}
               </span>
             </div>
+            {entry.sms === "offer" && onSmsConsent && entry.status !== "paused" && (
+              <SmsConsent entry={entry} onConsent={onSmsConsent} />
+            )}
             {entry.status === "ready" && entry.shareHref && (
               <div
                 style={{
@@ -293,6 +315,56 @@ export function FamilyScreen({
   );
 }
 
+
+/**
+ * Amendment A.6 (DECISIONS 290): the consent script as words to say, then
+ * the one control that enrols. No checkbox, no second screen — the button IS
+ * the enrollment, and the server records the yes once.
+ */
+function SmsConsent({
+  entry,
+  onConsent,
+}: {
+  entry: SetupEntry;
+  onConsent: (parentId: string) => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  return (
+    <div style={{ marginTop: "0.375rem" }} data-testid="sms-consent">
+      <p style={{ margin: 0, fontSize: "0.84375rem", color: "var(--ink2)" }}>
+        {SMS_SCRIPT_LABEL.replace("{name}", entry.parentName)}
+      </p>
+      <p
+        className="kt-serif"
+        style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", lineHeight: 1.55 }}
+        data-testid="sms-consent-script"
+      >
+        {SMS_CONSENT_SCRIPT}
+      </p>
+      <button
+        type="button"
+        style={{ ...SMALL_BTN, marginTop: "0.5rem", color: "var(--ink)" }}
+        disabled={busy}
+        data-testid="sms-consent-button"
+        onClick={() => {
+          setBusy(true);
+          setFailed(false);
+          onConsent(entry.parentId)
+            .catch(() => setFailed(true))
+            .finally(() => setBusy(false));
+        }}
+      >
+        {SMS_CONSENT_BUTTON}
+      </button>
+      {failed && (
+        <p style={{ margin: "0.25rem 0 0", fontSize: "0.78125rem", color: "var(--mute)" }}>
+          {COMPOSER_FAILED}
+        </p>
+      )}
+    </div>
+  );
+}
 
 /**
  * The seats list (spec 015 §8): one row per seat, "Name · Admin" or

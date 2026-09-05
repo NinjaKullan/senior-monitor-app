@@ -17,6 +17,7 @@ import {
   pauseParent,
   removeSeat,
   resumeParent,
+  smsConsent,
   setOwnMail,
   setSeatRole,
   placeUpdate,
@@ -314,6 +315,14 @@ export default function App() {
         },
       }
     : undefined;
+  // Amendment A.6 (DECISIONS 290): the same admin gate as the pause; the
+  // function refuses a member server-side regardless.
+  const onSmsConsent = isAdmin(snapshot.members, viewerId)
+    ? async (parentId: string) => {
+        await smsConsent(parentId);
+        await refresh();
+      }
+    : undefined;
   const circle = {
     onAddSeat: async (displayName: string, email: string) => {
       await addSeat(familyId, displayName, email);
@@ -532,6 +541,7 @@ export default function App() {
           }}
           onPickCity={pickCity}
           onClearCity={clearCity}
+          onSmsConsent={onSmsConsent}
           assistants={snapshot.assistants}
           onRevokeAssistant={disconnectAssistant}
           viewerTz={viewerTz}

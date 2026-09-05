@@ -812,13 +812,13 @@ def test_fly_config_runs_the_dark_loop():
     assert "OUTBOUND_TRANSPORT" not in text
 
 
-def test_the_registry_holds_exactly_the_three_transports(settings):
+def test_the_registry_holds_exactly_the_four_transports(settings):
     """Console (dark, the default), resend (child-facing email), and
     twilio_whatsapp (the ask). Selection stays explicit config; the Wave C
     flip is the comma roster, after the ledger review (spec 007 §6.3)."""
     from kettle.outbound import TRANSPORTS, transport_from_name
 
-    assert set(TRANSPORTS) == {"console", "resend", "twilio_whatsapp"}
+    assert set(TRANSPORTS) == {"console", "resend", "twilio_whatsapp", "twilio_sms"}
     assert isinstance(transport_from_name("console", settings), LogTransport)
 
 

@@ -90,6 +90,7 @@ async function mountApp(families: Family[]) {
     setOwnMail: vi.fn(),
     leaveCircle: vi.fn(),
     pauseParent: vi.fn(),
+    smsConsent: vi.fn(),
     editEntry: vi.fn(),
     approveConnect: vi.fn(),
     loadConnectNames: vi.fn().mockResolvedValue([]),

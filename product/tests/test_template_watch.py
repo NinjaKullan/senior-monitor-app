@@ -32,6 +32,7 @@ def _settings(settings):
         twilio_account_sid="ACtest",
         twilio_auth_token="token",
         twilio_ask_content_sid=SID,
+        twilio_messaging_service_sid="",
     )
 
 

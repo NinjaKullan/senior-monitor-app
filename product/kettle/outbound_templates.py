@@ -43,6 +43,8 @@ KIND_DIGEST_EVENING = "digest_evening"
 KIND_ASK = "ask"
 KIND_FOLLOW_ON = "follow_on"
 KIND_ALL_CLEAR = "all_clear"
+#: Spec 011 Amendment A: the enrollment-confirming text, once per parent ever.
+KIND_SMS_WELCOME = "sms_welcome"
 
 KINDS: tuple[str, ...] = (
     KIND_DIGEST_MORNING,
@@ -50,6 +52,7 @@ KINDS: tuple[str, ...] = (
     KIND_ASK,
     KIND_FOLLOW_ON,
     KIND_ALL_CLEAR,
+    KIND_SMS_WELCOME,
 )
 
 #: The email subjects (Wave B, per-parent since the email-polish pass).
@@ -186,6 +189,35 @@ _REGISTRY: tuple[Template, ...] = (
         # One variable, matching the approved template's {{1}} exactly. The
         # registry is what makes render() refuse a partial fill, so declaring
         # it here is what stops a sandbox ask going out with a hole in it.
+        variables=("owner_name",),
+    ),
+    Template(
+        # Amendment A.4, RATIFIED option (a): the SMS ask is the v7 ask plus
+        # the STOP line, byte for byte the filed sample (DECISIONS 228). The
+        # carrier has this exact text. Same one variable, same resolution.
+        id="ask_parent_sms",
+        kind=KIND_ASK,
+        audience=AUDIENCE_PARENT,
+        body=(
+            "Hi. {owner_name} asked Kettle to check in with you when your "
+            "morning is not as usual. Is everything okay? Reply with a 👍 "
+            "when you can.\nReply STOP to end these texts."
+        ),
+        variables=("owner_name",),
+    ),
+    Template(
+        # Amendment A.4: the welcome text at enrollment, once per parent
+        # (keyed by (parent_id, kind) in the ledger). [name] resolves as the
+        # ask's does; the fallback reads "HeyKettle: Your family set you up".
+        id="sms_welcome",
+        kind=KIND_SMS_WELCOME,
+        audience=AUDIENCE_PARENT,
+        body=(
+            "HeyKettle: {owner_name} set you up to get a short text from Kettle "
+            "when your morning is not as usual. At most one question a day, and "
+            "one reminder. Message and data rates may apply. Reply HELP for help "
+            "or STOP to end these texts. heykettle.com"
+        ),
         variables=("owner_name",),
     ),
     Template(

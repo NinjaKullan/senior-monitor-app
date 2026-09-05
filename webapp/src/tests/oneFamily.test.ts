@@ -111,7 +111,7 @@ function seedTwoFamilies() {
     whatsapp_e164: null,
     relationship: null,
     city_label: null,
-    tz_changed_utc: null, paused_until: null, paused_since: null,
+    tz_changed_utc: null, paused_until: null, paused_since: null, sms_consent_utc: null, sms_opted_out_utc: null,
   });
   tables.parents = [
     parent("amma", "older"),

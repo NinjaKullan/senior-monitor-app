@@ -32,6 +32,11 @@ export interface Parent {
    *  string "infinity" for the open-ended pause. Null or past = running. */
   paused_until: string | null;
   paused_since: string | null;
+  /** Spec 011 Amendment A: verbal SMS consent recorded by an admin through
+   *  app_sms_consent (never a client write); STOP from the parent or
+   *  Twilio's 21610. Rendered only as a row state, never as an instant. */
+  sms_consent_utc: string | null;
+  sms_opted_out_utc: string | null;
 }
 
 /** A family note (spec 009 §4): plain text, an optional date, an optional

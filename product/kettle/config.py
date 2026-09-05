@@ -62,6 +62,11 @@ class Settings:
     # The sandbox path is therefore untouched and stays functional until the
     # Phase 3 sunset, and rolling back the real number is emptying one var.
     twilio_ask_content_sid: str
+    # Spec 011 Amendment A: the Messaging Service the 10DLC campaign is bound
+    # to. Read only when OUTBOUND_TRANSPORT selects twilio_sms — and then it
+    # must exist, or the app refuses to boot (the TWILIO_WHATSAPP_FROM
+    # posture). The SMS ask names this SID and never a bare From.
+    twilio_messaging_service_sid: str
     # The shared secret the reply webhook requires. Empty — the default — means
     # the endpoint does not exist: an unauthenticated route that can cancel a
     # follow-on would let anyone who knows a number suppress an escalation.
@@ -128,6 +133,7 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         twilio_auth_token=src.get("TWILIO_AUTH_TOKEN", "").strip(),
         twilio_whatsapp_from=src.get("TWILIO_WHATSAPP_FROM", "").strip(),
         twilio_ask_content_sid=src.get("TWILIO_ASK_CONTENT_SID", "").strip(),
+        twilio_messaging_service_sid=src.get("TWILIO_MESSAGING_SERVICE_SID", "").strip(),
         outbound_reply_token=src.get("OUTBOUND_REPLY_TOKEN", "").strip(),
         memory_first_reply=_flag(src, "MEMORY_FIRST_REPLY", default=False),
         site_metrics_token=src.get("SITE_METRICS_TOKEN", "").strip(),

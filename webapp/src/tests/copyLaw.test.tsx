@@ -59,7 +59,7 @@ const parents: Parent[] = [
     whatsapp_e164: null,
     relationship: "Mom",
     city_label: "Chennai",
-    tz_changed_utc: null, paused_until: null, paused_since: null,
+    tz_changed_utc: null, paused_until: null, paused_since: null, sms_consent_utc: null, sms_opted_out_utc: null,
   },
   {
     id: "p2",
@@ -70,7 +70,7 @@ const parents: Parent[] = [
     whatsapp_e164: "+919876500000",
     relationship: "Dad",
     city_label: null,
-    tz_changed_utc: null, paused_until: null, paused_since: null,
+    tz_changed_utc: null, paused_until: null, paused_since: null, sms_consent_utc: null, sms_opted_out_utc: null,
   },
   {
     id: "p3",
@@ -81,7 +81,7 @@ const parents: Parent[] = [
     whatsapp_e164: null,
     relationship: "Grandma",
     city_label: null,
-    tz_changed_utc: null, paused_until: null, paused_since: null,
+    tz_changed_utc: null, paused_until: null, paused_since: null, sms_consent_utc: null, sms_opted_out_utc: null,
   },
 ];
 const members: Member[] = [
@@ -390,6 +390,7 @@ describe("rendered copy law", () => {
         parentId: "p1",
         parentName: "Amma",
         status: "ready" as const,
+        sms: null,
         url: "https://kettle-api.fly.dev/s/slug000000000000000000A1",
         shareHref: "https://wa.me/?text=x",
         expiresDate: "2026-08-10",
@@ -398,6 +399,27 @@ describe("rendered copy law", () => {
         parentId: "p2",
         parentName: "Appa",
         status: "reporting" as const,
+        sms: null,
+        url: null,
+        shareHref: null,
+        expiresDate: null,
+      },
+      // Amendment A.6: an admin's row with the consent script and the button,
+      // and a stopped row — the SMS surface is scanned like everything else.
+      {
+        parentId: "p3",
+        parentName: "Paati",
+        status: "reporting" as const,
+        sms: "offer" as const,
+        url: null,
+        shareHref: null,
+        expiresDate: null,
+      },
+      {
+        parentId: "p4",
+        parentName: "Appa",
+        status: "reporting" as const,
+        sms: "stopped" as const,
         url: null,
         shareHref: null,
         expiresDate: null,
@@ -414,6 +436,7 @@ describe("rendered copy law", () => {
         onOpen={() => undefined}
         onPickCity={noop}
         onClearCity={noop}
+        onSmsConsent={async () => undefined}
       />,
     );
     const text = renderedText();
@@ -424,6 +447,8 @@ describe("rendered copy law", () => {
     expect(text).toContain("Not signed in yet");
     expect(text).not.toContain("sms");
     expect(text).toContain("Ready to send");
+    expect(text).toContain("They said yes");
+    expect(text).toContain("Texts stopped by Appa");
     assertCopyLaw(text, [...SHARE_CTA_EXEMPTION, ...APP_ALLOW]);
   });
 

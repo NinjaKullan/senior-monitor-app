@@ -33,7 +33,7 @@ from kettle.notify import LogOnlyNotifier, Notifier, NtfyNotifier
 from kettle.outbound import (
     OutboundState,
     outbound_loop,
-    record_parent_reply,
+    record_inbound,
     transport_from_name,
 )
 from kettle.setup_page import router as setup_router
@@ -261,14 +261,24 @@ def create_app(
         if not (token_ok or twilio_ok):
             raise StarletteHTTPException(status_code=403, detail="forbidden")
 
-        sender = (params.get("From") or "").strip().removeprefix("whatsapp:")
-        # From here on the body is gone: it was read for signature verification
-        # and the sender, nothing else, per §2.6.
+        sender = (params.get("From") or "").strip()
+        # Amendment A.5: Twilio's Advanced Opt-Out names the keyword it
+        # handled; the body itself is still never read.
+        opt_out_type = (params.get("OptOutType") or "").strip()
+        # From here on the body is gone: it was read for signature verification,
+        # the sender and the keyword flag, nothing else, per §2.6.
         del params, raw
 
         if sender:
             with request.app.state.pool.connection() as conn:
-                record_parent_reply(conn, sender, clock(), note_first_reply=cfg.memory_first_reply)
+                record_inbound(
+                    conn,
+                    sender,
+                    opt_out_type,
+                    clock(),
+                    notifier=request.app.state.notifier,
+                    note_first_reply=cfg.memory_first_reply,
+                )
         return PlainTextResponse("", status_code=204)
 
     @app.post("/site-metrics/daily", response_class=PlainTextResponse)

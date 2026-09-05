@@ -159,7 +159,9 @@ def test_the_ask_carries_the_icon_and_is_the_only_thing_a_parent_hears():
     would be two different asks wearing one product's voice.
     """
     parent_facing = [t for t in TEMPLATES.values() if t.audience == "parent"]
-    assert [t.id for t in parent_facing] == ["ask_parent"]
+    # Amendment A adds the SMS ask (the v7 words plus the STOP line, byte for
+    # byte) and the once-only welcome; test_outbound_sms pins those bodies.
+    assert [t.id for t in parent_facing] == ["ask_parent", "ask_parent_sms", "sms_welcome"]
     body = parent_facing[0].body
     assert body == (
         "Hi. {owner_name} asked Kettle to check in with you when your "
@@ -291,8 +293,10 @@ def test_no_template_names_the_parent_it_is_about():
 
     # And `owner_name` is spent on exactly one template — the ask — so the
     # exception cannot spread to a body that is ABOUT a parent.
+    # …and, since Amendment A, on its SMS twin and the welcome text, which
+    # name the same person for the same reason (the carrier filing's [name]).
     takes_owner = [t.id for t in TEMPLATES.values() if "owner_name" in t.variables]
-    assert takes_owner == ["ask_parent"]
+    assert takes_owner == ["ask_parent", "ask_parent_sms", "sms_welcome"]
 
 
 def test_the_owner_name_fallback_is_the_ruled_string_and_is_hard_to_reach_past():

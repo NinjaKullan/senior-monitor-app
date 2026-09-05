@@ -38,8 +38,8 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 752 from the repo root** (705 product + 47 pilot —
-the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 264**,
+Current green: **`pytest` 803 from the repo root** (756 product + 47 pilot —
+the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 276**,
 **`site` 236**. The replay test is pinned to fixed Phoenix instants (272) and
 the root suite is green at any hour. `ruff check .` clean; `tools/printables/` is excluded by ruling
 (266) pending its own lint-and-re-render pass.
@@ -103,6 +103,27 @@ number on the approved template. Everything in this file that used to say
 "rolled back", "unset by design", or "the flip is off the table" described the
 world between Sep 1 and Sep 4 and is gone; if you find that language anywhere
 else, it is stale.
+
+**Spec 011 Amendment A (SMS for +1 parents) is BUILT and unshipped (DECISIONS
+291).** A parent with a +1 `phone_e164`, no WhatsApp number and a recorded
+consent gets the ask by text through the 10DLC Messaging Service; a welcome
+text goes once; STOP/START/HELP arrive on `/outbound/reply` as `OptOutType` and
+are never replies. Migration **0030** (two timestamps, `app_sms_consent`, the
+`sms_welcome` ledger kind). Owed, in order: PM applies 0030 → the secret →
+`cd product && fly deploy` → `cd webapp && fly deploy` → on the Family screen an
+admin says the script to the parent and taps "They said yes":
+
+```bash
+fly secrets set -a kettle-api \
+  TWILIO_MESSAGING_SERVICE_SID=MG... \
+  OUTBOUND_TRANSPORT="twilio_whatsapp,twilio_sms,resend"
+```
+
+`twilio_sms` without its SID refuses the boot, so set both in one command.
+Rollback: `OUTBOUND_TRANSPORT="twilio_whatsapp,resend"` (SMS parents become
+recorded skips, nothing else changes). Twilio's inbound webhook for the SMS
+number must point at the same `/outbound/reply` (Advanced Opt-Out on, so
+`OptOutType` is sent). Amma stays on WhatsApp (290).
 
 **Spec 019 (ask Kettle from an assistant, read-only MCP) is BUILT and unshipped
 (DECISIONS 285).** kettle-api is the MCP server (/mcp, official SDK) and the
