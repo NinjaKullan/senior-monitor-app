@@ -5358,10 +5358,18 @@ browser — all three adopted as the standard for future surfaces.**
        (before 08:30 Phoenix, and 09:00 Phoenix) instead of reading
        the clock.
      * Order: CC fixes the replay test on main; rebase or merge the
-       015 branch onto green main; deploy waits for the sandbox
-       sunset week (264). Deploy order then: PM applies 0025 (it
+       015 branch onto green main. Deploy order: PM applies 0025 (it
        rewrites role values), product deploys, webapp deploys last
        (the members read wants the new `mail` column).
+     * Founder, same evening, on "wait for the sunset week": a real
+       ask fires only on a changed morning, which may not happen for
+       weeks if the parents keep their routines, so nothing may wait
+       on it. RULED: the sandbox retirement stays on its calendar
+       (seven days of the real configuration with no alerts, ask or
+       no ask); the first real ask is watched when it happens, not a
+       gate. Circles deploy Monday Sep 7 with the founder at the
+       keyboard, not Sep 11. 264's "after the sandbox sunset week"
+       is superseded on this point.
      * Next number: 272.
 
 ## The replay test fix and the 015 merge (implementer, 2026-09-04)
