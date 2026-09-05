@@ -39,6 +39,8 @@ const parent = (over: Partial<Parent>): Parent => ({
   tz_changed_utc: null,
   paused_until: null,
   paused_since: null,
+  sms_consent_utc: null,
+  sms_opted_out_utc: null,
   ...over,
 });
 
