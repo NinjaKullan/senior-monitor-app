@@ -178,6 +178,12 @@ def run_checks(
     """
     fired: list[Fired] = []
     for parent in db.parents_with_tz(conn):
+        # Scenery (DECISIONS 245/267, the outbound engine's placement): a demo
+        # family's parents are skipped before anything is checked, so the
+        # Whitakers raise no noon alert about a household that does not exist
+        # (294, side finding).
+        if parent["family_demo"]:
+            continue
         fired.extend(_person_checks(conn, notifier, parent, now))
     for family in db.families_with_tz(conn):
         fired.extend(_infra_check(conn, notifier, family, now))

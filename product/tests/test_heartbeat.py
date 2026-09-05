@@ -39,9 +39,7 @@ def _ping(conn, parent_id, signal: str, when: datetime) -> None:
 
 def test_each_family_gets_its_own_local_noon(conn, settings, notifier):
     """AC5: two families, two timezones, two different moments of truth."""
-    chennai = provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    chennai = provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
     chicago = provision_family(
         conn, "Iyer", "America/Chicago", [("Patti", None)], base_url=BASE_URL
     )
@@ -52,9 +50,7 @@ def test_each_family_gets_its_own_local_noon(conn, settings, notifier):
     assert _fired(run_checks(conn, settings, notifier, NOON_IST)) == [(KIND_NOON, amma)]
 
     # 17:00 UTC: noon in Chicago, half past ten at night in Chennai.
-    assert _fired(run_checks(conn, settings, notifier, NOON_CHICAGO)) == [
-        (KIND_NOON, patti)
-    ]
+    assert _fired(run_checks(conn, settings, notifier, NOON_CHICAGO)) == [(KIND_NOON, patti)]
 
     assert len(notifier.messages) == 2
     assert "Sharma / Amma" in notifier.messages[0]
@@ -74,29 +70,26 @@ def test_parent_tz_override_beats_the_family_tz(conn, settings, notifier):
     appa = family.parents[1].parent_id
 
     assert _fired(run_checks(conn, settings, notifier, NOON_IST)) == [(KIND_NOON, appa)]
-    assert _fired(run_checks(conn, settings, notifier, NOON_CHICAGO)) == [
-        (KIND_NOON, amma)
-    ]
+    assert _fired(run_checks(conn, settings, notifier, NOON_CHICAGO)) == [(KIND_NOON, amma)]
 
 
 def test_morning_ping_stands_the_noon_check_down(conn, settings, notifier):
     family = provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None), ("Appa", None)],
+        conn,
+        "Sharma",
+        "Asia/Kolkata",
+        [("Amma", None), ("Appa", None)],
         base_url=BASE_URL,
     )
     amma, appa = family.parents
     _ping(conn, amma.parent_id, "whatsapp", datetime(2026, 8, 3, 7, 30, tzinfo=IST))
 
-    assert _fired(run_checks(conn, settings, notifier, NOON_IST)) == [
-        (KIND_NOON, appa.parent_id)
-    ]
+    assert _fired(run_checks(conn, settings, notifier, NOON_IST)) == [(KIND_NOON, appa.parent_id)]
 
 
 def test_only_alarm_grade_signals_count(conn, settings, notifier):
     """device_alive and charger events are plumbing; they cannot vouch for a person."""
-    family = provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    family = provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
     amma = family.parents[0].parent_id
     _ping(conn, amma, "device_alive", datetime(2026, 8, 3, 7, 0, tzinfo=IST))
     _ping(conn, amma, "charge_on", datetime(2026, 8, 3, 8, 0, tzinfo=IST))
@@ -106,9 +99,7 @@ def test_only_alarm_grade_signals_count(conn, settings, notifier):
 
 def test_late_night_ping_does_not_satisfy_the_next_morning(conn, settings, notifier):
     """The window opens at 05:00 local, so 23:50 the night before does not count."""
-    family = provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    family = provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
     amma = family.parents[0].parent_id
     _ping(conn, amma, "whatsapp", datetime(2026, 8, 2, 23, 50, tzinfo=IST))
 
@@ -121,9 +112,7 @@ def test_late_night_ping_does_not_satisfy_the_next_morning(conn, settings, notif
 
 def test_checks_are_idempotent_per_local_day(conn, settings, notifier):
     """Running every minute must not produce an alert every minute."""
-    family = provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    family = provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
     assert len(run_checks(conn, settings, notifier, NOON_IST)) == 1
     assert run_checks(conn, settings, notifier, NOON_IST + timedelta(minutes=5)) == []
     assert run_checks(conn, settings, notifier, NOON_IST + timedelta(minutes=50)) == []
@@ -133,15 +122,11 @@ def test_checks_are_idempotent_per_local_day(conn, settings, notifier):
 
 
 def test_evening_escalates_only_an_existing_noon_alert(conn, settings, notifier):
-    family = provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    family = provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
     amma = family.parents[0].parent_id
 
     run_checks(conn, settings, notifier, NOON_IST)
-    assert _fired(run_checks(conn, settings, notifier, EVENING_IST)) == [
-        (KIND_EVENING, amma)
-    ]
+    assert _fired(run_checks(conn, settings, notifier, EVENING_IST)) == [(KIND_EVENING, amma)]
     assert "still no routine pings today" in notifier.messages[-1]
 
     # Dedupe applies to the escalation too.
@@ -149,17 +134,13 @@ def test_evening_escalates_only_an_existing_noon_alert(conn, settings, notifier)
 
 
 def test_evening_without_a_noon_alert_does_nothing(conn, settings, notifier):
-    provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
     # Nobody ran the noon check today, so there is no ops concern to escalate.
     assert run_checks(conn, settings, notifier, EVENING_IST) == []
 
 
 def test_afternoon_ping_stands_the_evening_check_down(conn, settings, notifier):
-    family = provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    family = provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
     run_checks(conn, settings, notifier, NOON_IST)
     _ping(
         conn,
@@ -172,25 +153,17 @@ def test_afternoon_ping_stands_the_evening_check_down(conn, settings, notifier):
 
 def test_infra_check_stays_quiet_until_the_families_first_ping(conn, settings, notifier):
     """A family with no pings is one whose phones are not set up yet."""
-    provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
     for hour in (0, 9, 15, 23):
-        fired = run_checks(
-            conn, settings, notifier, datetime(2026, 8, 3, hour, 0, tzinfo=IST)
-        )
+        fired = run_checks(conn, settings, notifier, datetime(2026, 8, 3, hour, 0, tzinfo=IST))
         assert KIND_INFRA not in [f.kind for f in fired]
     assert all("Pipeline" not in m and "pipeline" not in m for m in notifier.messages)
 
 
 def test_infra_check_fires_per_family_after_24h_of_silence(conn, settings, notifier):
     """AC5, pipeline half: one family goes dark, the other does not."""
-    quiet = provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
-    busy = provision_family(
-        conn, "Nair", "Asia/Kolkata", [("Ammachi", None)], base_url=BASE_URL
-    )
+    quiet = provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
+    busy = provision_family(conn, "Nair", "Asia/Kolkata", [("Ammachi", None)], base_url=BASE_URL)
     _ping(conn, quiet.parents[0].parent_id, "whatsapp", datetime(2026, 8, 1, 6, 0, tzinfo=IST))
     _ping(conn, busy.parents[0].parent_id, "whatsapp", datetime(2026, 8, 3, 7, 0, tzinfo=IST))
 
@@ -206,9 +179,7 @@ def test_infra_check_fires_per_family_after_24h_of_silence(conn, settings, notif
 
 
 def test_alert_message_handles_never_seen(conn, settings, notifier):
-    provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
     run_checks(conn, settings, notifier, NOON_IST)
     assert "last seen never" in notifier.messages[0]
     assert "tz Asia/Kolkata" in notifier.messages[0]
@@ -225,9 +196,7 @@ def test_alerts_reach_ntfy_over_real_http(conn, settings):
     notifier = NtfyNotifier(
         "ops-topic", client=httpx.Client(transport=httpx.MockTransport(handler))
     )
-    provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
 
     run_checks(conn, settings, notifier, NOON_IST)
     assert len(requests) == 1
@@ -237,9 +206,7 @@ def test_alerts_reach_ntfy_over_real_http(conn, settings):
 
 def test_ops_alerts_are_the_only_thing_written(conn, settings, notifier):
     """Product law #3: the heartbeat writes ops rows and nothing family-facing."""
-    provision_family(
-        conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL
-    )
+    provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
     run_checks(conn, settings, notifier, NOON_IST)
     row = conn.execute("select * from ops_alerts").fetchone()
     assert row["kind"] == KIND_NOON
@@ -254,10 +221,26 @@ def test_noon_hour_is_local_everywhere(
     conn: psycopg.Connection, settings, notifier, tz_name, moment
 ):
     """The same instant is noon in exactly one of these two families."""
-    family = provision_family(
-        conn, f"F-{tz_name}", tz_name, [("Elder", None)], base_url=BASE_URL
-    )
+    family = provision_family(conn, f"F-{tz_name}", tz_name, [("Elder", None)], base_url=BASE_URL)
     fired = run_checks(conn, settings, notifier, moment)
-    assert [(f.kind, f.parent_id) for f in fired] == [
-        (KIND_NOON, family.parents[0].parent_id)
-    ]
+    assert [(f.kind, f.parent_id) for f in fired] == [(KIND_NOON, family.parents[0].parent_id)]
+
+
+def test_a_demo_family_raises_no_noon_alert(conn, settings, notifier):
+    """Scenery (245/267, 294 side finding): the seeded Whitakers are not a
+    household, so the heartbeat skips their parents the way the outbound
+    engine does, and the neighbour family still gets its noon."""
+    demo = provision_family(conn, "Whitaker", "Asia/Kolkata", [("Linda", None)], base_url=BASE_URL)
+    real = provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None)], base_url=BASE_URL)
+    conn.execute("update families set demo = true where id = %s", (demo.family_id,))
+    amma = real.parents[0].parent_id
+
+    assert _fired(run_checks(conn, settings, notifier, NOON_IST)) == [(KIND_NOON, amma)]
+    assert _fired(run_checks(conn, settings, notifier, EVENING_IST)) == [(KIND_EVENING, amma)]
+    assert all("Whitaker" not in m for m in notifier.messages)
+    assert (
+        conn.execute(
+            "select count(*) as n from ops_alerts where family_id = %s", (demo.family_id,)
+        ).fetchone()["n"]
+        == 0
+    )
