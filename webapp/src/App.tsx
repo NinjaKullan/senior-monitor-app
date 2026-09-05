@@ -8,7 +8,9 @@ import {
   deleteContact,
   leaveCircle,
   loadSnapshot,
+  pauseParent,
   removeSeat,
+  resumeParent,
   setOwnMail,
   setSeatRole,
   placeUpdate,
@@ -28,7 +30,7 @@ import {
   TAGLINE,
   WHO_TO_CALL_TAB,
 } from "@/lib/copy";
-import { rememberCircle, rememberedCircle } from "@/lib/circle";
+import { isAdmin, rememberCircle, rememberedCircle } from "@/lib/circle";
 import type { Family } from "@/lib/types";
 import { isKnownIana, type CityEntry } from "@/lib/cities";
 import { computeParentToday, computeRollup, type ParentToday } from "@/lib/parentState";
@@ -234,6 +236,20 @@ export default function App() {
     setOpenParentId(null);
     setCircleId(id);
   };
+  // Spec 017 §5: admins only; a member's card carries the state, not the
+  // control. The functions refuse a non-admin server-side regardless.
+  const pause = isAdmin(snapshot.members, viewerId)
+    ? {
+        onPause: async (parentId: string, duration: "week" | "open") => {
+          await pauseParent(parentId, duration);
+          await refresh();
+        },
+        onResume: async (parentId: string) => {
+          await resumeParent(parentId);
+          await refresh();
+        },
+      }
+    : undefined;
   const circle = {
     onAddSeat: async (displayName: string, email: string) => {
       await addSeat(familyId, displayName, email);
@@ -401,7 +417,7 @@ export default function App() {
             onSteps={() => navigate("family")}
           />
         ) : (
-          <Today states={states} rollup={rollup} dateLine={dateLine} onOpen={setOpenParentId} />
+          <Today states={states} rollup={rollup} dateLine={dateLine} onOpen={setOpenParentId} pause={pause} />
         ))}
       {tab === "memory" && (
         <MemoryScreen
