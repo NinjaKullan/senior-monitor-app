@@ -38,9 +38,7 @@ def _ts_consts(path: Path) -> dict[str, str]:
     """Pull `export const NAME = "value";` (single- or multi-line) out of a module."""
     source = path.read_text()
     found = {}
-    for match in re.finditer(
-        r'export const ([A-Z_]+)\s*=\s*((?:"[^"]*"\s*\+?\s*)+);', source
-    ):
+    for match in re.finditer(r'export const ([A-Z_]+)\s*=\s*((?:"[^"]*"\s*\+?\s*)+);', source):
         name, raw = match.group(1), match.group(2)
         found[name] = "".join(re.findall(r'"([^"]*)"', raw))
     return found
@@ -88,9 +86,7 @@ def test_webapp_state_copy_is_never_darker_than_quiet():
     ts = _ts_consts(COPY_TS)
 
     assert {k: ts[k] for k in STATE_SENTENCES} == STATE_SENTENCES
-    assert not {name for name in ts if name.startswith("GLANCE_")}, (
-        "retired glance copy came back"
-    )
+    assert not {name for name in ts if name.startswith("GLANCE_")}, "retired glance copy came back"
 
     # A newly added STATE_ constant has to be classified rather than quietly
     # escaping the scan below — that is how a floor rots.
@@ -124,8 +120,7 @@ def test_webapp_fix_copy_names_no_mechanism_and_stays_gentle():
     for name, value in ts.items():
         assert "tripwire" not in value.lower(), f"{name} leaks mechanism vocabulary: {value}"
     assert ts["FIX_BODY"] == (
-        "Something on {name}'s phone may need a quick fix. "
-        "It's a two-minute FaceTime."
+        "Something on {name}'s phone may need a quick fix. It's a two-minute FaceTime."
     )
     for worrying in ("urgent", "emergency", "alarm", "danger", "unwell", "ill", "wrong"):
         # Whole words: "still" and "will" are not "ill".
@@ -186,9 +181,7 @@ def test_webapp_unreachable_copy_describes_the_handset_not_the_person():
     ts = _ts_consts(COPY_TS)
     assert "BEACON_LABEL" not in ts, "the retired beacon's label came back"
     assert "phone" in ts["STATE_UNREACHABLE"]
-    assert ts["UNREACHABLE_ASIDE"] == (
-        "A call still works fine — this is only about the phone."
-    )
+    assert ts["UNREACHABLE_ASIDE"] == ("A call still works fine — this is only about the phone.")
     worrying_words = ("urgent", "emergency", "alarm", "danger", "unwell", "ill", "wrong", "silent")
     for name in ("STATE_UNREACHABLE", "UNREACHABLE_ASIDE"):
         for worrying in worrying_words:
@@ -200,8 +193,7 @@ def test_webapp_unreachable_copy_describes_the_handset_not_the_person():
 def test_privacy_footer_is_verbatim():
     """§3.3 specifies this sentence exactly."""
     assert _ts_consts(COPY_TS)["PRIVACY_FOOTER"] == (
-        "Kettle stores three things: who, which routine, when. "
-        "Nothing else exists to show you."
+        "Kettle stores three things: who, which routine, when. Nothing else exists to show you."
     )
 
 
@@ -307,15 +299,12 @@ def test_the_apps_own_queries_return_one_family_only(two_families, authed):
 
     as_user(authed, USER_B)
     patti = two_families["b"].parents[0].parent_id
-    assert [
-        r["name"] for r in authed.execute("select name from families").fetchall()
-    ] == ["Iyer"]
+    assert [r["name"] for r in authed.execute("select name from families").fetchall()] == ["Iyer"]
     assert [
         r["display_name"] for r in authed.execute("select display_name from parents").fetchall()
     ] == ["Patti"]
     assert {
-        r["parent_id"]
-        for r in authed.execute("select parent_id from parent_signals").fetchall()
+        r["parent_id"] for r in authed.execute("select parent_id from parent_signals").fetchall()
     } == {patti}
 
 
@@ -431,9 +420,7 @@ def test_the_place_columns_are_writable_together_and_nothing_else_opened(
     assert zones == {"Amma": ("America/Denver", True), "Patti": (None, False)}
 
 
-def test_contacts_are_editable_reference_data_bounded_to_the_family(
-    two_families, authed, conn
-):
+def test_contacts_are_editable_reference_data_bounded_to_the_family(two_families, authed, conn):
     """Spec 012 §4: the one table the app may fully edit — and only its own
     family's rows. Contacts are reference data, not record, so unlike the
     journal every verb is granted; RLS is what keeps each verb honest."""
@@ -457,8 +444,7 @@ def test_contacts_are_editable_reference_data_bounded_to_the_family(
         )
     with pytest.raises(psycopg.errors.InsufficientPrivilege):
         authed.execute(
-            "insert into family_contacts (family_id, parent_id, label) "
-            "values (%s, %s, 'sneak')",
+            "insert into family_contacts (family_id, parent_id, label) values (%s, %s, 'sneak')",
             (a.family_id, b.parents[0].parent_id),
         )
 
@@ -466,25 +452,17 @@ def test_contacts_are_editable_reference_data_bounded_to_the_family(
     # RLS turns it into a no-op rather than an error, so the row count is the
     # assertion.
     as_user(authed, USER_B)
-    assert authed.execute(
-        "select count(*) as n from family_contacts"
-    ).fetchone()["n"] == 0
+    assert authed.execute("select count(*) as n from family_contacts").fetchone()["n"] == 0
     authed.execute("delete from family_contacts")
-    assert conn.execute(
-        "select count(*) as n from family_contacts"
-    ).fetchone()["n"] == 1
+    assert conn.execute("select count(*) as n from family_contacts").fetchone()["n"] == 1
 
     # The owner really can delete their own.
     as_user(authed, USER_A)
     authed.execute("delete from family_contacts where family_id = %s", (a.family_id,))
-    assert conn.execute(
-        "select count(*) as n from family_contacts"
-    ).fetchone()["n"] == 0
+    assert conn.execute("select count(*) as n from family_contacts").fetchone()["n"] == 0
 
 
-def test_journal_kind_rides_the_app_write_and_stays_insert_only(
-    two_families, authed, conn
-):
+def test_journal_kind_rides_the_app_write_and_stays_insert_only(two_families, authed, conn):
     """Spec 012 §5: the webapp's city auto-note now names its kind; a plain
     note defaults to 'note'; an invented kind dies on the check constraint;
     and update/delete stay refused whatever the kind says."""
@@ -516,3 +494,42 @@ def test_journal_kind_rides_the_app_write_and_stays_insert_only(
         )
     with pytest.raises(psycopg.errors.InsufficientPrivilege):
         authed.execute("update journal_entries set kind = 'note'")
+
+
+# --- spec 011 Amendment A.6: the SMS consent surface (DECISIONS 290) ------------
+
+SMS_STRINGS = {
+    "SMS_SCRIPT_LABEL": "Say this to {name}, then tap the button.",
+    "SMS_CONSENT_BUTTON": "They said yes",
+    "SMS_ROW_ON": "Texts on",
+    "SMS_ROW_STOPPED": "Texts stopped by {name}",
+    # The carrier-filed consent script (DECISIONS 228): what the campaign says
+    # the family says, byte for byte.
+    "SMS_CONSENT_SCRIPT": (
+        "Kettle is a service from HeyKettle. It sends you a short text when your "
+        "morning is not as usual, to ask if everything is okay. You would get at most "
+        "one question a day, and one reminder if you do not reply. Message and data "
+        "rates may apply. You can reply HELP for help, or STOP to end the texts at any "
+        "time. The terms are at heykettle.com/terms.html and the privacy policy at "
+        "heykettle.com/privacy.html. Do you want these texts? Please say yes or no."
+    ),
+}
+
+
+def test_the_sms_consent_strings_are_verbatim():
+    ts = _ts_consts(COPY_TS)
+    for name, expected in SMS_STRINGS.items():
+        assert ts.get(name) == expected, name
+
+
+def test_the_app_reads_the_sms_state_and_never_writes_it(two_families, authed):
+    """The two timestamps are on the read surface (the row states) and are
+    written only through app_sms_consent, never by a client UPDATE."""
+    assert {"sms_consent_utc", "sms_opted_out_utc"} <= set(_read_surface()["parents"])
+    a = two_families["a"]
+    as_user(authed, USER_A)
+    for column in ("sms_consent_utc", "sms_opted_out_utc"):
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            authed.execute(
+                f"update parents set {column} = now() where id = %s", (a.parents[0].parent_id,)
+            )
