@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 286.** This line is the one to update; the `Next number:` lines inside
+**Next number: 287.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5849,3 +5849,29 @@ browser — all three adopted as the standard for future surfaces.**
        Connectors → add by URL with the address from Family → Kettle's
        login → Allow → on the phone, "how's Amma?".
      * Next number: 286.
+
+286. **(2026-09-05, ~10:45am ET) 285 REVIEWED and ACCEPTED (a0a5706)
+     with two fixes owed before deploy. Migration 0029 applied to prod
+     by PM (hash columns confirmed ungranted to `authenticated`).**
+     * Accepted: Kettle's own authorization server with the SDK doing
+       only the protocol; `/oauth/pending` so the consent screen can
+       name the asker before sign-in; ES256 pinned in code; the two
+       copy-scan exemptions (the "All clear" label; note bodies are
+       the family's words).
+     * Fix 1, found by PM in review: `/mcp` is a Starlette mount, so a
+       request to `/mcp` with no trailing slash gets a 307 to `/mcp/`
+       before the bearer check runs. The suite passed because the test
+       client follows redirects. Claude's first probe must get the 401
+       with its header (§4), and the resource URL must be exactly what
+       the person typed, so `/mcp` has to answer directly with no
+       redirect; the MCP tests run with follow_redirects off.
+     * Fix 2: the five tools carry no annotations. Mark each
+       readOnlyHint true (openWorldHint false) so the assistant does
+       not ask "allow?" on every question; asking is meant to be
+       zero-step (284). tools/list asserts the annotations.
+     * Deploy after the fixes: `fly secrets set -a kettle-api
+       SUPABASE_JWKS_URL=https://azeyrlfscgbqbvzhdtie.supabase.co/auth/v1/.well-known/jwks.json`
+       → `cd product && fly deploy` → `cd webapp && npm run ci && fly
+       deploy` → PM curls `/mcp` for the 401 → founder connects on
+       claude.ai and asks from the phone.
+     * Next number: 287.
