@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 291.** This line is the one to update; the `Next number:` lines inside
+**Next number: 294.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6007,3 +6007,46 @@ browser — all three adopted as the standard for future surfaces.**
        `test_outbound_sms.py`, +2 contract, the rest are the widened pins);
        webapp 264 → 276.
      * Next number: 292.
+
+292. **(2026-09-05, ~7:00pm ET; re-filed, CC took 291 first) Amendment A console items (A.8 1 to 3)
+     VERIFIED DONE by PM in the founder's Chrome while CC builds.**
+     Messaging Service MG0e9f…675c: inbound "Send a webhook" to
+     https://kettle-api.fly.dev/outbound/reply POST; Advanced Opt-Out
+     on with default STOP/START keywords and the filed HELP text;
+     Sticky Sender, geomatch, Smart Encoding and MMS converter all on.
+     Number +1 984 370 4452: "Messaging enabled", no registration
+     flag. Noted, not acted on: a "Finish compliance for 1 number and
+     sender" banner on the Messaging Services page; first place to
+     look if the dark-stage text does not arrive. Remaining before the
+     dark stage: PM applies the migration; founder sets
+     TWILIO_MESSAGING_SERVICE_SID and OUTBOUND_TRANSPORT (A.7) and
+     deploys.
+     * Next number: 293.
+
+293. **(2026-09-05, ~7:45pm ET) 291 REVIEWED and ACCEPTED (942805c).
+     Migration 0030 applied to prod by PM (kind check now admits
+     sms_welcome; app_sms_consent in place).**
+     * Accepted as read: STOP is a quiet skip (the parent's decision,
+       not a fault); no cross-transport fallback, enforced by name; the
+       welcome goes at the first pass after consent, once ever; 21610
+       records STOP; the Family row keeps the share link beside "Texts
+       on" (the spec's "in place of" read literally would have hidden
+       the link a phone not yet set up needs; the looser reading is
+       right); the consent script is a copy key held by the contract
+       test.
+     * Numbering slip owned by PM: PM's console-verification entry sat
+       uncommitted as 291 while CC filed 291; re-filed above as 292.
+       Rule restated: commit a ledger entry the moment it is written.
+     * Deploy (founder): `fly secrets set -a kettle-api
+       TWILIO_MESSAGING_SERVICE_SID=MG0e9fbf94ad89764c8a6f121f2027675c
+       OUTBOUND_TRANSPORT="twilio_whatsapp,twilio_sms,resend"` →
+       `cd product && fly deploy` → `cd webapp && npm run ci && fly
+       deploy`. Rollback is OUTBOUND_TRANSPORT back to
+       "twilio_whatsapp,resend".
+     * Dark stage (A.10) through the real path: PM moves TestMom's
+       number from whatsapp_e164 to phone_e164 (same digits), founder
+       taps "They said yes" on the Family screen, welcome text arrives
+       at the next engine pass; next quiet morning the ask arrives as
+       SMS; 👍, STOP, START each checked against the ledger; then PM
+       restores whatsapp_e164.
+     * Next number: 294.
