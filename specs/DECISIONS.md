@@ -5951,4 +5951,59 @@ browser — all three adopted as the standard for future surfaces.**
        still the founder's, needed before the dark stage, not before
        the build; PM to verify them in the founder's Chrome.
      * Next: CC brief for Amendment A.
-     * Next number: 291.
+
+291. **(2026-09-05) Spec 011 Amendment A BUILT (branch `amendment-a-sms`,
+     merged to main); migration 0030, unapplied. Judgement calls for review.**
+     * **Routing (A.2) sits inside the engine's send loop, per parent, after
+       the "does not carry" check and before the address check.** A parent
+       with no route is a recorded skip whose reason names the failed
+       condition (no numbers / not +1 / no consent), with the usual founder
+       alert; a STOP is the fourth outcome and is a QUIET skip (no alert per
+       slot) because it is the parent's decision, not a fault. A.2 lists
+       three outcomes; the quiet fourth is my reading of A.5 "produce no ask".
+     * **No cross-transport fallback is enforced by name.** `carrier_named`
+       looks for the leaf called `twilio_whatsapp` or `twilio_sms`; when that
+       leaf is absent it lets any OTHER leaf carrying the kind stand in (the
+       dark console, a test channel) but never the other Twilio route. A
+       WhatsApp parent on an SMS-only roster is a skip, and vice versa.
+     * **The dark console still records the routed decision**, so a dark
+       run's ledger shows `sms_welcome` then `ask_parent_sms` for an SMS
+       parent, exactly what a live roster would send. The demo family
+       (Whitakers, no numbers) keeps its dark ask, unchanged.
+     * **The welcome is a ledger kind (`sms_welcome`), once per parent ever,
+       and is due at the first pass after consent whether or not the morning
+       was quiet** (enrollment day reads welcome, then ask if the day is
+       quiet). It needs `KIND_SMS_WELCOME` in the `sent_messages` kind check
+       (0030 re-creates the constraint).
+     * **Twilio 21610 on a send records STOP as if it had arrived**: the
+       ledger row is `failed` (no alert), `sms_opted_out_utc` is set once, one
+       `sms_opt_out` alert names "Twilio 21610", and the next slot is the
+       quiet skip.
+     * **Inbound (A.5): the keyword is read from Twilio's `OptOutType` only,
+       never from the body.** STOP sets the opt-out once (alert once); START,
+       UNSTOP or YES clears it (one `sms_opt_in` alert); HELP does nothing;
+       none of the three is ever a reply. A bare `From` matches `phone_e164`;
+       a `whatsapp:` `From` matches `whatsapp_e164`. The one loosening: a bare
+       number that matches nobody's phone still matches a WhatsApp number, as
+       the sandbox-era callers passed bare numbers — a test holds the same
+       digits in both columns of two parents resolving by channel.
+     * **The Family row keeps the link state and the texting state side by
+       side** (`SetupEntry.sms`: offer / on / stopped / null). "Texts on" and
+       "Texts stopped by {name}" replace the row's state line, Paused still
+       wins, and the share link still renders for a texting parent whose phone
+       has not reported — the spec's "in place of SETUP_REPORTING" read
+       literally would hide the link a still-unset-up phone needs.
+     * **The consent script is a fifth copy key, `SMS_CONSENT_SCRIPT`**, the
+       228 wording verbatim, held by the product contract test beside the four
+       A.6 strings. It contains no digit and no banned word, so no copy-law
+       exemption was needed.
+     * `app_sms_consent` refuses (23514) a parent with a WhatsApp number
+       (`has_whatsapp`) or without a +1 phone (`not_a_us_number`), as well as
+       a non-admin (42501 `not_admin`), and sets the timestamp once (a second
+       tap keeps the first instant).
+     * A.3's UCS-2 note stands: the ask body carries a 👍, so each ask is a
+       UCS-2 segment pair at Twilio's price; not changed here.
+     * Counts: root pytest 753 → 803 (product 706 → 756; +36 in
+       `test_outbound_sms.py`, +2 contract, the rest are the widened pins);
+       webapp 264 → 276.
+     * Next number: 292.
