@@ -59,6 +59,12 @@ export const READ_SURFACE = {
   // client-side solely to become a tel: href (the DECISIONS 167 law);
   // phone_display is the one phone string a person sees.
   family_contacts: "id, family_id, parent_id, label, name, phone_e164, phone_display, note, position",
+  // Spec 019 §5: a person's OWN assistant connections (RLS: auth_user_id =
+  // auth.uid()), on the rendered columns only — the token hashes are not
+  // granted to authenticated at all, so a select naming them is refused by
+  // privilege. Per person, not per circle: this is the one read that is not
+  // scoped by family.
+  assistant_grants: "id, client_name, created_utc, last_used_utc, revoked_utc",
 } as const;
 
 export type ReadTable = keyof typeof READ_SURFACE;

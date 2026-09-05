@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 285.** This line is the one to update; the `Next number:` lines inside
+**Next number: 286.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -5782,3 +5782,70 @@ browser — all three adopted as the standard for future surfaces.**
        §8, verbatim.
      * Next: CC brief for 019; then Amendment A.
      * Next number: 285.
+
+## Spec 019 build notes (implementer, 2026-09-05)
+
+285. **(2026-09-05) Spec 019 (ask Kettle from an assistant, read-only MCP)
+     BUILT on `spec-019-mcp`, merged to main; NOT deployed; migration NOT
+     applied.** Migration file: `product/migrations/0029_assistants.sql`.
+     Seven commits by concern.
+     * **The PM's Sep 5 update is what was built:** /oauth/approve verifies
+       the Supabase session against the project's JWKS only — new env
+       `SUPABASE_JWKS_URL`, cached, refetched once on an unknown kid,
+       ES256 pinned in code so a token's own `alg` is never trusted. There
+       is no `SUPABASE_JWT_SECRET` anywhere. Spec §4/§10 on main still
+       name the secret; the PM's working-tree edit should land with this.
+     * **Judgement calls, PM to confirm or overrule:**
+       (a) The authorization server is Kettle's own code, not the SDK's
+       provider abstraction: the spec fixes behaviours (approve from the
+       webapp, hashed storage, ninety-day expiry, loopback rule) that the
+       SDK's model does not express. The SDK is used for what it is good
+       at — the MCP protocol over Streamable HTTP — mounted under /mcp
+       behind Kettle's own bearer check. `mcp==2.1.1` (the v2 API:
+       `MCPServer`; `FastMCP` is gone), stateless, JSON responses, the
+       SDK's DNS-rebinding check off because Fly's edge and the public URL
+       own the Host question; the SDK's session manager runs inside the
+       app's lifespan.
+       (b) One endpoint the spec did not name: `GET /oauth/pending?request=`
+       returns the client's name (or ASSISTANT_FALLBACK) so the consent
+       screen can say who is asking before the person signs in; the
+       request id is the capability and lives ten minutes.
+       (c) A pending request lives ten minutes, the code's life; §5 says
+       requests are swept after an hour, which the sweep still does.
+       (d) CITY_NOW on `today` renders when the parent's zone differs from
+       the CIRCLE's — the server cannot know the asker's zone; and the
+       Whitakers have no city label, so the zone's own city stands in
+       ("Phoenix" from America/Phoenix) rather than a blank.
+       (e) The outbound copy scan bans the phrase "all clear"; §8 rules
+       ALL_CLEAR_SENT = "All clear" verbatim. The assistant scan exempts
+       that one label rather than widening the list.
+       (f) Note bodies are the family's words and exempt from the answer
+       scan (the journal rule); the chrome around them is scanned.
+       (g) `parent_day` outside the sixty-day floor or in the future
+       answers DAY_NOTHING, never an error (§7: expected cases are
+       sentences).
+       (h) CORS is one explicit list: the waitlist origins plus the app's
+       origin, with the Authorization header. The waitlist route thereby
+       also accepts the app's origin, which is harmless.
+       (i) `assistant_grants` is read by column grant (hashes never
+       granted), so it is neither a family table nor service-only;
+       testsupport gains COLUMN_GRANT_TABLES and the RLS privilege audit
+       excludes it by name.
+       (j) The mcp SDK pulls python-multipart transitively; main.py's old
+       note that the app avoids it is now only true of the app's own code.
+       (k) `memory` over-fetches three times the cap to attach replies,
+       then caps notes at forty.
+     * **Counts:** root `pytest` 674 → **752**; webapp 253 → **264**; ruff
+       clean; Postgres up before and after.
+     * **Verified by planting** (seven): PKCE not required, redirect matched
+       loosely, revoked grants still resolving, tokens stored plain,
+       membership widened past the person's circles, the 401 without its
+       header, revoked grants listed in the app — each failed by name.
+     * **Deploy order (§10, with the update):** PM applies 0029 →
+       `fly secrets set -a kettle-api SUPABASE_JWKS_URL=https://<project ref>.supabase.co/auth/v1/.well-known/jwks.json`
+       (APP_ORIGIN defaults to https://kettle-app.fly.dev; set it only if
+       the app moves) → `cd product && fly deploy` → `cd webapp && npm run
+       ci && fly deploy`. Then the founder, seated: claude.ai → Customize →
+       Connectors → add by URL with the address from Family → Kettle's
+       login → Allow → on the phone, "how's Amma?".
+     * Next number: 286.

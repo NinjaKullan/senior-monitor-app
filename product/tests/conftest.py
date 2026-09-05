@@ -100,6 +100,10 @@ def settings(database_url: str) -> Settings:
         site_metrics_email="",
         # The landing page is the only browser that calls this API (spec 006).
         waitlist_origins=("https://heykettle.com",),
+        # Spec 019: the consent screen's origin and the JWKS the approve
+        # route verifies sessions against. Tests hand in a JWKS of their own.
+        app_origin="https://kettle-app.test",
+        supabase_jwks_url="https://supabase.test/auth/v1/.well-known/jwks.json",
     )
 
 

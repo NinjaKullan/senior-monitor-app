@@ -15,15 +15,17 @@ from datetime import date, datetime
 from hmac import compare_digest
 from urllib.parse import parse_qs
 
+import httpx
 import psycopg
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
+from mcp.server.transport_security import TransportSecuritySettings
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from kettle import db, site_metrics, waitlist
+from kettle import assistant_auth, assistant_tools, db, site_metrics, waitlist
 from kettle.config import Settings, settings_from_env
 from kettle.heartbeat import HeartbeatState, heartbeat_loop
 from kettle.notify import LogOnlyNotifier, Notifier, NtfyNotifier
@@ -49,9 +51,7 @@ HONEYPOT_FIELD = "company"
 
 def _client_ip(request: Request) -> str | None:
     """Caller IP as seen behind the Fly proxy. Hashed immediately, never stored raw."""
-    forwarded = request.headers.get("fly-client-ip") or request.headers.get(
-        "x-forwarded-for"
-    )
+    forwarded = request.headers.get("fly-client-ip") or request.headers.get("x-forwarded-for")
     if forwarded:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else None
@@ -61,6 +61,7 @@ def create_app(
     settings: Settings | None = None,
     notifier: Notifier | None = None,
     clock: Callable[[], datetime] = now_utc,
+    jwks_client: httpx.Client | None = None,
 ) -> FastAPI:
     """Build the application. `settings`/`notifier`/`clock` are injectable for tests.
 
@@ -78,6 +79,27 @@ def create_app(
     # to something that sends (DECISIONS 154/159). The instance built here is
     # thrown away; each boot's loop gets its own.
     transport_from_name(cfg.outbound_transport, cfg)
+
+    # Spec 019: the MCP server (the official SDK, stateless over Streamable
+    # HTTP) and the authorization server in front of it. Built once here;
+    # the session manager's own lifespan runs inside ours below.
+    mcp_server = assistant_tools.build_server(lambda: app.state.pool.connection(), clock)
+    mcp_asgi = mcp_server.streamable_http_app(
+        streamable_http_path="/",
+        stateless_http=True,
+        json_response=True,
+        # Host checks belong to Fly's edge and the public URL, not to this
+        # in-process app; the SDK's loopback-only default would refuse the
+        # real host.
+        transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+        host="0.0.0.0",  # noqa: S104 - the SDK's flag for "not loopback-only"
+    )
+    oauth = assistant_auth.OAuthRoutes(
+        cfg.public_base_url,
+        cfg.app_origin,
+        assistant_auth.JwksVerifier(cfg.supabase_jwks_url, jwks_client),
+        clock,
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -125,7 +147,8 @@ def create_app(
                 )
             )
         try:
-            yield
+            async with mcp_server.session_manager.run():
+                yield
         finally:
             for task in tasks:
                 task.cancel()
@@ -147,18 +170,20 @@ def create_app(
     # CORS exists for exactly one route — the landing page's waitlist POST — and
     # is locked to the origins that page is served from. The ingest route needs
     # none of this: a Shortcut is not a browser and sends no Origin.
-    if cfg.waitlist_origins:
+    # Spec 019 adds the family app's origin for /oauth/approve (and the
+    # consent screen's lookup), with the Authorization header it carries.
+    # One middleware, one explicit list, no wildcard.
+    browser_origins = [*cfg.waitlist_origins, cfg.app_origin]
+    if browser_origins:
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=list(cfg.waitlist_origins),
-            allow_methods=["POST"],
-            allow_headers=["content-type"],
+            allow_origins=browser_origins,
+            allow_methods=["GET", "POST"],
+            allow_headers=["content-type", "authorization"],
         )
 
     @app.exception_handler(StarletteHTTPException)
-    async def _plain_errors(
-        request: Request, exc: StarletteHTTPException
-    ) -> PlainTextResponse:
+    async def _plain_errors(request: Request, exc: StarletteHTTPException) -> PlainTextResponse:
         """Plain-text errors: Shortcuts cope with them and they leak nothing."""
         return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
 
@@ -170,9 +195,7 @@ def create_app(
         methods=["GET", "POST"],
         response_class=PlainTextResponse,
     )
-    async def ingest(
-        request: Request, device_token: str, signal: str
-    ) -> PlainTextResponse:
+    async def ingest(request: Request, device_token: str, signal: str) -> PlainTextResponse:
         """Record one content-free ping. Everything but the path is ignored."""
         signal = signal.strip().lower()
         with request.app.state.pool.connection() as conn:
@@ -244,9 +267,7 @@ def create_app(
 
         if sender:
             with request.app.state.pool.connection() as conn:
-                record_parent_reply(
-                    conn, sender, clock(), note_first_reply=cfg.memory_first_reply
-                )
+                record_parent_reply(conn, sender, clock(), note_first_reply=cfg.memory_first_reply)
         return PlainTextResponse("", status_code=204)
 
     @app.post("/site-metrics/daily", response_class=PlainTextResponse)
@@ -273,9 +294,7 @@ def create_app(
         try:
             payload = await request.json()
         except ValueError:
-            raise StarletteHTTPException(
-                status_code=400, detail="malformed request"
-            ) from None
+            raise StarletteHTTPException(status_code=400, detail="malformed request") from None
         if not isinstance(payload, dict):
             raise StarletteHTTPException(status_code=400, detail="malformed request")
 
@@ -319,9 +338,7 @@ def create_app(
             try:
                 payload = await request.json()
             except ValueError:
-                raise StarletteHTTPException(
-                    status_code=400, detail="malformed request"
-                ) from None
+                raise StarletteHTTPException(status_code=400, detail="malformed request") from None
             if not isinstance(payload, dict):
                 raise StarletteHTTPException(status_code=400, detail="malformed request")
         else:
@@ -350,6 +367,52 @@ def create_app(
         with request.app.state.pool.connection() as conn:
             waitlist.record(conn, email, parent_phone, help_with)
         return PlainTextResponse(waitlist.WAITLIST_SUCCESS)
+
+    # --- spec 019: the assistant door ------------------------------------------
+
+    @app.get("/.well-known/oauth-protected-resource")
+    async def protected_resource() -> JSONResponse:
+        return JSONResponse(assistant_auth.protected_resource_metadata(cfg.public_base_url))
+
+    @app.get("/.well-known/oauth-authorization-server")
+    async def authorization_server() -> JSONResponse:
+        return JSONResponse(assistant_auth.authorization_server_metadata(cfg.public_base_url))
+
+    app.add_api_route("/oauth/register", oauth.register, methods=["POST"])
+    app.add_api_route("/oauth/authorize", oauth.authorize, methods=["GET"])
+    app.add_api_route("/oauth/token", oauth.token, methods=["POST"])
+    app.add_api_route("/oauth/approve", oauth.approve, methods=["POST"])
+    app.add_api_route("/oauth/pending", oauth.pending, methods=["GET"])
+
+    async def mcp_guarded(scope, receive, send):  # type: ignore[no-untyped-def]
+        """The bearer check in front of the SDK app (§4): a missing or dead
+        token is a 401 with the resource_metadata header, never a tool error.
+        A live one resolves to exactly one person for the length of the
+        request, through CURRENT_USER."""
+        if scope["type"] != "http":
+            await mcp_asgi(scope, receive, send)
+            return
+        headers = {k.decode().lower(): v.decode() for k, v in scope.get("headers", [])}
+        auth = headers.get("authorization", "")
+        user = None
+        if auth.lower().startswith("bearer "):
+            with app.state.pool.connection() as conn:
+                user = assistant_auth.resolve_bearer(conn, auth[7:].strip(), clock())
+        if user is None:
+            response = PlainTextResponse(
+                "unauthorized",
+                status_code=401,
+                headers={"WWW-Authenticate": assistant_auth.www_authenticate(cfg.public_base_url)},
+            )
+            await response(scope, receive, send)
+            return
+        token = assistant_tools.CURRENT_USER.set(user)
+        try:
+            await mcp_asgi(scope, receive, send)
+        finally:
+            assistant_tools.CURRENT_USER.reset(token)
+
+    app.mount("/mcp", mcp_guarded)
 
     @app.get("/healthz")
     async def healthz(request: Request) -> JSONResponse:

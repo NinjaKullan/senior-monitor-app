@@ -528,10 +528,27 @@ is refused with a message and a non-zero exit, never a silent success. Running i
 twice is safe: the second run reports "Already revoked" and keeps the original
 revocation time.
 
+## Ask Kettle from an assistant (spec 019)
+
+kettle-api is also an MCP server and an OAuth authorization server. An
+assistant added by URL (`https://kettle-api.fly.dev/mcp`) discovers the auth
+server from a 401, registers itself (`/oauth/register`), sends the person to
+`/oauth/authorize` with PKCE S256, and Kettle hands them to the family app's
+`/connect` page for consent; Allow posts to `/oauth/approve` with the person's
+Supabase session (verified against `SUPABASE_JWKS_URL`, ES256 only), a
+one-time code goes back, and `/oauth/token` swaps it for a one-hour access
+token and a rotating refresh token. Tokens are stored hashed. Five read-only
+tools (`today`, `parent_day`, `memory`, `who_to_call`, `circles`) answer in
+Kettle's sentences from the ledger; `kettle/assistant_copy.py` holds every
+word an assistant reads. Membership is read at call time; a grant stores a
+person, never a family.
+
 ## Environment variables
 
 | Var | Meaning | Default |
 |---|---|---|
+| `APP_ORIGIN` | the family app's origin: where `/oauth/authorize` sends the person, and the CORS grant for `/oauth/approve` | `https://kettle-app.fly.dev` |
+| `SUPABASE_JWKS_URL` | the project's JWKS (`https://<ref>.supabase.co/auth/v1/.well-known/jwks.json`); `/oauth/approve` verifies sessions against it | empty = approve refuses every session |
 | `DATABASE_URL` | Supabase service-role Postgres URI | **required**, no default |
 | `NTFY_TOPIC` | ops alert topic (secret) | empty = log-only |
 | `IP_HASH_SALT` | salt for the IP hash | random per boot |

@@ -146,6 +146,35 @@ export const DELETE_CANCEL = "Keep it";
 export const EDITED_MARK = "edited";
 export const COMPOSER_FAILED = "That didn't save. Try again.";
 
+/* Spec 019 §8, VERBATIM (DECISIONS 284): ask Kettle from an assistant. The
+   server mirrors HEARD_*, CITY_NOW, CALL_LABEL, UPCOMING_LABEL, EDITED_MARK,
+   AUTO_NOTE_AUTHOR, the 017 paused strings and ASSISTANT_FALLBACK in
+   kettle/assistant_copy.py; product/tests/test_assistant_copy.py holds the
+   two files equal. */
+export const CONNECT_TITLE = "Connect {client} to Kettle";
+export const CONNECT_BODY = "{client} will be able to read what you see in Kettle for {names}.";
+export const CONNECT_READ_ONLY = "It cannot change anything. Parents are never involved.";
+export const CONNECT_ALLOW = "Allow";
+export const CONNECT_CANCEL = "Not now";
+export const CONNECT_EXPIRED = "That link has expired. Start again from your assistant.";
+export const ASSISTANT_FALLBACK = "An assistant";
+export const ASSISTANTS_SECTION = "Assistants";
+export const ASSISTANTS_INTRO =
+  "Ask Kettle from Claude or another assistant. Add Kettle as a connector once, on a computer, with this address. After that you just ask.";
+export const ASSISTANTS_COPY = "Copy";
+export const ASSISTANTS_COPIED = "Copied";
+export const ASSISTANTS_NONE = "Nothing is connected yet.";
+export const ASSISTANTS_SINCE = "{client} · since {date}";
+export const ASSISTANTS_DISCONNECT = "Disconnect";
+export const ASSISTANTS_DISCONNECT_CONFIRM = "Disconnect {client}? It will stop seeing Kettle right away.";
+export const ASSISTANTS_DISCONNECT_YES = "Disconnect";
+export const ASSISTANTS_DISCONNECT_NO = "Keep it";
+/* FLAGGED (DECISIONS): §8 names no words for the consent screen while the
+   request is being looked up, nor for the link back to Today after an expired
+   one; both are spec-silent. */
+export const CONNECT_LOADING = "One moment.";
+export const CONNECT_BACK = "Back to Today";
+
 /* ---------------------------------------------------------------------- */
 /* City label (spec 009 §5)                                                 */
 /* ---------------------------------------------------------------------- */

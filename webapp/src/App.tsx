@@ -4,7 +4,11 @@ import {
   addContact,
   addJournalEntry,
   addSeat,
+  approveConnect,
   claimMembership,
+  loadConnectNames,
+  pendingConnect,
+  revokeAssistant,
   deleteContact,
   deleteEntry,
   editEntry,
@@ -45,6 +49,7 @@ import {
   isAuthFailure,
 } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
+import { ConnectScreen, type ConnectState } from "@/screens/Connect";
 import { FamilyScreen } from "@/screens/Family";
 import { MemoryScreen } from "@/screens/Memory";
 import { WhoToCallScreen } from "@/screens/WhoToCall";
@@ -99,6 +104,14 @@ export default function App() {
   /** The chosen circle (spec 015 §8): remembered per browser, oldest by
    *  default. The snapshot loader falls back when it no longer applies. */
   const [circleId, setCircleId] = useState<string | null>(() => rememberedCircle());
+  /** Spec 019 §6: /connect?request=<id> is the assistant's consent screen.
+   *  The URL survives the sign-in round trip, so a signed-out person sees
+   *  the 013 login and lands back here with the same request. */
+  const connectRequest =
+    typeof window !== "undefined" && window.location.pathname === "/connect"
+      ? new URLSearchParams(window.location.search).get("request")
+      : null;
+  const [connect, setConnect] = useState<ConnectState>({ kind: "loading" });
   const [now, setNow] = useState(() => new Date());
   const [width, setWidth] = useState(() =>
     typeof window !== "undefined" ? window.innerWidth : 1200,
@@ -194,7 +207,23 @@ export default function App() {
    * the ones we did not, including a promise that simply never settles, and it
    * ends where all of them end.
    */
-  const stalled = authState === "restoring" || (authState === "signed-in" && !snapshot);
+  useEffect(() => {
+    if (!session || connectRequest === null) return;
+    let cancelled = false;
+    Promise.all([pendingConnect(connectRequest), loadConnectNames()])
+      .then(([pending, names]) => {
+        if (cancelled) return;
+        setConnect(pending ? { kind: "ready", clientName: pending.client_name, names } : { kind: "expired" });
+      })
+      .catch(() => {
+        if (!cancelled) setConnect({ kind: "expired" });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session, connectRequest]);
+
+  const stalled = authState === "restoring" || (authState === "signed-in" && !snapshot && connectRequest === null);
   useEffect(() => {
     if (!stalled) return;
     const timer = setTimeout(() => void failToLogin(), RESTORE_TIMEOUT_MS);
@@ -207,6 +236,19 @@ export default function App() {
     return (
       <Shell isWide={isWide}>
         <Login onSend={sendSignInCode} onVerify={verifySignInCode} />
+      </Shell>
+    );
+  }
+
+  if (authState === "signed-in" && connectRequest !== null && session) {
+    const decide = async (decision: "allow" | "deny") => {
+      const redirect = await approveConnect(connectRequest, decision, session.access_token);
+      if (redirect) window.location.assign(redirect);
+      else setConnect({ kind: "expired" });
+    };
+    return (
+      <Shell isWide={isWide} onSignOut={() => supabase.auth.signOut()}>
+        <ConnectScreen state={connect} onAllow={() => decide("allow")} onCancel={() => decide("deny")} />
       </Shell>
     );
   }
@@ -238,6 +280,10 @@ export default function App() {
     admin: isAdmin(snapshot.members, viewerId),
   };
   const viewerTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const disconnectAssistant = async (grantId: string) => {
+    await revokeAssistant(grantId);
+    await refresh();
+  };
   const editNote = async (entryId: number, body: string) => {
     await editEntry(entryId, body);
     await refresh();
@@ -486,6 +532,9 @@ export default function App() {
           }}
           onPickCity={pickCity}
           onClearCity={clearCity}
+          assistants={snapshot.assistants}
+          onRevokeAssistant={disconnectAssistant}
+          viewerTz={viewerTz}
         />
       )}
     </Shell>

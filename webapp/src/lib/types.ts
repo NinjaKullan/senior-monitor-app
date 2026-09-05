@@ -76,6 +76,16 @@ export interface FamilyContact {
 /** A seat in the circle (spec 015). `role` is 'admin' or 'member' (0025);
  *  a null auth_user_id is a seat nobody has signed in to yet; `mail` is the
  *  one switch a person holds over Kettle's mail to them. */
+/** One assistant connection the viewer made (spec 019). client_name is
+ *  what the assistant registered, or null; the fallback word is copy's. */
+export interface AssistantGrant {
+  id: string;
+  client_name: string | null;
+  created_utc: string;
+  last_used_utc: string;
+  revoked_utc: string | null;
+}
+
 export interface Member {
   id: string;
   family_id: string;

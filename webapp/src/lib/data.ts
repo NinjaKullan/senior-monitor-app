@@ -36,7 +36,9 @@
 
 import { supabase } from "./supabase";
 import { READ_SURFACE } from "./queries";
+import { SETUP_PAGE_BASE } from "./setupLinks";
 import type {
+  AssistantGrant,
   Family,
   FamilyContact,
   JournalEntry,
@@ -360,6 +362,9 @@ export interface FamilySnapshot {
   journalByParent: Record<string, JournalEntry[]>;
   /** The family's contacts sheet (spec 012 §4): small, read whole. */
   contacts: FamilyContact[];
+  /** Spec 019: the viewer's live assistant connections — theirs, not the
+   *  circle's, so read unscoped and never more than a handful. */
+  assistants: AssistantGrant[];
 }
 
 /* --- the circle (spec 015 §6) ------------------------------------------- */
@@ -398,6 +403,68 @@ export async function setOwnMail(familyId: string, mail: boolean): Promise<void>
 export async function leaveCircle(familyId: string): Promise<void> {
   const { error } = await supabase.rpc("app_leave_circle", { p_family_id: familyId });
   if (error) throw error;
+}
+
+/* --- assistants (spec 019) ------------------------------------------------- */
+
+/** The API host, which is also the MCP server and the authorization server. */
+export const API_BASE = SETUP_PAGE_BASE;
+export const MCP_URL = `${API_BASE}/mcp`;
+
+/** A person's own connections, live ones only. A handful at most; RLS keys
+ *  on the person, not the circle, so no family filter belongs here. */
+async function readAssistants(): Promise<AssistantGrant[]> {
+  const { data, error } = await supabase
+    .from("assistant_grants")
+    .select(READ_SURFACE.assistant_grants)
+    .order("created_utc", { ascending: true });
+  if (error) throw error;
+  return ((data ?? []) as AssistantGrant[]).filter((g) => g.revoked_utc === null);
+}
+
+export async function revokeAssistant(grantId: string): Promise<void> {
+  const { error } = await supabase.rpc("app_revoke_assistant", { p_grant_id: grantId });
+  if (error) throw error;
+}
+
+/** The consent screen's two calls to the API (spec 019 §4/§6). `fetch` is
+ *  injectable so the tests never reach a network. */
+export type Fetcher = typeof fetch;
+
+export async function pendingConnect(
+  requestId: string,
+  fetcher: Fetcher = fetch,
+): Promise<{ client_name: string } | null> {
+  const response = await fetcher(`${API_BASE}/oauth/pending?request=${encodeURIComponent(requestId)}`);
+  if (!response.ok) return null;
+  return (await response.json()) as { client_name: string };
+}
+
+export async function approveConnect(
+  requestId: string,
+  decision: "allow" | "deny",
+  accessToken: string,
+  fetcher: Fetcher = fetch,
+): Promise<string | null> {
+  const response = await fetcher(`${API_BASE}/oauth/approve`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ request_id: requestId, decision }),
+  });
+  if (!response.ok) return null;
+  const body = (await response.json()) as { redirect?: string };
+  return body.redirect ?? null;
+}
+
+/** The names the consent screen lists: every parent across every circle the
+ *  person is in (§6). RLS answers for all their circles; nothing is chosen. */
+export async function loadConnectNames(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("parents")
+    .select("display_name, family_id")
+    .order("display_name", { ascending: true });
+  if (error) throw error;
+  return ((data ?? []) as { display_name: string }[]).map((p) => p.display_name);
 }
 
 /* --- edit and delete (spec 018 §3) --------------------------------------- */
@@ -493,6 +560,7 @@ export async function loadSnapshot(
     return {
       families,
       family: null,
+      assistants: await readAssistants(),
       parents: [],
       members: [],
       signals: [],
@@ -527,9 +595,11 @@ export async function loadSnapshot(
     readJournalByParent(parentIds),
     readContacts(family.id),
   ]);
+  const assistants = await readAssistants();
   return {
     families,
     family,
+    assistants,
     parents,
     members,
     signals,

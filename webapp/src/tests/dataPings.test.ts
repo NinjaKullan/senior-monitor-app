@@ -237,7 +237,9 @@ describe("the bounded pings read", () => {
     await loadSnapshot(NOW);
     const unbounded = executed.filter((call) => call.limit === null);
     expect(new Set(unbounded.map((call) => call.table))).toEqual(
-      new Set(["families", "parents", "members", "parent_signals", "setup_links"]),
+      // assistant_grants joined in spec 019: a person's own handful of
+      // connections, per person rather than per circle (data.ts says why).
+      new Set(["families", "parents", "members", "parent_signals", "setup_links", "assistant_grants"]),
     );
   });
 
