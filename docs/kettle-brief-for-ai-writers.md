@@ -71,8 +71,11 @@ checking up.
 8. No screenshots or screen recordings of the real family's app. Any
    app footage comes from the Rehearsal family view only. No parent's
    real name, city, or routine ever appears.
-9. The ask a parent receives reads exactly: "Everything okay today?
-   Reply with a 👍 when you're free." If quoted, quote it exactly.
+9. The ask a parent receives reads exactly: "Hi. Hema asked Kettle to
+   check in with you when your morning is not as usual. Is everything
+   okay? Reply with a 👍 when you can." (The name is whoever set the
+   parent up.) If quoted, quote it exactly. Corrected 2026-09-06; the
+   earlier wording in this brief was a draft that never shipped.
 10. One call to action only: apply for the family beta at heykettle.com.
     Never "download the app", never "sign up now, limited time".
 
