@@ -533,3 +533,21 @@ def test_the_app_reads_the_sms_state_and_never_writes_it(two_families, authed):
             authed.execute(
                 f"update parents set {column} = now() where id = %s", (a.parents[0].parent_id,)
             )
+
+
+# --- DECISIONS 299: the app judges a day on the engine's clock -----------------------
+
+PARENT_STATE_TS = Path(__file__).resolve().parents[2] / "webapp" / "src" / "lib" / "parentState.ts"
+
+
+def test_the_apps_day_start_hour_is_the_engines_morning_window_start():
+    """parentState.ts mirrors MORNING_WINDOW_START (06:00 local): the card,
+    the arc and the dots count routine from the same hour the engine does.
+    If either side moves, this fails by name."""
+    from kettle.outbound import MORNING_WINDOW_START
+
+    source = PARENT_STATE_TS.read_text()
+    found = re.search(r"export const DAY_START_HOUR = (\d+);", source)
+    assert found, "DAY_START_HOUR missing from parentState.ts"
+    assert int(found.group(1)) == MORNING_WINDOW_START.hour
+    assert MORNING_WINDOW_START.minute == 0, "the app mirrors a whole hour"
