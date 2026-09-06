@@ -335,6 +335,29 @@ describe("rendered copy law", () => {
     assertCopyLaw(text, [...APP_ALLOW, MONTH_DAY]);
   });
 
+  it("holds for a night card and the all-night rollup (DECISIONS 303)", () => {
+    // 1:02 am IST: Amma (Chennai) and Appa (no city) both asleep.
+    const night = new Date("2026-08-02T19:32:00Z"); // 1:02 am IST, 3 Aug
+    const states = [
+      computeParentToday(parents[0], IST, signals, allPings, allPings, night, "America/New_York"),
+      computeParentToday({ ...parents[1], city_label: null }, IST, signals, allPings, allPings, night, "America/New_York"),
+    ];
+    expect(states.map((s) => s.night)).toEqual([true, true]);
+    render(
+      <Today
+        states={states}
+        rollup={computeRollup(states, IST, night)}
+        dateLine="Sunday · August 2"
+        onOpen={() => undefined}
+      />,
+    );
+    const text = renderedText();
+    expect(text).toContain("Night in Chennai.");
+    expect(text).toContain("Night for Appa.");
+    expect(text).toContain("Night for Amma and Appa.");
+    assertCopyLaw(text, [...APP_ALLOW]);
+  });
+
   it("holds for the parent detail in each of the three states", () => {
     for (const parent of parents) {
       const state = stateFor(parent);

@@ -155,6 +155,7 @@ const base: ParentToday = {
   timeZone: "Asia/Kolkata",
   paused: false,
   pausedLine: null,
+  night: false,
 };
 
 const detailProps = {
