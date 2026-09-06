@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 296.** This line is the one to update; the `Next number:` lines inside
+**Next number: 298.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6111,3 +6111,17 @@ browser — all three adopted as the standard for future surfaces.**
        and untouched, as briefed.
      * Counts: root pytest 803 → 810 (product 756 → 763); webapp 276.
      * Next number: 297.
+
+297. **(2026-09-05, ~11:15pm ET) 296 REVIEWED and ACCEPTED (adfc124):
+     the 019 polish set and the demo heartbeat skip.** Sentence joiner
+     in assistant answers; ASSISTANTS_INTRO's new sentence ("In Claude,
+     set Kettle's tools to Always allow so it never stops to ask.");
+     CIMD beside DCR, a CIMD client mirrored as one assistant_clients
+     row keyed by its URL so 0029's foreign keys and revoke cascade
+     stand (accepted; no 0031); the heartbeat skips demo parents at
+     the top of its loop, so the Whitakers stop raising the noon
+     alert. No migration, no secrets. Deploy: `cd product && fly
+     deploy` → `cd webapp && npm run ci && fly deploy`.
+     * Header "Next number" line was left at 296 by the build; fixed
+       here to 298. CC: update the header line, not only the entry.
+     * Next number: 298.
