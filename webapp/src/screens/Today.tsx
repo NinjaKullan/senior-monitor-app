@@ -54,8 +54,9 @@ export function Today({
   pause?: PauseActions;
 }) {
   const [choosing, setChoosing] = useState<string | null>(null);
-  // A paused parent is left out of "everyone is normal" (spec 017).
-  const watched = states.filter((s) => !s.paused);
+  // A paused parent is left out of "everyone is normal" (spec 017), and a
+  // night parent the same way (303).
+  const watched = states.filter((s) => !s.paused && !s.night);
   const allNormal = watched.length > 0 && watched.every((s) => s.kind === "ordinary");
   return (
     <div className="kt-view" data-testid="today-screen" style={{ maxWidth: "40rem", margin: "0 auto" }}>

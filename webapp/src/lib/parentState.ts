@@ -33,6 +33,9 @@ import {
   MEANS_QUIET_HEAD,
   MEANS_UNREACHABLE_HEAD,
   META_NOTHING_YET,
+  NIGHT_CARD,
+  NIGHT_CARD_NO_CITY,
+  ROLLUP_NIGHT_ALL,
   ROLLUP_NORMAL,
   ROLLUP_QUIET,
   ROLLUP_SUB_EVENING,
@@ -148,6 +151,11 @@ export interface ParentToday {
   paused: boolean;
   /** "Back on Sep 11." (family-day date) or "Until someone turns it back on." */
   pausedLine: string | null;
+  /** DECISIONS 303: it is before DAY_START_HOUR in the parent's zone and the
+   *  card says the night instead of quiet or normal. Paused and unreachable
+   *  both win over it; the rollup leaves a night parent out like a paused
+   *  one. The arc, the dots and every fact are untouched. */
+  night: boolean;
 }
 
 export function localHourMinute(
@@ -293,8 +301,17 @@ export function computeParentToday(
 
   const kind: ParentKind = unreachable ? "unreachable" : seenToday ? "ordinary" : "quiet";
 
-  const sentence =
-    kind === "ordinary"
+  // Night (303): the same clock as the verdict (299) — before DAY_START_HOUR
+  // the day has not begun, so the card says so rather than "quiet". A stale
+  // phone at night is still a stale phone, and a pause still wins.
+  const { hour, minute } = localHourMinute(now, timeZone);
+  const night = !paused && kind !== "unreachable" && hour < DAY_START_HOUR;
+
+  const sentence = night
+    ? parent.city_label
+      ? NIGHT_CARD.replace("{city}", parent.city_label)
+      : NIGHT_CARD_NO_CITY.replace("{name}", label)
+    : kind === "ordinary"
       ? STATE_ORDINARY
       : kind === "quiet"
         ? STATE_QUIET
@@ -345,7 +362,6 @@ export function computeParentToday(
 
   // The day as a shape (spec 009 §3): the fraction of the parent's local day
   // elapsed, midnight to midnight, drives the arc's reveal and its dot.
-  const { hour, minute } = localHourMinute(now, timeZone);
   const arcFraction = (hour * 60 + minute) / 1440;
 
   const bounds: [number, number][] = [
@@ -459,6 +475,7 @@ export function computeParentToday(
     timeZone,
     paused,
     pausedLine,
+    night,
   };
 }
 
@@ -494,8 +511,16 @@ export function computeRollup(
   now: Date,
 ): { line: string; sub: string } {
   // A paused parent is neither quiet nor normal: the rollup is about the
-  // parents Kettle is watching (spec 017).
-  const states = allStates.filter((s) => !s.paused);
+  // parents Kettle is watching (spec 017). A night parent (303) is left out
+  // the same way; when nobody is left, the headline is the night.
+  const states = allStates.filter((s) => !s.paused && !s.night);
+  const night = allStates.filter((s) => s.night);
+  if (states.length === 0 && night.length > 0) {
+    return {
+      line: ROLLUP_NIGHT_ALL.replace("{names}", joinNames(night.map((s) => s.label))),
+      sub: ROLLUP_SUB_MORNING,
+    };
+  }
   const firstUnreachable = states.find((s) => s.kind === "unreachable");
   const quiet = states.filter((s) => s.kind === "quiet");
   const line = firstUnreachable

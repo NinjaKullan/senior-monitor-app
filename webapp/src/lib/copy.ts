@@ -309,6 +309,12 @@ export const PAUSE_WEEK = "For a week";
 export const PAUSE_OPEN = "Until I turn it back on";
 export const PAUSE_CANCEL = "Not now";
 export const PAUSED_CARD = "Kettle is paused for {name}.";
+/* DECISIONS 303, VERBATIM: night is not quiet. Between midnight and six in
+   the parent's zone the card says the night; the rollup leaves that parent
+   out the way it leaves a paused one out. */
+export const NIGHT_CARD = "Night in {city}.";
+export const NIGHT_CARD_NO_CITY = "Night for {name}.";
+export const ROLLUP_NIGHT_ALL = "Night for {names}.";
 export const PAUSED_UNTIL = "Back on {date}.";
 export const PAUSED_OPEN_ENDED = "Until someone turns it back on.";
 export const RESUME_BUTTON = "Turn Kettle back on";
