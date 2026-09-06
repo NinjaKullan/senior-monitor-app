@@ -51,7 +51,7 @@ import {
   renderHeard,
   renderNothingIn,
 } from "./copy";
-import { effectiveTz, formatLocalTime, localDate, localDayStart } from "./time";
+import { effectiveTz, formatLocalTime, localDate } from "./time";
 import { computeTripwires } from "./tripwires";
 import type { Parent, ParentSignal, Ping } from "./types";
 
@@ -68,6 +68,23 @@ export const EVENING_START = 18;
  * both sides until a shared source exists.
  */
 export const EVENING_DIGEST_MINUTES = 20 * 60 + 30;
+
+/**
+ * The hour a parent's day begins for every VERDICT this module renders (the
+ * card's state, the arc's segments, the recent-day dots), mirrored from the
+ * outbound engine's MORNING_WINDOW_START in product/kettle/outbound.py
+ * (06:00 local). DECISIONS 299: a routine ping before six in the morning
+ * does not start the day; it still shows in "heard from", which is a fact.
+ * A ping between midnight and this hour belongs to no day's verdict. The
+ * product contract test holds the two constants equal by name.
+ */
+export const DAY_START_HOUR = 6;
+
+/** Does this ping count toward the verdict of local calendar day `date`? */
+export function countsForDay(ping: Ping, date: string, timeZone: string): boolean {
+  const at = new Date(ping.ts_utc);
+  return localDate(at, timeZone) === date && localHour(at, timeZone) >= DAY_START_HOUR;
+}
 
 export type ParentKind = "ordinary" | "quiet" | "unreachable";
 
@@ -257,9 +274,10 @@ export function computeParentToday(
   const alarm = alarmGradeSignals(signals, parent.id);
 
   const mine = windowPings.filter((p) => p.parent_id === parent.id);
-  const dayStart = localDayStart(now, timeZone);
+  // Today's verdict counts from DAY_START_HOUR, the engine's clock (299).
+  const today = localDate(now, timeZone);
   const routineToday = mine.filter(
-    (p) => alarm.has(p.signal) && new Date(p.ts_utc) >= dayStart,
+    (p) => alarm.has(p.signal) && countsForDay(p, today, timeZone),
   );
   const seenToday = routineToday.length > 0;
 
@@ -355,8 +373,9 @@ export function computeParentToday(
   });
 
   // Seven dots, oldest left, today right (spec 009 §3), from the windowed
-  // set: alarm-grade ping = a normal day, any ping = a quiet start, none =
-  // couldn't hear. No tally, no counts — the chips carry no digits.
+  // set: alarm-grade ping from DAY_START_HOUR on = a normal day, any ping at
+  // any hour = a quiet start, none = couldn't hear. No tally, no counts — the
+  // chips carry no digits.
   //
   // The changeover day (spec 010 §3) is never "a quiet start": under a moved
   // clock, "quiet" is an artifact of the move, not evidence. It reads normal
@@ -385,7 +404,7 @@ export function computeParentToday(
       const dayPings = mine.filter(
         (p) => localDate(new Date(p.ts_utc), timeZone) === date,
       );
-      dotKind = dayPings.some((p) => alarm.has(p.signal))
+      dotKind = dayPings.some((p) => alarm.has(p.signal) && countsForDay(p, date, timeZone))
         ? "normal"
         : dayPings.length > 0
           ? "quiet"
