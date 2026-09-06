@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 304.** This line is the one to update; the `Next number:` lines inside
+**Next number: 305.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6226,4 +6226,21 @@ browser — all three adopted as the standard for future surfaces.**
        ROLLUP_NIGHT_ALL = "Night for {names}."
      * The recent-day dots and the arc are unchanged (299). Webapp
        only, no migration. Before Monday's invitations if it lands.
-     * Next number: 304.
+
+304. **(2026-09-06) 303 BUILT, webapp only: the night card and the night
+     rollup.**
+     * `ParentToday.night` is true before DAY_START_HOUR (299's constant,
+       reused) in the parent's effective zone unless the parent is paused
+       or unreachable; the card's sentence is NIGHT_CARD (city_label) or
+       NIGHT_CARD_NO_CITY. `kind` is unchanged, so the glyph, the arc, the
+       dots, heard-from, the dual line, Call and View day are as before.
+       The parent detail's headline shares `sentence`, so it says the night
+       too — the same words on the same clock, not a second surface.
+     * The rollup filters night parents with the paused ones; when nobody
+       is left and someone is at night, the headline is ROLLUP_NIGHT_ALL
+       and the sub line ROLLUP_SUB_MORNING. The Today footer's
+       "everyone is normal" leaves night parents out the same way.
+     * The three strings are held verbatim by the product contract test;
+       the copy-law scan renders a night card and the all-night rollup.
+     * Counts: webapp 283 → 293; root pytest 811 → 812.
+     * Next number: 305.
