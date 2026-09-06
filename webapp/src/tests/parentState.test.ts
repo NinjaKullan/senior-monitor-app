@@ -15,12 +15,14 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  DAY_START_HOUR,
   computeParentToday,
   computeRollup,
+  countsForDay,
   joinNames,
   tzNoteFor,
 } from "@/lib/parentState";
-import { renderHeard } from "@/lib/copy";
+import { STATE_QUIET, renderHeard } from "@/lib/copy";
 import type { Parent, ParentSignal, Ping } from "@/lib/types";
 
 const IST = "Asia/Kolkata";
@@ -339,5 +341,93 @@ describe("the rollup (spec 009 §2)", () => {
     expect(joinNames(["Mom"])).toBe("Mom");
     expect(joinNames(["Mom", "Dad"])).toBe("Mom and Dad");
     expect(joinNames(["Mom", "Dad", "Grandma"])).toBe("Mom, Dad and Grandma");
+  });
+});
+
+describe("the engine's clock (DECISIONS 299): a day begins at six", () => {
+  /**
+   * Amma's Sep 5 in Austin: the phone heard at 2:59 am local and nothing
+   * after. At 10:48 am the engine had judged its 6:00 to 8:30 window quiet
+   * and sent the quiet note; the card, counting from midnight, said normal.
+   * Same rule, one clock now.
+   */
+  const AUSTIN = "America/Chicago";
+  const austinAmma: Parent = { ...amma, tz: AUSTIN, city_label: "Austin" };
+  const SEP5_1048 = new Date("2026-09-05T15:48:00Z"); // 10:48 am CDT
+  const PING_0259 = ping("whatsapp", "2026-09-05T07:59:00Z"); // 2:59 am CDT
+  const austinState = (pings: Ping[], now = SEP5_1048) =>
+    computeParentToday(austinAmma, IST, signals, pings, latestOf(pings), now, CHICAGO);
+
+  it("pins the mirrored hour: MORNING_WINDOW_START in product/kettle/outbound.py", () => {
+    // The product contract test holds the two equal by name; this side
+    // pins the value so a retune here is a deliberate edit.
+    expect(DAY_START_HOUR).toBe(6);
+  });
+
+  it("Amma's Sep 5: quiet on the card, quiet so far on the arc, heard from still 2:59", () => {
+    const state = austinState([PING_0259]);
+    expect(state.kind).toBe("quiet");
+    expect(state.sentence).toBe(STATE_QUIET);
+    expect(state.arcCells[0]).toEqual({ part: "Morning", text: "Quiet so far", dim: false });
+    // The fact is untouched: heard from reads the 2:59 ping.
+    expect(state.heard).toBe(renderHeard(SEP5_1048.getTime() - Date.parse(PING_0259.ts_utc)));
+    expect(state.dualLine).toContain("2:59 am");
+  });
+
+  it("a ping at 6:00 exactly counts; 5:59 does not", () => {
+    const at600 = ping("whatsapp", "2026-09-05T11:00:00Z");
+    const at559 = ping("whatsapp", "2026-09-05T10:59:00Z");
+    expect(countsForDay(at600, "2026-09-05", AUSTIN)).toBe(true);
+    expect(countsForDay(at559, "2026-09-05", AUSTIN)).toBe(false);
+    expect(austinState([at600]).kind).toBe("ordinary");
+    expect(austinState([at600]).arcCells[0].text).toBe("Heard from 6:00 am");
+    expect(austinState([at559]).kind).toBe("quiet");
+    expect(austinState([at559]).arcCells[0].text).toBe("Quiet so far");
+  });
+
+  it("a 5:59 ping belongs to no day's verdict, not yesterday's either", () => {
+    const at559 = ping("whatsapp", "2026-09-05T10:59:00Z");
+    expect(countsForDay(at559, "2026-09-04", AUSTIN)).toBe(false);
+    const dots = austinState([at559]).recentDots;
+    // Yesterday stays couldn't-hear; today is a quiet start (a ping, no verdict).
+    expect(dots[5].kind).toBe("none");
+    expect(dots[6].kind).toBe("quiet");
+  });
+
+  it("a day with a 23:30 ping is a normal day", () => {
+    const late = ping("whatsapp", "2026-09-05T04:30:00Z"); // 11:30 pm CDT, Sep 4
+    const state = austinState([late]);
+    expect(state.recentDots[5].kind).toBe("normal");
+    expect(countsForDay(late, "2026-09-04", AUSTIN)).toBe(true);
+    // And at 11:45 pm that same day the card reads normal.
+    expect(austinState([late], new Date("2026-09-05T04:45:00Z")).kind).toBe("ordinary");
+  });
+
+  it("a week with one pre-6am-only day shows that day as quiet", () => {
+    const week = [
+      ping("whatsapp", "2026-08-30T13:00:00Z"), // Sun 8:00 am
+      ping("whatsapp", "2026-08-31T13:00:00Z"), // Mon
+      ping("whatsapp", "2026-09-01T13:00:00Z"), // Tue
+      ping("whatsapp", "2026-09-02T08:30:00Z"), // Wed 3:30 am ONLY
+      ping("whatsapp", "2026-09-03T13:00:00Z"), // Thu
+      ping("whatsapp", "2026-09-04T13:00:00Z"), // Fri
+      PING_0259, // Sat (today) 2:59 am only
+    ];
+    const dots = austinState(week).recentDots;
+    expect(dots.map((d) => d.abbr)).toEqual(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]);
+    expect(dots.map((d) => d.kind)).toEqual([
+      "normal", "normal", "normal", "quiet", "normal", "normal", "quiet",
+    ]);
+  });
+
+  it("leaves the changeover-day rule alone (spec 010 §3)", () => {
+    // The same fixture as the changeover suite: 01:00 Chicago on 3 Aug is
+    // before six, and STILL reads normal for the changeover day — that day
+    // uses the widest span of the calendar date, not the verdict clock.
+    const moved: Parent = { ...amma, tz: CHICAGO, tz_changed_utc: "2026-08-02T20:00:00Z" };
+    const early = [ping("whatsapp", "2026-08-03T06:00:00Z")];
+    const dots = computeParentToday(moved, IST, signals, early, latestOf(early), NOON, CHICAGO)
+      .recentDots;
+    expect(dots[5].kind).toBe("normal");
   });
 });
