@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 302.** This line is the one to update; the `Next number:` lines inside
+**Next number: 303.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6191,3 +6191,17 @@ browser — all three adopted as the standard for future surfaces.**
      Deploy: `cd webapp && npm run ci && fly deploy`. After it, the
      card, the email and the assistant judge a morning by one clock.
      * Next number: 302.
+
+302. **(2026-09-06, 3:30pm ET) Amendment A dark stage: the SMS ask
+     VERIFIED on TestMom (founder's phone).** Ledger for Sep 6: quiet
+     note 8:30 (resend), `ask_parent_sms` by `twilio_sms` at 11:00:53
+     Raleigh, follow-on to the family at 13:01 with no reply (the
+     founder was away from the phone). Screenshot: the body matched
+     A.4 word for word, STOP line included, delivered 11:00 AM. Four
+     of four A.10 steps now seen live (welcome 294, STOP/START 294,
+     ask here); the one thing not yet seen over SMS is a 👍 arriving
+     inside the two hours and cancelling the follow-on. The reply
+     path is shared with WhatsApp and was exercised by STOP/START,
+     so this is confirmation, not risk. TestMom stays on texts one
+     more day for it, then PM restores her WhatsApp number.
+     * Next number: 303.
