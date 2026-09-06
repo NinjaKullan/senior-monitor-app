@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 303.** This line is the one to update; the `Next number:` lines inside
+**Next number: 304.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6205,3 +6205,25 @@ browser — all three adopted as the standard for future surfaces.**
      so this is confirmation, not risk. TestMom stays on texts one
      more day for it, then PM restores her WhatsApp number.
      * Next number: 303.
+
+303. **(2026-09-06, 3:50pm ET) RULED by Hema: night is not quiet. Between
+     midnight and 06:00 in the parent's zone the Today card says the
+     night, not "Quiet so far today", and the rollup leaves that parent
+     out the way it leaves a paused one out (017).** Found on Appa's
+     card at 1:02am Chennai, viewed from a US Sunday afternoon: true
+     under 299 but reads as a worry when the word is asleep; every
+     India parent would show it every US afternoon.
+     * Card, night state: NIGHT_CARD in place of the state sentence;
+       heard-from, the dual clock line, Call and View day unchanged;
+       the unreachable state still wins (a stale phone at night is
+       still a stale phone); paused still wins over night.
+     * Rollup: night parents are filtered out with the paused ones. If
+       nobody is left, the headline is ROLLUP_NIGHT_ALL and the sub
+       line is ROLLUP_SUB_MORNING.
+     * Strings (VERBATIM; copy laws):
+       NIGHT_CARD = "Night in {city}."  (city_label; fallback
+       NIGHT_CARD_NO_CITY = "Night for {name}.")
+       ROLLUP_NIGHT_ALL = "Night for {names}."
+     * The recent-day dots and the arc are unchanged (299). Webapp
+       only, no migration. Before Monday's invitations if it lands.
+     * Next number: 304.
