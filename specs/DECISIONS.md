@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 298.** This line is the one to update; the `Next number:` lines inside
+**Next number: 300.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6125,3 +6125,40 @@ browser — all three adopted as the standard for future surfaces.**
      * Header "Next number" line was left at 296 by the build; fixed
        here to 298. CC: update the header line, not only the entry.
      * Next number: 298.
+
+298. **(2026-09-05, ~11:30pm ET) Amma's day closed by the product: all
+     clear to the family at 21:57Z (4:57pm Austin), within a minute of
+     her phone being heard again. Full arc on a real family, first
+     time: quiet morning 8:30, ask 11:00, follow-on 13:00, all clear
+     16:57, her WhatsApp reply 16:59 (two minutes after the all clear;
+     logged as a late reply, nothing left to cancel, content unread),
+     sister's call in between. Nothing touched by hand.** The
+     founder read it as "she logged into WhatsApp"; Kettle heard the
+     phone, not WhatsApp (LAW-10), which is the distinction the copy
+     already keeps. Backlog thought, not ruled: the all-clear email is
+     the moment a family most wants the assistant's one-line summary;
+     nothing to build, but worth remembering when the site copy for
+     019 is written.
+     * Next number: 299.
+
+299. **(2026-09-06, ~12:15am ET) RULED by Hema: the app adopts the
+     engine's clock. A routine ping before 6:00am local does not start
+     the day.** Found from Amma's Sep 5: her phone was heard at 2:59am
+     Austin; the Today card counted from midnight and said "Today looks
+     like a normal day" at 10:48 ET while the engine, judging its
+     6:00 to 8:30 window (MORNING_WINDOW_START), had sent the quiet
+     note at 9:30 ET. Same rule, two clocks (287 backlog item a).
+     * Ruling: the Today card's state, the day arc's segments and the
+       recent-day dots count alarm-grade pings from 06:00 local (the
+       engine's window start) instead of local midnight. The "heard
+       from" line and the last-heard facts are unchanged: a fact, not
+       a verdict. The engine does not change. The sibling sentence: "A
+       ping before 6 in the morning doesn't start the day; it still
+       shows in heard from, but the day's verdict uses the same clock
+       on the card and in Kettle's notes."
+     * Rejected: rendering the card purely off the ledger. Between the
+       ask and the follow-on a ping recovers the day with nothing new
+       in the ledger; the card would have kept saying quiet.
+     * Build: webapp only (parentState.ts and its tests); no migration,
+       no product deploy.
+     * Next number: 300.
