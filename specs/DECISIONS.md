@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 305.** This line is the one to update; the `Next number:` lines inside
+**Next number: 306.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6244,3 +6244,14 @@ browser — all three adopted as the standard for future surfaces.**
        the copy-law scan renders a night card and the all-night rollup.
      * Counts: webapp 283 → 293; root pytest 811 → 812.
      * Next number: 305.
+
+305. **(2026-09-06, ~5:15pm ET) 304 REVIEWED and ACCEPTED (8a81e90):
+     night is not quiet.** A night flag on ParentToday, true before
+     DAY_START_HOUR in the parent's zone unless paused or unreachable;
+     "Night in {city}." or "Night for {name}."; the rollup and the
+     Today footer leave night parents out as they leave paused ones
+     out; all-night reads "Night for {names}." with the morning sub
+     line. The parent detail headline says the night too (same
+     sentence field), accepted. Webapp only. Deploy: `cd webapp &&
+     npm run ci && fly deploy`, before Monday's invitations.
+     * Next number: 306.
