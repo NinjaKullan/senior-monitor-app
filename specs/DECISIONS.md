@@ -6161,4 +6161,20 @@ browser — all three adopted as the standard for future surfaces.**
        in the ledger; the card would have kept saying quiet.
      * Build: webapp only (parentState.ts and its tests); no migration,
        no product deploy.
-     * Next number: 300.
+
+300. **(2026-09-06) 299 BUILT, webapp only: the card, the arc and the dots
+     count routine from 06:00 local.**
+     * `DAY_START_HOUR = 6` in parentState.ts, commented to the engine's
+       MORNING_WINDOW_START; `countsForDay(ping, date, tz)` is the one
+       predicate every verdict uses. A ping between midnight and six
+       belongs to no day's verdict (not yesterday's either); it still
+       makes a day "a quiet start" on the dots, since a quiet start is any
+       ping, and it still drives "heard from" and the dual line.
+     * The changeover day (spec 010 §3) keeps its widest-span rule
+       untouched; a test holds the same 01:00 fixture reading normal.
+     * The contract does not carry constants, so the equality lives as a
+       new product-side contract test that reads the TS constant by name
+       and compares it to MORNING_WINDOW_START.hour; the webapp pins the
+       value too. No product code change, no migration.
+     * Counts: root pytest 810 → 811; webapp 276 → 283.
+     * Next number: 301.
