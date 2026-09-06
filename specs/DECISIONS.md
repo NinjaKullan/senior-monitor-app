@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 306.** This line is the one to update; the `Next number:` lines inside
+**Next number: 307.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6255,3 +6255,23 @@ browser — all three adopted as the standard for future surfaces.**
      sentence field), accepted. Webapp only. Deploy: `cd webapp &&
      npm run ci && fly deploy`, before Monday's invitations.
      * Next number: 306.
+
+306. **(2026-09-06, ~6:15pm ET) heykettle.com put behind Cloudflare's
+     proxy (founder's ask: "what if the site goes viral"; PM did it
+     in the founder's Chrome with his go-ahead).** Before: Cloudflare
+     was DNS only; the site was served straight from one shared-cpu
+     Fly machine (kettle-site, iad, auto-stop, min 0). Cost was never
+     the risk (a first visit is ~550 KB; a million visits is roughly
+     twelve dollars of Fly bandwidth); capacity was. Changes: (1) CNAME
+     `_acme-challenge.heykettle.com` → `heykettle.com.wlyn8x2.flydns.net`,
+     DNS only, so Fly can renew the certificate behind the proxy (cert
+     expires 2026-11-19; from `fly certs show -j`); (2) A, AAAA and
+     www CNAME switched to proxied; (3) SSL mode Full → Full (strict).
+     Site verified loading after. kettle-api and kettle-app are on
+     fly.dev hostnames and untouched.
+     * Backlog (S): the waitlist form posts straight to
+       kettle-api.fly.dev/waitlist, the same machine as the family
+       engine, so a flood would slow the engine; a per-IP limit inside
+       kettle-api (the 013 sign-in pattern) is the fix, since a
+       Cloudflare rule on the site cannot see it.
+     * Next number: 307.
