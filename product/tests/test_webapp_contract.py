@@ -551,3 +551,18 @@ def test_the_apps_day_start_hour_is_the_engines_morning_window_start():
     assert found, "DAY_START_HOUR missing from parentState.ts"
     assert int(found.group(1)) == MORNING_WINDOW_START.hour
     assert MORNING_WINDOW_START.minute == 0, "the app mirrors a whole hour"
+
+
+# --- DECISIONS 303: night is not quiet --------------------------------------------
+
+NIGHT_STRINGS = {
+    "NIGHT_CARD": "Night in {city}.",
+    "NIGHT_CARD_NO_CITY": "Night for {name}.",
+    "ROLLUP_NIGHT_ALL": "Night for {names}.",
+}
+
+
+def test_the_night_strings_are_verbatim():
+    ts = _ts_consts(COPY_TS)
+    for name, expected in NIGHT_STRINGS.items():
+        assert ts.get(name) == expected, name
