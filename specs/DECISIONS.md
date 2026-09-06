@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 300.** This line is the one to update; the `Next number:` lines inside
+**Next number: 302.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6178,3 +6178,16 @@ browser — all three adopted as the standard for future surfaces.**
        value too. No product code change, no migration.
      * Counts: root pytest 810 → 811; webapp 276 → 283.
      * Next number: 301.
+
+301. **(2026-09-06, ~1:00am ET) 300 REVIEWED and ACCEPTED (049492d): the
+     app counts a day from 06:00 local, the engine's clock.** One
+     constant (DAY_START_HOUR = 6, mirroring MORNING_WINDOW_START) and
+     one predicate gate the card's verdict, the arc and the dots; a
+     product-side test reads the TypeScript constant by name and fails
+     if the two hours ever differ. Accepted reading of the legend: a
+     day with only a pre-6am ping dots as "a quiet start" (any ping),
+     never "a normal day". Heard-from, the dual line and unreachable
+     unchanged. Header line was left at 300 by the build; fixed to 302.
+     Deploy: `cd webapp && npm run ci && fly deploy`. After it, the
+     card, the email and the assistant judge a morning by one clock.
+     * Next number: 302.
