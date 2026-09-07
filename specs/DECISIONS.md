@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 307.** This line is the one to update; the `Next number:` lines inside
+**Next number: 308.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6283,3 +6283,35 @@ browser — all three adopted as the standard for future surfaces.**
        kettle-api (the 013 sign-in pattern) is the fix, since a
        Cloudflare rule on the site cannot see it.
      * Next number: 307.
+
+307. **(2026-09-06, ~9:00pm ET) Three things settled with Hema for
+     Monday; deploys of 301 and 305 recorded as live.**
+     * 301 (the app counts a day from 06:00 local) went out the night
+       of Sep 5/6 and 305 (the night card and the night rollup) went
+       out the afternoon of Sep 6, both `cd webapp && npm run ci &&
+       fly deploy` inside the review turns; the founder confirmed the
+       card updated. Amma's card was checked against the ledger after
+       301 (card normal, engine's morning note normal). No re-deploy
+       needed. The 296 polish is live too: `today` through the
+       connector answers in closed sentences.
+     * Waitlist rate limit (306 backlog) RULED, shape only; brief after
+       Monday's invitations. Doctrine stands: no IP stored. An
+       in-memory counter keyed on Fly's `Fly-Client-IP` header
+       (kettle-api is on fly.dev, not behind Cloudflare; kettle-api has
+       no per-IP code today, 013's limit is Supabase's OTP limit); a
+       few signups per IP per hour; over the limit the route answers
+       WAITLIST_SUCCESS and writes nothing, so nothing leaks. Plus a
+       cap on the table itself (refuse quietly past about 50,000 rows)
+       so rotating addresses cannot fill the free-plan database. A
+       test states that the counter is process-local and resets on
+       restart, accepted for a one-machine app.
+     * Monday Sep 7 order: 11:00 ET TestMom's SMS ask → founder replies
+       👍 → PM reads the ledger (replied_utc set, no follow_on) → PM
+       restores TestMom by data change in Supabase: `whatsapp_e164 =
+       phone_e164`, then `phone_e164 = null`, `sms_consent_utc = null`,
+       so she routes by WhatsApp exactly as before the dark stage →
+       first beta invitations. If the 👍 does not arrive inside the two
+       hours, restore anyway and note it: the reply path is proven by
+       STOP/START (294). Result filed as 308. Appa's 👍 briefing is the
+       founder's, any time.
+     * Next number: 308.
