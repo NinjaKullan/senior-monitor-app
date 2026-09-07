@@ -51,7 +51,9 @@ HONEYPOT_FIELD = "company"
 
 
 def _client_ip(request: Request) -> str | None:
-    """Caller IP as seen behind the Fly proxy. Hashed immediately, never stored raw."""
+    """Caller IP as seen behind the Fly proxy. Hashed immediately for the ping
+    path, held only in process memory for the waitlist's flood counter (307);
+    never stored raw."""
     forwarded = request.headers.get("fly-client-ip") or request.headers.get("x-forwarded-for")
     if forwarded:
         return forwarded.split(",")[0].strip()
@@ -169,6 +171,9 @@ def create_app(
         lifespan=lifespan,
     )
     app.state.settings = cfg
+    # DECISIONS 307: the waitlist's per-caller counter, in process memory,
+    # on the injected clock. Built here like the loop states; reset on restart.
+    app.state.waitlist_flood = waitlist.FloodCounter()
 
     # CORS exists for exactly one route — the landing page's waitlist POST — and
     # is locked to the origins that page is served from. The ingest route needs
@@ -345,7 +350,14 @@ def create_app(
         fields that were typed: no IP, no user agent, no referrer. The page
         carries no analytics (law #4) and this is not going to become the
         analytics by the back door.
+
+        Two flood guards sit in front (DECISIONS 307), and both answer with
+        the success sentence: a few POSTs per caller per rolling hour, checked
+        before the body is read, and a ceiling on the table. Nothing is
+        recorded on either path — no row, no alert, no log line.
         """
+        if not request.app.state.waitlist_flood.allow(_client_ip(request) or "", clock()):
+            return PlainTextResponse(waitlist.WAITLIST_SUCCESS)
         content_type = request.headers.get("content-type", "")
         if content_type.startswith("application/json"):
             try:
