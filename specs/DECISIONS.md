@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 309.** This line is the one to update; the `Next number:` lines inside
+**Next number: 310.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6345,3 +6345,26 @@ browser — all three adopted as the standard for future surfaces.**
        says so by name.
      * Counts: root pytest 812 → 821 (product 765 → 774); ruff clean.
      * Next number: 309.
+
+309. **(2026-09-06, ~9:35pm ET) 308 REVIEWED and ACCEPTED (4fb5a80):
+     the waitlist flood guards.** A per-caller rolling hour of five
+     POSTs, checked before the body is read, keyed on Fly's client IP
+     and held only in process memory; a fifty-thousand-row ceiling on
+     the table, counted inside the upsert's transaction; both refusals
+     are the success sentence with nothing written, recorded or logged.
+     * Accepted as read: an over-limit hit does not extend the window
+       (a stuck real person is not punished for retrying); the socket
+       address is the key with no proxy header; a malformed POST spends
+       budget. The guards trust the same header the ping path already
+       trusts; if it could ever be forged, the table cap still holds.
+     * One nit, not a blocker, for the next product commit that touches
+       waitlist.py: `count()`'s docstring still says "not for any
+       endpoint" and it now serves the cap.
+     * Numbering: 307 said Monday's TestMom result would be 308; CC took
+       308 for this build, so the result files at the header's number
+       on the day (310 as of this entry).
+     * No migration, no secrets. Deploy tonight, well clear of Monday's
+       11:00 ask: `cd product && fly deploy`; then `curl -s -o /dev/null
+       -w "%{http_code}" https://kettle-api.fly.dev/healthz` reads 200.
+       Rollback is a redeploy of 28e003c; nothing else changed.
+     * Next number: 310.
