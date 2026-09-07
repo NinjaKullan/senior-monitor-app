@@ -6269,6 +6269,14 @@ browser — all three adopted as the standard for future surfaces.**
      www CNAME switched to proxied; (3) SSL mode Full → Full (strict).
      Site verified loading after. kettle-api and kettle-app are on
      fly.dev hostnames and untouched.
+     * Follow-up, same evening: Bot Fight Mode turned on for the site
+       (Cloudflare, free). Founder's "can someone bankrupt me with
+       bots" answered for the record: Twilio is prepaid at $20 with no
+       auto-recharge (a hard ceiling; abuse drains it and sends stop,
+       it does not bill); Supabase is on the free plan (stops, never
+       charges); Fly has no cap but one fixed machine per app and two
+       cents a gigabyte; Resend only ever emails members. The only
+       abuse with product effect is filling the waitlist table, hence:
      * Backlog (S): the waitlist form posts straight to
        kettle-api.fly.dev/waitlist, the same machine as the family
        engine, so a flood would slow the engine; a per-IP limit inside
