@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 308.** This line is the one to update; the `Next number:` lines inside
+**Next number: 309.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6314,4 +6314,34 @@ browser — all three adopted as the standard for future surfaces.**
        hours, restore anyway and note it: the reply path is proven by
        STOP/START (294). Result filed as 308. Appa's 👍 briefing is the
        founder's, any time.
-     * Next number: 308.
+
+308. **(2026-09-07) Waitlist flood limit BUILT (307 shape), product only;
+     no migration, no secrets. Deploy after PM review.**
+     * `FloodCounter` in waitlist.py, built in create_app on the injected
+       clock and held on app.state like the loop states. Keyed on
+       `_client_ip` (Fly-Client-IP, then X-Forwarded-For, then the socket);
+       five POSTs per key per rolling hour, checked before the body is
+       read; over the limit the route answers WAITLIST_SUCCESS and does
+       nothing else. Mechanism: a deque of hit instants per key, pruned on
+       each hit, and an insertion-ordered dict where a hit moves its key to
+       the end, so stale keys are pruned from the front and the oldest are
+       dropped past ten thousand. The PM's numbers stand: no other window
+       mechanism was wanted.
+     * WAITLIST_CAP = 50,000 in `record`: the count and the upsert share one
+       transaction; at or past the cap nothing is written, a re-signup's
+       correction included, and the route still says the sentence.
+     * Nothing recorded on either path: no row, no ops_alerts, no log line;
+       the IP lives in process memory only and never reaches the database
+       or a log. `_client_ip`'s docstring now says so.
+     * Judgement calls: (a) an over-limit hit does not extend the window
+       (only stored hits count), so a flooding caller is admitted again
+       exactly one hour after its fifth stored POST; (b) the socket address
+       stands in as the key when no header arrives, so callers reaching
+       the machine without Fly's proxy share one budget rather than none;
+       (c) a malformed POST counts against the budget, since the check runs
+       before parsing as briefed.
+     * The counter is process-local and resets on restart, accepted for a
+       one-machine app (307); `test_the_counter_is_process_local_and_resets_on_restart`
+       says so by name.
+     * Counts: root pytest 812 → 821 (product 765 → 774); ruff clean.
+     * Next number: 309.
