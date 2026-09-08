@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 310.** This line is the one to update; the `Next number:` lines inside
+**Next number: 312.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6368,3 +6368,76 @@ browser — all three adopted as the standard for future surfaces.**
        -w "%{http_code}" https://kettle-api.fly.dev/healthz` reads 200.
        Rollback is a redeploy of 28e003c; nothing else changed.
      * Next number: 310.
+
+310. **(2026-09-07, ~11:45am ET; filed 2026-09-08 morning, the founder was
+     travelling) Amendment A dark stage COMPLETE: the SMS 👍 inside the
+     window, and TestMom restored to WhatsApp.**
+     * Ledger, Sep 7: `ask` by `twilio_sms` 11:00:10 ET, `replied_utc`
+       11:00:33 ET (the founder's typed 👍), no `follow_on` row all day
+       (re-read Sep 8). All four A.10 steps now seen live over SMS:
+       welcome (294), STOP/START (294), the ask (302), the reply here.
+     * Restore by PM in Supabase (data change, 307): `whatsapp_e164 =
+       phone_e164`, then `phone_e164 = null`, `sms_consent_utc = null`;
+       `sms_opted_out_utc` was already null. TestMom routes by WhatsApp
+       as before the dark stage. Amma and Appa unchanged.
+     * A real +1 parent may now be enrolled by SMS (A.10's gate).
+     * 309's deploy (`cd product && fly deploy`, the flood guards) is
+       not yet recorded as live; founder to confirm the version.
+     * Next number: 311.
+
+311. **(2026-09-07 to 09-08, founder on the phone) RULED by Hema: two
+     designs, to be written as specs. (A) Writing through the assistant:
+     spec 019 Amendment A. (B) The family's own devices: spec 020.**
+     * **(A) Notes and replies through the assistant; pause stays in the
+       app.** Two tools, `add_note(parent?, text, date?)` and
+       `reply(author, text, date?)`; a reply with no date answers that
+       person's latest note, a date picks an older one; the assistant
+       reads the target back and asks before it runs (readOnlyHint
+       false). Names and dates, never ids (019 §2). Every written line
+       carries "added by {name} via {client}". A second scope,
+       `kettle:write`: existing grants stay read-only until the person
+       reconnects and the consent screen says what can now be written.
+       Twenty writes an hour per connection, answered in a sentence.
+       Every expected failure is a sentence ending in the app
+       ("Kettle couldn't save that. You can add it in the Kettle app:
+       {app origin}."), and the server's `instructions` say that
+       anything else, pausing included, is done in the app. Notes and
+       replies are journal content and never an input to what a day
+       means; any future tool that changes Kettle's behaviour is a
+       different class with its own ruling. Two doors stay separate:
+       the assistant is a person speaking through their own login; a
+       device is a thing reporting a timestamp with no person present.
+     * **(B) The family's own devices (289): a recorded fact, never a
+       judgement.** A device is (parent, device type, label from a
+       list); the family creates it on the parent's setup and pastes
+       the address into Home Assistant, IFTTT, SmartThings or a voice
+       routine; Kettle records only which address fired and when. No
+       person or household grade is asked or stored (the founder's
+       call after the pet, housekeeper and visiting-sister cases: the
+       family interprets, Kettle does not). Nothing feeds the engine.
+       Surfaces, opt-in by installing: the Today card carries ONE line,
+       the most recent device today ("Plug, 8:05 this morning"), in
+       the heard-from register (a fact, not the verdict, 299); the
+       parent's day view lists each device's last time today, every
+       member, at most three devices, no history; the setup rows carry
+       per-device last-heard as plumbing, admins only, with Remove
+       (admins; the address dies in the same instant; later pings are
+       dropped silently, never a 404). Labels name the thing, never the
+       room: plug, door, motion, voice routine. Nothing in the emails.
+       The assistant's `today` says the card's one line. The device
+       line is suppressed while the card is in its night state (303);
+       it starts at 06:00 on the day clock (299). One setup line for
+       the parent, LAW-6 style: "Tell {name} what you've set up in the
+       house." Named cost, accepted: the family does its own
+       corroborating on the day view; a voice routine, the one
+       person-grade signal, counts for nothing yet. Both revisit with
+       real pings behind them. The three things fixed for good: the
+       address format (the phone's ping path, one token per device),
+       labels from a list, and what the parent is told.
+     * Founder's note on the PWA (Sep 8): three action styles on one
+       card, Pause Kettle reads as plain text, Edit/Delete/Reply blend
+       into the labels, the city control wraps. A button-hierarchy
+       pass, one primary, one secondary, one quiet, same on every
+       screen, after the invitations.
+     * Next: PM writes 019 Amendment A and spec 020; button pass brief.
+     * Next number: 312.
