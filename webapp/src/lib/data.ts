@@ -41,6 +41,8 @@ import type {
   AssistantGrant,
   Family,
   FamilyContact,
+  HouseholdDevice,
+  HouseholdPing,
   JournalEntry,
   Member,
   Parent,
@@ -170,6 +172,76 @@ async function readRecentPings(parentIds: string[], now: Date): Promise<Ping[]> 
     }),
   );
   return perParent.flat();
+}
+
+/* --- spec 020: the family's own devices ----------------------------------- */
+
+/** The circle's live devices, through the view: per parent of the chosen
+ *  family, removed ones left out (their pings are never shown). */
+async function readHouseholdDevices(parentIds: string[]): Promise<HouseholdDevice[]> {
+  if (parentIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("household_devices_view")
+    .select(READ_SURFACE.household_devices_view)
+    .in("parent_id", parentIds)
+    .is("removed_utc", null);
+  if (error) throw error;
+  return (data ?? []) as HouseholdDevice[];
+}
+
+/** Per device, newest first, the phone pings' window and a small limit: a
+ *  device fires at most once a minute, and the surfaces read today's rows
+ *  and the newest one. */
+async function readHouseholdPings(deviceIds: string[], now: Date): Promise<HouseholdPing[]> {
+  const since = new Date(now.getTime() - PINGS_WINDOW_DAYS * 86_400_000).toISOString();
+  const perDevice = await Promise.all(
+    deviceIds.map(async (deviceId) => {
+      const { data, error } = await supabase
+        .from("household_pings")
+        .select(READ_SURFACE.household_pings)
+        .eq("device_id", deviceId)
+        .gte("ts_utc", since)
+        .order("ts_utc", { ascending: false })
+        .limit(PINGS_LIMIT_PER_PARENT);
+      if (error) throw error;
+      return (data ?? []) as HouseholdPing[];
+    }),
+  );
+  return perDevice.flat();
+}
+
+/** Admin only, checked server-side (0031): the new device's id. */
+export async function addHouseholdDevice(
+  parentId: string,
+  kind: string,
+  platform: string | null,
+): Promise<string> {
+  const { data, error } = await supabase.rpc("app_add_household_device", {
+    p_parent_id: parentId,
+    p_kind: kind,
+    p_platform: platform,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function removeHouseholdDevice(deviceId: string): Promise<void> {
+  const { error } = await supabase.rpc("app_remove_household_device", { p_device_id: deviceId });
+  if (error) throw error;
+}
+
+/** The one place the token reaches the browser: the admin's copy. The
+ *  address is built here and handed to the clipboard, never rendered. */
+export async function householdDeviceAddress(deviceId: string): Promise<string> {
+  const { data, error } = await supabase.rpc("app_household_device_address", {
+    p_device_id: deviceId,
+  });
+  if (error) throw error;
+  return householdAddress(data as string);
+}
+
+export function householdAddress(token: string): string {
+  return `${API_BASE}/d/${token}`;
 }
 
 /**
@@ -365,6 +437,11 @@ export interface FamilySnapshot {
   /** Spec 019: the viewer's live assistant connections — theirs, not the
    *  circle's, so read unscoped and never more than a handful. */
   assistants: AssistantGrant[];
+  /** Spec 020: the family's live devices and their recent pings (the same
+   *  14-day bound as the phone's pings; the setup row's heard line needs
+   *  less, and today's line and block read only from 06:00 local). */
+  householdDevices: HouseholdDevice[];
+  householdPings: HouseholdPing[];
 }
 
 /* --- the circle (spec 015 §6) ------------------------------------------- */
@@ -570,6 +647,8 @@ export async function loadSnapshot(
       families,
       family: null,
       assistants: await readAssistants(),
+      householdDevices: [],
+      householdPings: [],
       parents: [],
       members: [],
       signals: [],
@@ -605,10 +684,17 @@ export async function loadSnapshot(
     readContacts(family.id),
   ]);
   const assistants = await readAssistants();
+  const householdDevices = await readHouseholdDevices(parentIds);
+  const householdPings = await readHouseholdPings(
+    householdDevices.map((d) => d.id),
+    now,
+  );
   return {
     families,
     family,
     assistants,
+    householdDevices,
+    householdPings,
     parents,
     members,
     signals,

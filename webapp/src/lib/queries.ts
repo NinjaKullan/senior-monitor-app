@@ -66,6 +66,12 @@ export const READ_SURFACE = {
   // privilege. Per person, not per circle: this is the one read that is not
   // scoped by family.
   assistant_grants: "id, client_name, created_utc, last_used_utc, revoked_utc",
+  // Spec 020: the family's own devices, through the view (no token column
+  // exists on it), and their pings — which address, when, nothing else.
+  // Neither is read by any verdict: the card's one line, the day view's
+  // block and the setup rows, and that is all.
+  household_devices_view: "id, parent_id, kind, platform, created_utc, removed_utc",
+  household_pings: "device_id, ts_utc",
 } as const;
 
 export type ReadTable = keyof typeof READ_SURFACE;

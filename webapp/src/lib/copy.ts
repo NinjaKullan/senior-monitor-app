@@ -315,6 +315,68 @@ export const PAUSED_CARD = "Kettle is paused for {name}.";
 export const NIGHT_CARD = "Night in {city}.";
 export const NIGHT_CARD_NO_CITY = "Night for {name}.";
 export const ROLLUP_NIGHT_ALL = "Night for {names}.";
+
+/* Spec 020 §7, VERBATIM (DECISIONS 312): the family's own devices. A
+   recorded fact, never a judgement. Labels name the thing, never the room;
+   the platform names are pinned by the spec (the setup rows are the one
+   place mechanism vocabulary is allowed, LAW-7). */
+export const KIND_LABEL = {
+  plug: "Plug",
+  door: "Door",
+  motion: "Motion",
+  voice: "Voice routine",
+  fridge: "Fridge",
+  light: "Light",
+} as const;
+export const PLATFORM_LABEL = {
+  home_assistant: "Home Assistant",
+  ifttt: "IFTTT",
+  smartthings: "SmartThings",
+  alexa: "Alexa routine",
+  google_home: "Google Home routine",
+  other: "Something else",
+} as const;
+export const DEVICES_INTRO =
+  "Something in {name}'s home can tell Kettle when it switches on or opens. Kettle only notes the time. It never changes what Kettle says about {name}'s day.";
+export const DEVICE_TELL = "Tell {name} what you've set up in the house.";
+export const DEVICE_ADD = "Add a device";
+export const DEVICE_ADD_KIND = "What is it?";
+export const DEVICE_ADD_PLATFORM = "Where will you set it up?";
+export const DEVICE_ADD_DONE = "Add";
+export const DEVICE_ADD_CANCEL = "Not now";
+export const DEVICE_LIMIT = "Up to three devices for {name}.";
+export const DEVICE_ADDRESS = "Copy address";
+export const DEVICE_COPIED = "Copied";
+export const DEVICE_NOTHING_YET = "Nothing heard yet";
+export const DEVICE_REMOVE = "Remove";
+export const DEVICE_REMOVE_CONFIRM = "Remove the {kind}? Its address stops working right away.";
+export const DEVICE_REMOVE_YES = "Remove";
+export const DEVICE_REMOVE_NO = "Keep it";
+export const DEVICE_LINE_MORNING = "{kind}, {time} this morning";
+export const DEVICE_LINE_AFTERNOON = "{kind}, {time} this afternoon";
+export const DEVICE_LINE_EVENING = "{kind}, {time} this evening";
+export const DEVICES_TODAY = "In the house today";
+export const DEVICES_NONE_TODAY = "Nothing from the house yet today.";
+export const DEVICE_ROW = "{kind} · {time}";
+export const RECIPE_HOME_ASSISTANT =
+  "In Home Assistant, add a rest_command that does a GET to this address, then call it from the automation for this device.";
+export const RECIPE_IFTTT =
+  "In IFTTT, make an applet: your device as the trigger, Webhooks 'Make a web request' as the action, this address, method GET.";
+export const RECIPE_SMARTTHINGS =
+  "In SmartThings, use a routine with a webhook action (through IFTTT or a SmartApp that can call a URL) pointing at this address.";
+export const RECIPE_ALEXA =
+  "Alexa routines cannot call an address on their own. Put the routine's action through IFTTT or Home Assistant, and point that at this address.";
+export const RECIPE_GOOGLE_HOME =
+  "Google Home routines cannot call an address on their own. Put the routine's action through IFTTT or Home Assistant, and point that at this address.";
+export const RECIPE_OTHER = "Anything that can open this address, once, when the thing happens, will do.";
+export const RECIPE = {
+  home_assistant: RECIPE_HOME_ASSISTANT,
+  ifttt: RECIPE_IFTTT,
+  smartthings: RECIPE_SMARTTHINGS,
+  alexa: RECIPE_ALEXA,
+  google_home: RECIPE_GOOGLE_HOME,
+  other: RECIPE_OTHER,
+} as const;
 export const PAUSED_UNTIL = "Back on {date}.";
 export const PAUSED_OPEN_ENDED = "Until someone turns it back on.";
 export const RESUME_BUTTON = "Turn Kettle back on";

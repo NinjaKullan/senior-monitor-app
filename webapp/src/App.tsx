@@ -18,6 +18,9 @@ import {
   removeSeat,
   resumeParent,
   smsConsent,
+  addHouseholdDevice,
+  householdDeviceAddress,
+  removeHouseholdDevice,
   setOwnMail,
   setSeatRole,
   placeUpdate,
@@ -51,6 +54,7 @@ import {
 } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { ConnectScreen, type ConnectState } from "@/screens/Connect";
+import { deviceLine, deviceSetupRows, devicesToday } from "@/lib/household";
 import { FamilyScreen } from "@/screens/Family";
 import { MemoryScreen } from "@/screens/Memory";
 import { WhoToCallScreen } from "@/screens/WhoToCall";
@@ -317,6 +321,21 @@ export default function App() {
     : undefined;
   // Amendment A.6 (DECISIONS 290): the same admin gate as the pause; the
   // function refuses a member server-side regardless.
+  // Spec 020: the devices' three writes, admins only, the same gate.
+  const household = isAdmin(snapshot.members, viewerId)
+    ? {
+        onAdd: async (parentId: string, kind: string, platform: string | null) => {
+          const id = await addHouseholdDevice(parentId, kind, platform);
+          await refresh();
+          return id;
+        },
+        onRemove: async (deviceId: string) => {
+          await removeHouseholdDevice(deviceId);
+          await refresh();
+        },
+        onAddress: householdDeviceAddress,
+      }
+    : undefined;
   const onSmsConsent = isAdmin(snapshot.members, viewerId)
     ? async (parentId: string) => {
         await smsConsent(parentId);
@@ -363,6 +382,14 @@ export default function App() {
     ),
   );
   const rollup = computeRollup(states, familyTz, now);
+  // Spec 020: the card's one device line per parent, a fact beside the
+  // verdict, never inside it.
+  const deviceLines = Object.fromEntries(
+    states.map((s) => [
+      s.parentId,
+      deviceLine(s, snapshot.householdDevices, snapshot.householdPings, now),
+    ]),
+  );
   // The open parent survives a refresh only while they are still in the
   // snapshot; a parent removed from the family closes the detail rather than
   // leaving a stale one on screen.
@@ -491,9 +518,17 @@ export default function App() {
             onEdit={editNote}
             onDelete={deleteNote}
             onSteps={() => navigate("family")}
+            devicesToday={devicesToday(openState, snapshot.householdDevices, snapshot.householdPings, now)}
           />
         ) : (
-          <Today states={states} rollup={rollup} dateLine={dateLine} onOpen={setOpenParentId} pause={pause} />
+          <Today
+            states={states}
+            rollup={rollup}
+            dateLine={dateLine}
+            onOpen={setOpenParentId}
+            pause={pause}
+            deviceLines={deviceLines}
+          />
         ))}
       {tab === "memory" && (
         <MemoryScreen
@@ -542,6 +577,10 @@ export default function App() {
           onPickCity={pickCity}
           onClearCity={clearCity}
           onSmsConsent={onSmsConsent}
+          deviceRows={snapshot.parents.flatMap((parent) =>
+            deviceSetupRows(parent.id, snapshot.householdDevices, snapshot.householdPings, now),
+          )}
+          household={household}
           assistants={snapshot.assistants}
           onRevokeAssistant={disconnectAssistant}
           viewerTz={viewerTz}

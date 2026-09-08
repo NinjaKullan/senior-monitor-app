@@ -45,6 +45,7 @@ export function Today({
   dateLine,
   onOpen,
   pause,
+  deviceLines = {},
 }: {
   states: ParentToday[];
   rollup: { line: string; sub: string };
@@ -52,6 +53,8 @@ export function Today({
   dateLine: string;
   onOpen: (parentId: string) => void;
   pause?: PauseActions;
+  /** Spec 020 §5: the one device line per parent, or null for no line. */
+  deviceLines?: Record<string, string | null>;
 }) {
   const [choosing, setChoosing] = useState<string | null>(null);
   // A paused parent is left out of "everyone is normal" (spec 017), and a
@@ -196,6 +199,14 @@ export function Today({
                   data-testid="card-dual"
                 >
                   {state.dualLine}
+                </div>
+              )}
+              {deviceLines[state.parentId] && (
+                <div
+                  style={{ fontSize: "0.78125rem", color: "var(--mute)", marginTop: "0.125rem" }}
+                  data-testid="card-device"
+                >
+                  {deviceLines[state.parentId]}
                 </div>
               )}
               <div

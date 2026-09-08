@@ -59,7 +59,25 @@ import {
   SMS_ROW_ON,
   SMS_ROW_STOPPED,
   SMS_SCRIPT_LABEL,
+  DEVICES_INTRO,
+  DEVICE_ADD,
+  DEVICE_ADD_CANCEL,
+  DEVICE_ADD_DONE,
+  DEVICE_ADD_KIND,
+  DEVICE_ADD_PLATFORM,
+  DEVICE_ADDRESS,
+  DEVICE_COPIED,
+  DEVICE_LIMIT,
+  DEVICE_REMOVE,
+  DEVICE_REMOVE_CONFIRM,
+  DEVICE_REMOVE_NO,
+  DEVICE_REMOVE_YES,
+  DEVICE_TELL,
+  KIND_LABEL,
+  PLATFORM_LABEL,
+  RECIPE,
 } from "@/lib/copy";
+import { DEVICE_LIMIT_PER_PARENT, kindLabel, type DeviceSetupRow } from "@/lib/household";
 import type { ParentToday } from "@/lib/parentState";
 import type { SetupEntry } from "@/lib/setupLinks";
 import type { AssistantGrant, Member } from "@/lib/types";
@@ -153,6 +171,8 @@ export function FamilyScreen({
   onPickCity,
   onClearCity,
   onSmsConsent,
+  deviceRows = [],
+  household,
   assistants = [],
   onRevokeAssistant,
   viewerTz = "UTC",
@@ -173,6 +193,11 @@ export function FamilyScreen({
   /** Amendment A.6: present for admins only (App decides, as for the
    *  pause); a member's row carries the state and never the button. */
   onSmsConsent?: (parentId: string) => Promise<void>;
+  /** Spec 020 §5: every live device's setup row, by parent. */
+  deviceRows?: DeviceSetupRow[];
+  /** Spec 020: admins only (App decides, the pause and consent gate); a
+   *  member's rows carry the state and neither the address nor a control. */
+  household?: HouseholdActions;
   /** Spec 019 §6: the viewer's own assistant connections and the disconnect. */
   assistants?: AssistantGrant[];
   onRevokeAssistant?: (grantId: string) => Promise<void>;
@@ -256,6 +281,12 @@ export function FamilyScreen({
             {entry.sms === "offer" && onSmsConsent && entry.status !== "paused" && (
               <SmsConsent entry={entry} onConsent={onSmsConsent} />
             )}
+            <HouseholdDevices
+              parentId={entry.parentId}
+              parentName={entry.parentName}
+              rows={deviceRows.filter((row) => row.parentId === entry.parentId)}
+              household={household}
+            />
             {entry.status === "ready" && entry.shareHref && (
               <div
                 style={{
@@ -315,6 +346,180 @@ export function FamilyScreen({
   );
 }
 
+
+export interface HouseholdActions {
+  /** Returns the new device's id, so its recipe can sit under its row. */
+  onAdd: (parentId: string, kind: string, platform: string | null) => Promise<string>;
+  onRemove: (deviceId: string) => Promise<void>;
+  /** The full address, for the clipboard only; never rendered. */
+  onAddress: (deviceId: string) => Promise<string>;
+}
+
+/**
+ * Spec 020 §5: the parent's devices under the phone row. The intro and the
+ * parent-told line always; each device as "{kind} · {heard}"; for admins the
+ * address copy, Remove with a confirm, and Add (a two-pick sheet) until the
+ * limit. The recipe appears under a row the moment it is added, and again
+ * whenever its address is copied, so the plumbing words sit next to the
+ * thing they are for.
+ */
+function HouseholdDevices({
+  parentId,
+  parentName,
+  rows,
+  household,
+}: {
+  parentId: string;
+  parentName: string;
+  rows: DeviceSetupRow[];
+  household?: HouseholdActions;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [kind, setKind] = useState<string>("plug");
+  const [platform, setPlatform] = useState<string>("ifttt");
+  const [recipeFor, setRecipeFor] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const small = { fontSize: "0.84375rem", color: "var(--ink2)" } as const;
+
+  const add = () => {
+    if (!household) return;
+    setBusy(true);
+    setFailed(false);
+    household
+      .onAdd(parentId, kind, platform)
+      .then((id) => {
+        setRecipeFor(id);
+        setAdding(false);
+      })
+      .catch(() => setFailed(true))
+      .finally(() => setBusy(false));
+  };
+  const copy = (row: DeviceSetupRow) => {
+    if (!household) return;
+    household
+      .onAddress(row.id)
+      .then(async (address) => {
+        await navigator.clipboard.writeText(address);
+        setCopied(row.id);
+        setRecipeFor(row.id);
+        window.setTimeout(() => setCopied((held) => (held === row.id ? null : held)), 2000);
+      })
+      .catch(() => setFailed(true));
+  };
+  const remove = (row: DeviceSetupRow) => {
+    if (!household) return;
+    setBusy(true);
+    household
+      .onRemove(row.id)
+      .then(() => setRemoving(null))
+      .catch(() => setFailed(true))
+      .finally(() => setBusy(false));
+  };
+
+  return (
+    <div style={{ marginTop: "0.5rem" }} data-testid="household">
+      <p style={{ margin: 0, ...small }}>{DEVICES_INTRO.split("{name}").join(parentName)}</p>
+      <p style={{ margin: "0.25rem 0 0", ...small }} data-testid="device-tell">
+        {DEVICE_TELL.replace("{name}", parentName)}
+      </p>
+      {rows.map((row) => (
+        <div key={row.id} style={{ marginTop: "0.5rem" }} data-testid="device-setup-row">
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "0.9375rem" }} data-testid="device-setup-text">
+              {row.text}
+            </span>
+            {household && removing !== row.id && (
+              <span style={{ display: "flex", gap: "0.75rem" }}>
+                <button type="button" className="kt-link" style={LINK_BTN} data-testid="device-address" onClick={() => copy(row)}>
+                  {copied === row.id ? DEVICE_COPIED : DEVICE_ADDRESS}
+                </button>
+                <button type="button" className="kt-link" style={LINK_BTN} data-testid="device-remove" onClick={() => setRemoving(row.id)}>
+                  {DEVICE_REMOVE}
+                </button>
+              </span>
+            )}
+          </div>
+          {household && removing === row.id && (
+            <div style={{ marginTop: "0.25rem", ...small }} data-testid="device-remove-confirm">
+              {DEVICE_REMOVE_CONFIRM.replace("{kind}", kindLabel(row.kind).toLowerCase())}
+              <span style={{ display: "inline-flex", gap: "0.75rem", marginLeft: "0.75rem" }}>
+                <button type="button" style={SMALL_BTN} disabled={busy} data-testid="device-remove-yes" onClick={() => remove(row)}>
+                  {DEVICE_REMOVE_YES}
+                </button>
+                <button type="button" style={SMALL_BTN} data-testid="device-remove-no" onClick={() => setRemoving(null)}>
+                  {DEVICE_REMOVE_NO}
+                </button>
+              </span>
+            </div>
+          )}
+          {household && recipeFor === row.id && (
+            <p style={{ margin: "0.25rem 0 0", fontSize: "0.78125rem", color: "var(--mute)", lineHeight: 1.5 }} data-testid="device-recipe">
+              {RECIPE[(row.platform ?? "other") as keyof typeof RECIPE] ?? RECIPE.other}
+            </p>
+          )}
+        </div>
+      ))}
+      {household && rows.length >= DEVICE_LIMIT_PER_PARENT && (
+        <p style={{ margin: "0.5rem 0 0", ...small }} data-testid="device-limit">
+          {DEVICE_LIMIT.replace("{name}", parentName)}
+        </p>
+      )}
+      {household && rows.length < DEVICE_LIMIT_PER_PARENT && !adding && (
+        <button type="button" style={{ ...SMALL_BTN, marginTop: "0.5rem" }} data-testid="device-add" onClick={() => setAdding(true)}>
+          {DEVICE_ADD}
+        </button>
+      )}
+      {household && adding && (
+        <div style={{ marginTop: "0.5rem", display: "grid", gap: "0.5rem" }} data-testid="device-add-sheet">
+          <label style={small}>
+            {DEVICE_ADD_KIND}
+            <select style={FIELD} value={kind} onChange={(e) => setKind(e.target.value)} data-testid="device-kind">
+              {Object.entries(KIND_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label style={small}>
+            {DEVICE_ADD_PLATFORM}
+            <select style={FIELD} value={platform} onChange={(e) => setPlatform(e.target.value)} data-testid="device-platform">
+              {Object.entries(PLATFORM_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div style={{ display: "flex", gap: "0.75rem" }}>
+            <button type="button" style={SMALL_BTN} disabled={busy} data-testid="device-add-done" onClick={add}>
+              {DEVICE_ADD_DONE}
+            </button>
+            <button type="button" style={SMALL_BTN} data-testid="device-add-cancel" onClick={() => setAdding(false)}>
+              {DEVICE_ADD_CANCEL}
+            </button>
+          </div>
+        </div>
+      )}
+      {failed && (
+        <p style={{ margin: "0.25rem 0 0", fontSize: "0.78125rem", color: "var(--mute)" }}>{COMPOSER_FAILED}</p>
+      )}
+    </div>
+  );
+}
+
+const LINK_BTN: React.CSSProperties = {
+  background: "none",
+  border: "none",
+  padding: 0,
+  fontSize: "0.84375rem",
+  fontWeight: 600,
+  cursor: "pointer",
+  minHeight: "2.75rem",
+};
 
 /**
  * Amendment A.6 (DECISIONS 290): the consent script as words to say, then

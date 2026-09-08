@@ -114,6 +114,24 @@ export interface Ping {
   ts_utc: string;
 }
 
+/** Spec 020: one of the family's own devices, read through the view — the
+ *  token is not on it and never reaches this app except as the address the
+ *  admin copies, returned by app_household_device_address. */
+export interface HouseholdDevice {
+  id: string;
+  parent_id: string;
+  kind: string;
+  platform: string | null;
+  created_utc: string;
+  removed_utc: string | null;
+}
+
+/** Spec 020: which address, when. Nothing else exists on the row. */
+export interface HouseholdPing {
+  device_id: string;
+  ts_utc: string;
+}
+
 /**
  * A parent's setup-page link (spec 005b). The slug is the page's credential;
  * this app may *forward* it — that is the whole point of the row — but must

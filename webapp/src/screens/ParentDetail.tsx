@@ -12,10 +12,13 @@ import { RecentDots } from "@/components/RecentDots";
 import {
   BACK_TO_TODAY,
   DAY_TITLE,
+  DEVICES_NONE_TODAY,
+  DEVICES_TODAY,
   FIX_STEPS_LABEL,
   RECENT_TITLE,
   renderFixBody,
 } from "@/lib/copy";
+import type { DeviceRow } from "@/lib/household";
 import type { ParentToday } from "@/lib/parentState";
 import type { JournalEntry } from "@/lib/types";
 
@@ -49,6 +52,7 @@ export function ParentDetail({
   onEdit,
   onDelete,
   onSteps,
+  devicesToday = null,
 }: {
   state: ParentToday;
   notes: JournalEntry[];
@@ -64,6 +68,9 @@ export function ParentDetail({
   /** The fix card's "See the simple steps →" destination (flagged call: the
    *  Family screen's setup card is the steps surface that exists). */
   onSteps: () => void;
+  /** Spec 020 §5: the house today — null when the parent has no device (no
+   *  block), an empty list when nothing has fired yet today. */
+  devicesToday?: DeviceRow[] | null;
 }) {
   const fix = renderFixBody(state.label);
   const fixSplit = fix.indexOf(". ") + 1;
@@ -170,6 +177,23 @@ export function ParentDetail({
         <h3 style={PANEL_H}>{DAY_TITLE}</h3>
         <DayArc fraction={state.arcFraction} cells={state.arcCells} />
       </section>
+
+      {devicesToday !== null && devicesToday !== undefined && (
+        <section style={PANEL} data-testid="devices-panel">
+          <h3 style={PANEL_H}>{DEVICES_TODAY}</h3>
+          {devicesToday.length === 0 ? (
+            <div style={{ fontSize: "0.9375rem", color: "var(--ink2)" }} data-testid="devices-none">
+              {DEVICES_NONE_TODAY}
+            </div>
+          ) : (
+            devicesToday.map((row) => (
+              <div key={row.id} style={{ fontSize: "0.9375rem", padding: "0.125rem 0" }} data-testid="device-row">
+                {row.text}
+              </div>
+            ))
+          )}
+        </section>
+      )}
 
       <section style={PANEL} data-testid="recent-panel">
         <h3 style={PANEL_H}>{RECENT_TITLE}</h3>
