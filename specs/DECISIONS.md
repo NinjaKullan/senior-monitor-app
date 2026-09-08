@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 312.** This line is the one to update; the `Next number:` lines inside
+**Next number: 313.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6441,3 +6441,26 @@ browser — all three adopted as the standard for future surfaces.**
        screen, after the invitations.
      * Next: PM writes 019 Amendment A and spec 020; button pass brief.
      * Next number: 312.
+
+312. **(2026-09-08, ~11:15am ET) Spec 020 (the family's own devices)
+     RATIFIED by Hema as written at `specs/020-household-devices.md`;
+     the flood guards (308/309) recorded LIVE.**
+     * 020 calls past 311, accepted by the founder: separate tables
+       (`household_devices`, `household_pings`), never the phone's
+       `pings`, because the app and the engine both read `pings` for
+       verdicts; `/d/<token>` answers `ok` to live, removed, unknown and
+       duplicate alike; six kinds (Plug, Door, Motion, Voice routine,
+       Fridge, Light); six platforms with a one-line recipe each, the
+       Alexa and Google ones saying honestly that those routines need
+       IFTTT or Home Assistant in between; pings swept after thirty
+       days; the card line in three forms by hour (morning, afternoon,
+       evening).
+     * Flood guards live: `cd product && fly deploy` run by the founder
+       Sep 8 ~10:40am ET (deployment-01M20PBPMF…, machine 7845743c25de98,
+       every layer cached, so the Sunday-night build was the same tree);
+       the connector answered `today` after it. Migration: none.
+     * Beta invitations did not go out Monday (founder travelling);
+       planned for the weekend of Sep 12/13.
+     * Next: CC brief for 020 (migration 0031 at build time, PM applies);
+       PM writes 019 Amendment A while it builds; button pass after.
+     * Next number: 313.
