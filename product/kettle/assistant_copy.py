@@ -57,6 +57,20 @@ PAUSED_CARD = "Kettle is paused for {name}."
 PAUSED_UNTIL = "Back on {date}."
 PAUSED_OPEN_ENDED = "Until someone turns it back on."
 ASSISTANT_FALLBACK = "An assistant"
+# Spec 020 §5/§6: the card's one device line, a fact after the heard line.
+DEVICE_LINE_MORNING = "{kind}, {time} this morning"
+DEVICE_LINE_AFTERNOON = "{kind}, {time} this afternoon"
+DEVICE_LINE_EVENING = "{kind}, {time} this evening"
+#: Spec 020 §7: kind value → label. Mirrors copy.ts KIND_LABEL; the contract
+#: test holds the two equal.
+KIND_LABEL = {
+    "plug": "Plug",
+    "door": "Door",
+    "motion": "Motion",
+    "voice": "Voice routine",
+    "fridge": "Fridge",
+    "light": "Light",
+}
 
 #: The copy.ts keys these mirror, for the contract test.
 SHARED_WITH_WEBAPP = (
@@ -77,6 +91,9 @@ SHARED_WITH_WEBAPP = (
     "PAUSED_UNTIL",
     "PAUSED_OPEN_ENDED",
     "ASSISTANT_FALLBACK",
+    "DEVICE_LINE_MORNING",
+    "DEVICE_LINE_AFTERNOON",
+    "DEVICE_LINE_EVENING",
 )
 
 #: Everything above that an assistant can read, for the copy-law scan.

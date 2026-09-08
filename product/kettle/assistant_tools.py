@@ -26,8 +26,13 @@ from mcp.types import ToolAnnotations
 
 from kettle import assistant_copy as copy
 from kettle import db
+from kettle.outbound import MORNING_WINDOW_START
 from kettle.outbound_templates import owner_first_name, render, template
 from kettle.timeutil import effective_tz, local_day, now_utc, to_local
+
+#: Spec 020 follows the day clock (299): the engine's morning window start,
+#: the app's DAY_START_HOUR.
+DAY_START_HOUR = MORNING_WINDOW_START.hour
 
 #: The auth_user_id the current /mcp request stands for (set by main.py).
 CURRENT_USER: ContextVar[str | None] = ContextVar("kettle_assistant_user", default=None)
@@ -201,8 +206,44 @@ def city_now(parent: dict[str, Any], now: datetime) -> str | None:
 # --- the tools ---------------------------------------------------------------------
 
 
+def device_line(conn: psycopg.Connection, parent: dict[str, Any], now: datetime) -> str | None:
+    """Spec 020 §5/§6: the most recent household device heard today, from
+    06:00 in the parent's zone, as the card says it — a fact after the heard
+    line, never a verdict. None before six (the card's night), or when no
+    device has fired today. The one read of household_pings outside the
+    ingest route (§4)."""
+    tz_name = effective_tz(parent["tz"], parent["family_tz"])
+    local = to_local(now, tz_name)
+    if local.hour < DAY_START_HOUR:
+        return None
+    day_start = local.replace(hour=DAY_START_HOUR, minute=0, second=0, microsecond=0)
+    row = conn.execute(
+        """
+        select d.kind, h.ts_utc from household_pings h
+        join household_devices d on d.id = h.device_id
+        where d.parent_id = %s and d.removed_utc is null and h.ts_utc >= %s and h.ts_utc <= %s
+        order by h.ts_utc desc limit 1
+        """,
+        (parent["id"], day_start, now),
+    ).fetchone()
+    if row is None:
+        return None
+    hour = to_local(row["ts_utc"], tz_name).hour
+    form = (
+        copy.DEVICE_LINE_MORNING
+        if hour < 12
+        else copy.DEVICE_LINE_AFTERNOON
+        if hour < 18
+        else copy.DEVICE_LINE_EVENING
+    )
+    return form.replace("{kind}", copy.KIND_LABEL[row["kind"]]).replace(
+        "{time}", clock_words(row["ts_utc"], tz_name)
+    )
+
+
 def today_for(conn: psycopg.Connection, parent: dict[str, Any], now: datetime) -> str:
     lines = paused_lines(parent, now)
+    paused = lines is not None
     if lines is None:
         tz_name = effective_tz(parent["tz"], parent["family_tz"])
         rows = sent_rows(conn, parent["id"], local_day(now, tz_name))
@@ -212,6 +253,9 @@ def today_for(conn: psycopg.Connection, parent: dict[str, Any], now: datetime) -
             else copy.TODAY_NOTHING_YET.replace("{name}", parent["display_name"])
         ]
     lines.append(heard_line(conn, parent["id"], now))
+    device = None if paused else device_line(conn, parent, now)
+    if device:
+        lines.append(device)
     city = city_now(parent, now)
     if city:
         lines.append(city)
