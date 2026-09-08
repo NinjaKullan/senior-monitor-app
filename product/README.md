@@ -66,6 +66,7 @@ production.
 | Endpoint | Purpose |
 |---|---|
 | `GET\|POST /p/{device_token}/{signal}` | record a ping; returns `ok` |
+| `GET\|POST /d/{token}` | spec 020: one of the family's own devices fired; `ok` for live, removed, unknown and duplicate alike, 404 only for a wrong-shaped path; no IP read; nothing feeds the engine |
 | `GET /s/{slug}` | one parent's setup page (spec 005b), or a plain-language dead end |
 | `GET /s/{slug}/state` | the page's live verify check; `?since=` compares against alarm-grade pings only |
 | `POST /outbound/reply` | a parent's reply to the ask (spec 007); **404 unless `OUTBOUND_REPLY_TOKEN` is set**. Amendment A: `OptOutType` STOP/START/HELP change the parent's texting state and are never replies; a bare `From` matches `phone_e164`, a `whatsapp:` one matches `whatsapp_e164` |

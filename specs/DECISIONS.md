@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 313.** This line is the one to update; the `Next number:` lines inside
+**Next number: 314.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6463,4 +6463,49 @@ browser — all three adopted as the standard for future surfaces.**
        planned for the weekend of Sep 12/13.
      * Next: CC brief for 020 (migration 0031 at build time, PM applies);
        PM writes 019 Amendment A while it builds; button pass after.
-     * Next number: 313.
+
+313. **(2026-09-08) Spec 020 BUILT (the family's own devices); migration
+     0031, unapplied. Judgement calls for review.**
+     * **Where the sweep lives.** The brief said "the loop that already
+       sweeps assistant_requests", but that sweep is not a loop: it runs
+       inside /oauth/authorize. And §4's isolation test forbids any module
+       but the ingest route and assistant `today` from naming the table,
+       which rules heartbeat.py out. So the thirty-day sweep rides the
+       ingest route, the table's only writer, the way the request sweep
+       rides authorize: one indexed DELETE per device fire, bounded by the
+       per-token minute.
+     * **The device table carries no grant at all** (registered with the
+       service-only tables); the family reads `household_devices_view`,
+       owned by the migration role and scoped by a SECURITY DEFINER
+       `app_household_device_ids()` (the caller's circles' devices), which
+       the pings policy uses too. The contract test's RLS walk learns the
+       view: its definition must name that function and not the token.
+       The token is 64 hex characters from two `gen_random_uuid()` calls
+       (pg_strong_random, no pgcrypto), the devices.device_token shape.
+     * **The address function refuses a removed device** (23514 `removed`)
+       rather than returning an address that no longer works.
+     * **Unknown platform** is refused like an unknown kind
+       (`unknown_platform`); null is allowed as the spec says.
+     * **The assistant's line has no unreachable form to suppress on**:
+       `today` never computed unreachable (its heard line has no such
+       state), so the line is absent for night, paused and no-ping-today,
+       and the webapp's card holds the unreachable suppression. §8's
+       "absent when the card would show none" is met on the three the
+       assistant can know.
+     * **The webapp reads device pings for fourteen days, per device,
+       bounded** (the phone pings' window and limit), because the setup
+       row's heard line needs the newest ping at any hour while the card
+       and the day view read only today from six. One read, two uses.
+     * **The remove confirm lowercases the label** ("Remove the plug?",
+       "Remove the voice routine?"); the intro and told line render for
+       members too, with no control. The recipe shows under a row when it
+       is added and again whenever its address is copied.
+     * **The day view's block hides its rows while the card is in night,
+       paused or unreachable** (DEVICES_NONE_TODAY), the same suppression
+       as the line; at 06:00 the rows return.
+     * DEVICE_LIMIT_PER_PARENT and DAY_START_HOUR are reused, not
+       redeclared; the spec's platform names are pinned strings under
+       LAW-7 and the copy-law scan renders every recipe.
+     * Counts: root pytest 821 → 843 (product 774 → 796); webapp 293 → 311;
+       ruff clean.
+     * Next number: 314.
