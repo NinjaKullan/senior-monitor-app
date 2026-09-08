@@ -82,7 +82,7 @@ def test_empty_database_boots_and_passes_healthz(fresh_database: str, notifier):
             r["table_name"]
             for r in conn.execute(
                 "select table_name from information_schema.tables "
-                "where table_schema = 'public'"
+                "where table_schema = 'public' and table_type = 'BASE TABLE'"
             ).fetchall()
         }
         assert tables == set(TABLES)
@@ -174,8 +174,7 @@ def test_residual_privileges_exist_before_0004_and_are_gone_after(fresh_database
         existing = {
             r["table_name"]
             for r in conn.execute(
-                "select table_name from information_schema.tables "
-                "where table_schema = 'public'"
+                "select table_name from information_schema.tables where table_schema = 'public'"
             ).fetchall()
         }
         assert existing <= set(TABLES)
@@ -184,7 +183,13 @@ def test_residual_privileges_exist_before_0004_and_are_gone_after(fresh_database
         # anon had everything, on every table.
         for table in existing:
             assert held[("anon", table)] >= {
-                "SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER",
+                "SELECT",
+                "INSERT",
+                "UPDATE",
+                "DELETE",
+                "TRUNCATE",
+                "REFERENCES",
+                "TRIGGER",
             }
             assert held[("authenticated", table)] >= {"TRUNCATE", "REFERENCES", "TRIGGER"}
         assert "SELECT" in held[("authenticated", "ops_alerts")]
@@ -195,9 +200,7 @@ def test_residual_privileges_exist_before_0004_and_are_gone_after(fresh_database
 
         after = object_privileges(conn, ["anon", "authenticated"])
         assert after == {
-            ("authenticated", table): {"SELECT"}
-            for table in FAMILY_TABLES
-            if table in existing
+            ("authenticated", table): {"SELECT"} for table in FAMILY_TABLES if table in existing
         }
 
         # Future objects must not re-acquire any of it.

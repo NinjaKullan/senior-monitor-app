@@ -30,6 +30,8 @@ TABLES = (
     "assistant_clients",
     "assistant_requests",
     "assistant_grants",
+    "household_devices",
+    "household_pings",
 )
 
 
@@ -52,6 +54,9 @@ SERVICE_ONLY_TABLES = (
     # the authorization server's own bookkeeping; no family session reads them.
     "assistant_clients",
     "assistant_requests",
+    # Spec 020: the device table carries the address token, so no grant at
+    # all; the family reads household_devices_view (no token, own circles).
+    "household_devices",
 )
 # Spec 019: a person's own connections, readable on the rendered columns
 # only — a COLUMN grant, so the token hashes are not selectable at all. Column
