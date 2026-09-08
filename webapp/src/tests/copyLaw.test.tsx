@@ -16,8 +16,8 @@
  * family-authored content and are exempt the way the blog body is — the
  * fixtures here keep them benign so the scan exercises the chrome.
  */
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { ConnectScreen } from "@/screens/Connect";
 import { FamilyScreen } from "@/screens/Family";
 import { MemoryScreen } from "@/screens/Memory";
@@ -356,6 +356,88 @@ describe("rendered copy law", () => {
     expect(text).toContain("Night for Appa.");
     expect(text).toContain("Night for Amma and Appa.");
     assertCopyLaw(text, [...APP_ALLOW]);
+  });
+
+  it("holds for the house: the card line, the day-view rows, the setup rows and every recipe (spec 020)", async () => {
+    const { deviceSetupRows } = await import("@/lib/household");
+    const { KIND_LABEL, PLATFORM_LABEL, RECIPE } = await import("@/lib/copy");
+    const states = statesAt();
+    const { unmount } = render(
+      <Today
+        states={states}
+        rollup={computeRollup(states, IST, NOON_IST)}
+        dateLine="Wednesday · August 26"
+        onOpen={() => undefined}
+        deviceLines={{ p1: "Plug, 8:05 am this morning", p2: "Voice routine, 2:10 pm this afternoon" }}
+      />,
+    );
+    let text = renderedText();
+    expect(text).toContain("Plug, 8:05 am this morning");
+    assertCopyLaw(text, [...APP_ALLOW]);
+    unmount();
+
+    const { unmount: second } = render(
+      <ParentDetail
+        state={states[0]}
+        notes={[]}
+        {...detailProps}
+        devicesToday={[
+          { id: "d1", kind: "plug", text: "Plug · 8:05 am" },
+          { id: "d2", kind: "door", text: "Door · 7:40 am" },
+        ]}
+      />,
+    );
+    text = renderedText();
+    expect(text).toContain("In the house today");
+    assertCopyLaw(text, [...APP_ALLOW]);
+    second();
+
+    // Every kind and every platform on the setup rows, with each recipe
+    // shown (the copy walks the row into the sheet and back).
+    const platforms = Object.keys(PLATFORM_LABEL);
+    const devices = Object.keys(KIND_LABEL).map((kind, i) => ({
+      id: `d${i}`,
+      parent_id: "p1",
+      kind,
+      platform: platforms[i] ?? null,
+      created_utc: `2026-08-0${i + 1}T00:00:00Z`,
+      removed_utc: null,
+    }));
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(
+      <FamilyScreen
+        parentStates={states}
+        cities={{ p1: "Chennai", p2: "", p3: "" }}
+        members={members}
+        viewerId="u1"
+        circle={circleNoop}
+        setupEntries={[
+          { parentId: "p1", parentName: "Amma", status: "reporting" as const, sms: null, url: null, shareHref: null, expiresDate: null },
+        ]}
+        onOpen={() => undefined}
+        onPickCity={noop}
+        onClearCity={noop}
+        deviceRows={deviceSetupRows("p1", devices.slice(0, 2), [{ device_id: "d0", ts_utc: "2026-08-03T06:00:00Z" }], NOON_IST)}
+        household={{
+          onAdd: async () => "d9",
+          onRemove: async () => undefined,
+          onAddress: async () => "https://kettle-api.fly.dev/d/" + "t".repeat(32),
+        }}
+      />,
+    );
+    for (const button of screen.getAllByTestId("device-address")) {
+      fireEvent.click(button);
+      await waitFor(() => expect(screen.getAllByTestId("device-recipe").length).toBeGreaterThan(0));
+    }
+    fireEvent.click(screen.getAllByTestId("device-remove")[0]);
+    fireEvent.click(screen.getByTestId("device-add"));
+    text = renderedText();
+    expect(text).toContain("Something in Amma's home");
+    expect(text).toContain("Copied");
+    expect(text).not.toContain("t".repeat(32));
+    assertCopyLaw(text, [...APP_ALLOW]);
+    for (const recipe of Object.values(RECIPE)) assertCopyLaw(recipe, [...APP_ALLOW]);
   });
 
   it("holds for the parent detail in each of the three states", () => {

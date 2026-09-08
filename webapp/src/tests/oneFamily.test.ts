@@ -32,6 +32,7 @@ class FakeQuery {
   private call: Executed;
   private since: Record<string, string> = {};
   private cap: number | null = null;
+  private nulls: Record<string, unknown> = {};
 
   constructor(table: string) {
     this.call = { table, eq: {}, in: {}, order: null };
@@ -49,6 +50,10 @@ class FakeQuery {
   }
   gte(column: string, value: string) {
     this.since[column] = value;
+    return this;
+  }
+  is(column: string, value: unknown) {
+    this.nulls[column] = value;
     return this;
   }
   order(column: string, options: { ascending: boolean }) {
@@ -70,6 +75,9 @@ class FakeQuery {
     }
     for (const [column, value] of Object.entries(this.since)) {
       rows = rows.filter((row) => String(row[column]) >= value);
+    }
+    for (const [column, value] of Object.entries(this.nulls)) {
+      rows = rows.filter((row) => (row[column] ?? null) === value);
     }
     if (this.call.order) {
       const { column, ascending } = this.call.order;

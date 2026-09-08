@@ -30,6 +30,7 @@ interface Executed {
   eq: Record<string, unknown>;
   in: Record<string, unknown[]>;
   gte: Record<string, string>;
+  is: Record<string, unknown>;
   order: { column: string; ascending: boolean } | null;
   limit: number | null;
 }
@@ -41,7 +42,7 @@ class FakeQuery {
   private call: Executed;
 
   constructor(private table: string) {
-    this.call = { table, columns: "", eq: {}, in: {}, gte: {}, order: null, limit: null };
+    this.call = { table, columns: "", eq: {}, in: {}, gte: {}, is: {}, order: null, limit: null };
   }
 
   select(columns: string) {
@@ -61,6 +62,11 @@ class FakeQuery {
 
   gte(column: string, value: string) {
     this.call.gte[column] = value;
+    return this;
+  }
+
+  is(column: string, value: unknown) {
+    this.call.is[column] = value;
     return this;
   }
 
@@ -88,6 +94,9 @@ class FakeQuery {
     }
     for (const [column, value] of Object.entries(this.call.gte)) {
       rows = rows.filter((row) => String(row[column]) >= value);
+    }
+    for (const [column, value] of Object.entries(this.call.is)) {
+      rows = rows.filter((row) => (row[column] ?? null) === value);
     }
     if (this.call.order) {
       const { column, ascending } = this.call.order;
@@ -239,7 +248,13 @@ describe("the bounded pings read", () => {
     expect(new Set(unbounded.map((call) => call.table))).toEqual(
       // assistant_grants joined in spec 019: a person's own handful of
       // connections, per person rather than per circle (data.ts says why).
-      new Set(["families", "parents", "members", "parent_signals", "setup_links", "assistant_grants"]),
+      // household_devices_view joined in spec 020: at most three live rows
+      // per parent by the function's own limit, and the pings behind them
+      // are a bounded per-device read like the phone's.
+      new Set([
+        "families", "parents", "members", "parent_signals", "setup_links", "assistant_grants",
+        "household_devices_view",
+      ]),
     );
   });
 
