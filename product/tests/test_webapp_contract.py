@@ -224,6 +224,17 @@ def test_every_table_the_app_reads_is_rls_protected(conn: psycopg.Connection):
             (table,),
         ).fetchone()
         assert row is not None, f"{table} does not exist"
+        if table == "household_devices_view":
+            # Spec 020: a view over a table authenticated holds no grant on;
+            # its WHERE is the isolation (the caller's circles' devices) and
+            # the token column is not in it. Asserted here, and by row in
+            # test_household_devices.py.
+            definition = conn.execute(
+                "select pg_get_viewdef('household_devices_view'::regclass) as d"
+            ).fetchone()["d"]
+            assert "app_household_device_ids" in definition
+            assert "token" not in definition
+            continue
         assert row["rls"] is True, f"{table} has RLS off"
         assert row["policies"] > 0, f"{table} has no policy"
 
@@ -566,3 +577,93 @@ def test_the_night_strings_are_verbatim():
     ts = _ts_consts(COPY_TS)
     for name, expected in NIGHT_STRINGS.items():
         assert ts.get(name) == expected, name
+
+
+# --- spec 020: the family's own devices ------------------------------------------
+
+DEVICE_STRINGS = {
+    "DEVICES_INTRO": (
+        "Something in {name}'s home can tell Kettle when it switches on or opens. "
+        "Kettle only notes the time. It never changes what Kettle says about {name}'s day."
+    ),
+    "DEVICE_TELL": "Tell {name} what you've set up in the house.",
+    "DEVICE_ADD": "Add a device",
+    "DEVICE_ADD_KIND": "What is it?",
+    "DEVICE_ADD_PLATFORM": "Where will you set it up?",
+    "DEVICE_ADD_DONE": "Add",
+    "DEVICE_ADD_CANCEL": "Not now",
+    "DEVICE_LIMIT": "Up to three devices for {name}.",
+    "DEVICE_ADDRESS": "Copy address",
+    "DEVICE_COPIED": "Copied",
+    "DEVICE_NOTHING_YET": "Nothing heard yet",
+    "DEVICE_REMOVE": "Remove",
+    "DEVICE_REMOVE_CONFIRM": "Remove the {kind}? Its address stops working right away.",
+    "DEVICE_REMOVE_YES": "Remove",
+    "DEVICE_REMOVE_NO": "Keep it",
+    "DEVICE_LINE_MORNING": "{kind}, {time} this morning",
+    "DEVICE_LINE_AFTERNOON": "{kind}, {time} this afternoon",
+    "DEVICE_LINE_EVENING": "{kind}, {time} this evening",
+    "DEVICES_TODAY": "In the house today",
+    "DEVICES_NONE_TODAY": "Nothing from the house yet today.",
+    "DEVICE_ROW": "{kind} · {time}",
+    "RECIPE_HOME_ASSISTANT": (
+        "In Home Assistant, add a rest_command that does a GET to this address, "
+        "then call it from the automation for this device."
+    ),
+    "RECIPE_IFTTT": (
+        "In IFTTT, make an applet: your device as the trigger, Webhooks 'Make a web "
+        "request' as the action, this address, method GET."
+    ),
+    "RECIPE_SMARTTHINGS": (
+        "In SmartThings, use a routine with a webhook action (through IFTTT or a "
+        "SmartApp that can call a URL) pointing at this address."
+    ),
+    "RECIPE_ALEXA": (
+        "Alexa routines cannot call an address on their own. Put the routine's action "
+        "through IFTTT or Home Assistant, and point that at this address."
+    ),
+    "RECIPE_GOOGLE_HOME": (
+        "Google Home routines cannot call an address on their own. Put the routine's "
+        "action through IFTTT or Home Assistant, and point that at this address."
+    ),
+    "RECIPE_OTHER": "Anything that can open this address, once, when the thing happens, will do.",
+}
+KIND_LABELS = {
+    "plug": "Plug",
+    "door": "Door",
+    "motion": "Motion",
+    "voice": "Voice routine",
+    "fridge": "Fridge",
+    "light": "Light",
+}
+PLATFORM_LABELS = {
+    "home_assistant": "Home Assistant",
+    "ifttt": "IFTTT",
+    "smartthings": "SmartThings",
+    "alexa": "Alexa routine",
+    "google_home": "Google Home routine",
+    "other": "Something else",
+}
+
+
+def _ts_record(name: str) -> dict[str, str]:
+    """`export const NAME = { key: "value", ... }` out of copy.ts."""
+    source = COPY_TS.read_text()
+    block = re.search(rf"export const {name}\s*=\s*\{{(.*?)\}}", source, re.S).group(1)
+    return dict(re.findall(r'(\w+):\s*"([^"]*)"', block))
+
+
+def test_the_device_strings_are_verbatim_in_the_webapp():
+    ts = _ts_consts(COPY_TS)
+    for name, expected in DEVICE_STRINGS.items():
+        assert ts.get(name) == expected, name
+    assert _ts_record("KIND_LABEL") == KIND_LABELS
+    assert _ts_record("PLATFORM_LABEL") == PLATFORM_LABELS
+
+
+def test_the_server_mirrors_the_device_line_and_the_kind_labels():
+    from kettle import assistant_copy
+
+    assert assistant_copy.KIND_LABEL == KIND_LABELS == _ts_record("KIND_LABEL")
+    for name in ("DEVICE_LINE_MORNING", "DEVICE_LINE_AFTERNOON", "DEVICE_LINE_EVENING"):
+        assert getattr(assistant_copy, name) == DEVICE_STRINGS[name] == _ts_consts(COPY_TS)[name]

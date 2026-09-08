@@ -90,14 +90,10 @@ def local_day(parent_row, days_ago: int) -> str:
 # --- the refusal --------------------------------------------------------------
 
 
-def test_a_family_anyone_can_be_reached_at_is_refused_before_any_write(
-    conn, whitakers
-):
+def test_a_family_anyone_can_be_reached_at_is_refused_before_any_write(conn, whitakers):
     """A phone number is what separates a demo from somebody's mother."""
     mom = parent_by(conn, whitakers.family_id, "Mom")
-    conn.execute(
-        "update parents set whatsapp_e164 = %s where id = %s", ("+16175550143", mom["id"])
-    )
+    conn.execute("update parents set whatsapp_e164 = %s where id = %s", ("+16175550143", mom["id"]))
     with pytest.raises(Refused, match="phone number"):
         seed(conn, whitakers.family_id, days=3)
     # Refused BEFORE the first write, not partway through it.
@@ -107,9 +103,7 @@ def test_a_family_anyone_can_be_reached_at_is_refused_before_any_write(
 
 def test_an_sms_number_alone_is_enough_to_refuse(conn, whitakers):
     dad = parent_by(conn, whitakers.family_id, "Dad")
-    conn.execute(
-        "update parents set phone_e164 = %s where id = %s", ("+16175550143", dad["id"])
-    )
+    conn.execute("update parents set phone_e164 = %s where id = %s", ("+16175550143", dad["id"]))
     with pytest.raises(Refused, match="phone number"):
         check_safe(conn, whitakers.family_id)
 
@@ -117,9 +111,7 @@ def test_an_sms_number_alone_is_enough_to_refuse(conn, whitakers):
 @pytest.mark.parametrize("name", ["Suryaprakasam", "rehearsal", "  Rehearsal  "])
 def test_a_real_family_name_is_refused_even_with_no_numbers(conn, whitakers, name):
     """Belt to the number check's braces: numbers can be cleared by accident."""
-    conn.execute(
-        "update families set name = %s where id = %s", (name, whitakers.family_id)
-    )
+    conn.execute("update families set name = %s where id = %s", (name, whitakers.family_id))
     with pytest.raises(Refused, match="real family"):
         check_safe(conn, whitakers.family_id)
 
@@ -249,17 +241,19 @@ def test_the_late_morning_is_never_asked_about(conn, whitakers):
     # something before 11:00.
     tz = ZoneInfo(mom["tz"])
     start = datetime.fromisoformat(day).replace(tzinfo=tz)
-    assert db.count_alarm_pings_between(
-        conn, mom["id"], start.replace(hour=6), start.replace(hour=8, minute=30)
-    ) == 0
-    assert db.count_alarm_pings_between(
-        conn, mom["id"], start.replace(hour=6), start.replace(hour=11)
-    ) > 0
+    assert (
+        db.count_alarm_pings_between(
+            conn, mom["id"], start.replace(hour=6), start.replace(hour=8, minute=30)
+        )
+        == 0
+    )
+    assert (
+        db.count_alarm_pings_between(conn, mom["id"], start.replace(hour=6), start.replace(hour=11))
+        > 0
+    )
 
 
-def test_the_unreachable_day_runs_the_whole_ladder_and_withholds_the_evening(
-    conn, whitakers
-):
+def test_the_unreachable_day_runs_the_whole_ladder_and_withholds_the_evening(conn, whitakers):
     """Dad's day: asked, unanswered, escalated, resolved.
 
     Every rung is here because the engine would have written it, including the
@@ -281,22 +275,26 @@ def test_the_unreachable_day_runs_the_whole_ladder_and_withholds_the_evening(
     }
 
     # The ask went unanswered: that is what let the follow-on fire at all.
-    assert conn.execute(
-        "select replied_utc from sent_messages where parent_id = %s "
-        "and local_date = %s and kind = 'ask'",
-        (dad["id"], day),
-    ).fetchone()["replied_utc"] is None
+    assert (
+        conn.execute(
+            "select replied_utc from sent_messages where parent_id = %s "
+            "and local_date = %s and kind = 'ask'",
+            (dad["id"], day),
+        ).fetchone()["replied_utc"]
+        is None
+    )
 
     # And the phone really was silent: zero pings of any grade before the
     # follow-on, which is what makes it the unreachable body.
     tz = ZoneInfo(dad["tz"])
     midnight = datetime.fromisoformat(day).replace(tzinfo=tz)
-    assert db.count_pings_between(
-        conn, dad["id"], midnight, midnight.replace(hour=13)
-    ) == 0
-    assert db.count_alarm_pings_between(
-        conn, dad["id"], midnight.replace(hour=13), midnight + timedelta(days=1)
-    ) > 0
+    assert db.count_pings_between(conn, dad["id"], midnight, midnight.replace(hour=13)) == 0
+    assert (
+        db.count_alarm_pings_between(
+            conn, dad["id"], midnight.replace(hour=13), midnight + timedelta(days=1)
+        )
+        > 0
+    )
 
 
 def test_the_family_note_sits_on_the_day_it_explains(conn, whitakers):
@@ -310,8 +308,8 @@ def test_the_family_note_sits_on_the_day_it_explains(conn, whitakers):
     assert note is not None
     assert note["author_label"] == NOTE_AUTHOR == "Sarah"
     assert note["parent_id"] == dad["id"]
-    assert note["kind"] == "note"          # a family note, not a Kettle line
-    assert note["event_date"] is None      # it explains a day, it is not an event
+    assert note["kind"] == "note"  # a family note, not a Kettle line
+    assert note["event_date"] is None  # it explains a day, it is not an event
 
 
 def test_the_appointment_note_is_still_ahead_of_the_demo(conn, whitakers):
@@ -345,7 +343,6 @@ def test_the_appointment_note_is_still_ahead_of_the_demo(conn, whitakers):
     }
 
 
-
 def test_the_answered_ask_never_reaches_the_family(conn, whitakers):
     """Day (d), and the shape the whole product exists for (DECISIONS 243).
 
@@ -375,12 +372,13 @@ def test_the_answered_ask_never_reaches_the_family(conn, whitakers):
     # The phone WAS reporting: this is a changed morning, not a silent phone.
     tz = ZoneInfo(dad["tz"])
     midnight = datetime.fromisoformat(day).replace(tzinfo=tz)
-    assert db.count_pings_between(
-        conn, dad["id"], midnight, midnight.replace(hour=11)
-    ) > 0
-    assert db.count_alarm_pings_between(
-        conn, dad["id"], midnight.replace(hour=6), midnight.replace(hour=11)
-    ) == 0
+    assert db.count_pings_between(conn, dad["id"], midnight, midnight.replace(hour=11)) > 0
+    assert (
+        db.count_alarm_pings_between(
+            conn, dad["id"], midnight.replace(hour=6), midnight.replace(hour=11)
+        )
+        == 0
+    )
 
 
 def test_the_changed_morning_tells_the_family_and_then_resolves(conn, whitakers):
@@ -402,25 +400,32 @@ def test_the_changed_morning_tells_the_family_and_then_resolves(conn, whitakers)
         # A follow-on went out, so the evening note is withheld (DECISIONS 164).
         "digest_evening": ("digest_evening_recovered", "skipped"),
     }
-    assert conn.execute(
-        "select replied_utc from sent_messages where parent_id = %s "
-        "and local_date = %s and kind = 'ask'",
-        (mom["id"], day),
-    ).fetchone()["replied_utc"] is None
+    assert (
+        conn.execute(
+            "select replied_utc from sent_messages where parent_id = %s "
+            "and local_date = %s and kind = 'ask'",
+            (mom["id"], day),
+        ).fetchone()["replied_utc"]
+        is None
+    )
 
     tz = ZoneInfo(mom["tz"])
     midnight = datetime.fromisoformat(day).replace(tzinfo=tz)
     # Reporting, but not opening anything: the two facts that together choose
     # follow_on_family over follow_on_unreachable.
-    assert db.count_pings_between(
-        conn, mom["id"], midnight, midnight.replace(hour=13)
-    ) > 0
-    assert db.count_alarm_pings_between(
-        conn, mom["id"], midnight.replace(hour=6), midnight.replace(hour=13)
-    ) == 0
-    assert db.count_alarm_pings_between(
-        conn, mom["id"], midnight.replace(hour=15), midnight + timedelta(days=1)
-    ) > 0
+    assert db.count_pings_between(conn, mom["id"], midnight, midnight.replace(hour=13)) > 0
+    assert (
+        db.count_alarm_pings_between(
+            conn, mom["id"], midnight.replace(hour=6), midnight.replace(hour=13)
+        )
+        == 0
+    )
+    assert (
+        db.count_alarm_pings_between(
+            conn, mom["id"], midnight.replace(hour=15), midnight + timedelta(days=1)
+        )
+        > 0
+    )
 
 
 def test_the_changed_morning_carries_its_note(conn, whitakers):
@@ -439,8 +444,7 @@ def test_the_changed_morning_carries_its_note(conn, whitakers):
     assert note["event_date"] is None
     # Written that evening, on the day it explains.
     assert note["created_utc"].astimezone(ZoneInfo(mom["tz"])).date() == (
-        datetime.now(ZoneInfo(mom["tz"])).date()
-        - timedelta(days=CHANGED_MORNING_DAYS_AGO)
+        datetime.now(ZoneInfo(mom["tz"])).date() - timedelta(days=CHANGED_MORNING_DAYS_AGO)
     )
 
 
@@ -468,19 +472,26 @@ def test_every_kind_the_product_can_send_has_an_example(conn, whitakers):
         "all_clear_family",
     }
 
+
 def test_every_seeded_row_carries_the_marker(conn, whitakers):
     """The marker is what makes a re-run safe; nothing may slip past it."""
     seed(conn, whitakers.family_id, days=30, seed_value=42)
-    assert conn.execute(
-        "select count(*) as n from pings p join parents pa on pa.id = p.parent_id "
-        "where pa.family_id = %s and (p.ip_hash is distinct from %s)",
-        (whitakers.family_id, MARKER),
-    ).fetchone()["n"] == 0
-    assert conn.execute(
-        "select count(*) as n from sent_messages "
-        "where family_id = %s and transport is distinct from %s",
-        (whitakers.family_id, MARKER),
-    ).fetchone()["n"] == 0
+    assert (
+        conn.execute(
+            "select count(*) as n from pings p join parents pa on pa.id = p.parent_id "
+            "where pa.family_id = %s and (p.ip_hash is distinct from %s)",
+            (whitakers.family_id, MARKER),
+        ).fetchone()["n"]
+        == 0
+    )
+    assert (
+        conn.execute(
+            "select count(*) as n from sent_messages "
+            "where family_id = %s and transport is distinct from %s",
+            (whitakers.family_id, MARKER),
+        ).fetchone()["n"]
+        == 0
+    )
 
 
 def test_the_pings_speak_the_parents_own_vocabulary(conn, whitakers):
@@ -555,9 +566,7 @@ def test_the_engine_would_have_written_this_exact_ledger(conn, whitakers, notifi
         # loop would have reached them.
         # 15:30 is there for the changed-morning day, whose all-clear waits
         # for the habits to resume mid-afternoon; the others do not mind it.
-        for hour, minute in (
-            (8, 30), (11, 0), (13, 0), (13, 30), (15, 30), (20, 30)
-        ):
+        for hour, minute in ((8, 30), (11, 0), (13, 0), (13, 30), (15, 30), (20, 30)):
             run_outbound(
                 conn,
                 LogTransport(),
@@ -595,22 +604,26 @@ def test_a_reseed_leaves_alone_what_it_did_not_write(conn, whitakers):
 
     seed(conn, whitakers.family_id, days=5, seed_value=42)
 
-    assert conn.execute(
-        "select count(*) as n from pings where parent_id = %s and ip_hash is null",
-        (mom["id"],),
-    ).fetchone()["n"] == 1, "a real ping was deleted by the reseed"
-    assert conn.execute(
-        "select count(*) as n from journal_entries where family_id = %s and body = %s",
-        (whitakers.family_id, "She sounded good on the phone today."),
-    ).fetchone()["n"] == 1, "a family's own note was deleted by the reseed"
+    assert (
+        conn.execute(
+            "select count(*) as n from pings where parent_id = %s and ip_hash is null",
+            (mom["id"],),
+        ).fetchone()["n"]
+        == 1
+    ), "a real ping was deleted by the reseed"
+    assert (
+        conn.execute(
+            "select count(*) as n from journal_entries where family_id = %s and body = %s",
+            (whitakers.family_id, "She sounded good on the phone today."),
+        ).fetchone()["n"]
+        == 1
+    ), "a family's own note was deleted by the reseed"
 
 
 # --- the engine walks past a demo family (DECISIONS 245) ----------------------
 
 
-def test_a_demo_family_produces_nothing_while_its_neighbour_behaves(
-    conn, whitakers, notifier
-):
+def test_a_demo_family_produces_nothing_while_its_neighbour_behaves(conn, whitakers, notifier):
     """The gap DECISIONS 245 found, closed and pinned.
 
     "No phone number" (242) stops the ASK. It stops nothing else: the engine
@@ -633,9 +646,7 @@ def test_a_demo_family_produces_nothing_while_its_neighbour_behaves(
         base_url=BASE_URL,
         signals=["routine", "charger", "device_alive"],
     )
-    conn.execute(
-        "update families set demo = true where id = %s", (whitakers.family_id,)
-    )
+    conn.execute("update families set demo = true where id = %s", (whitakers.family_id,))
     conn.commit()
 
     # Nobody has pinged today in either family, so the ladder has every reason
@@ -662,21 +673,30 @@ def test_a_demo_family_produces_nothing_while_its_neighbour_behaves(
     # purpose - the neighbour's own skipped ask SHOULD alert, and asserting
     # zero alerts globally would have passed for the wrong reason the moment
     # the neighbour went quiet.
-    assert conn.execute(
-        "select count(*) as n from ops_alerts where family_id = %s",
-        (whitakers.family_id,),
-    ).fetchone()["n"] == 0
-    assert conn.execute(
-        "select count(*) as n from ops_alerts where family_id = %s",
-        (real.family_id,),
-    ).fetchone()["n"] > 0
+    assert (
+        conn.execute(
+            "select count(*) as n from ops_alerts where family_id = %s",
+            (whitakers.family_id,),
+        ).fetchone()["n"]
+        == 0
+    )
+    assert (
+        conn.execute(
+            "select count(*) as n from ops_alerts where family_id = %s",
+            (real.family_id,),
+        ).fetchone()["n"]
+        > 0
+    )
 
 
 def test_the_flag_is_off_until_somebody_sets_it(conn, whitakers):
     """Every existing family keeps behaving exactly as it does today."""
-    assert conn.execute(
-        "select demo from families where id = %s", (whitakers.family_id,)
-    ).fetchone()["demo"] is False
+    assert (
+        conn.execute("select demo from families where id = %s", (whitakers.family_id,)).fetchone()[
+            "demo"
+        ]
+        is False
+    )
 
 
 # --- today, in progress (DECISIONS 245) ---------------------------------------
@@ -686,8 +706,7 @@ def today_pings(conn, parent_row) -> list:
     tz = ZoneInfo(parent_row["tz"])
     midnight = datetime.combine(datetime.now(tz).date(), time(0, 0), tzinfo=tz)
     return conn.execute(
-        "select signal, ts_utc from pings where parent_id = %s and ts_utc >= %s "
-        "order by ts_utc",
+        "select signal, ts_utc from pings where parent_id = %s and ts_utc >= %s order by ts_utc",
         (parent_row["id"], midnight),
     ).fetchall()
 
@@ -741,11 +760,13 @@ def test_through_now_writes_no_ledger_row_for_today(conn, whitakers):
 
 def test_re_running_moves_the_front_edge_and_leaves_the_past_alone(conn, whitakers):
     """Idempotent behind today; live at the front (DECISIONS 245)."""
+
     def past_only(family_id):
         pings, messages, notes = snapshot(conn, family_id)
         mom = parent_by(conn, family_id, "Mom")
         midnight = datetime.combine(
-            datetime.now(ZoneInfo(mom["tz"])).date(), time(0, 0),
+            datetime.now(ZoneInfo(mom["tz"])).date(),
+            time(0, 0),
             tzinfo=ZoneInfo(mom["tz"]),
         )
         return ([p for p in pings if p[1] < midnight], messages, notes)
@@ -824,19 +845,33 @@ def test_the_renderer_writes_the_template_ids_the_ledger_names(conn, whitakers, 
 
     cases = [
         # (parent, days ago, expected template id per kind that SENT)
-        ("Linda", mom, 3, {"digest_morning": "digest_morning_normal",
-                           "digest_evening": "digest_evening_normal"}),
-        ("Linda", mom, LATE_START_DAYS_AGO,
-         {"digest_morning": "digest_morning_quiet",
-          "digest_evening": "digest_evening_recovered"}),
-        ("Bill", dad, ANSWERED_ASK_DAYS_AGO,
-         {"digest_morning": "digest_morning_quiet",
-          "digest_evening": "digest_evening_recovered"}),
+        (
+            "Linda",
+            mom,
+            3,
+            {"digest_morning": "digest_morning_normal", "digest_evening": "digest_evening_normal"},
+        ),
+        (
+            "Linda",
+            mom,
+            LATE_START_DAYS_AGO,
+            {
+                "digest_morning": "digest_morning_quiet",
+                "digest_evening": "digest_evening_recovered",
+            },
+        ),
+        (
+            "Bill",
+            dad,
+            ANSWERED_ASK_DAYS_AGO,
+            {
+                "digest_morning": "digest_morning_quiet",
+                "digest_evening": "digest_evening_recovered",
+            },
+        ),
         # The withheld evenings: a skipped row is not an email, so no file.
-        ("Bill", dad, UNREACHABLE_DAYS_AGO,
-         {"digest_morning": "digest_morning_quiet"}),
-        ("Linda", mom, CHANGED_MORNING_DAYS_AGO,
-         {"digest_morning": "digest_morning_quiet"}),
+        ("Bill", dad, UNREACHABLE_DAYS_AGO, {"digest_morning": "digest_morning_quiet"}),
+        ("Linda", mom, CHANGED_MORNING_DAYS_AGO, {"digest_morning": "digest_morning_quiet"}),
     ]
 
     for name, parent, days_ago, expected in cases:
@@ -883,9 +918,7 @@ def test_the_renderer_never_writes_a_withheld_evening(conn, whitakers, tmp_path)
 
 def test_the_renderer_sends_nothing_and_cannot(conn):
     """No transport, no key, no address: it reads tables and writes files."""
-    source = (
-        Path(__file__).resolve().parent.parent / "scripts" / "render_digest.py"
-    ).read_text()
+    source = (Path(__file__).resolve().parent.parent / "scripts" / "render_digest.py").read_text()
     for forbidden in ("httpx", "requests", "resend", "twilio", "smtp", "ResendTransport"):
         assert forbidden not in source.lower(), forbidden
 
@@ -926,17 +959,18 @@ def test_a_renamed_note_takes_its_old_body_with_it(conn, whitakers):
         assert old_body not in after, "the renamed note left its old row behind"
     finally:
         seeder.NOTE_APPOINTMENT = old_body
-        seeder.RETIRED_NOTE_BODIES = tuple(
-            b for b in seeder.RETIRED_NOTE_BODIES if b != old_body
-        )
+        seeder.RETIRED_NOTE_BODIES = tuple(b for b in seeder.RETIRED_NOTE_BODIES if b != old_body)
 
     # And the row really is gone rather than merely unread: exactly one
     # appointment note for Mom, not two.
-    assert conn.execute(
-        "select count(*) as n from journal_entries "
-        "where family_id = %s and parent_id = %s and event_date is not null",
-        (whitakers.family_id, mom["id"]),
-    ).fetchone()["n"] == 1
+    assert (
+        conn.execute(
+            "select count(*) as n from journal_entries "
+            "where family_id = %s and parent_id = %s and event_date is not null",
+            (whitakers.family_id, mom["id"]),
+        ).fetchone()["n"]
+        == 1
+    )
 
 
 def test_the_patel_body_is_retired_and_still_swept(conn, whitakers):
@@ -954,7 +988,41 @@ def test_the_patel_body_is_retired_and_still_swept(conn, whitakers):
         (whitakers.family_id, mom["id"], "Dr. Patel, Thursday 2pm"),
     )
     seed(conn, whitakers.family_id, days=5, seed_value=42)
-    assert conn.execute(
-        "select count(*) as n from journal_entries where family_id = %s and body = %s",
-        (whitakers.family_id, "Dr. Patel, Thursday 2pm"),
-    ).fetchone()["n"] == 0
+    assert (
+        conn.execute(
+            "select count(*) as n from journal_entries where family_id = %s and body = %s",
+            (whitakers.family_id, "Dr. Patel, Thursday 2pm"),
+        ).fetchone()["n"]
+        == 0
+    )
+
+
+def test_a_household_ping_before_a_quiet_morning_ask_changes_no_verdict(conn, whitakers):
+    """Spec 020 §4/§8: the engine does not see the house. The same seed with
+    a device ping planted five minutes before the ask produces a
+    byte-identical ledger."""
+    seed(conn, whitakers.family_id, days=30, seed_value=42)
+    clean = snapshot(conn, whitakers.family_id)
+    ask = conn.execute(
+        "select parent_id, sent_utc from sent_messages where family_id = %s and kind = 'ask' "
+        "and status = 'sent' order by sent_utc limit 1",
+        (whitakers.family_id,),
+    ).fetchone()
+    assert ask is not None
+    for table in ("sent_messages", "journal_entries", "digest_sends"):
+        conn.execute(f"delete from {table} where family_id = %s", (whitakers.family_id,))
+    conn.execute(
+        "delete from pings where parent_id in (select id from parents where family_id = %s)",
+        (whitakers.family_id,),
+    )
+    device = conn.execute(
+        "insert into household_devices (parent_id, kind, platform, token) "
+        "values (%s, 'plug', 'ifttt', %s) returning id",
+        (ask["parent_id"], "h" * 32),
+    ).fetchone()["id"]
+    conn.execute(
+        "insert into household_pings (device_id, ts_utc) values (%s, %s)",
+        (device, ask["sent_utc"] - timedelta(minutes=5)),
+    )
+    seed(conn, whitakers.family_id, days=30, seed_value=42)
+    assert snapshot(conn, whitakers.family_id) == clean
