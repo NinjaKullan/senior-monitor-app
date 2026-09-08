@@ -105,7 +105,8 @@ you just get to see it."
   from 06:00 local on, and the card is not in its night, paused or
   unreachable state, one line under the heard-from block:
   DEVICE_LINE_MORNING / _AFTERNOON / _EVENING by the ping's local hour
-  (before 12, 12 to 17, after 17), with the most recent device's
+  (before 12, 12 to 17:59, 18 on; the app's AFTERNOON_START and
+  EVENING_START, corrected from "after 17" at build, DECISIONS 314), with the most recent device's
   KIND_LABEL and its time in the parent's zone. Same type size and
   colour as the dual clock line: a fact, not the verdict. No device or
   no ping today: no line, no placeholder.

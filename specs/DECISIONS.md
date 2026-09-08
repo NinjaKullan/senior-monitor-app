@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 314.** This line is the one to update; the `Next number:` lines inside
+**Next number: 315.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6509,3 +6509,31 @@ browser — all three adopted as the standard for future surfaces.**
      * Counts: root pytest 821 → 843 (product 774 → 796); webapp 293 → 311;
        ruff clean.
      * Next number: 314.
+
+314. **(2026-09-08, ~1:00pm ET) 313 REVIEWED and ACCEPTED (b814f6e).
+     Migration 0031 applied to prod by PM; grants confirmed (no grant on
+     `household_devices` to authenticated or anon; SELECT on the view and
+     on `household_pings` to authenticated). Deploy owed.**
+     * Accepted as read: the sweep on the ingest route (the table's only
+       writer; the isolation rule keeps the heartbeat out); the device
+       table with no grant and the token-free view scoped by
+       `app_household_device_ids()`; the address function refusing a
+       removed device; unknown platform refused; the assistant's line
+       absent for night, paused and nothing-today, with unreachable held
+       by the card; the day view's rows hidden while the card is in
+       night, paused or unreachable; the lowercase confirm.
+     * Spec corrected to the build: the evening form starts at 18, the
+       app's EVENING_START, not "after 17" as §5 said; the assistant uses
+       the same boundary. Both surfaces agree, which is the point.
+     * Two nits, for the next commit that touches these files, not
+       blockers: (a) the webapp reads device pings for fourteen days
+       while the sweep keeps thirty, so a device silent fifteen to
+       thirty days reads "Nothing heard yet" on its setup row, which is
+       false; read thirty to match the sweep. (b) `test_seed_demo_history.py`
+       was reformatted wholesale in a spec commit with no logic change;
+       formatting sweeps travel alone.
+     * Deploy (founder): `cd product && fly deploy` → `cd webapp && npm
+       run ci && fly deploy`. Then first use: a device on Amma's or
+       Appa's setup row from the Family screen, the address pasted per
+       the recipe, the next morning's card read against the ledger.
+     * Next number: 315.
