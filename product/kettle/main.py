@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager, suppress
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from hmac import compare_digest
 from urllib.parse import parse_qs
 
@@ -43,6 +44,12 @@ from kettle.twilio_signature import verify_signature
 log = logging.getLogger("kettle")
 
 DEDUPE_WINDOW_S = 60
+#: Spec 020 §4: the household address's token shape (the devices.device_token
+#: shape); anything else on /d/ is a 404 like any unknown path.
+HOUSEHOLD_TOKEN = re.compile(r"^[A-Za-z0-9_-]{20,}$")
+#: Spec 020 §3: household pings are swept after thirty days. Nothing shown
+#: reaches back further than today, and the setup row's heard line needs less.
+HOUSEHOLD_SWEEP_DAYS = 30
 
 #: The landing page's bot trap. A real person never fills it: it is hidden, and
 #: it is named for something a form-filler expects to see rather than something
@@ -222,6 +229,41 @@ def create_app(
                 now_utc(),
                 db.hash_ip(_client_ip(request), cfg.ip_hash_salt),
                 DEDUPE_WINDOW_S,
+            )
+        return PlainTextResponse("ok")
+
+    @app.api_route("/d/{token}", methods=["GET", "POST"], response_class=PlainTextResponse)
+    async def household_ping(request: Request, token: str) -> PlainTextResponse:
+        """Spec 020 §4: the family's own device fired. Path only; query,
+        headers and body are ignored, and no IP is read, hashed or stored.
+
+        The reply is `ok` for a live, a removed, an unknown and a duplicate
+        token alike, so the address never says whether it is real (311:
+        dropped silently, never a 404). Only a wrong-shaped path is a 404.
+        One recorded ping per device per DEDUPE_WINDOW_S, the guard inside
+        the INSERT like the phone's. The thirty-day sweep rides this route
+        (the only writer) the way the authorization sweep rides authorize:
+        no engine or heartbeat module may name the table (§4).
+        """
+        if not HOUSEHOLD_TOKEN.match(token):
+            raise StarletteHTTPException(status_code=404, detail="not found")
+        now = clock()
+        with request.app.state.pool.connection() as conn:
+            conn.execute(
+                "delete from household_pings where ts_utc < %s",
+                (now - timedelta(days=HOUSEHOLD_SWEEP_DAYS),),
+            )
+            conn.execute(
+                """
+                insert into household_pings (device_id, ts_utc)
+                select d.id, %(now)s from household_devices d
+                where d.token = %(token)s and d.removed_utc is null
+                  and not exists (
+                      select 1 from household_pings h
+                      where h.device_id = d.id and h.ts_utc > %(cutoff)s
+                  )
+                """,
+                {"now": now, "token": token, "cutoff": now - timedelta(seconds=DEDUPE_WINDOW_S)},
             )
         return PlainTextResponse("ok")
 
