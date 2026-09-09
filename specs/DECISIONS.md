@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 322.** This line is the one to update; the `Next number:` lines inside
+**Next number: 323.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6718,3 +6718,29 @@ browser — all three adopted as the standard for future surfaces.**
        Claude again with the defaults (CIMD), expect the write consent,
        then the phone: "tell Kettle Amma's doctor visit is on Thursday".
      * Next number: 322.
+
+322. **(2026-09-09, ~3:50pm ET) Spec 019 Amendment A DEPLOYED and
+     VERIFIED LIVE (7dceaf7 + dcde821; 0032 applied 318). CIMD from
+     Claude works through the shipped copy (320/321).**
+     * Connect: the founder added Kettle in Claude with the defaults;
+       the grant is Claude by CIMD (client_id the claude.ai document
+       address), scope `kettle:write`, 3:40pm ET; the consent screen
+       read "Claude will be able to read what you see in Kettle for
+       Amma, Appa, TestDad and TestMom, and add notes and replies as
+       you." He removed and re-added once more: old grant revoked
+       3:43:04pm, new one 3:43:42pm, the same client record both times.
+       The Sep 5 read-only Claude grant shows revoked from the night
+       before; Codex stays read-only.
+     * The connector now carries `add_note` and `reply` and the
+       SERVER_INSTRUCTIONS line (seen from the PM's own Claude session).
+     * Write, from the phone: "tell Kettle Amma's doctor visit is on
+       Thursday." Row 21 in `journal_entries`: family Suryaprakasam,
+       tagged Amma, author_label "Hema", author_member_id Hema's seat,
+       via_client "Claude", body "Amma's doctor visit is on Thursday.",
+       event_date 2026-09-10 (Claude resolved "Thursday" and passed the
+       date; that is the assistant's doing, and correct), kind note,
+       3:46:30pm ET. Memory renders it "Hema via Claude".
+     * Not yet seen live: `reply`, and NEED_WRITE from a read-only grant
+       (Codex could show it; not required).
+     * Next: the button pass brief; beta invitations this weekend.
+     * Next number: 323.
