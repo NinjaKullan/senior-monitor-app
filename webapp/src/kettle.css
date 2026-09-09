@@ -81,3 +81,46 @@ a.kt-link:hover { color: var(--linkhover); }
   .kt-steam-hero { animation: ksteambig 6s ease-in-out infinite both; }
   .kt-steam-hero-late { animation: ksteambig 6s ease-in-out .6s infinite both; }
 }
+
+/* --- the action vocabulary (DECISIONS 324): three variants, no others ------ */
+.kt-action {
+  display: inline-flex; align-items: center; justify-content: center; gap: .375rem;
+  box-sizing: border-box; min-height: 2.75rem; font: inherit; font-weight: 600;
+  font-size: .875rem; line-height: 1.25; cursor: pointer; text-decoration: none;
+  white-space: nowrap;
+}
+.kt-action:focus-visible { outline: 2px solid var(--copperdeep); outline-offset: 2px; }
+.kt-action:disabled, .kt-action[aria-disabled="true"] { opacity: .5; cursor: default; }
+.kt-action-primary {
+  background: var(--copperdeep); color: var(--oncopper);
+  border: 1px solid var(--copperdeep); border-radius: 999px; padding: .5625rem 1.125rem;
+}
+.kt-action-primary:hover { background: var(--copperhover); border-color: var(--copperhover); }
+.kt-action-secondary {
+  background: var(--card); color: var(--copperdeep);
+  border: 1px solid var(--copperbd); border-radius: 999px; padding: .5625rem 1.125rem;
+}
+.kt-action-secondary:hover { background: var(--coppertint); }
+/* Quiet sits on the surrounding text's baseline: an inline box whose
+   vertical padding reaches 44 px and whose negative margin gives the space
+   back to the line, so the touch target is tall and the layout is not. */
+.kt-action-quiet {
+  display: inline; background: none; border: none; min-height: 0;
+  padding: .875rem 0; margin: -.875rem 0; font-size: inherit; line-height: inherit;
+  color: var(--copperdeep); text-decoration: underline; text-underline-offset: .2em;
+  white-space: normal;
+}
+.kt-action-quiet:hover { color: var(--copperhover); }
+/* The city control (324): the secondary look as a field, with a chevron. */
+.kt-cityfield {
+  box-sizing: border-box; width: 100%; min-height: 2.75rem; font: inherit;
+  font-size: .875rem; font-weight: 600; color: var(--copperdeep); background: var(--card);
+  border: 1px solid var(--copperbd); border-radius: 999px; padding: .5625rem 2.25rem .5625rem 1rem;
+  background-image: linear-gradient(45deg, transparent 50%, var(--copperdeep) 50%),
+    linear-gradient(135deg, var(--copperdeep) 50%, transparent 50%);
+  background-position: calc(100% - 1.25rem) 50%, calc(100% - 0.9rem) 50%;
+  background-size: .35rem .35rem, .35rem .35rem; background-repeat: no-repeat;
+}
+.kt-cityfield::placeholder { color: var(--copperdeep); opacity: .7; font-weight: 500; }
+.kt-cityfield:focus-visible { outline: 2px solid var(--copperdeep); outline-offset: 2px; }
+.kt-mt2 { margin-top: .5rem; }
