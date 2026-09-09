@@ -6,6 +6,7 @@
  * lives where the record lives.
  */
 import { useState } from "react";
+import { Action } from "@/components/ui/action";
 import { CityPicker } from "@/components/CityPicker";
 import type { CityEntry } from "@/lib/cities";
 import { circleRefusal, isAdmin, nobodyListening } from "@/lib/circle";
@@ -73,6 +74,8 @@ import {
   DEVICE_REMOVE_CONFIRM,
   DEVICE_REMOVE_NO,
   DEVICE_REMOVE_YES,
+  DEVICE_ROW,
+  DEVICE_NOTHING_YET,
   DEVICE_TELL,
   KIND_LABEL,
   PLATFORM_LABEL,
@@ -135,18 +138,6 @@ const ROW: React.CSSProperties = {
   gap: "0.75rem",
   flexWrap: "wrap",
   padding: "0.9375rem 1.25rem",
-};
-
-const SMALL_BTN: React.CSSProperties = {
-  background: "none",
-  border: "1px solid var(--hair)",
-  borderRadius: "0.75rem",
-  padding: "0.5rem 0.75rem",
-  minHeight: "2.75rem",
-  fontSize: "0.84375rem",
-  fontWeight: 600,
-  color: "var(--ink2)",
-  cursor: "pointer",
 };
 
 const FIELD: React.CSSProperties = {
@@ -225,10 +216,9 @@ export function FamilyScreen({
             data-testid="roster-parent"
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "0.75rem",
-              flexWrap: "wrap",
+              flexDirection: "column",
+              alignItems: "stretch",
+              gap: "0.5rem",
               borderTop: index === 0 ? "1px solid rgba(0,0,0,0)" : "1px solid var(--hair)",
               padding: "0.9375rem 1.25rem",
             }}
@@ -383,25 +373,56 @@ function HouseholdDevices({
   const [removing, setRemoving] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  // DECISIONS 324 (315): the row is shown the moment the function returns
+  // its id and the refetch reconciles; a removed row goes at once. A failed
+  // add removes its row and shows nothing; a failed remove brings it back.
+  const [pendingRows, setPendingRows] = useState<DeviceSetupRow[]>([]);
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  // The full address in view, admins only, fetched when a row is expanded
+  // (added or copied); never rendered for members, who have no `household`.
+  const [addresses, setAddresses] = useState<Record<string, string>>({});
   const small = { fontSize: "0.84375rem", color: "var(--ink2)" } as const;
+  const known = new Set(rows.map((r) => r.id));
+  const shown = [...rows, ...pendingRows.filter((r) => !known.has(r.id))].filter(
+    (r) => !hidden.has(r.id),
+  );
 
+  const reveal = (id: string) => {
+    if (!household) return Promise.resolve("");
+    return household.onAddress(id).then((address) => {
+      setAddresses((held) => ({ ...held, [id]: address }));
+      return address;
+    });
+  };
   const add = () => {
     if (!household) return;
     setBusy(true);
     setFailed(false);
+    const chosenKind = kind;
+    const chosenPlatform = platform;
     household
-      .onAdd(parentId, kind, platform)
+      .onAdd(parentId, chosenKind, chosenPlatform)
       .then((id) => {
+        setPendingRows((held) => [
+          ...held,
+          {
+            id,
+            parentId,
+            kind: chosenKind,
+            platform: chosenPlatform,
+            text: DEVICE_ROW.replace("{kind}", kindLabel(chosenKind)).replace("{time}", DEVICE_NOTHING_YET),
+          },
+        ]);
         setRecipeFor(id);
         setAdding(false);
+        void reveal(id).catch(() => undefined);
       })
       .catch(() => setFailed(true))
       .finally(() => setBusy(false));
   };
   const copy = (row: DeviceSetupRow) => {
     if (!household) return;
-    household
-      .onAddress(row.id)
+    reveal(row.id)
       .then(async (address) => {
         await navigator.clipboard.writeText(address);
         setCopied(row.id);
@@ -413,10 +434,19 @@ function HouseholdDevices({
   const remove = (row: DeviceSetupRow) => {
     if (!household) return;
     setBusy(true);
+    setHidden((held) => new Set([...held, row.id]));
+    setRemoving(null);
     household
       .onRemove(row.id)
-      .then(() => setRemoving(null))
-      .catch(() => setFailed(true))
+      .then(() => setPendingRows((held) => held.filter((r) => r.id !== row.id)))
+      .catch(() => {
+        setHidden((held) => {
+          const next = new Set(held);
+          next.delete(row.id);
+          return next;
+        });
+        setFailed(true);
+      })
       .finally(() => setBusy(false));
   };
 
@@ -426,33 +456,41 @@ function HouseholdDevices({
       <p style={{ margin: "0.25rem 0 0", ...small }} data-testid="device-tell">
         {DEVICE_TELL.replace("{name}", parentName)}
       </p>
-      {rows.map((row) => (
+      {shown.map((row) => (
         <div key={row.id} style={{ marginTop: "0.5rem" }} data-testid="device-setup-row">
           <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", flexWrap: "wrap" }}>
             <span style={{ fontSize: "0.9375rem" }} data-testid="device-setup-text">
               {row.text}
             </span>
             {household && removing !== row.id && (
-              <span style={{ display: "flex", gap: "0.75rem" }}>
-                <button type="button" className="kt-link" style={LINK_BTN} data-testid="device-address" onClick={() => copy(row)}>
+              <span style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                <Action variant="secondary" data-testid="device-address" onClick={() => copy(row)}>
                   {copied === row.id ? DEVICE_COPIED : DEVICE_ADDRESS}
-                </button>
-                <button type="button" className="kt-link" style={LINK_BTN} data-testid="device-remove" onClick={() => setRemoving(row.id)}>
+                </Action>
+                <Action variant="quiet" data-testid="device-remove" onClick={() => setRemoving(row.id)}>
                   {DEVICE_REMOVE}
-                </button>
+                </Action>
               </span>
             )}
           </div>
+          {household && addresses[row.id] && (
+            <code
+              style={{ display: "block", marginTop: "0.25rem", fontSize: "0.78125rem", overflowWrap: "anywhere" }}
+              data-testid="device-address-line"
+            >
+              {addresses[row.id]}
+            </code>
+          )}
           {household && removing === row.id && (
             <div style={{ marginTop: "0.25rem", ...small }} data-testid="device-remove-confirm">
               {DEVICE_REMOVE_CONFIRM.replace("{kind}", kindLabel(row.kind).toLowerCase())}
               <span style={{ display: "inline-flex", gap: "0.75rem", marginLeft: "0.75rem" }}>
-                <button type="button" style={SMALL_BTN} disabled={busy} data-testid="device-remove-yes" onClick={() => remove(row)}>
+                <Action variant="secondary" disabled={busy} data-testid="device-remove-yes" onClick={() => remove(row)}>
                   {DEVICE_REMOVE_YES}
-                </button>
-                <button type="button" style={SMALL_BTN} data-testid="device-remove-no" onClick={() => setRemoving(null)}>
+                </Action>
+                <Action variant="quiet" data-testid="device-remove-no" onClick={() => setRemoving(null)}>
                   {DEVICE_REMOVE_NO}
-                </button>
+                </Action>
               </span>
             </div>
           )}
@@ -463,15 +501,17 @@ function HouseholdDevices({
           )}
         </div>
       ))}
-      {household && rows.length >= DEVICE_LIMIT_PER_PARENT && (
+      {household && shown.length >= DEVICE_LIMIT_PER_PARENT && (
         <p style={{ margin: "0.5rem 0 0", ...small }} data-testid="device-limit">
           {DEVICE_LIMIT.replace("{name}", parentName)}
         </p>
       )}
-      {household && rows.length < DEVICE_LIMIT_PER_PARENT && !adding && (
-        <button type="button" style={{ ...SMALL_BTN, marginTop: "0.5rem" }} data-testid="device-add" onClick={() => setAdding(true)}>
-          {DEVICE_ADD}
-        </button>
+      {household && shown.length < DEVICE_LIMIT_PER_PARENT && !adding && (
+        <div style={{ marginTop: "0.5rem" }}>
+          <Action variant="secondary" data-testid="device-add" onClick={() => setAdding(true)}>
+            {DEVICE_ADD}
+          </Action>
+        </div>
       )}
       {household && adding && (
         <div style={{ marginTop: "0.5rem", display: "grid", gap: "0.5rem" }} data-testid="device-add-sheet">
@@ -496,12 +536,12 @@ function HouseholdDevices({
             </select>
           </label>
           <div style={{ display: "flex", gap: "0.75rem" }}>
-            <button type="button" style={SMALL_BTN} disabled={busy} data-testid="device-add-done" onClick={add}>
+            <Action variant="primary" disabled={busy} data-testid="device-add-done" onClick={add}>
               {DEVICE_ADD_DONE}
-            </button>
-            <button type="button" style={SMALL_BTN} data-testid="device-add-cancel" onClick={() => setAdding(false)}>
+            </Action>
+            <Action variant="quiet" data-testid="device-add-cancel" onClick={() => setAdding(false)}>
               {DEVICE_ADD_CANCEL}
-            </button>
+            </Action>
           </div>
         </div>
       )}
@@ -512,15 +552,6 @@ function HouseholdDevices({
   );
 }
 
-const LINK_BTN: React.CSSProperties = {
-  background: "none",
-  border: "none",
-  padding: 0,
-  fontSize: "0.84375rem",
-  fontWeight: 600,
-  cursor: "pointer",
-  minHeight: "2.75rem",
-};
 
 /**
  * Amendment A.6 (DECISIONS 290): the consent script as words to say, then
@@ -548,9 +579,9 @@ function SmsConsent({
       >
         {SMS_CONSENT_SCRIPT}
       </p>
-      <button
-        type="button"
-        style={{ ...SMALL_BTN, marginTop: "0.5rem", color: "var(--ink)" }}
+      <Action
+        variant="secondary"
+        className="kt-mt2"
         disabled={busy}
         data-testid="sms-consent-button"
         onClick={() => {
@@ -562,7 +593,7 @@ function SmsConsent({
         }}
       >
         {SMS_CONSENT_BUTTON}
-      </button>
+      </Action>
       {failed && (
         <p style={{ margin: "0.25rem 0 0", fontSize: "0.78125rem", color: "var(--mute)" }}>
           {COMPOSER_FAILED}
@@ -662,20 +693,14 @@ function SeatsList({
                 </label>
               )}
               {mine && (
-                <button
-                  type="button"
-                  style={SMALL_BTN}
-                  data-testid="seat-leave"
-                  onClick={() => void attempt(circle.onLeave)}
-                >
+                <Action variant="quiet" data-testid="seat-leave" onClick={() => void attempt(circle.onLeave)}>
                   {CIRCLE_LEAVE}
-                </button>
+                </Action>
               )}
               {admin && !mine && confirming !== member.id && (
                 <>
-                  <button
-                    type="button"
-                    style={SMALL_BTN}
+                  <Action
+                    variant="secondary"
                     data-testid="seat-role"
                     onClick={() =>
                       void attempt(() =>
@@ -684,33 +709,27 @@ function SeatsList({
                     }
                   >
                     {member.role === "admin" ? CIRCLE_MAKE_MEMBER : CIRCLE_MAKE_ADMIN}
-                  </button>
-                  <button
-                    type="button"
-                    style={SMALL_BTN}
-                    data-testid="seat-remove"
-                    onClick={() => setConfirming(member.id)}
-                  >
+                  </Action>
+                  <Action variant="quiet" data-testid="seat-remove" onClick={() => setConfirming(member.id)}>
                     {CIRCLE_REMOVE}
-                  </button>
+                  </Action>
                 </>
               )}
               {admin && !mine && confirming === member.id && (
                 <span style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", fontSize: "0.84375rem" }} data-testid="seat-confirm">
                   {CIRCLE_REMOVE_CONFIRM}
-                  <button
-                    type="button"
-                    style={SMALL_BTN}
+                  <Action
+                    variant="secondary"
                     data-testid="seat-remove-confirm"
                     onClick={() =>
                       void attempt(() => circle.onRemoveSeat(member.id), () => setConfirming(null))
                     }
                   >
                     {CIRCLE_REMOVE}
-                  </button>
-                  <button type="button" style={SMALL_BTN} onClick={() => setConfirming(null)}>
+                  </Action>
+                  <Action variant="quiet" onClick={() => setConfirming(null)}>
                     {CIRCLE_KEEP}
-                  </button>
+                  </Action>
                 </span>
               )}
             </div>
@@ -724,9 +743,9 @@ function SeatsList({
       )}
       {admin && !adding && (
         <div style={ROW}>
-          <button type="button" style={SMALL_BTN} data-testid="seat-add" onClick={() => setAdding(true)}>
+          <Action variant="secondary" data-testid="seat-add" onClick={() => setAdding(true)}>
             {CIRCLE_ADD}
-          </button>
+          </Action>
         </div>
       )}
       {admin && adding && (
@@ -740,12 +759,12 @@ function SeatsList({
             <input style={FIELD} type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
           </label>
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button type="submit" style={SMALL_BTN} data-testid="seat-add-submit">
+            <Action variant="primary" type="submit" data-testid="seat-add-submit">
               {CIRCLE_ADD_SUBMIT}
-            </button>
-            <button type="button" style={SMALL_BTN} onClick={() => setAdding(false)}>
+            </Action>
+            <Action variant="quiet" onClick={() => setAdding(false)}>
               {CIRCLE_ADD_CANCEL}
-            </button>
+            </Action>
           </div>
         </form>
       )}
@@ -792,9 +811,9 @@ function Assistants({
         <code style={{ fontSize: "0.84375rem", overflowWrap: "anywhere" }} data-testid="mcp-url">
           {MCP_URL}
         </code>
-        <button type="button" style={SMALL_BTN} data-testid="mcp-copy" onClick={() => void copyAddress()}>
+        <Action variant="secondary" data-testid="mcp-copy" onClick={() => void copyAddress()}>
           {copied ? ASSISTANTS_COPIED : ASSISTANTS_COPY}
-        </button>
+        </Action>
       </div>
       {grants.length === 0 && (
         <p style={{ ...ROW, margin: 0, fontSize: "0.84375rem", color: "var(--ink2)" }} data-testid="assistants-none">
@@ -812,24 +831,23 @@ function Assistants({
               )}
             </span>
             {onRevoke && confirming !== grant.id && (
-              <button type="button" style={SMALL_BTN} data-testid="assistant-disconnect" onClick={() => setConfirming(grant.id)}>
+              <Action variant="quiet" data-testid="assistant-disconnect" onClick={() => setConfirming(grant.id)}>
                 {ASSISTANTS_DISCONNECT}
-              </button>
+              </Action>
             )}
             {onRevoke && confirming === grant.id && (
               <span style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", fontSize: "0.84375rem" }} data-testid="assistant-confirm">
                 {ASSISTANTS_DISCONNECT_CONFIRM.replace("{client}", client)}
-                <button
-                  type="button"
-                  style={SMALL_BTN}
+                <Action
+                  variant="secondary"
                   data-testid="assistant-disconnect-yes"
                   onClick={() => void onRevoke(grant.id).then(() => setConfirming(null))}
                 >
                   {ASSISTANTS_DISCONNECT_YES}
-                </button>
-                <button type="button" style={SMALL_BTN} onClick={() => setConfirming(null)}>
+                </Action>
+                <Action variant="quiet" onClick={() => setConfirming(null)}>
                   {ASSISTANTS_DISCONNECT_NO}
-                </button>
+                </Action>
               </span>
             )}
           </div>
