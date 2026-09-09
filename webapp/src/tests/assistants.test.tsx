@@ -99,6 +99,7 @@ const grant = (over: Partial<AssistantGrant>): AssistantGrant => ({
   created_utc: "2026-09-05T03:30:00Z",
   last_used_utc: "2026-09-05T03:30:00Z",
   revoked_utc: null,
+  scope: "kettle:read",
   ...over,
 });
 

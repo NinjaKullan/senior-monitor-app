@@ -39,6 +39,7 @@ const entry = (over: Partial<JournalEntry>): JournalEntry => ({
   parent_entry_id: null,
   author_member_id: null,
   edited_utc: null,
+  via_client: null,
   ...over,
 });
 

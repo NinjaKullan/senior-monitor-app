@@ -148,7 +148,7 @@ const notes: JournalEntry[] = [
     kind: "note",
     parent_entry_id: null,
     author_member_id: null,
-    edited_utc: null,
+    edited_utc: null, via_client: null,
   },
   {
     id: 2,
@@ -161,7 +161,7 @@ const notes: JournalEntry[] = [
     kind: "note",
     parent_entry_id: null,
     author_member_id: null,
-    edited_utc: null,
+    edited_utc: null, via_client: null,
   },
 ];
 const TODAY_DATE = "2026-08-03";
@@ -579,7 +579,7 @@ describe("rendered copy law", () => {
         onPickCity={noop}
         onClearCity={noop}
         assistants={[
-          { id: "g1", client_name: "Claude", created_utc: "2026-08-02T10:00:00Z", last_used_utc: "2026-08-02T10:00:00Z", revoked_utc: null },
+          { id: "g1", client_name: "Claude", created_utc: "2026-08-02T10:00:00Z", last_used_utc: "2026-08-02T10:00:00Z", revoked_utc: null, scope: "kettle:read" },
         ]}
         onRevokeAssistant={noop}
         viewerTz="America/New_York"
@@ -608,7 +608,7 @@ describe("rendered copy law", () => {
       kind: "note",
       parent_entry_id: 1,
       author_member_id: null,
-      edited_utc: null,
+      edited_utc: null, via_client: null,
     };
     render(
       <MemoryScreen
