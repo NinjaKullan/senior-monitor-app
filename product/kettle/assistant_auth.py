@@ -40,6 +40,24 @@ from kettle.timeutil import now_utc
 log = logging.getLogger("kettle.assistant")
 
 SCOPE = "kettle:read"
+#: Spec 019 Amendment A: notes and replies through the door. Implies read.
+SCOPE_WRITE = "kettle:write"
+SCOPES = (SCOPE, SCOPE_WRITE)
+
+
+def normalise_scope(requested: str | None) -> str | None:
+    """The scope a request gets: read by default; write implies read; any
+    part outside the two offered is refused (None)."""
+    parts = (requested or SCOPE).split()
+    if any(part not in SCOPES for part in parts):
+        return None
+    return SCOPE_WRITE if SCOPE_WRITE in parts else SCOPE
+
+
+def can_write(scope: str | None) -> bool:
+    return SCOPE_WRITE in (scope or "").split()
+
+
 CODE_LIFE = timedelta(minutes=10)
 ACCESS_LIFE = timedelta(hours=1)
 REFRESH_LIFE = timedelta(days=90)
@@ -104,7 +122,7 @@ def protected_resource_metadata(base: str) -> dict[str, Any]:
     return {
         "resource": f"{base}/mcp",
         "authorization_servers": [base],
-        "scopes_supported": [SCOPE],
+        "scopes_supported": list(SCOPES),
         "bearer_methods_supported": ["header"],
     }
 
@@ -115,7 +133,7 @@ def authorization_server_metadata(base: str) -> dict[str, Any]:
         "authorization_endpoint": f"{base}/oauth/authorize",
         "token_endpoint": f"{base}/oauth/token",
         "registration_endpoint": f"{base}/oauth/register",
-        "scopes_supported": [SCOPE],
+        "scopes_supported": list(SCOPES),
         "response_types_supported": ["code"],
         "grant_types_supported": ["authorization_code", "refresh_token"],
         "code_challenge_methods_supported": ["S256"],
@@ -196,6 +214,7 @@ class Tokens:
     access_token: str
     refresh_token: str
     expires_in: int
+    scope: str = SCOPE
 
 
 def register_client(conn: psycopg.Connection, payload: dict[str, Any]) -> dict[str, Any]:
@@ -219,7 +238,7 @@ def register_client(conn: psycopg.Connection, payload: dict[str, Any]) -> dict[s
         "token_endpoint_auth_method": "none",
         "grant_types": ["authorization_code", "refresh_token"],
         "response_types": ["code"],
-        "scope": SCOPE,
+        "scope": " ".join(SCOPES),
     }
 
 
@@ -300,6 +319,7 @@ def create_request(
     code_challenge: str,
     state: str | None,
     now: datetime,
+    scope: str = SCOPE,
 ) -> str:
     row = conn.execute(
         """
@@ -314,7 +334,7 @@ def create_request(
             redirect_uri,
             code_challenge,
             state,
-            SCOPE,
+            scope,
             now,
             now + CODE_LIFE,
         ),
@@ -360,7 +380,10 @@ def _issue(conn: psycopg.Connection, grant_id: Any, now: datetime) -> Tokens:
         """,
         (sha256(access), now + ACCESS_LIFE, sha256(refresh), now + REFRESH_LIFE, now, grant_id),
     )
-    return Tokens(access, refresh, int(ACCESS_LIFE.total_seconds()))
+    scope = conn.execute(
+        "select scope from assistant_grants where id = %s", (grant_id,)
+    ).fetchone()["scope"]
+    return Tokens(access, refresh, int(ACCESS_LIFE.total_seconds()), scope)
 
 
 def exchange_code(
@@ -386,10 +409,20 @@ def exchange_code(
         """
         insert into assistant_grants
             (auth_user_id, client_id, client_name, created_utc, last_used_utc,
-             access_token_hash, access_expires_utc, refresh_token_hash, refresh_expires_utc)
-        values (%s, %s, %s, %s, %s, 'pending', %s, 'pending', %s) returning id
+             access_token_hash, access_expires_utc, refresh_token_hash, refresh_expires_utc,
+             scope)
+        values (%s, %s, %s, %s, %s, 'pending', %s, 'pending', %s, %s) returning id
         """,
-        (row["auth_user_id"], row["client_id"], row["client_name"], now, now, now, now),
+        (
+            row["auth_user_id"],
+            row["client_id"],
+            row["client_name"],
+            now,
+            now,
+            now,
+            now,
+            row["scope"],
+        ),
     ).fetchone()
     return _issue(conn, grant["id"], now)
 
@@ -412,17 +445,31 @@ def refresh_grant(
     return _issue(conn, row["id"], now)
 
 
-def resolve_bearer(conn: psycopg.Connection, token: str, now: datetime) -> str | None:
-    """The auth_user_id an access token stands for, or None."""
+def resolve_grant(conn: psycopg.Connection, token: str, now: datetime) -> dict[str, Any] | None:
+    """The grant an access token stands for — who, what scope, which client
+    (Amendment A) — or None."""
     row = conn.execute(
         """
         update assistant_grants set last_used_utc = %s
         where access_token_hash = %s and revoked_utc is null and access_expires_utc > %s
-        returning auth_user_id
+        returning id, auth_user_id, scope, client_name
         """,
         (now, sha256(token), now),
     ).fetchone()
-    return str(row["auth_user_id"]) if row else None
+    if row is None:
+        return None
+    return {
+        "id": str(row["id"]),
+        "auth_user_id": str(row["auth_user_id"]),
+        "scope": row["scope"],
+        "client_name": row["client_name"],
+    }
+
+
+def resolve_bearer(conn: psycopg.Connection, token: str, now: datetime) -> str | None:
+    """The auth_user_id an access token stands for, or None."""
+    grant = resolve_grant(conn, token, now)
+    return grant["auth_user_id"] if grant else None
 
 
 # --- the routes ------------------------------------------------------------------
@@ -504,12 +551,12 @@ class OAuthRoutes:
             challenge = q.get("code_challenge", "")
             if not challenge or q.get("code_challenge_method") != "S256":
                 return refuse("invalid_request", "PKCE S256 is required")
-            scope = q.get("scope") or SCOPE
-            if any(part not in (SCOPE,) for part in scope.split()):
-                return refuse("invalid_scope", f"only {SCOPE} is offered")
+            scope = normalise_scope(q.get("scope"))
+            if scope is None:
+                return refuse("invalid_scope", f"only {' and '.join(SCOPES)} are offered")
             now = self.clock()
             sweep_requests(conn, now)
-            request_id = create_request(conn, client, redirect_uri, challenge, state, now)
+            request_id = create_request(conn, client, redirect_uri, challenge, state, now, scope)
         return RedirectResponse(f"{self.app_origin}/connect?request={request_id}", status_code=302)
 
     async def approve(self, request: Request) -> JSONResponse:
@@ -568,7 +615,9 @@ class OAuthRoutes:
             or row["auth_user_id"]
         ):
             return JSONResponse({"error": "expired"}, status_code=410)
-        return JSONResponse({"client_name": row["client_name"] or ASSISTANT_FALLBACK})
+        return JSONResponse(
+            {"client_name": row["client_name"] or ASSISTANT_FALLBACK, "scope": row["scope"]}
+        )
 
     async def token(self, request: Request) -> JSONResponse:
         raw = (await request.body()).decode("utf-8", errors="replace")
@@ -600,7 +649,7 @@ class OAuthRoutes:
                 "token_type": "bearer",
                 "expires_in": tokens.expires_in,
                 "refresh_token": tokens.refresh_token,
-                "scope": SCOPE,
+                "scope": tokens.scope,
             },
             headers={"cache-control": "no-store", "pragma": "no-cache"},
         )
