@@ -432,6 +432,14 @@ describe("rendered copy law", () => {
     }
     fireEvent.click(screen.getAllByTestId("device-remove")[0]);
     fireEvent.click(screen.getByTestId("device-add"));
+    // DECISIONS 324: the device address is in view for an admin, in a <code>
+    // line scoped to its testid, and removed as a NODE before the digit walk
+    // like the contacts sheet's phone — the exemption is the element.
+    for (const line of screen.getAllByTestId("device-address-line")) {
+      expect(line.tagName).toBe("CODE");
+      expect(line.textContent).toBe("https://kettle-api.fly.dev/d/" + "t".repeat(32));
+      line.remove();
+    }
     text = renderedText();
     expect(text).toContain("Something in Amma's home");
     expect(text).toContain("Copied");

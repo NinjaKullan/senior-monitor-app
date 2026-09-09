@@ -267,15 +267,16 @@ describe("the setup rows (§5), by role", () => {
     expect(screen.queryByTestId("device-add-sheet")).toBeNull();
   });
 
-  it("an admin copies the address to the clipboard, never onto the screen", async () => {
+  it("an admin copies the address to the clipboard and sees it in view (324)", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, { clipboard: { writeText } });
     const household = actions();
     render(<FamilyScreen {...shared} deviceRows={deviceSetupRows("p1", [plug], [], MORNING)} household={household} />);
+    expect(screen.queryByTestId("device-address-line")).toBeNull();
     fireEvent.click(screen.getByTestId("device-address"));
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(`https://kettle-api.fly.dev/d/${"t".repeat(32)}`));
     expect(screen.getByTestId("device-address")).toHaveTextContent(DEVICE_COPIED);
-    expect(document.body.textContent).not.toContain("t".repeat(32));
+    expect(screen.getByTestId("device-address-line")).toHaveTextContent(`https://kettle-api.fly.dev/d/${"t".repeat(32)}`);
     expect(screen.getByTestId("device-address")).not.toHaveTextContent(DEVICE_ADDRESS);
   });
 
