@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Action } from "@/components/ui/action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -156,15 +157,14 @@ export function Login({
                 surfaces LOGIN_RATE_LIMITED. That is the correct answer, not a
                 bug: the screen must never claim a code is on its way when the
                 mailer has refused to send one. */}
-            <button
-              type="button"
+            <Action
+              variant="quiet"
               disabled={busy}
               onClick={() => void send(email.trim())}
-              className="text-sm underline underline-offset-4 text-muted-foreground"
               data-testid="login-resend"
             >
               {LOGIN_CODE_RESEND}
-            </button>
+            </Action>
             {(state === "rate_limited" || state === "failed") && (
               <p role="alert" className="text-sm text-foreground" data-testid="login-send-error">
                 {state === "rate_limited" ? LOGIN_RATE_LIMITED : LOGIN_FAILED}

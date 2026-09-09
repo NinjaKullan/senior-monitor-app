@@ -10,6 +10,7 @@
  */
 
 import { useRef, useState } from "react";
+import { Action } from "@/components/ui/action";
 import {
   ADDED_BY,
   AUTHOR_VIA,
@@ -111,33 +112,6 @@ const PILL_INPUT: React.CSSProperties = {
   color: "var(--ink)",
   minHeight: "2.75rem",
   boxSizing: "border-box",
-};
-const PILL_BUTTON: React.CSSProperties = {
-  border: "1px solid var(--hair)",
-  borderRadius: "999px",
-  padding: "0.5rem 0.875rem",
-  fontSize: "0.8125rem",
-  color: "var(--inkmid)",
-  background: "var(--card)",
-  cursor: "pointer",
-  minHeight: "2.75rem",
-};
-const PILL_PRIMARY: React.CSSProperties = {
-  ...PILL_BUTTON,
-  border: "1px solid var(--copperbd)",
-  fontWeight: 600,
-  color: "var(--copperdeep)",
-  background: "var(--coppertint)",
-};
-const LINK_BUTTON: React.CSSProperties = {
-  background: "none",
-  border: "none",
-  padding: 0,
-  fontSize: "0.71875rem",
-  fontWeight: 600,
-  letterSpacing: ".03em",
-  color: "var(--copperdeep)",
-  cursor: "pointer",
 };
 
 function Body({ body }: { body: string }) {
@@ -371,12 +345,12 @@ export function NotesPanel({
             style={PILL_INPUT}
             data-testid="edit-input"
           />
-          <button type="button" onClick={() => void saveEdit()} style={PILL_PRIMARY} data-testid="edit-save">
+          <Action variant="primary" onClick={() => void saveEdit()} data-testid="edit-save">
             {SAVE}
-          </button>
-          <button type="button" onClick={() => setEditing(null)} style={PILL_BUTTON} data-testid="edit-cancel">
+          </Action>
+          <Action variant="secondary" onClick={() => setEditing(null)} data-testid="edit-cancel">
             {EDIT_CANCEL}
-          </button>
+          </Action>
         </div>
       );
     }
@@ -384,26 +358,26 @@ export function NotesPanel({
       return (
         <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.375rem", alignItems: "center", flexWrap: "wrap", fontSize: "0.8125rem" }} data-testid="delete-confirm">
           {isReply ? DELETE_REPLY_CONFIRM : DELETE_NOTE_CONFIRM}
-          <button type="button" onClick={() => void confirmDelete(entry.id)} style={PILL_BUTTON} data-testid="delete-yes">
+          <Action variant="secondary" onClick={() => void confirmDelete(entry.id)} data-testid="delete-yes">
             {DELETE_CONFIRM_YES}
-          </button>
-          <button type="button" onClick={() => setDeleting(null)} style={PILL_BUTTON} data-testid="delete-cancel">
+          </Action>
+          <Action variant="quiet" onClick={() => setDeleting(null)} data-testid="delete-cancel">
             {DELETE_CANCEL}
-          </button>
+          </Action>
         </div>
       );
     }
     return (
       <span style={{ display: "inline-flex", gap: "0.75rem", marginLeft: "0.75rem" }}>
         {editable && (
-          <button type="button" style={LINK_BUTTON} data-testid="edit-link" onClick={() => setEditing({ id: entry.id, body: entry.body })}>
+          <Action variant="quiet" data-testid="edit-link" onClick={() => setEditing({ id: entry.id, body: entry.body })}>
             {EDIT_LINK}
-          </button>
+          </Action>
         )}
         {deletable && (
-          <button type="button" style={LINK_BUTTON} data-testid="delete-link" onClick={() => setDeleting(entry.id)}>
+          <Action variant="quiet" data-testid="delete-link" onClick={() => setDeleting(entry.id)}>
             {DELETE_LINK}
-          </button>
+          </Action>
         )}
       </span>
     );
@@ -552,27 +526,16 @@ export function NotesPanel({
             {editing?.id === entry.id ? null : <Body body={entry.body} />}
             {renderReplies(entry.id)}
             {onReply && canReply(entry) && replyingTo !== entry.id && (
-              <button
-                type="button"
-                className="kt-link"
+              <Action
+                variant="secondary"
                 onClick={() => {
                   setReplyingTo(entry.id);
                   setReplyBody("");
                 }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: "0.5rem 0 0",
-                  fontSize: "0.78125rem",
-                  fontWeight: 600,
-                  color: "var(--copperdeep)",
-                  cursor: "pointer",
-                  minHeight: "2.75rem",
-                }}
                 data-testid="reply-link"
               >
                 {REPLY_LINK}
-              </button>
+              </Action>
             )}
             {onReply && replyingTo === entry.id && (
               <div
@@ -604,47 +567,17 @@ export function NotesPanel({
                   data-testid="reply-input"
                   disabled={sending}
                 />
-                <button
-                  type="button"
-                  onClick={() => void submitReply(entry.id)}
-                  style={{
-                    border: "1px solid var(--copperbd)",
-                    borderRadius: "999px",
-                    padding: "0.5rem 0.875rem",
-                    fontSize: "0.8125rem",
-                    fontWeight: 600,
-                    color: "var(--copperdeep)",
-                    background: "var(--coppertint)",
-                    cursor: "pointer",
-                    minHeight: "2.75rem",
-                  }}
-                  data-testid="reply-submit"
-                  disabled={sending}
-                >
+                <Action variant="primary" onClick={() => void submitReply(entry.id)} data-testid="reply-submit" disabled={sending}>
                   {REPLY_SUBMIT}
-                </button>
+                </Action>
                 {replyFailed && (
                   <span style={{ flexBasis: "100%", fontSize: "0.78125rem", color: "var(--ink2)" }} data-testid="reply-failed">
                     {replyFailed}
                   </span>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setReplyingTo(null)}
-                  style={{
-                    border: "1px solid var(--hair)",
-                    borderRadius: "999px",
-                    padding: "0.5rem 0.875rem",
-                    fontSize: "0.8125rem",
-                    color: "var(--inkmid)",
-                    background: "var(--card)",
-                    cursor: "pointer",
-                    minHeight: "2.75rem",
-                  }}
-                  data-testid="reply-cancel"
-                >
+                <Action variant="quiet" onClick={() => setReplyingTo(null)} data-testid="reply-cancel">
                   {REPLY_CANCEL}
-                </button>
+                </Action>
               </div>
             )}
           </div>
@@ -695,44 +628,13 @@ export function NotesPanel({
             data-testid="note-date"
           />
         ) : (
-          <button
-            type="button"
-            onClick={() => setShowDate(true)}
-            style={{
-              border: "1px solid var(--hair)",
-              borderRadius: "999px",
-              padding: "0.5625rem 0.75rem",
-              fontSize: "0.8125rem",
-              color: "var(--inkmid)",
-              background: "var(--card)",
-              whiteSpace: "nowrap",
-              cursor: "pointer",
-              minHeight: "2.75rem",
-            }}
-            data-testid="note-date-chip"
-          >
+          <Action variant="secondary" onClick={() => setShowDate(true)} data-testid="note-date-chip">
             {DATE_CHIP_LABEL}
-          </button>
+          </Action>
         )}
-        <button
-          type="button"
-          onClick={() => void submit()}
-          style={{
-            border: "1px solid var(--copperbd)",
-            borderRadius: "999px",
-            padding: "0.5625rem 1rem",
-            fontSize: "0.8125rem",
-            fontWeight: 600,
-            color: "var(--copperdeep)",
-            background: "var(--coppertint)",
-            cursor: "pointer",
-            minHeight: "2.75rem",
-          }}
-          data-testid="note-submit"
-          disabled={sending}
-        >
+        <Action variant="primary" onClick={() => void submit()} data-testid="note-submit" disabled={sending}>
           {NOTE_SUBMIT_LABEL}
-        </button>
+        </Action>
       </div>
       {failed && (
         <div style={{ marginTop: "0.375rem", fontSize: "0.78125rem", color: "var(--ink2)" }} data-testid="composer-failed">

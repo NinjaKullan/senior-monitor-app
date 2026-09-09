@@ -6,6 +6,7 @@
  * already carries it, and repeating it would be a scoreboard.
  */
 import { useState } from "react";
+import { Action } from "@/components/ui/action";
 import { KettleGlyph } from "@/components/KettleGlyph";
 import {
   EMPTY_TODAY,
@@ -26,18 +27,6 @@ export interface PauseActions {
   onPause: (parentId: string, duration: "week" | "open") => Promise<void>;
   onResume: (parentId: string) => Promise<void>;
 }
-
-const SMALL_BTN: React.CSSProperties = {
-  background: "none",
-  border: "1px solid var(--hair)",
-  borderRadius: "999px",
-  padding: "0.5rem 0.875rem",
-  minHeight: "2.75rem",
-  fontSize: "0.8125rem",
-  fontWeight: 600,
-  color: "var(--ink2)",
-  cursor: "pointer",
-};
 
 export function Today({
   states,
@@ -129,14 +118,13 @@ export function Today({
                 </div>
                 {pause && (
                   <div style={{ marginTop: "0.875rem" }}>
-                    <button
-                      type="button"
-                      style={SMALL_BTN}
+                    <Action
+                      variant="secondary"
                       data-testid="resume-button"
                       onClick={() => void pause.onResume(state.parentId)}
                     >
                       {RESUME_BUTTON}
-                    </button>
+                    </Action>
                   </div>
                 )}
               </div>
@@ -220,74 +208,27 @@ export function Today({
                 }}
               >
                 {state.callHref ? (
-                  <a
-                    href={state.callHref}
-                    data-testid="call-button"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.4375rem",
-                      background: "var(--copperdeep)",
-                      color: "var(--oncopper)",
-                      borderRadius: "999px",
-                      padding: "0.5625rem 1.125rem",
-                      fontWeight: 700,
-                      fontSize: "0.875rem",
-                      textDecoration: "none",
-                      minHeight: "2.75rem",
-                      boxSizing: "border-box",
-                    }}
-                  >
+                  <Action variant="primary" href={state.callHref} data-testid="call-button">
                     {state.callLabel}
-                  </a>
+                  </Action>
                 ) : (
                   <span />
                 )}
-                <button
-                  type="button"
-                  onClick={() => onOpen(state.parentId)}
-                  data-testid="view-day"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "0.375rem",
-                    color: "var(--copperdeep)",
-                    fontWeight: 600,
-                    fontSize: "0.875rem",
-                    background: "none",
-                    border: "none",
-                    padding: "0.5rem 0",
-                    minHeight: "2.75rem",
-                    cursor: "pointer",
-                  }}
-                >
+                <Action variant="secondary" onClick={() => onOpen(state.parentId)} data-testid="view-day">
                   {state.viewLabel}
-                </button>
+                </Action>
               </div>
               {pause && choosing !== state.parentId && (
-                <button
-                  type="button"
-                  onClick={() => setChoosing(state.parentId)}
-                  data-testid="pause-link"
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: "0.5rem 0 0",
-                    fontSize: "0.78125rem",
-                    fontWeight: 600,
-                    color: "var(--mute)",
-                    cursor: "pointer",
-                    minHeight: "2.75rem",
-                  }}
-                >
-                  {PAUSE_LINK}
-                </button>
+                <div style={{ marginTop: "0.875rem", fontSize: "0.8125rem" }}>
+                  <Action variant="quiet" onClick={() => setChoosing(state.parentId)} data-testid="pause-link">
+                    {PAUSE_LINK}
+                  </Action>
+                </div>
               )}
               {pause && choosing === state.parentId && (
                 <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.625rem" }} data-testid="pause-choices">
-                  <button
-                    type="button"
-                    style={SMALL_BTN}
+                  <Action
+                    variant="secondary"
                     data-testid="pause-week"
                     onClick={() => {
                       setChoosing(null);
@@ -295,10 +236,9 @@ export function Today({
                     }}
                   >
                     {PAUSE_WEEK}
-                  </button>
-                  <button
-                    type="button"
-                    style={SMALL_BTN}
+                  </Action>
+                  <Action
+                    variant="secondary"
                     data-testid="pause-open"
                     onClick={() => {
                       setChoosing(null);
@@ -306,10 +246,10 @@ export function Today({
                     }}
                   >
                     {PAUSE_OPEN}
-                  </button>
-                  <button type="button" style={SMALL_BTN} onClick={() => setChoosing(null)}>
+                  </Action>
+                  <Action variant="secondary" onClick={() => setChoosing(null)}>
                     {PAUSE_CANCEL}
-                  </button>
+                  </Action>
                 </div>
               )}
             </div>

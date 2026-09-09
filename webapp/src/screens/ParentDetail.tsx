@@ -5,6 +5,7 @@
  * when a tripwire has stopped reporting, Family notes scoped to this parent.
  */
 import { DayArc } from "@/components/DayArc";
+import { Action } from "@/components/ui/action";
 import { KettleGlyph } from "@/components/KettleGlyph";
 import { NotesPanel, type NoteDraft, type ReplyDraft } from "@/components/NotesPanel";
 import type { Viewer } from "@/lib/journal";
@@ -76,25 +77,11 @@ export function ParentDetail({
   const fixSplit = fix.indexOf(". ") + 1;
   return (
     <div className="kt-view" data-testid="parent-detail" style={{ maxWidth: "40rem", margin: "0 auto" }}>
-      <button
-        type="button"
-        onClick={onBack}
-        className="kt-rowbtn"
-        style={{
-          background: "none",
-          border: "none",
-          borderRadius: "0.625rem",
-          padding: "0.625rem 0.5rem",
-          margin: "0 0 0.25rem -0.5rem",
-          fontSize: "0.8125rem",
-          fontWeight: 600,
-          color: "var(--inkmid)",
-          cursor: "pointer",
-          minHeight: "2.75rem",
-        }}
-      >
-        ← {BACK_TO_TODAY}
-      </button>
+      <div style={{ margin: "0 0 0.75rem", fontSize: "0.8125rem" }}>
+        <Action variant="quiet" onClick={onBack} data-testid="back-to-today">
+          ← {BACK_TO_TODAY}
+        </Action>
+      </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: "0.875rem", margin: "1rem 0 0.25rem" }}>
         <KettleGlyph state={state.kind} size={44} />
@@ -236,26 +223,9 @@ export function ParentDetail({
           >
             {fix.slice(fixSplit + 1)}
           </p>
-          <button
-            type="button"
-            onClick={onSteps}
-            data-testid="fix-steps"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.375rem",
-              color: "var(--copperdeep)",
-              fontWeight: 600,
-              fontSize: "0.875rem",
-              background: "none",
-              border: "none",
-              padding: "0.375rem 0",
-              minHeight: "2.75rem",
-              cursor: "pointer",
-            }}
-          >
+          <Action variant="secondary" onClick={onSteps} data-testid="fix-steps">
             {FIX_STEPS_LABEL}
-          </button>
+          </Action>
         </section>
       )}
 

@@ -17,24 +17,13 @@ import {
   CONNECT_TITLE,
   CONNECT_WRITE_NOTE,
 } from "@/lib/copy";
+import { Action } from "@/components/ui/action";
 import { joinNames } from "@/lib/parentState";
 
 export type ConnectState =
   | { kind: "loading" }
   | { kind: "expired" }
   | { kind: "ready"; clientName: string; names: string[]; write?: boolean };
-
-const PILL: React.CSSProperties = {
-  border: "1px solid var(--hair)",
-  borderRadius: "999px",
-  padding: "0.625rem 1.25rem",
-  fontSize: "0.9375rem",
-  fontWeight: 600,
-  color: "var(--inkmid)",
-  background: "var(--card)",
-  cursor: "pointer",
-  minHeight: "2.75rem",
-};
 
 export function ConnectScreen({
   state,
@@ -53,9 +42,9 @@ export function ConnectScreen({
           <p style={{ color: "var(--ink2)", lineHeight: 1.5 }} data-testid="connect-expired">
             {CONNECT_EXPIRED}
           </p>
-          <a className="kt-link" href="/" data-testid="connect-back">
+          <Action variant="quiet" href="/" data-testid="connect-back">
             {CONNECT_BACK}
-          </a>
+          </Action>
         </>
       )}
       {state.kind === "ready" && (
@@ -76,17 +65,12 @@ export function ConnectScreen({
             {state.write ? CONNECT_WRITE_NOTE : CONNECT_READ_ONLY}
           </p>
           <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.25rem" }}>
-            <button
-              type="button"
-              onClick={() => void onAllow()}
-              data-testid="connect-allow"
-              style={{ ...PILL, border: "1px solid var(--copperbd)", color: "var(--copperdeep)", background: "var(--coppertint)" }}
-            >
+            <Action variant="primary" onClick={() => void onAllow()} data-testid="connect-allow">
               {CONNECT_ALLOW}
-            </button>
-            <button type="button" onClick={() => void onCancel()} data-testid="connect-cancel" style={PILL}>
+            </Action>
+            <Action variant="quiet" onClick={() => void onCancel()} data-testid="connect-cancel">
               {CONNECT_CANCEL}
-            </button>
+            </Action>
           </div>
         </>
       )}

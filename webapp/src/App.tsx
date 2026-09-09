@@ -55,6 +55,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { ConnectScreen, type ConnectState } from "@/screens/Connect";
 import { deviceLine, deviceSetupRows, devicesToday } from "@/lib/household";
+import { Action } from "@/components/ui/action";
 import { FamilyScreen } from "@/screens/Family";
 import { MemoryScreen } from "@/screens/Memory";
 import { WhoToCallScreen } from "@/screens/WhoToCall";
@@ -724,22 +725,9 @@ function Shell({
             {TAGLINE}
           </div>
           {onSignOut && (
-            <button
-              type="button"
-              onClick={onSignOut}
-              style={{
-                textAlign: "left",
-                background: "none",
-                border: "none",
-                padding: "9px 0",
-                fontSize: 13.5,
-                fontWeight: 600,
-                color: "var(--ink3)",
-                cursor: "pointer",
-              }}
-            >
-              Sign out
-            </button>
+            <Action variant="quiet" onClick={onSignOut} data-testid="sign-out">
+                Sign out
+            </Action>
           )}
         </div>
       )}
@@ -767,21 +755,9 @@ function Shell({
               <Wordmark size="header" />
               {switcher}
               {onSignOut && (
-                <button
-                  type="button"
-                  onClick={onSignOut}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: "9px 0",
-                    fontSize: 13.5,
-                    fontWeight: 600,
-                    color: "var(--ink3)",
-                    cursor: "pointer",
-                  }}
-                >
-                  Sign out
-                </button>
+                <Action variant="quiet" onClick={onSignOut} data-testid="sign-out">
+                    Sign out
+                </Action>
               )}
             </header>
           )}

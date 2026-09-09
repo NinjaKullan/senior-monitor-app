@@ -13,6 +13,7 @@
  */
 
 import { useState } from "react";
+import { Action } from "@/components/ui/action";
 import {
   CONTACT_ADD_LABEL,
   CONTACT_MOVE_DOWN,
@@ -39,17 +40,6 @@ const FIELD: React.CSSProperties = {
   background: "var(--paper)",
   minHeight: "2.25rem",
   boxSizing: "border-box",
-};
-
-const CHIP: React.CSSProperties = {
-  border: "1px solid var(--hair)",
-  borderRadius: "999px",
-  padding: "0.375rem 0.75rem",
-  fontSize: "0.78125rem",
-  color: "var(--inkmid)",
-  background: "var(--card)",
-  cursor: "pointer",
-  minHeight: "2.25rem",
 };
 
 function Editor({
@@ -97,7 +87,7 @@ function Editor({
           </option>
         ))}
       </select>
-      <button type="button" style={{ ...CHIP, color: "var(--copperdeep)", fontWeight: 600 }}
+      <Action variant="primary"
         onClick={() =>
           void onSave({
             label: label.trim(),
@@ -111,7 +101,7 @@ function Editor({
         data-testid="contact-save"
       >
         {CONTACT_SAVE_LABEL}
-      </button>
+      </Action>
     </div>
   );
 }
@@ -212,22 +202,20 @@ export function ContactsCard({
               <span style={{ fontSize: "0.8125rem", color: "var(--ink2)" }}>{contact.note}</span>
             )}
             <span style={{ marginLeft: "auto", display: "flex", gap: "0.375rem" }}>
-              <button type="button" style={CHIP} onClick={() => void onMove(contact.id, -1)}
+              <Action variant="quiet" onClick={() => void onMove(contact.id, -1)}
                 aria-label={CONTACT_MOVE_UP} data-testid="contact-up">
                 {CONTACT_MOVE_UP}
-              </button>
-              <button type="button" style={CHIP} onClick={() => void onMove(contact.id, 1)}
+              </Action>
+              <Action variant="quiet" onClick={() => void onMove(contact.id, 1)}
                 aria-label={CONTACT_MOVE_DOWN} data-testid="contact-down">
                 {CONTACT_MOVE_DOWN}
-              </button>
-              <button type="button" style={CHIP} onClick={() => setEditing(contact.id)}
-                data-testid="contact-edit">
+              </Action>
+              <Action variant="quiet" onClick={() => setEditing(contact.id)} data-testid="contact-edit">
                 {CONTACT_EDIT_LABEL}
-              </button>
-              <button type="button" style={CHIP} onClick={() => void onRemove(contact.id)}
-                data-testid="contact-remove">
+              </Action>
+              <Action variant="quiet" onClick={() => void onRemove(contact.id)} data-testid="contact-remove">
                 {CONTACT_REMOVE_LABEL}
-              </button>
+              </Action>
             </span>
           </div>
         ),
@@ -244,10 +232,9 @@ export function ContactsCard({
           }}
         />
       ) : (
-        <button type="button" style={{ ...CHIP, marginTop: "0.375rem" }}
-          onClick={() => setAdding(true)} data-testid="contact-add">
+        <Action variant="secondary" className="kt-mt2" onClick={() => setAdding(true)} data-testid="contact-add">
           {CONTACT_ADD_LABEL}
-        </button>
+        </Action>
       )}
     </section>
   );

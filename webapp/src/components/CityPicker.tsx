@@ -41,7 +41,7 @@ export function CityPicker({
   };
 
   return (
-    <div style={{ position: "relative", minWidth: "11rem" }} data-testid="city-picker">
+    <div style={{ position: "relative", width: "100%" }} data-testid="city-picker">
       <input
         type="text"
         role="combobox"
@@ -60,17 +60,7 @@ export function CityPicker({
           if (event.key === "Enter") event.preventDefault();
           if (event.key === "Escape") setOpen(false);
         }}
-        style={{
-          border: "1px solid var(--hair)",
-          borderRadius: "999px",
-          padding: "0.5rem 0.875rem",
-          fontSize: "0.8125rem",
-          color: "var(--ink)",
-          background: "var(--paper)",
-          width: "100%",
-          boxSizing: "border-box",
-          minHeight: "2.75rem",
-        }}
+        className="kt-cityfield"
         data-testid="city-input"
       />
       {open && text.trim() !== "" && (
