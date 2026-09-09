@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 316.** This line is the one to update; the `Next number:` lines inside
+**Next number: 317.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6568,3 +6568,18 @@ browser — all three adopted as the standard for future surfaces.**
      * Next: 019 Amendment A (PM writes); the button pass brief; beta
        invitations planned for the weekend of Sep 12/13.
      * Next number: 316.
+
+316. **(2026-09-08, ~9:00pm ET) Spec 019 Amendment A (notes and replies
+     through the assistant) WRITTEN at `specs/019-mcp.md` from 311 and
+     RATIFIED by Hema on his go-ahead ("write it now and I can run it");
+     strings verbatim.**
+     * PM calls past 311, for the founder to strike: `reply`'s author is
+       optional (notes before 018 carry the label "Family" and no member,
+       and "reply to the latest note" is how people speak); the mark is
+       a column, `journal_entries.via_client` (migration 0032), rendered
+       as AUTHOR_VIA "{name} via {client}" wherever an author shows, so
+       Edit and Delete keep working on dictated lines; the hourly limit
+       is counted from the table, not from memory; `kettle:write` implies
+       read; a write tool on a read grant answers NEED_WRITE, never a 401.
+     * Next: CC brief (tonight); PM applies 0032 at build time.
+     * Next number: 317.
