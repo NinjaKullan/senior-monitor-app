@@ -38,8 +38,8 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 843 from the repo root** (796 product + 47 pilot —
-the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 311**,
+Current green: **`pytest` 880 from the repo root** (833 product + 47 pilot —
+the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 316**,
 **`site` 236**. The replay test is pinned to fixed Phoenix instants (272) and
 the root suite is green at any hour. `ruff check .` clean; `tools/printables/` is excluded by ruling
 (266) pending its own lint-and-re-render pass.
@@ -103,6 +103,15 @@ number on the approved template. Everything in this file that used to say
 "rolled back", "unset by design", or "the flip is off the table" described the
 world between Sep 1 and Sep 4 and is gone; if you find that language anywhere
 else, it is stale.
+
+**Spec 019 Amendment A (notes and replies through the assistant) is BUILT
+and unshipped (DECISIONS 317).** A second scope, `kettle:write`; `add_note`
+and `reply` behind the same door, marked "{name} via {client}" in Memory and
+the `memory` tool; twenty writes an hour per grant. Migration **0032**
+(`journal_entries.via_client`, `assistant_grants.scope`, the 0028 trigger
+keeping a service-role author). Owed: PM applies 0032 → `cd product && fly
+deploy` → `cd webapp && npm run ci && fly deploy` → the founder removes Kettle
+from Claude and adds it again, sees the write consent, allows.
 
 **Spec 020 (the family's own devices) is BUILT and unshipped (DECISIONS
 313).** A smart plug or a sensor opens `/d/<token>`; Kettle records which

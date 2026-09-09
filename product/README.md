@@ -540,7 +540,9 @@ Supabase session (verified against `SUPABASE_JWKS_URL`, ES256 only), a
 one-time code goes back, and `/oauth/token` swaps it for a one-hour access
 token and a rotating refresh token. Tokens are stored hashed. Five read-only
 tools (`today`, `parent_day`, `memory`, `who_to_call`, `circles`) answer in
-Kettle's sentences from the ledger; `kettle/assistant_copy.py` holds every
+Kettle's sentences from the ledger; since spec 019 Amendment A two write
+tools (`add_note`, `reply`) land a person's own words in the family's Memory
+marked "via {client}", on a `kettle:write` grant only, twenty an hour; `kettle/assistant_copy.py` holds every
 word an assistant reads. Membership is read at call time; a grant stores a
 person, never a family.
 

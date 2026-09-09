@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 317.** This line is the one to update; the `Next number:` lines inside
+**Next number: 318.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6582,4 +6582,40 @@ browser — all three adopted as the standard for future surfaces.**
        is counted from the table, not from memory; `kettle:write` implies
        read; a write tool on a read grant answers NEED_WRITE, never a 401.
      * Next: CC brief (tonight); PM applies 0032 at build time.
-     * Next number: 317.
+
+317. **(2026-09-09) Spec 019 Amendment A BUILT (notes and replies through
+     the assistant); migration 0032, unapplied. Judgement calls.**
+     * **`assistant_grants.scope` did not exist.** A.5 says "(exists)"; it
+       did not — 0029 stored scope on the request only. 0032 adds it with
+       default kettle:read (every grant to date) and extends the 0029
+       COLUMN grant with it so the Family row can say "can add notes"; the
+       hash columns stay ungranted. Not a policy change.
+     * **The 0028 trigger nulled a service-role author.** It set
+       author_member_id from auth.uid() unconditionally, so kettle-api's
+       write on behalf of the member would have lost the author. 0032
+       re-creates the trigger: with a JWT the seat still comes from the
+       JWT (a client session can never set it); with none, a provided
+       author_member_id survives only if that member belongs to the row's
+       family. Kettle's own lines carry none, as before. A plant proves
+       the test holds it.
+     * **`kettle:write` implies read and is what the grant stores** when
+       both are requested; the token response echoes the grant's scope.
+     * **Removed from the circle, a write answers**: with no parent named
+       and no circle left, WHICH_PARENT (with no names to offer); with a
+       parent named, the same "does not know a parent" sentence the reads
+       give; reply, NO_NOTE_TO_ANSWER. Never NEED_WRITE — the grant is
+       still valid — and nothing lands.
+     * A blank body, a body over 2000 or a date that is not YYYY-MM-DD
+       answers CANNOT_SAVE; a bad date on reply answers NO_NOTE_TO_ANSWER
+       (no note is on a day that does not parse). Whitespace is trimmed.
+     * `via_client` stores the grant's client_name, or ASSISTANT_FALLBACK
+       for a nameless client, so the mark is never empty.
+     * **The copy law and "the Kettle app".** Three ruled strings name the
+       app itself; the scan bans "app". Allowed as the phrase "Kettle app"
+       (and the app origin's host), pinned in testsupport_assistant so a
+       bare "app" elsewhere is still caught.
+     * REPLY_SAVED's author is the note's member display name, else its
+       label, else "Family"; the date is the family-zone month and day.
+     * Counts: root pytest 843 → 880 (product 796 → 833); webapp 311 →
+       316; ruff clean.
+     * Next number: 318.
