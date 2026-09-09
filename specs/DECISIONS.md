@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 325.** This line is the one to update; the `Next number:` lines inside
+**Next number: 326.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6777,4 +6777,40 @@ browser — all three adopted as the standard for future surfaces.**
        least 44 px tall. Strings unchanged; no copy changes in this
        pass. Webapp only.
      * Next: CC brief.
-     * Next number: 325.
+
+325. **(2026-09-09) 324 BUILT: the button pass, webapp only. No copy, no
+     product, no migration. Judgement calls.**
+     * `components/ui/action.tsx`: one `<Action variant>` with exactly
+       primary, secondary and quiet; a button by default, an anchor with
+       `href` (Call). The styles live in kettle.css under `.kt-action`,
+       not inline, so a screen cannot grow a fourth style; a test walks
+       every screen and component for a raw styled button and for the
+       five deleted constants. Quiet keeps the baseline by being an
+       inline box whose vertical padding reaches 44 px and whose negative
+       margin gives the space back to the line.
+     * **Login's Send code stays the shadcn `Button`** (the login page is
+       the tailwind island and its filled button already reads as the
+       primary); only the resend link moved to quiet. Naming both as
+       "primary" in two systems is noted, not fixed, in this pass.
+     * **The contacts sheet's chips were converted too** (Save primary,
+       Add secondary, up/down/Edit/Remove quiet): the brief's list did
+       not name them, but leaving a fourth style on Who to call would
+       defeat the pass. The filter chips, the city list's options and the
+       roster row that opens a parent are selection controls, not
+       actions, and keep their markup (allow-listed by file, one each).
+     * The city control is a `.kt-cityfield` input in the secondary look
+       with a CSS chevron, full width on its own line under the name;
+       the roster row became a column. The name button stays a row
+       button. No copy changed.
+     * Optimistic device rows: the row appears with "{Kind} · Nothing
+       heard yet" the moment the function returns its id and is dropped
+       once the refetch carries it; a failed add shows no row; Remove
+       hides the row at once and brings it back if the call fails. The
+       address line (a `<code>`, admins only) appears when a row is added
+       or its address copied, fetched by the existing function; the
+       copy-law scan removes it as a node before the digit walk, the
+       contact-phone precedent.
+     * The two tests that asserted the address never reaches the screen
+       now assert the opposite for admins and the same for members.
+     * Counts: webapp 316 → 325; root pytest unchanged at 885.
+     * Next number: 326.
