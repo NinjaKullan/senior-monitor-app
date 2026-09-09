@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 326.** This line is the one to update; the `Next number:` lines inside
+**Next number: 327.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6814,3 +6814,18 @@ browser — all three adopted as the standard for future surfaces.**
        now assert the opposite for admins and the same for members.
      * Counts: webapp 316 → 325; root pytest unchanged at 885.
      * Next number: 326.
+
+326. **(2026-09-09, ~5:15pm ET) 325 REVIEWED and ACCEPTED (bf1e108): the
+     button pass. Deploy owed; the visual check follows the deploy.**
+     * Accepted as read: one `Action` component, three variants, styles
+       in kettle.css so a screen cannot grow a fourth; Login's Send code
+       stays the tailwind island's button (it already reads as the
+       primary); the contacts sheet's chips converted too; filter chips,
+       the city list's options and the roster row stay as selection
+       controls, allow-listed one per file; the address line dropped as
+       a node before the copy scan's digit walk (the contact-phone
+       precedent).
+     * Deploy (founder): `cd webapp && npm run ci && fly deploy`. Then
+       PM in Chrome on the Rehearsal circle, and the founder on the
+       phone against his Sep 8 screenshots.
+     * Next number: 327.
