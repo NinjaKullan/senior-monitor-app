@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 315.** This line is the one to update; the `Next number:` lines inside
+**Next number: 316.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6537,3 +6537,34 @@ browser — all three adopted as the standard for future surfaces.**
        Appa's setup row from the Family screen, the address pasted per
        the recipe, the next morning's card read against the ledger.
      * Next number: 315.
+
+315. **(2026-09-08, ~8:25pm ET) Spec 020 DEPLOYED and VERIFIED LIVE
+     (b814f6e; 0031 applied 314; product and webapp deployed by the
+     founder ~8:00pm ET). PM ran the whole loop in the founder's Chrome
+     on the Rehearsal circle, TestDad, nothing real touched.**
+     * Family screen: the intro, the told line and Add a device under
+       each setup row; Add with kind Plug, platform Something else;
+       the row "Plug · Nothing heard yet" with Copy address, Remove and
+       the RECIPE_OTHER line under it.
+     * Address opened in a tab: `ok`; one `household_pings` row
+       00:17:39Z. Opened again inside the minute: `ok`, no second row.
+       A well-shaped unknown token: `ok`, nothing recorded. A
+       wrong-shaped path (`/d/notatoken`): `not found`, 404.
+     * Today card (TestDad, Raleigh): "Plug, 8:17 pm this evening" under
+       the heard-from block; the verdict sentence unchanged. Day view:
+       "IN THE HOUSE TODAY · Plug · 8:17 pm" under the arc. The
+       assistant's `today("TestDad")`: "…Heard from 20 minutes ago.
+       Plug, 8:17 pm this evening. Raleigh · 8:18 pm there now."
+     * Remove: the in-page confirm "Remove the plug? Its address stops
+       working right away." → Remove; `removed_utc` set 00:19:20Z; the
+       row gone; the address still answers `ok` and records nothing
+       (count unchanged at one).
+     * Two observations, not defects, for the button pass: the row
+       appears three to four seconds after Add (a refetch, no
+       optimistic row), and the address itself is never shown, only
+       Copy address; on a computer configuring Home Assistant the
+       address in view would help.
+     * The TestDad device is removed; the Rehearsal circle is as it was.
+     * Next: 019 Amendment A (PM writes); the button pass brief; beta
+       invitations planned for the weekend of Sep 12/13.
+     * Next number: 316.
