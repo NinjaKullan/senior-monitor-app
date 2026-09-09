@@ -504,3 +504,135 @@ def test_dynamic_registration_still_works_beside_cimd(cimd_api_factory, conn, fa
         assistant.connect(USER)
         assert assistant.client_id.startswith("kc_")
         assert mcp_call(api, assistant.access_token, "tools/list").status_code == 200
+
+
+# --- the shipped copy of a known client's document (DECISIONS 319) ------------------
+
+CLAUDE_ID = "https://claude.ai/oauth/mcp-oauth-client-metadata"
+CLAUDE_REDIRECT = "https://claude.ai/api/mcp/auth_callback"
+
+
+def challenged(calls: list[str] | None = None, url: str = CLAUDE_ID) -> httpx.Client:
+    """claude.ai's edge as seen from Fly: a Cloudflare challenge, text/html."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if calls is not None:
+            calls.append(str(request.url))
+        if str(request.url) == url:
+            return httpx.Response(
+                403, text="<html>Just a moment...</html>", headers={"content-type": "text/html"}
+            )
+        return httpx.Response(404)
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_a_challenged_fetch_of_claudes_document_falls_back_to_the_shipped_copy(
+    cimd_api_factory, conn, family, caplog
+):
+    import logging
+
+    with (
+        caplog.at_level(logging.WARNING, logger="kettle.assistant"),
+        cimd_api_factory(challenged()) as api,
+    ):
+        assistant = Assistant(api, redirect_uri=CLAUDE_REDIRECT)
+        assistant.client_id = CLAUDE_ID
+        _, challenge = pkce_pair()
+        sent = assistant.authorize(challenge, scope="kettle:read kettle:write")
+        assert sent.status_code == 302, sent.text
+        request_id = parse_qs(urlsplit(sent.headers["location"]).query)["request"][0]
+        assert api.get("/oauth/pending", params={"request": request_id}).json() == {
+            "client_name": "Claude",
+            "scope": "kettle:write",
+        }
+        assistant.connect(USER, scope="kettle:write")
+        assert mcp_call(api, assistant.access_token, "tools/list").status_code == 200
+    rows = conn.execute(
+        "select client_id, client_name, redirect_uris from assistant_clients"
+    ).fetchall()
+    assert [(r["client_id"], r["client_name"], list(r["redirect_uris"])) for r in rows] == [
+        (CLAUDE_ID, "Claude", [CLAUDE_REDIRECT])
+    ]
+    assert (
+        f"client document at {CLAUDE_ID} refused: 403 text/html; using the shipped copy"
+        in caplog.text
+    )
+
+
+def test_a_challenged_fetch_of_an_unknown_document_is_still_invalid_client(
+    cimd_api_factory, family, caplog
+):
+    import logging
+
+    with (
+        caplog.at_level(logging.WARNING, logger="kettle.assistant"),
+        cimd_api_factory(challenged(url=CIMD_ID)) as api,
+    ):
+        assistant = Assistant(api, redirect_uri=CIMD_REDIRECT)
+        assistant.client_id = CIMD_ID
+        _, challenge = pkce_pair()
+        refused = assistant.authorize(challenge)
+        assert refused.status_code == 400
+        assert refused.json()["error"] == "invalid_client"
+    assert f"client document at {CIMD_ID} refused: 403 text/html; no shipped copy" in caplog.text
+
+
+def test_a_live_document_that_differs_wins_over_the_shipped_copy(cimd_api_factory, conn, family):
+    second = "https://claude.ai/api/mcp/other_callback"
+    live = {
+        "client_id": CLAUDE_ID,
+        "client_name": "Claude",
+        "redirect_uris": [CLAUDE_REDIRECT, second],
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return (
+            httpx.Response(200, json=live) if str(request.url) == CLAUDE_ID else httpx.Response(404)
+        )
+
+    with cimd_api_factory(httpx.Client(transport=httpx.MockTransport(handler))) as api:
+        assistant = Assistant(api, redirect_uri=second)
+        assistant.client_id = CLAUDE_ID
+        _, challenge = pkce_pair()
+        assert assistant.authorize(challenge).status_code == 302
+    row = conn.execute("select redirect_uris from assistant_clients").fetchone()
+    assert list(row["redirect_uris"]) == [CLAUDE_REDIRECT, second]
+
+
+def test_a_failed_fetch_is_remembered_for_ten_minutes(cimd_api_factory, family, clock):
+    from datetime import timedelta
+
+    calls: list[str] = []
+    with cimd_api_factory(challenged(calls)) as api:
+        assistant = Assistant(api, redirect_uri=CLAUDE_REDIRECT)
+        assistant.client_id = CLAUDE_ID
+        for _ in range(3):
+            _, challenge = pkce_pair()
+            assert assistant.authorize(challenge).status_code == 302
+        assert calls == [CLAUDE_ID]
+        clock.now = clock.now + timedelta(minutes=10, seconds=1)
+        _, challenge = pkce_pair()
+        assert assistant.authorize(challenge).status_code == 302
+        assert calls == [CLAUDE_ID, CLAUDE_ID]
+
+
+def test_a_network_failure_logs_the_exception_class_and_uses_the_shipped_copy(
+    cimd_api_factory, family, caplog
+):
+    import logging
+
+    def explode(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectTimeout("slow", request=request)
+
+    with (
+        caplog.at_level(logging.WARNING, logger="kettle.assistant"),
+        cimd_api_factory(httpx.Client(transport=httpx.MockTransport(explode))) as api,
+    ):
+        assistant = Assistant(api, redirect_uri=CLAUDE_REDIRECT)
+        assistant.client_id = CLAUDE_ID
+        _, challenge = pkce_pair()
+        assert assistant.authorize(challenge).status_code == 302
+    assert f"client document at {CLAUDE_ID} refused: ConnectTimeout; using the shipped copy" in (
+        caplog.text
+    )
