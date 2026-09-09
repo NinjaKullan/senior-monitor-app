@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 321.** This line is the one to update; the `Next number:` lines inside
+**Next number: 322.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6695,3 +6695,26 @@ browser — all three adopted as the standard for future surfaces.**
        never a check on one that worked.
      * Counts: root pytest 880 → 885; ruff clean.
      * Next number: 321.
+
+321. **(2026-09-09, ~3:25pm ET) 320 REVIEWED and ACCEPTED (dcde821): the
+     shipped copy of Claude's client document as the CIMD fallback.
+     Deploy owed.** Order as ruled (cached good copy, live fetch, shipped
+     copy, None); a live document that differs wins and is what gets
+     mirrored (accepted: the copy stands in for a fetch that failed, it
+     never overrules one that worked); failures remembered ten minutes;
+     the log line carries status and content type, or the exception
+     class.
+     * Learned on the night of Sep 8: Claude's "No client ID, register
+       one automatically" choice is NOT a workaround when the server
+       advertises `client_id_metadata_document_supported`; Claude sent
+       the CIMD client_id regardless. So the fix was the only path.
+     * Founder's phone, Sep 9 3:14pm ET: the "Kettle — YouTube" shortcut
+       reported "A TLS error caused the secure connection to fail" on
+       5G. The same shortcut's ping landed at 3:11pm and Amma's and
+       Appa's pings landed through the afternoon, so the server's
+       certificate is fine; a one-off on the phone's network. Watch for
+       recurrence; the heartbeat covers a sustained one.
+     * Deploy (founder): `cd product && fly deploy`; then add Kettle in
+       Claude again with the defaults (CIMD), expect the write consent,
+       then the phone: "tell Kettle Amma's doctor visit is on Thursday".
+     * Next number: 322.
