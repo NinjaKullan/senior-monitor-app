@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 324.** This line is the one to update; the `Next number:` lines inside
+**Next number: 325.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6753,3 +6753,28 @@ browser — all three adopted as the standard for future surfaces.**
      Memory. Both Amendment A tools are now seen live; only NEED_WRITE
      on a read-only grant remains unseen, and it is covered by test.
      * Next number: 324.
+
+324. **(2026-09-09, ~4:20pm ET) RULED by Hema (from his Sep 8 PWA
+     screenshots): the button pass. One action vocabulary across the
+     app, three styles and no others.**
+     * PRIMARY: one per card at most, the filled pill (today's Call).
+       SECONDARY: the outlined pill, same height, for the next most
+       likely tap (View {name}'s day; Add a device; Add someone; Reply;
+       Copy address). QUIET: a text action that still reads as one,
+       the accent colour with an underline on the same baseline as the
+       text around it, for the rare or destructive (Pause Kettle, Edit,
+       Delete, Remove, Disconnect, Leave this circle, Sign out).
+     * Findings the pass answers: three styles on one Today card and
+       "Pause Kettle" reading as plain text; Edit, Delete and Reply on
+       Memory the same brown as the labels; the city control on Family
+       reading as a tag and wrapping under Appa's name while sitting
+       beside Amma's; after Add a device the row arrives three to four
+       seconds later with nothing in between (315); the device address
+       only copyable, never shown (315).
+     * Mechanism: one shared component with the three variants, and the
+       per-screen inline button styles (SMALL_BTN in two files,
+       LINK_BTN, PILL_BUTTON, PILL_PRIMARY) deleted. Touch targets at
+       least 44 px tall. Strings unchanged; no copy changes in this
+       pass. Webapp only.
+     * Next: CC brief.
+     * Next number: 325.
