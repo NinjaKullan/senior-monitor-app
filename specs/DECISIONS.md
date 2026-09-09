@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 323.** This line is the one to update; the `Next number:` lines inside
+**Next number: 324.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6744,3 +6744,12 @@ browser — all three adopted as the standard for future surfaces.**
        (Codex could show it; not required).
      * Next: the button pass brief; beta invitations this weekend.
      * Next number: 323.
+
+323. **(2026-09-09, ~4:00pm ET) `reply` VERIFIED LIVE.** From the phone,
+     "reply to my last note in Kettle: I'll drive her." Row 22:
+     parent_entry_id 21 (the doctor-visit note), author "Hema", via
+     "Claude", body "I'll drive her.", the parent tag inherited from the
+     note by the 016 trigger, 3:55:38pm ET. The founder sees it in
+     Memory. Both Amendment A tools are now seen live; only NEED_WRITE
+     on a read-only grant remains unseen, and it is covered by test.
+     * Next number: 324.
