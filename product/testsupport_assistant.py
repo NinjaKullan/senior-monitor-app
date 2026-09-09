@@ -41,7 +41,11 @@ MONTH_DAY = re.compile(r"\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \
 #: ALL_CLEAR_SENT is the one §8 label the outbound scan's verdict list would
 #: catch ("all clear"); ruled verbatim, so it is named here rather than the
 #: list widened (filed in the 019 build notes).
-ALLOWED_PHRASES = ("all clear",)
+#: Amendment A (DECISIONS 316) names the app itself in three ruled strings
+#: ("in the Kettle app"): the product's own name, not a third-party app, and
+#: the one place the door sends a person. Masked as the phrase, so a bare
+#: "app" anywhere else is still caught. "Kettle" is already masked as a name.
+ALLOWED_PHRASES = ("all clear", "«name» app", "{app}", "kettle-app.")
 NAMES = ("Kettle", "Linda", "Bill", "Amma", "Appa", "Sarah", "Tom", "Carol", "Whitaker", "Sharma")
 
 
@@ -167,12 +171,14 @@ class Assistant:
             "/oauth/token", data=form, headers={"content-type": "application/x-www-form-urlencoded"}
         )
 
-    def connect(self, auth_user_id: str, redirect_uri: str | None = None) -> None:
+    def connect(
+        self, auth_user_id: str, redirect_uri: str | None = None, scope: str = "kettle:read"
+    ) -> None:
         """Register, authorize, approve, exchange: the whole flow, kept tokens."""
         if not self.client_id:
             self.register()
         verifier, challenge = pkce_pair()
-        sent = self.authorize(challenge, redirect_uri=redirect_uri)
+        sent = self.authorize(challenge, redirect_uri=redirect_uri, scope=scope)
         assert sent.status_code == 302, sent.text
         request_id = parse_qs(urlsplit(sent.headers["location"]).query)["request"][0]
         approved = self.approve(request_id, session_token(auth_user_id))

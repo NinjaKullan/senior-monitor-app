@@ -15,6 +15,33 @@ from kettle import assistant_copy as copy
 COPY_TS = Path(__file__).resolve().parents[2] / "webapp" / "src" / "lib" / "copy.ts"
 
 VERBATIM = {
+    # Spec 019 Amendment A §A.6.
+    "SERVER_INSTRUCTIONS": (
+        "Kettle answers in its own sentences about a parent's day. Here Kettle can read, "
+        "add a note and reply to a note. Anything else, like pausing a parent, is done in "
+        "the Kettle app."
+    ),
+    "NOTE_SAVED": "Saved. The family will see it in Memory.",
+    "REPLY_SAVED": "Saved under {author}'s note from {date}.",
+    "NEED_WRITE": (
+        "This connection can only read. Add Kettle to your assistant again to allow notes "
+        "and replies."
+    ),
+    "WHICH_PARENT": "Say which parent this is about. You can name {names}.",
+    "NO_NOTE_TO_ANSWER": "Kettle can't find a note to answer.",
+    "CANNOT_SAVE": "Kettle couldn't save that. You can add it in the Kettle app: {app}.",
+    "WRITE_LIMIT": "That's a lot of notes for one hour. The rest can go in the Kettle app: {app}.",
+    "TOOL_ADD_NOTE": (
+        "Add a note to the family's memory in the person's own words. Read the note back "
+        "and confirm before calling. Name a parent to tag the note; give a date for "
+        "something upcoming."
+    ),
+    "TOOL_REPLY": (
+        "Reply to a note in the family's memory. Read the reply back and confirm before "
+        "calling. With no author, the reply goes under the latest note; name an author, or "
+        "a date, to pick another."
+    ),
+    "AUTHOR_VIA": "{name} via {client}",
     "TODAY_NOTHING_YET": "Kettle has not written about {name} yet today.",
     "DAY_NOTHING": "Kettle did not write about {name} that day.",
     "NO_SUCH_PARENT": "Kettle does not know a parent called {asked}. You can ask about {names}.",
@@ -66,6 +93,14 @@ WEBAPP_VERBATIM = {
     "ASSISTANTS_DISCONNECT_CONFIRM": "Disconnect {client}? It will stop seeing Kettle right away.",
     "ASSISTANTS_DISCONNECT_YES": "Disconnect",
     "ASSISTANTS_DISCONNECT_NO": "Keep it",
+    # Spec 019 Amendment A §A.6.
+    "CONNECT_BODY_WRITE": (
+        "{client} will be able to read what you see in Kettle for {names}, and add notes "
+        "and replies as you."
+    ),
+    "CONNECT_WRITE_NOTE": "It cannot change anything else. Parents are never involved.",
+    "ASSISTANTS_SINCE_WRITE": "{client} · since {date} · can add notes",
+    "AUTHOR_VIA": "{name} via {client}",
 }
 
 

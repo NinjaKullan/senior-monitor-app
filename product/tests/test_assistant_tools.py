@@ -356,16 +356,32 @@ def test_every_rendered_answer_obeys_the_copy_law(connected, conn, whitakers):
     assert_assistant_copy_law(connected.text("who_to_call", parent="Linda"), digits_ok=True)
 
 
-def test_every_tool_says_it_only_reads(connected, api):
-    """DECISIONS 286: readOnlyHint on all five, openWorldHint off, so the
-    assistant does not ask permission on every question."""
+def test_every_read_tool_says_it_only_reads_and_the_two_writes_say_they_write(connected, api):
+    """DECISIONS 286: readOnlyHint on the five reads, openWorldHint off, so
+    the assistant does not ask permission on every question. Amendment A:
+    add_note and reply say readOnlyHint false (and not destructive, not
+    idempotent), which is what makes the assistant ask before each."""
     from testsupport_assistant import mcp_call
 
     tools = mcp_call(api, connected.access_token, "tools/list").json()["result"]["tools"]
-    assert len(tools) == 5
-    for tool in tools:
-        assert tool["annotations"]["readOnlyHint"] is True, tool["name"]
-        assert tool["annotations"]["openWorldHint"] is False, tool["name"]
+    by_name = {tool["name"]: tool["annotations"] for tool in tools}
+    assert set(by_name) == {
+        "today",
+        "parent_day",
+        "memory",
+        "who_to_call",
+        "circles",
+        "add_note",
+        "reply",
+    }
+    for name in ("today", "parent_day", "memory", "who_to_call", "circles"):
+        assert by_name[name]["readOnlyHint"] is True, name
+        assert by_name[name]["openWorldHint"] is False, name
+    for name in ("add_note", "reply"):
+        assert by_name[name]["readOnlyHint"] is False, name
+        assert by_name[name]["destructiveHint"] is False, name
+        assert by_name[name]["idempotentHint"] is False, name
+        assert by_name[name]["openWorldHint"] is False, name
 
 
 def test_tool_descriptions_are_the_ruled_words(connected, api):

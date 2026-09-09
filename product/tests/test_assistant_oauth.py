@@ -67,7 +67,8 @@ def test_discovery_documents_carry_the_fields_in_section_4(api, settings):
     resource = api.get("/.well-known/oauth-protected-resource").json()
     assert resource["resource"] == f"{base}/mcp"
     assert resource["authorization_servers"] == [base]
-    assert resource["scopes_supported"] == ["kettle:read"]
+    # Amendment A: the write scope is offered beside read.
+    assert resource["scopes_supported"] == ["kettle:read", "kettle:write"]
     server = api.get("/.well-known/oauth-authorization-server").json()
     assert server["issuer"] == base
     assert server["code_challenge_methods_supported"] == ["S256"]
@@ -115,7 +116,8 @@ def test_register_authorize_approve_exchange_call(api, conn, family):
 
     # The consent screen learns the client's name without a session.
     assert api.get("/oauth/pending", params={"request": request_id}).json() == {
-        "client_name": "Claude"
+        "client_name": "Claude",
+        "scope": "kettle:read",
     }
 
     approved = assistant.approve(request_id, session_token(USER))
@@ -155,6 +157,8 @@ def test_register_authorize_approve_exchange_call(api, conn, family):
         "memory",
         "who_to_call",
         "circles",
+        "add_note",
+        "reply",
     }
     assert "Amma" in assistant.text("today")
 
@@ -449,7 +453,8 @@ def test_a_cimd_client_connects_without_registering(cimd_api_factory, conn, fami
         request_id = parse_qs(urlsplit(sent.headers["location"]).query)["request"][0]
         # The consent screen learns the name from the document.
         assert api.get("/oauth/pending", params={"request": request_id}).json() == {
-            "client_name": "Documented"
+            "client_name": "Documented",
+            "scope": "kettle:read",
         }
         assistant.connect(USER)
         assert mcp_call(api, assistant.access_token, "tools/list").status_code == 200
