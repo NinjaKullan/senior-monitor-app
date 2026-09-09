@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 320.** This line is the one to update; the `Next number:` lines inside
+**Next number: 321.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6675,4 +6675,23 @@ browser — all three adopted as the standard for future surfaces.**
        log line gains the status and content type.
      * Tonight's acceptance runs by automatic registration (DCR), the
        Sep 5 path; CIMD lands with the fix.
-     * Next number: 320.
+
+320. **(2026-09-09) 319 BUILT: the shipped copy of a known client's
+     document, in assistant_auth.py. Product only; no migration.**
+     * `KNOWN_CLIENT_DOCUMENTS` keyed by client_id URL, Claude's as
+       fetched Sep 8. `ClientDocuments.fetch`: a cached good copy (an
+       hour) → the live fetch, parsed as before → the shipped copy for
+       that URL → None. A failure is remembered ten minutes and the
+       shipped copy stands for that time, so a burst of connects fetches
+       once; a live success clears the failure. The shipped copy is
+       mirrored into assistant_clients exactly as a fetched one.
+     * The warning names the reason: status and content type when there
+       was a response ("403 text/html"), the exception class when there
+       was not ("ConnectTimeout"), and whether the shipped copy is used.
+       A live document that parses wrongly says so in the same line.
+     * One judgement call: a live document that DIFFERS from the shipped
+       one (say, a second redirect) wins and is what gets mirrored; the
+       shipped copy is only ever a stand-in for a fetch that failed,
+       never a check on one that worked.
+     * Counts: root pytest 880 → 885; ruff clean.
+     * Next number: 321.
