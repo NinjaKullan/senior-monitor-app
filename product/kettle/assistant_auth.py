@@ -68,6 +68,23 @@ CLAUDE_CALLBACK = "https://claude.ai/api/mcp/auth_callback"
 #: are the registration, so no row is created per connect.
 CIMD_TIMEOUT = 5.0
 CIMD_CACHE_LIFE = timedelta(hours=1)
+#: A failed fetch is remembered this long (DECISIONS 319): a burst of
+#: connects must not hammer the client's edge, and the shipped copy stands
+#: for the duration.
+CIMD_FAILURE_LIFE = timedelta(minutes=10)
+#: Known client documents, keyed by client_id URL, in the shape _parse_cimd
+#: returns (DECISIONS 319). claude.ai's edge answers Kettle's fetch of
+#: Claude's document with a Cloudflare challenge from the Fly machine; the
+#: redirect address is the one thing a document decides, and it is public.
+#: The live fetch still wins when it works; this copy stands when it does
+#: not. Claude's, as fetched Sep 8 2026.
+KNOWN_CLIENT_DOCUMENTS: dict[str, dict[str, Any]] = {
+    "https://claude.ai/oauth/mcp-oauth-client-metadata": {
+        "client_id": "https://claude.ai/oauth/mcp-oauth-client-metadata",
+        "client_name": "Claude",
+        "redirect_uris": ["https://claude.ai/api/mcp/auth_callback"],
+    },
+}
 
 
 def sha256(value: str) -> str:
@@ -255,30 +272,59 @@ def is_cimd_client_id(client_id: str) -> bool:
 
 class ClientDocuments:
     """CIMD documents, fetched once an hour per client_id and never on the
-    token path's hot loop: a document that cannot be fetched or does not
-    describe itself is no client at all (invalid_client)."""
+    token path's hot loop. Order (DECISIONS 319): a cached good copy, then
+    the live fetch, then the shipped copy for that URL, then None
+    (invalid_client). A failed fetch is remembered for CIMD_FAILURE_LIFE and
+    the shipped copy stands for that time."""
 
     def __init__(self, client: httpx.Client | None = None) -> None:
         self._client = client or httpx.Client(timeout=CIMD_TIMEOUT)
         self._cache: dict[str, tuple[datetime, dict[str, Any]]] = {}
+        self._failed: dict[str, datetime] = {}
 
     def fetch(self, client_id: str, now: datetime) -> dict[str, Any] | None:
         cached = self._cache.get(client_id)
         if cached is not None and now - cached[0] < CIMD_CACHE_LIFE:
             return cached[1]
+        failed = self._failed.get(client_id)
+        if failed is not None and now - failed < CIMD_FAILURE_LIFE:
+            return KNOWN_CLIENT_DOCUMENTS.get(client_id)
+        parsed, why = self._live(client_id)
+        if parsed is not None:
+            self._cache[client_id] = (now, parsed)
+            self._failed.pop(client_id, None)
+            return parsed
+        self._failed[client_id] = now
+        shipped = KNOWN_CLIENT_DOCUMENTS.get(client_id)
+        log.warning(
+            "assistant: client document at %s refused: %s; %s",
+            client_id,
+            why,
+            "using the shipped copy" if shipped else "no shipped copy",
+        )
+        return shipped
+
+    def _live(self, client_id: str) -> tuple[dict[str, Any] | None, str]:
+        """The parsed live document, or None and the reason in words: the
+        status and content type when there was a response, the exception
+        class when there was not."""
         try:
             response = self._client.get(
                 client_id, headers={"accept": "application/json"}, timeout=CIMD_TIMEOUT
             )
-            document = response.json() if response.status_code == 200 else None
-        except (httpx.HTTPError, ValueError):
-            document = None
+        except httpx.HTTPError as exc:
+            return None, type(exc).__name__
+        why = f"{response.status_code} {response.headers.get('content-type', '')}".strip()
+        if response.status_code != 200:
+            return None, why
+        try:
+            document = response.json()
+        except ValueError:
+            return None, f"{why} (not JSON)"
         parsed = _parse_cimd(client_id, document)
         if parsed is None:
-            log.warning("assistant: client document at %s refused", client_id)
-            return None
-        self._cache[client_id] = (now, parsed)
-        return parsed
+            return None, f"{why} (does not describe {client_id})"
+        return parsed, why
 
 
 def _parse_cimd(client_id: str, document: Any) -> dict[str, Any] | None:
