@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 318.** This line is the one to update; the `Next number:` lines inside
+**Next number: 319.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6619,3 +6619,33 @@ browser — all three adopted as the standard for future surfaces.**
      * Counts: root pytest 843 → 880 (product 796 → 833); webapp 311 →
        316; ruff clean.
      * Next number: 318.
+
+318. **(2026-09-08, ~10:15pm ET) 317 REVIEWED and ACCEPTED (7dceaf7).
+     Migration 0032 applied to prod by PM; the grant's column list on
+     `assistant_grants` confirmed (id, client_name, created_utc,
+     last_used_utc, revoked_utc, scope; no hashes). Deploy owed.**
+     * Two spec errors, both mine, fixed in the build: `assistant_grants`
+       had no scope column (0029 kept scope on the request), and the
+       0028 trigger took the author from the JWT unconditionally, which
+       would have nulled a service-role write's author. The re-created
+       trigger keeps a JWT caller's seat from the JWT (a client session
+       still cannot set it) and, with no JWT, keeps a provided author
+       only if that member belongs to the row's family. Accepted; the
+       amendment text stands as the contract and this entry is the
+       correction.
+     * Accepted as read: `kettle:write` implies read and is what a
+       both-scopes grant stores; token responses echo the grant's
+       scope; a person removed from a circle gets WHICH_PARENT, the
+       reads' no-such-parent sentence or NO_NOTE_TO_ANSWER, never
+       NEED_WRITE, and nothing lands; blank, over-long or bad-dated
+       bodies answer CANNOT_SAVE (a bad date on reply answers
+       NO_NOTE_TO_ANSWER); a nameless client is marked
+       ASSISTANT_FALLBACK; the copy scan allows the phrase "the Kettle
+       app" and the app origin's host, pinned, so a bare "app" elsewhere
+       is still caught.
+     * Deploy (founder): `cd product && fly deploy` → `cd webapp && npm
+       run ci && fly deploy`. Then: remove Kettle from Claude, add it
+       again by the same address, see the write consent, Allow; on the
+       phone, "tell Kettle Amma's doctor visit is on Thursday"; Memory
+       shows "Hema via Claude". PM reads the row and files it.
+     * Next number: 319.
