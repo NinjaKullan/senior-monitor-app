@@ -94,7 +94,9 @@ def create_app(
     # Spec 019: the MCP server (the official SDK, stateless over Streamable
     # HTTP) and the authorization server in front of it. Built once here;
     # the session manager's own lifespan runs inside ours below.
-    mcp_server = assistant_tools.build_server(lambda: app.state.pool.connection(), clock)
+    mcp_server = assistant_tools.build_server(
+        lambda: app.state.pool.connection(), clock, cfg.app_origin
+    )
     mcp_asgi = mcp_server.streamable_http_app(
         streamable_http_path="/mcp",
         stateless_http=True,
@@ -467,11 +469,12 @@ def create_app(
         async def __call__(self, scope, receive, send):  # type: ignore[no-untyped-def]
             headers = {k.decode().lower(): v.decode() for k, v in scope.get("headers", [])}
             auth = headers.get("authorization", "")
-            user = None
+            grant = None
             if auth.lower().startswith("bearer "):
                 with app.state.pool.connection() as conn:
-                    user = assistant_auth.resolve_bearer(conn, auth[7:].strip(), clock())
-            if user is None:
+                    grant = assistant_auth.resolve_grant(conn, auth[7:].strip(), clock())
+            user = grant["auth_user_id"] if grant else None
+            if user is None or grant is None:
                 response = PlainTextResponse(
                     "unauthorized",
                     status_code=401,
@@ -482,9 +485,11 @@ def create_app(
                 await response(scope, receive, send)
                 return
             token = assistant_tools.CURRENT_USER.set(user)
+            held = assistant_tools.CURRENT_GRANT.set(grant)
             try:
                 await mcp_asgi(scope, receive, send)
             finally:
+                assistant_tools.CURRENT_GRANT.reset(held)
                 assistant_tools.CURRENT_USER.reset(token)
 
     app.router.routes.append(

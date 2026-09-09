@@ -26,6 +26,7 @@ from mcp.types import ToolAnnotations
 
 from kettle import assistant_copy as copy
 from kettle import db
+from kettle.assistant_auth import can_write
 from kettle.outbound import MORNING_WINDOW_START
 from kettle.outbound_templates import owner_first_name, render, template
 from kettle.timeutil import effective_tz, local_day, now_utc, to_local
@@ -36,6 +37,14 @@ DAY_START_HOUR = MORNING_WINDOW_START.hour
 
 #: The auth_user_id the current /mcp request stands for (set by main.py).
 CURRENT_USER: ContextVar[str | None] = ContextVar("kettle_assistant_user", default=None)
+#: The grant itself (Amendment A): its scope decides the write tools, its
+#: client_name is the mark a dictated line carries.
+CURRENT_GRANT: ContextVar[dict[str, Any] | None] = ContextVar(
+    "kettle_assistant_grant", default=None
+)
+#: Amendment A.4: writes an hour per grant, counted from the table.
+WRITE_LIMIT_PER_HOUR = 20
+BODY_CAP = 2000
 
 KIND_WORDS = {
     "digest_morning": copy.MORNING_NOTE,
@@ -48,6 +57,11 @@ MEMORY_CAP = 40
 #: Every tool reads and nothing else (spec 019 §1; DECISIONS 286): said in the
 #: annotations, so the assistant does not ask permission on every question.
 READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=False)
+#: The two write tools (Amendment A.2): not read-only, so the assistant asks
+#: before each; not destructive; not idempotent (two calls are two notes).
+WRITES = ToolAnnotations(
+    read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=False
+)
 DAY_FLOOR = timedelta(days=60)
 
 
@@ -285,7 +299,8 @@ def memory_for(
     rows = conn.execute(
         """
         select j.id, j.family_id, j.parent_id, j.author_label, j.body, j.event_date,
-               j.created_utc, j.kind, j.parent_entry_id, j.edited_utc, f.tz as family_tz
+               j.created_utc, j.kind, j.parent_entry_id, j.edited_utc, j.via_client,
+               f.tz as family_tz
         from journal_entries j join families f on f.id = j.family_id
         where j.family_id = any(%s)
           and (%s::uuid is null or j.parent_id = %s)
@@ -305,6 +320,8 @@ def memory_for(
     def line(r: dict[str, Any], indent: str = "") -> str:
         day = to_local(r["created_utc"], r["family_tz"])
         author = r["author_label"] or (copy.AUTO_NOTE_AUTHOR if r["kind"] != "note" else "Family")
+        if r.get("via_client"):
+            author = copy.AUTHOR_VIA.replace("{name}", author).replace("{client}", r["via_client"])
         mark = f" · {copy.EDITED_MARK}" if r["edited_utc"] else ""
         return f"{indent}{day.strftime('%b')} {day.day}{mark} · {author}: {r['body']}"
 
@@ -367,15 +384,205 @@ def circles_text(conn: psycopg.Connection, circles: list[dict[str, Any]], now: d
     return "\n".join(out)
 
 
+# --- the writes (Amendment A) ------------------------------------------------------
+
+
+def member_for(conn: psycopg.Connection, auth_user_id: str, family_id: Any) -> Any | None:
+    """The person's seat in this family, read at call time (A.5): removed
+    from the circle, there is no seat and nothing lands."""
+    return conn.execute(
+        """
+        select id, display_name from members
+        where family_id = %s and auth_user_id = %s
+        order by created_utc, id limit 1
+        """,
+        (family_id, auth_user_id),
+    ).fetchone()
+
+
+def writes_this_hour(conn: psycopg.Connection, auth_user_id: str, now: datetime) -> int:
+    """A.4: rows with this person's author_member_id and a via_client mark
+    in the last hour, on the injected clock."""
+    row = conn.execute(
+        """
+        select count(*) as n from journal_entries j
+        where j.via_client is not null and j.created_utc > %s
+          and j.author_member_id in (select id from members where auth_user_id = %s)
+        """,
+        (now - timedelta(hours=1), auth_user_id),
+    ).fetchone()
+    return int(row["n"])
+
+
+def _parse_date(value: str | None) -> date | None | bool:
+    """None for no date, a date, or False for a date that is not YYYY-MM-DD."""
+    if value is None or not value.strip():
+        return None
+    try:
+        return date.fromisoformat(value.strip())
+    except ValueError:
+        return False
+
+
+def _app(app_origin: str) -> str:
+    return app_origin.rstrip("/")
+
+
+def add_note_for(
+    conn: psycopg.Connection,
+    grant: dict[str, Any],
+    text: str,
+    parent: str | None,
+    when: str | None,
+    now: datetime,
+    app_origin: str,
+) -> str:
+    """A.3.1: a note in the family's Memory, in the person's own words."""
+    if not can_write(grant.get("scope")):
+        return copy.NEED_WRITE
+    user = grant["auth_user_id"]
+    circles = circles_for(conn, user)
+    parents = parents_in(conn, [c["id"] for c in circles])
+    parent_id = None
+    if parent and parent.strip():
+        chosen = match_parents(parents, parent)
+        if not chosen:
+            return no_such_parent(parent, parents)
+        if len({p["family_id"] for p in chosen}) > 1:
+            return copy.WHICH_PARENT.replace("{names}", join_names(_circle_names(chosen)))
+        family_id = chosen[0]["family_id"]
+        parent_id = chosen[0]["id"]
+    elif len(circles) == 1:
+        family_id = circles[0]["id"]
+    else:
+        names = sorted({p["display_name"] for p in parents})
+        return copy.WHICH_PARENT.replace("{names}", join_names(names))
+    body = text.strip()
+    event_date = _parse_date(when)
+    if not body or len(body) > BODY_CAP or event_date is False:
+        return copy.CANNOT_SAVE.replace("{app}", _app(app_origin))
+    member = member_for(conn, user, family_id)
+    if member is None:
+        names = sorted({p["display_name"] for p in parents})
+        return copy.WHICH_PARENT.replace("{names}", join_names(names))
+    if writes_this_hour(conn, user, now) >= WRITE_LIMIT_PER_HOUR:
+        return copy.WRITE_LIMIT.replace("{app}", _app(app_origin))
+    conn.execute(
+        """
+        insert into journal_entries
+            (family_id, parent_id, author_label, author_member_id, via_client, body,
+             event_date, kind, created_utc)
+        values (%s, %s, %s, %s, %s, %s, %s, 'note', %s)
+        """,
+        (
+            family_id,
+            parent_id,
+            member["display_name"] or "",
+            member["id"],
+            grant.get("client_name") or copy.ASSISTANT_FALLBACK,
+            body,
+            event_date,
+            now,
+        ),
+    )
+    return copy.NOTE_SAVED
+
+
+def _circle_names(chosen: list[dict[str, Any]]) -> list[str]:
+    return [f"{p['family_name']} · {p['display_name']}" for p in chosen]
+
+
+def reply_for(
+    conn: psycopg.Connection,
+    grant: dict[str, Any],
+    text: str,
+    author: str | None,
+    when: str | None,
+    now: datetime,
+    app_origin: str,
+) -> str:
+    """A.3.2: a reply under the newest note in the person's circles, or the
+    one an author or a date picks out. The 016 trigger still guards."""
+    if not can_write(grant.get("scope")):
+        return copy.NEED_WRITE
+    user = grant["auth_user_id"]
+    circles = circles_for(conn, user)
+    family_ids = [c["id"] for c in circles]
+    on_date = _parse_date(when)
+    if on_date is False:
+        return copy.NO_NOTE_TO_ANSWER
+    wanted = (author or "").strip().casefold() or None
+    target = conn.execute(
+        """
+        select j.id, j.family_id, j.author_label, j.author_member_id, j.created_utc,
+               f.tz as family_tz, m.display_name as member_name
+        from journal_entries j
+        join families f on f.id = j.family_id
+        left join members m on m.id = j.author_member_id
+        where j.family_id = any(%s) and j.kind = 'note' and j.parent_entry_id is null
+          and (%s::text is null or lower(coalesce(m.display_name, '')) = %s
+               or lower(j.author_label) = %s)
+          and (%s::date is null or (j.created_utc at time zone f.tz)::date = %s)
+        order by j.created_utc desc, j.id desc
+        limit 1
+        """,
+        (family_ids, wanted, wanted, wanted, on_date, on_date),
+    ).fetchone()
+    if target is None:
+        return copy.NO_NOTE_TO_ANSWER
+    body = text.strip()
+    if not body or len(body) > BODY_CAP:
+        return copy.CANNOT_SAVE.replace("{app}", _app(app_origin))
+    member = member_for(conn, user, target["family_id"])
+    if member is None:
+        parents = parents_in(conn, family_ids)
+        names = sorted({p["display_name"] for p in parents})
+        return copy.WHICH_PARENT.replace("{names}", join_names(names))
+    if writes_this_hour(conn, user, now) >= WRITE_LIMIT_PER_HOUR:
+        return copy.WRITE_LIMIT.replace("{app}", _app(app_origin))
+    try:
+        with conn.transaction():
+            conn.execute(
+                """
+                insert into journal_entries
+                    (family_id, parent_entry_id, author_label, author_member_id, via_client,
+                     body, kind, created_utc)
+                values (%s, %s, %s, %s, %s, %s, 'note', %s)
+                """,
+                (
+                    target["family_id"],
+                    target["id"],
+                    member["display_name"] or "",
+                    member["id"],
+                    grant.get("client_name") or copy.ASSISTANT_FALLBACK,
+                    body,
+                    now,
+                ),
+            )
+    except psycopg.errors.CheckViolation:
+        # The 016 rules, held by the trigger: never a reply to a reply or to
+        # one of Kettle's own lines. The select above already excludes both;
+        # the trigger is the guard if it ever does not.
+        return copy.NO_NOTE_TO_ANSWER
+    written_by = target["member_name"] or target["author_label"] or "Family"
+    day = to_local(target["created_utc"], target["family_tz"])
+    return copy.REPLY_SAVED.replace("{author}", written_by).replace(
+        "{date}", f"{day.strftime('%b')} {day.day}"
+    )
+
+
 # --- the server ------------------------------------------------------------------
 
 
-def build_server(connect: Callable[[], Any], clock: Callable[[], datetime] = now_utc) -> MCPServer:
-    """The MCP server with the five tools. `connect()` is a context manager
-    yielding a pooled connection; tools run their SQL in a worker thread."""
-    server = MCPServer(
-        "Kettle", instructions="Kettle answers in its own sentences about a parent's day."
-    )
+def build_server(
+    connect: Callable[[], Any],
+    clock: Callable[[], datetime] = now_utc,
+    app_origin: str = "https://kettle-app.fly.dev",
+) -> MCPServer:
+    """The MCP server: five read tools and, since Amendment A, two writes.
+    `connect()` is a context manager yielding a pooled connection; tools run
+    their SQL in a worker thread."""
+    server = MCPServer("Kettle", instructions=copy.SERVER_INSTRUCTIONS)
 
     def run(fn: Callable[[psycopg.Connection, str, datetime], str]) -> Callable[[], str]:
         def inner() -> str:
@@ -390,6 +597,31 @@ def build_server(connect: Callable[[], Any], clock: Callable[[], datetime] = now
     def visible(conn: psycopg.Connection, user: str):
         circles = circles_for(conn, user)
         return circles, parents_in(conn, [c["id"] for c in circles])
+
+    def run_write(fn: Callable[[psycopg.Connection, dict[str, Any], datetime], str]):
+        def inner() -> str:
+            grant = CURRENT_GRANT.get()
+            user = CURRENT_USER.get()
+            if grant is None or user is None:  # pragma: no cover - the bearer check runs first
+                return "Kettle does not know who is asking."
+            with connect() as conn:
+                return fn(conn, grant, clock())
+
+        return inner
+
+    @server.tool(name="add_note", description=copy.TOOL_ADD_NOTE, annotations=WRITES)
+    async def add_note(text: str, parent: str | None = None, date: str | None = None) -> str:
+        def go(conn: psycopg.Connection, grant: dict[str, Any], now: datetime) -> str:
+            return add_note_for(conn, grant, text, parent, date, now, app_origin)
+
+        return await anyio.to_thread.run_sync(run_write(go))
+
+    @server.tool(name="reply", description=copy.TOOL_REPLY, annotations=WRITES)
+    async def reply(text: str, author: str | None = None, date: str | None = None) -> str:
+        def go(conn: psycopg.Connection, grant: dict[str, Any], now: datetime) -> str:
+            return reply_for(conn, grant, text, author, date, now, app_origin)
+
+        return await anyio.to_thread.run_sync(run_write(go))
 
     @server.tool(name="today", description=copy.TOOL_TODAY, annotations=READ_ONLY)
     async def today(parent: str | None = None) -> str:

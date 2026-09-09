@@ -57,6 +57,32 @@ PAUSED_CARD = "Kettle is paused for {name}."
 PAUSED_UNTIL = "Back on {date}."
 PAUSED_OPEN_ENDED = "Until someone turns it back on."
 ASSISTANT_FALLBACK = "An assistant"
+# Spec 019 Amendment A §A.6: notes and replies through the door.
+SERVER_INSTRUCTIONS = (
+    "Kettle answers in its own sentences about a parent's day. Here Kettle can read, "
+    "add a note and reply to a note. Anything else, like pausing a parent, is done in "
+    "the Kettle app."
+)
+NOTE_SAVED = "Saved. The family will see it in Memory."
+REPLY_SAVED = "Saved under {author}'s note from {date}."
+NEED_WRITE = (
+    "This connection can only read. Add Kettle to your assistant again to allow notes and replies."
+)
+WHICH_PARENT = "Say which parent this is about. You can name {names}."
+NO_NOTE_TO_ANSWER = "Kettle can't find a note to answer."
+CANNOT_SAVE = "Kettle couldn't save that. You can add it in the Kettle app: {app}."
+WRITE_LIMIT = "That's a lot of notes for one hour. The rest can go in the Kettle app: {app}."
+TOOL_ADD_NOTE = (
+    "Add a note to the family's memory in the person's own words. Read the note back and "
+    "confirm before calling. Name a parent to tag the note; give a date for something "
+    "upcoming."
+)
+TOOL_REPLY = (
+    "Reply to a note in the family's memory. Read the reply back and confirm before "
+    "calling. With no author, the reply goes under the latest note; name an author, or a "
+    "date, to pick another."
+)
+AUTHOR_VIA = "{name} via {client}"
 # Spec 020 §5/§6: the card's one device line, a fact after the heard line.
 DEVICE_LINE_MORNING = "{kind}, {time} this morning"
 DEVICE_LINE_AFTERNOON = "{kind}, {time} this afternoon"
@@ -94,6 +120,7 @@ SHARED_WITH_WEBAPP = (
     "DEVICE_LINE_MORNING",
     "DEVICE_LINE_AFTERNOON",
     "DEVICE_LINE_EVENING",
+    "AUTHOR_VIA",
 )
 
 #: Everything above that an assistant can read, for the copy-law scan.
