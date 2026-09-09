@@ -218,7 +218,17 @@ export default function App() {
     Promise.all([pendingConnect(connectRequest), loadConnectNames()])
       .then(([pending, names]) => {
         if (cancelled) return;
-        setConnect(pending ? { kind: "ready", clientName: pending.client_name, names } : { kind: "expired" });
+        // Amendment A: the consent screen says what can be written.
+        setConnect(
+          pending
+            ? {
+                kind: "ready",
+                clientName: pending.client_name,
+                names,
+                write: (pending.scope ?? "").split(" ").includes("kettle:write"),
+              }
+            : { kind: "expired" },
+        );
       })
       .catch(() => {
         if (!cancelled) setConnect({ kind: "expired" });

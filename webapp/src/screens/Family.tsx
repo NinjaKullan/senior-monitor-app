@@ -22,6 +22,7 @@ import {
   ASSISTANTS_NONE,
   ASSISTANTS_SECTION,
   ASSISTANTS_SINCE,
+  ASSISTANTS_SINCE_WRITE,
   ASSISTANT_FALLBACK,
   CIRCLE_ADD,
   CIRCLE_ADD_CANCEL,
@@ -805,7 +806,7 @@ function Assistants({
         return (
           <div key={grant.id} style={{ ...ROW, borderTop: "1px solid var(--hair)" }} data-testid="assistant-grant">
             <span style={{ fontSize: "0.9375rem" }}>
-              {ASSISTANTS_SINCE.replace("{client}", client).replace(
+              {(grant.scope.split(" ").includes("kettle:write") ? ASSISTANTS_SINCE_WRITE : ASSISTANTS_SINCE).replace("{client}", client).replace(
                 "{date}",
                 monthDay(localDay(grant.created_utc, viewerTz)),
               )}

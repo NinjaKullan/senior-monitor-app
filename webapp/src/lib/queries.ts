@@ -54,7 +54,8 @@ export const READ_SURFACE = {
   // Spec 016: parent_entry_id is null on a note and the note's id on a reply.
   // Spec 018: author_member_id (server-set from the JWT) decides whose Edit
   // and Delete links render; edited_utc is the "edited" mark.
-  journal_entries: "id, family_id, parent_id, author_label, body, event_date, created_utc, kind, parent_entry_id, author_member_id, edited_utc",
+  // Spec 019 Amendment A: via_client marks a line dictated through an assistant.
+  journal_entries: "id, family_id, parent_id, author_label, body, event_date, created_utc, kind, parent_entry_id, author_member_id, edited_utc, via_client",
   // Spec 012 §4: the family's own contacts sheet — small by nature (a
   // handful of rows), read whole, ordered by position. phone_e164 exists
   // client-side solely to become a tel: href (the DECISIONS 167 law);
@@ -65,7 +66,7 @@ export const READ_SURFACE = {
   // granted to authenticated at all, so a select naming them is refused by
   // privilege. Per person, not per circle: this is the one read that is not
   // scoped by family.
-  assistant_grants: "id, client_name, created_utc, last_used_utc, revoked_utc",
+  assistant_grants: "id, client_name, created_utc, last_used_utc, revoked_utc, scope",
   // Spec 020: the family's own devices, through the view (no token column
   // exists on it), and their pings — which address, when, nothing else.
   // Neither is read by any verdict: the card's one line, the day view's

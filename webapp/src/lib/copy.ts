@@ -154,6 +154,12 @@ export const COMPOSER_FAILED = "That didn't save. Try again.";
 export const CONNECT_TITLE = "Connect {client} to Kettle";
 export const CONNECT_BODY = "{client} will be able to read what you see in Kettle for {names}.";
 export const CONNECT_READ_ONLY = "It cannot change anything. Parents are never involved.";
+/* Spec 019 Amendment A §A.6, VERBATIM (DECISIONS 316): the write consent. */
+export const CONNECT_BODY_WRITE =
+  "{client} will be able to read what you see in Kettle for {names}, and add notes and replies as you.";
+export const CONNECT_WRITE_NOTE = "It cannot change anything else. Parents are never involved.";
+export const ASSISTANTS_SINCE_WRITE = "{client} · since {date} · can add notes";
+export const AUTHOR_VIA = "{name} via {client}";
 export const CONNECT_ALLOW = "Allow";
 export const CONNECT_CANCEL = "Not now";
 export const CONNECT_EXPIRED = "That link has expired. Start again from your assistant.";

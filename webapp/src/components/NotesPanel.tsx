@@ -12,6 +12,7 @@
 import { useRef, useState } from "react";
 import {
   ADDED_BY,
+  AUTHOR_VIA,
   AUTHOR_FALLBACK,
   COMPOSER_FAILED,
   DATE_CHIP_LABEL,
@@ -78,6 +79,13 @@ export interface NoteDraft {
   body: string;
   authorLabel: string;
   eventDate: string | null;
+}
+
+/** The author as shown (Amendment A): "{name} via {client}" for a line
+ *  dictated through an assistant, the label (or the fallback) otherwise. */
+export function authorOf(entry: Pick<JournalEntry, "author_label" | "via_client">): string {
+  const name = entry.author_label || AUTHOR_FALLBACK;
+  return entry.via_client ? AUTHOR_VIA.replace("{name}", name).replace("{client}", entry.via_client) : name;
 }
 
 /** Spec 016: a reply is a body and an author, on one note. The tag and the
@@ -257,6 +265,7 @@ export function NotesPanel({
       parent_entry_id: null,
       author_member_id: viewer?.memberId ?? null,
       edited_utc: null,
+      via_client: null,
       ...fields,
     };
   }
@@ -336,7 +345,7 @@ export function NotesPanel({
   function metaFor(entry: JournalEntry): string {
     const date = monthDay(localDay(entry.created_utc, tz));
     const mark = entry.edited_utc ? ` · ${EDITED_MARK}` : "";
-    return `${date}${mark} · ${entry.author_label || AUTHOR_FALLBACK}`;
+    return `${date}${mark} · ${authorOf(entry)}`;
   }
 
   /** The Edit and Delete links, the inline editor and the confirm line, for
@@ -484,7 +493,7 @@ export function NotesPanel({
             weekdayMonthDay(entry.event_date ?? todayDate),
           )}
           {" · "}
-          {ADDED_BY.replace("{author}", entry.author_label || AUTHOR_FALLBACK)}
+          {ADDED_BY.replace("{author}", authorOf(entry))}
           {renderReplies(entry.id)}
         </div>
       ))}

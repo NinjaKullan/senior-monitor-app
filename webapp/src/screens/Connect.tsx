@@ -9,18 +9,20 @@ import {
   CONNECT_ALLOW,
   CONNECT_BACK,
   CONNECT_BODY,
+  CONNECT_BODY_WRITE,
   CONNECT_CANCEL,
   CONNECT_EXPIRED,
   CONNECT_LOADING,
   CONNECT_READ_ONLY,
   CONNECT_TITLE,
+  CONNECT_WRITE_NOTE,
 } from "@/lib/copy";
 import { joinNames } from "@/lib/parentState";
 
 export type ConnectState =
   | { kind: "loading" }
   | { kind: "expired" }
-  | { kind: "ready"; clientName: string; names: string[] };
+  | { kind: "ready"; clientName: string; names: string[]; write?: boolean };
 
 const PILL: React.CSSProperties = {
   border: "1px solid var(--hair)",
@@ -66,9 +68,13 @@ export function ConnectScreen({
             {CONNECT_TITLE.replace("{client}", state.clientName)}
           </h1>
           <p style={{ fontSize: "0.9375rem", lineHeight: 1.5, color: "var(--ink)" }} data-testid="connect-body">
-            {CONNECT_BODY.replace("{client}", state.clientName).replace("{names}", joinNames(state.names))}
+            {(state.write ? CONNECT_BODY_WRITE : CONNECT_BODY)
+              .replace("{client}", state.clientName)
+              .replace("{names}", joinNames(state.names))}
           </p>
-          <p style={{ fontSize: "0.875rem", lineHeight: 1.5, color: "var(--ink2)" }}>{CONNECT_READ_ONLY}</p>
+          <p style={{ fontSize: "0.875rem", lineHeight: 1.5, color: "var(--ink2)" }} data-testid="connect-note">
+            {state.write ? CONNECT_WRITE_NOTE : CONNECT_READ_ONLY}
+          </p>
           <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.25rem" }}>
             <button
               type="button"

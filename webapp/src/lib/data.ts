@@ -511,10 +511,10 @@ export type Fetcher = typeof fetch;
 export async function pendingConnect(
   requestId: string,
   fetcher: Fetcher = fetch,
-): Promise<{ client_name: string } | null> {
+): Promise<{ client_name: string; scope: string } | null> {
   const response = await fetcher(`${API_BASE}/oauth/pending?request=${encodeURIComponent(requestId)}`);
   if (!response.ok) return null;
-  return (await response.json()) as { client_name: string };
+  return (await response.json()) as { client_name: string; scope: string };
 }
 
 export async function approveConnect(

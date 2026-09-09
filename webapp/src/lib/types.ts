@@ -61,6 +61,9 @@ export interface JournalEntry {
   author_member_id: string | null;
   /** Spec 018: when the author last edited it; null = never. */
   edited_utc: string | null;
+  /** Spec 019 Amendment A: the assistant a dictated line came through, or
+   *  null for a typed one. Rendered as AUTHOR_VIA wherever an author is. */
+  via_client: string | null;
 }
 
 /** One line of the family's own contacts sheet (spec 012 §4). UNLIKE the
@@ -89,6 +92,8 @@ export interface AssistantGrant {
   created_utc: string;
   last_used_utc: string;
   revoked_utc: string | null;
+  /** Spec 019 Amendment A: "kettle:read" or "kettle:write" (which implies read). */
+  scope: string;
 }
 
 export interface Member {
