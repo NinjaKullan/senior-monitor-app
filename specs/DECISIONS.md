@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 319.** This line is the one to update; the `Next number:` lines inside
+**Next number: 320.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6649,3 +6649,30 @@ browser — all three adopted as the standard for future surfaces.**
        phone, "tell Kettle Amma's doctor visit is on Thursday"; Memory
        shows "Hema via Claude". PM reads the row and files it.
      * Next number: 319.
+
+319. **(2026-09-08, ~11:35pm ET) CIMD from Claude FAILS LIVE: claude.ai's
+     edge answers Kettle's fetch of Claude's client document with a
+     Cloudflare challenge (403, "Just a moment"), so /oauth/authorize
+     says invalid_client. Found on the founder's first reconnect for
+     the write scope (Claude Desktop → browser handoff → Kettle).
+     RULED by PM: ship a copy of Claude's document as the fallback.**
+     * Facts: client_id `https://claude.ai/oauth/mcp-oauth-client-metadata`;
+       the document fetched from anywhere but Fly is exactly what
+       `_parse_cimd` wants (client_id equal, client_name "Claude",
+       redirect_uris ["https://claude.ai/api/mcp/auth_callback"]). From
+       the kettle-api machine (sin) it is 403 text/html with the default
+       User-Agent and with two named ones. Six refusals logged between
+       03:15Z and 03:21Z. The request carried
+       `scope=kettle:read kettle:write`, so Claude does ask for the
+       write scope once the door opens.
+     * Ruling: known client documents ship in code, keyed by URL,
+       starting with Claude's (the redirect address is the one thing a
+       document decides, and it is public). The fetch stays and wins
+       when it works (cached an hour); when it fails for any reason the
+       shipped copy stands and is mirrored as before; an unknown URL
+       that fails is still invalid_client. A failed fetch is cached for
+       ten minutes so a flood of connects cannot hammer claude.ai. The
+       log line gains the status and content type.
+     * Tonight's acceptance runs by automatic registration (DCR), the
+       Sep 5 path; CIMD lands with the fix.
+     * Next number: 320.
