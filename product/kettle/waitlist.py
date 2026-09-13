@@ -186,6 +186,8 @@ def _upsert(conn: psycopg.Connection, email: str, parent_phone: str, help_with: 
 
 
 def count(conn: psycopg.Connection) -> int:
-    """How many signups. For the founder's own psql, not for any endpoint."""
+    """How many signups. `record` reads it inside the upsert's transaction to
+    hold the table cap (DECISIONS 308); the founder's own psql is the other
+    reader. No endpoint serves it."""
     row: Any = conn.execute("select count(*) as n from waitlist").fetchone()
     return int(row["n"])
