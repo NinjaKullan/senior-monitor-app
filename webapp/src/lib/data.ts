@@ -121,6 +121,14 @@ async function readAllInFamily<T>(
  */
 export const PINGS_WINDOW_DAYS = 14;
 export const PINGS_LIMIT_PER_PARENT = 500;
+/**
+ * Spec 020's device pings are read for thirty days, the sweep's own bound
+ * (the ingest route deletes rows older than that), so a device silent for
+ * fifteen to thirty days reads its true age on the setup row rather than
+ * "Nothing heard yet", which was false (DECISIONS 314). The card and the day
+ * view still read only today from six; one read, two uses.
+ */
+export const HOUSEHOLD_PINGS_WINDOW_DAYS = 30;
 
 /**
  * The unwindowed latest ping per (parent, signal) — DECISIONS 166, repairing
@@ -189,11 +197,11 @@ async function readHouseholdDevices(parentIds: string[]): Promise<HouseholdDevic
   return (data ?? []) as HouseholdDevice[];
 }
 
-/** Per device, newest first, the phone pings' window and a small limit: a
- *  device fires at most once a minute, and the surfaces read today's rows
- *  and the newest one. */
+/** Per device, newest first, the sweep's thirty-day window and a small
+ *  limit: a device fires at most once a minute, and the surfaces read
+ *  today's rows and the newest one. */
 async function readHouseholdPings(deviceIds: string[], now: Date): Promise<HouseholdPing[]> {
-  const since = new Date(now.getTime() - PINGS_WINDOW_DAYS * 86_400_000).toISOString();
+  const since = new Date(now.getTime() - HOUSEHOLD_PINGS_WINDOW_DAYS * 86_400_000).toISOString();
   const perDevice = await Promise.all(
     deviceIds.map(async (deviceId) => {
       const { data, error } = await supabase
@@ -437,9 +445,10 @@ export interface FamilySnapshot {
   /** Spec 019: the viewer's live assistant connections — theirs, not the
    *  circle's, so read unscoped and never more than a handful. */
   assistants: AssistantGrant[];
-  /** Spec 020: the family's live devices and their recent pings (the same
-   *  14-day bound as the phone's pings; the setup row's heard line needs
-   *  less, and today's line and block read only from 06:00 local). */
+  /** Spec 020: the family's live devices and their recent pings (thirty
+   *  days, the sweep's bound, so the setup row's heard line is true for
+   *  as long as a row exists; today's line and block read only from
+   *  06:00 local). */
   householdDevices: HouseholdDevice[];
   householdPings: HouseholdPing[];
 }

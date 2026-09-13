@@ -29,6 +29,7 @@ WEBAPP = Path(__file__).resolve().parent.parent.parent / "webapp"
 COPY_TS = WEBAPP / "src" / "lib" / "copy.ts"
 QUERIES_TS = WEBAPP / "src" / "lib" / "queries.ts"
 SIGNAL_NAMES_TS = WEBAPP / "src" / "lib" / "signalNames.ts"
+DATA_TS = WEBAPP / "src" / "lib" / "data.ts"
 
 USER_A = "11111111-1111-1111-1111-111111111111"
 USER_B = "22222222-2222-2222-2222-222222222222"
@@ -583,6 +584,21 @@ def test_the_night_strings_are_verbatim():
 
 
 # --- spec 020: the family's own devices ------------------------------------------
+
+
+def test_webapp_reads_device_pings_for_as_long_as_the_sweep_keeps_them():
+    """DECISIONS 314: the setup row's heard line reads the newest device
+    ping at any hour, so the app's window must reach as far back as the
+    sweep keeps rows. Fourteen days over a thirty-day sweep said "Nothing
+    heard yet" about a device silent for three weeks, which was false. If
+    either side moves, this fails by name."""
+    from kettle.main import HOUSEHOLD_SWEEP_DAYS
+
+    source = DATA_TS.read_text()
+    found = re.search(r"export const HOUSEHOLD_PINGS_WINDOW_DAYS = (\d+);", source)
+    assert found, "HOUSEHOLD_PINGS_WINDOW_DAYS missing from data.ts"
+    assert int(found.group(1)) == HOUSEHOLD_SWEEP_DAYS
+
 
 DEVICE_STRINGS = {
     "DEVICES_INTRO": (
