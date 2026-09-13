@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 331.** This line is the one to update; the `Next number:` lines inside
+**Next number: 332.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6934,3 +6934,28 @@ browser — all three adopted as the standard for future surfaces.**
        or not). No new ping fields.
      * Counts: root pytest 885 → 902 (product 838 → 855); ruff clean.
      * Next number: 331.
+
+331. **(2026-09-12, ~4:15pm ET) 330 REVIEWED and ACCEPTED (2833c81): the
+     Android server side. Migration 0033 NOT yet applied: the PM's
+     Supabase connection lost its permission mid-session ("You do not
+     have permission to perform this action" on both apply and read);
+     the founder applies 0033 in the Supabase SQL editor, or reconnects
+     the connector in the Claude app and the PM applies it. Deploy after.**
+     * Accepted as read: the claim takes the link's own Android row on
+       the first install and a fresh row on any later claim, never
+       revoking; expired and revoked answer 410, unknown 404, another
+       platform 400, ten claims an hour per slug then 429; the setup
+       page raises for an Android parent until §6.3 lands (do not hand
+       an Android family the link before then); the webapp's label map
+       untouched, Android keys allowed absent, never wrong;
+       STANDARD_SIGNALS kept as the iOS entry.
+     * One fix owed before the soak, not blocking the deploy: a claim
+       on a link whose device is NOT Android (an iOS link) currently
+       creates a fresh Android device for that parent and hands back
+       the iOS allowlist, which the app's pings would then fail. Refuse
+       it (400, "platform") instead; the link's platform is the
+       parent's platform.
+     * Update, ~4:25pm ET: the connector came back after the founder
+       re-enabled it; PM applied 0033 (devices.oem, devices.app_version
+       confirmed on the table). Deploy (founder): `cd product && fly deploy`.
+     * Next number: 332.
