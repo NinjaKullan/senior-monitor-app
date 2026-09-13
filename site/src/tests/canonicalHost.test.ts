@@ -189,12 +189,18 @@ describe("canonical-host behavior (DECISIONS 148/168)", () => {
     expect(hops[1].status).toBe(200);
   });
 
-  it("www.heykettle.com serves the page directly — pinned as production-correct", () => {
-    // www is deliberately NOT a named host: it falls to the default_server
-    // block and serves a 200 with no redirect. If someone names www in the
-    // config, this pin fails and the behavior gets re-decided on purpose.
-    expect(blocks.some((b) => b.serverNames.includes(WWW))).toBe(false);
-    expect(follow(WWW, "/")).toEqual([{ host: WWW, status: 200, location: null }]);
+  it("www.heykettle.com is exactly one 301 to the apex, path kept", () => {
+    // Re-decided on purpose (seo-backlog D1, founder ruling 2026-09-12). The
+    // 168 pin held www unnamed so it served a 200 from the default block; that
+    // gave every page two addresses, and Search Console showed the www copy of
+    // privacy.html winning the brand query. Now www is a named host of the
+    // redirect block: one hop to the same path on heykettle.com, no chain.
+    expect(blocks.some((b) => b.serverNames.includes(WWW))).toBe(true);
+    const hops = follow(WWW, "/resources/");
+    expect(hops).toEqual([
+      { host: WWW, status: 301, location: `https://${CANONICAL}/resources/` },
+      { host: CANONICAL, status: 200, location: null },
+    ]);
   });
 
   it("the serving block, and only the serving block, is the declared default server", () => {
@@ -275,7 +281,7 @@ describe("canonical-host behavior (DECISIONS 148/168)", () => {
     // simulator against a real binary rather than trusting it blind.
     expect(blocks.length).toBe(2);
     expect(blocks[0].rootRedirect).not.toBeNull();
-    expect(blocks[0].serverNames).toEqual([OLD_HOST]);
+    expect(blocks[0].serverNames).toEqual([OLD_HOST, WWW]);
     expect(blocks[1].servesFiles).toBe(true);
   });
 });

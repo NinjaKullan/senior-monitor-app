@@ -39,12 +39,14 @@ def server_blocks() -> dict[str, str]:
 
 BLOCKS = server_blocks()
 assert "_" in BLOCKS, "no default server block — nothing serves the site"
-assert "kettle-site.fly.dev" in BLOCKS, (
-    "the redirect block is gone: the retired Fly hostname would serve a second "
-    "copy of the page instead of forwarding to heykettle.com (DECISIONS 142)"
+REDIRECT_NAMES = "kettle-site.fly.dev www.heykettle.com"
+assert REDIRECT_NAMES in BLOCKS, (
+    "the redirect block is gone or renamed: the retired Fly hostname and www "
+    "would serve a second copy of the page instead of forwarding to "
+    "heykettle.com (DECISIONS 142; www joined it on 2026-09-12, seo-backlog D1)"
 )
 SERVING = BLOCKS["_"]
-REDIRECT = BLOCKS["kettle-site.fly.dev"]
+REDIRECT = BLOCKS[REDIRECT_NAMES]
 
 #: The config with its comments stripped. Bans below are about what nginx does,
 #: and this file explains itself at length — a rule spelled out in prose was
@@ -155,6 +157,18 @@ def test_the_old_fly_hostname_301s_to_the_canonical_domain():
     assert "$uri;" not in REDIRECT
 
 
+def test_www_forwards_to_the_apex_like_the_old_host():
+    """One address per page (DECISIONS 142), now including www.
+
+    Search Console showed the www copy of privacy.html winning the brand query
+    while www fell through to the serving block. Naming www in the redirect
+    block's server_name is the whole fix; a second block would say the same
+    thing twice.
+    """
+    assert "www.heykettle.com" in REDIRECT_NAMES
+    assert "www" not in SERVING.split("location")[0]
+
+
 def test_the_serving_block_is_the_declared_default_server():
     """The redirect loop of DECISIONS 148, held shut.
 
@@ -193,7 +207,7 @@ def test_the_redirect_is_scoped_to_that_one_host():
     be affected by anything written in it. An `if ($host = ...)` would put the
     two concerns in one block and make that reasoning a matter of reading order.
     """
-    assert "server_name kettle-site.fly.dev;" in REDIRECT
+    assert f"server_name {REDIRECT_NAMES};" in REDIRECT
     assert "server_name _;" in SERVING
     assert "if (" not in DIRECTIVES, "host routing belongs in server_name, not in `if`"
     # The serving block must not have grown a redirect of its own.
