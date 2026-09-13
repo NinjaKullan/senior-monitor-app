@@ -163,9 +163,17 @@ def test_webapp_signal_names_match_the_shortcuts_on_the_phone():
     assert block, "SIGNAL_DISPLAY_NAMES not found in signalNames.ts"
     rendered = dict(re.findall(r'(\w+):\s*"([^"]+)"', block.group(1)))
 
-    assert rendered == signals.SIGNAL_LABELS
-    # Every signal a parent can actually be provisioned with has a name here, so
-    # the app's title-case fallback never runs for the standard set.
+    # The shortcut keys, exactly. The Android keys (spec 014, DECISIONS 329)
+    # are no shortcut and reach the webapp under §6.6, not built yet: until
+    # then they are absent here, and never wrong here.
+    shortcut_labels = {
+        k: v for k, v in signals.SIGNAL_LABELS.items() if k in signals.SHORTCUT_SIGNALS
+    }
+    assert {k: v for k, v in rendered.items() if k in signals.SHORTCUT_SIGNALS} == shortcut_labels
+    for key, label in rendered.items():
+        assert signals.SIGNAL_LABELS.get(key) == label, key
+    # Every signal a parent can actually be provisioned with on iOS has a name
+    # here, so the app's title-case fallback never runs for the standard set.
     assert {signal for signal, _ in signals.STANDARD_SIGNALS} <= set(rendered)
 
 

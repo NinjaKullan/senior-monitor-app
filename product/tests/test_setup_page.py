@@ -197,9 +197,7 @@ def test_expired_link_is_a_dead_end_with_a_person_to_ask(conn: psycopg.Connectio
 def test_rotated_link_is_dead_and_the_new_one_lives(conn: psycopg.Connection, client):
     family = _family(conn, signals=["routine", "charger"])
     old_slug = _slug(family.parents[0])
-    issued = issue_setup_link_by_token(
-        conn, family.parents[0].device_token, BASE_URL, now_utc()
-    )
+    issued = issue_setup_link_by_token(conn, family.parents[0].device_token, BASE_URL, now_utc())
 
     old = client.get(f"/s/{old_slug}")
     assert old.status_code == 410
@@ -334,10 +332,18 @@ def test_malformed_since_is_refused(conn: psycopg.Connection, client):
 
 
 def test_every_vocabulary_signal_has_an_automation_instruction():
-    """A new signal key must get a real instruction, not inherit a default."""
-    for signal in ALARM_GRADE:
+    """A new signal key must get a real instruction, not inherit a default.
+    Spec 014: the Android keys ship as no shortcut and get no automation row
+    on the iOS page — refused loudly, not defaulted (the Android branch of
+    the page is §6.3, not built yet)."""
+    from kettle.signals import SHORTCUT_SIGNALS
+
+    for signal in SHORTCUT_SIGNALS:
         rendered = automation_row(signal, "Amma")
         assert "Run Immediately" in rendered
+    for signal in set(ALARM_GRADE) - SHORTCUT_SIGNALS:
+        with pytest.raises(ValueError, match="no automation instruction"):
+            automation_row(signal, "Amma")
 
     with pytest.raises(ValueError, match="no automation instruction"):
         automation_row("pigeon", "Amma")
@@ -367,9 +373,7 @@ def test_all_corroborating_set_gets_no_green_check(conn: psycopg.Connection, cli
     assert '"hasVerify": false' in body
 
 
-def test_browser_signal_consent_sentence_is_wired(
-    conn: psycopg.Connection, client, monkeypatch
-):
+def test_browser_signal_consent_sentence_is_wired(conn: psycopg.Connection, client, monkeypatch):
     """Q100's future browser signal must surface its own consent sentence.
 
     The vocabulary has no browser key yet, so today's pages never show it —
