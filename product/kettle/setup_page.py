@@ -19,22 +19,34 @@ from __future__ import annotations
 
 import html
 import json
+import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import urlsplit
 
 import psycopg
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from kettle import db
 from kettle import setup_copy as copy
 from kettle.signals import SIGNAL_LABELS, shortcut_name
 from kettle.timeutil import now_utc
+from kettle.tokens import new_device_token
+from kettle.waitlist import FloodCounter
 
 router = APIRouter()
+log = logging.getLogger("kettle.setup")
+
+#: Spec 014 §5.3: the Android app claims its token from the setup link. Per
+#: slug, in process memory (the 308 counter shape): a reinstall is a handful
+#: of claims a day, a flood is not.
+CLAIM_LIMIT = 10
+CLAIM_WINDOW = timedelta(hours=1)
+CLAIM_PLATFORMS = ("android",)
+CLAIM_FIELD_MAX = 120
 
 #: Header on every /s/* response. The page is a credential's escort; nothing
 #: about it may outlive the link in a cache (the DECISIONS 111 posture).
@@ -400,8 +412,7 @@ def _cta(label: str, extra: str = "") -> str:
 
 def _bubble(text: str) -> str:
     return (
-        '<div class="bubblerow"><div class="avatar">◎</div>'
-        f'<div class="bubble">{text}</div></div>'
+        f'<div class="bubblerow"><div class="avatar">◎</div><div class="bubble">{text}</div></div>'
     )
 
 
@@ -413,17 +424,9 @@ def render_setup_page(state: SetupState, public_base_url: str) -> str:
     signals = list(state.signals)
     keys = [row["signal"] for row in signals]
 
-    sub = (
-        copy.HEADER_SUB.format(child=child)
-        if state.child_name
-        else copy.HEADER_SUB_NO_CHILD
-    )
+    sub = copy.HEADER_SUB.format(child=child) if state.child_name else copy.HEADER_SUB_NO_CHILD
 
-    sent = (
-        copy.CONSENT_SENT_MERGED
-        if "routine" in keys
-        else copy.CONSENT_SENT_PER_APP
-    )
+    sent = copy.CONSENT_SENT_MERGED if "routine" in keys else copy.CONSENT_SENT_PER_APP
     browser_note = (
         f'<p class="say">{copy.CONSENT_BROWSER}</p>' if browser_consent_applies(keys) else ""
     )
@@ -460,13 +463,9 @@ def render_setup_page(state: SetupState, public_base_url: str) -> str:
         for row in signals
     )
     add_title = (
-        copy.ADD_TITLE_TWO
-        if len(signals) == 2
-        else copy.ADD_TITLE_MANY.format(count=len(signals))
+        copy.ADD_TITLE_TWO if len(signals) == 2 else copy.ADD_TITLE_MANY.format(count=len(signals))
     )
-    add_say = (
-        copy.ADD_SAY.format(child=child) if state.child_name else copy.ADD_SAY_NO_CHILD
-    )
+    add_say = copy.ADD_SAY.format(child=child) if state.child_name else copy.ADD_SAY_NO_CHILD
     add = _screen(
         f"<h1>{add_title}</h1>"
         f'<p class="say">{add_say}</p>'
@@ -551,9 +550,7 @@ def render_setup_page(state: SetupState, public_base_url: str) -> str:
             if state.child_name
             else copy.VERIFY_CROSSED_NO_CHILD.format(parent=state.parent_name or "")
         ),
-        "died": copy.VERIFY_LINK_DIED.format(
-            child=state.child_name or copy.DEAD_NO_CHILD
-        ),
+        "died": copy.VERIFY_LINK_DIED.format(child=state.child_name or copy.DEAD_NO_CHILD),
     }
     script = _JS.replace(
         "__COPY__", json.dumps(verify_copy, ensure_ascii=True).replace("</", "<\\/")
@@ -643,6 +640,100 @@ async def setup_page(request: Request, slug: str) -> HTMLResponse:
     )
 
 
+def _claim_field(payload: dict[str, Any], name: str) -> str | None:
+    value = payload.get(name)
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    return value[:CLAIM_FIELD_MAX] or None
+
+
+def claim_counter(request: Request) -> FloodCounter:
+    """One counter per app, built on first use (main builds the waitlist's;
+    this router owns its own so the two limits cannot share a budget)."""
+    held = getattr(request.app.state, "claim_flood", None)
+    if held is None:
+        held = FloodCounter(limit=CLAIM_LIMIT, window=CLAIM_WINDOW)
+        request.app.state.claim_flood = held
+    return held
+
+
+def claim_device_for(
+    conn: psycopg.Connection,
+    slug: str,
+    oem: str | None,
+    app_version: str | None,
+    now: datetime,
+) -> dict[str, Any]:
+    """The device a claim hands out (spec 014 §5.3, DECISIONS 330).
+
+    The link's own device row is claimed when it is an Android row nobody has
+    claimed yet (no app_version): the first install takes the row the link
+    was issued for. Any later claim on the same slug — a reinstall, or a
+    second phone — cannot be told apart from this side (the app sends no
+    stable identity, and OEM plus version is not one), so it is a NEW device
+    row with a fresh token, and the earlier row stays active until the
+    founder revokes it. A claim never revokes.
+    """
+    link = db.setup_link_by_slug(conn, slug)
+    assert link is not None
+    if link["platform"] == "android" and not db.device_claimed(conn, link["device_id"]):
+        db.claim_device(conn, link["device_id"], oem, app_version)
+        device = db.device_by_id(conn, link["device_id"])
+    else:
+        token = new_device_token()
+        device_id = db.insert_device(
+            conn, link["parent_id"], "android", token, now, oem, app_version
+        )
+        device = db.device_by_id(conn, device_id)
+    return device
+
+
+@router.post("/s/{slug}/claim")
+async def setup_claim(request: Request, slug: str) -> JSONResponse:
+    """Spec 014 §5.3: the Android app's one write on the setup path.
+
+    Works while the link is live (7 days, revocable with the token, 005b
+    §4.2); a claimed link stays claimable so a reinstall on the same phone
+    works without a new link; an expired or revoked slug answers the same
+    dead end the page and the state check give (410), an unknown one 404. A
+    platform other than Android is refused. Rate-limited per slug, in
+    memory; logged like a page resolve, slug masked, never a token.
+    """
+    now = now_utc()
+    if not claim_counter(request).allow(slug, now):
+        return PlainTextResponse("too many", status_code=429, headers=_headers())
+    try:
+        payload = await request.json()
+    except ValueError:
+        raise StarletteHTTPException(status_code=400, detail="malformed request") from None
+    if not isinstance(payload, dict) or payload.get("platform") not in CLAIM_PLATFORMS:
+        raise StarletteHTTPException(status_code=400, detail="platform")
+    with request.app.state.pool.connection() as conn:
+        state = resolve_setup(conn, slug, now)
+        if state.status == "unknown":
+            raise StarletteHTTPException(status_code=404, detail="not found")
+        if state.status in ("expired", "revoked"):
+            return JSONResponse({"status": state.status}, status_code=410, headers=_headers())
+        device = claim_device_for(
+            conn,
+            slug,
+            _claim_field(payload, "oem"),
+            _claim_field(payload, "app_version"),
+            now,
+        )
+        signals = [row["signal"] for row in state.signals]
+    log.info("setup: claim on …%s by android", slug[-6:])
+    return JSONResponse(
+        {
+            "device_token": device["device_token"],
+            "api_base": request.app.state.settings.public_base_url.rstrip("/"),
+            "signals": signals,
+        },
+        headers=_headers(),
+    )
+
+
 @router.get("/s/{slug}/state")
 async def setup_state(request: Request, slug: str, since: str | None = None) -> JSONResponse:
     """The page's one live read: is the link alive, and has the server heard.
@@ -658,18 +749,14 @@ async def setup_state(request: Request, slug: str, since: str | None = None) -> 
         if state.status == "unknown":
             raise StarletteHTTPException(status_code=404, detail="not found")
         if state.status in ("expired", "revoked"):
-            return JSONResponse(
-                {"status": state.status}, status_code=410, headers=_headers()
-            )
+            return JSONResponse({"status": state.status}, status_code=410, headers=_headers())
 
         seen: bool | None = None
         if since is not None:
             try:
                 cutoff = datetime.fromisoformat(since)
             except ValueError:
-                raise StarletteHTTPException(
-                    status_code=400, detail="malformed since"
-                ) from None
+                raise StarletteHTTPException(status_code=400, detail="malformed since") from None
             if cutoff.tzinfo is None:
                 raise StarletteHTTPException(status_code=400, detail="malformed since")
             last = db.last_alarm_ping(conn, state.parent_id)
