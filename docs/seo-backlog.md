@@ -1,0 +1,106 @@
+# SEO backlog and experiment log
+
+State file for the Domain Authority objective. Companion to
+`docs/seo-audit-2026-09.md` (evidence and reasoning). Keep this file in the
+present tense; move history into the log at the bottom.
+
+**Next review: 2026-10-06** (first full week of October, after Moz's free
+quota resets and the first two weekly metrics emails have landed). Triggers
+that bring it forward: Search Console access granted, a PM ruling on D1 to
+D6, a YC decision, or a link reported live. No scheduled job polls anything.
+
+Targets, from the audit §6: DA 10 is the first checkpoint, DA 20 the
+long-term target, DA 50+ the ceiling kept on record and not planned for.
+Business outcome tracked separately: qualified referral visits (Search
+Console clicks) and beta applications.
+
+## 1. Owed now, by whom
+
+| # | Item | Owner | Approval | Why |
+|---|---|---|---|---|
+| A1 | Grant Search Console read access (or send a monthly export: impressions, clicks, queries, indexed pages, sitemap status) | Founder | access | Nothing below can be evaluated without it (audit §2, §8) |
+| A2 | Make the HeyKettle mention on linkabitai.com a real `<a href="https://heykettle.com/">` in the server-rendered HTML | Founder, or CC in that repository | founder | The only external link that exists is invisible to non-JS crawlers (audit T11) |
+| A3 | Cloudflare: Scrape Shield → Email Address Obfuscation off; Security → Bots → JavaScript Detections off | Founder | founder | Restores the page that fetches nothing; removes a third-party beacon from every page (audit T3, LAW-9 spirit) |
+| A4 | Record the waitlist count as the conversion baseline before any outreach | Founder or PM | none | Baseline for the business outcome |
+| A5 | Moz root-domain reading for heykettle.com and, if quota allows, snugsafe.com and parentsareok.app | Founder (the Moz account) | none, no spend | Replaces the exact-page snapshot; peers' DA is unknown (audit §4) |
+| A6 | LinkedIn company page for HeyKettle, linking the site | Founder | founder, creates an account | First foundation listing (S1); peers all have one |
+
+## 2. Decisions for the PM (each is a ruling, not a fix)
+
+| # | Question | Pinned by | Options |
+|---|---|---|---|
+| D1 | Should www.heykettle.com 301 to the apex? | DECISIONS 168 pins www as production-correct and says naming it forces a decision | (a) a Cloudflare redirect rule, nginx untouched, canonicalHost test updated to expect the rule; (b) a `www.heykettle.com` server block in nginx alongside the fly.dev one; (c) leave it and rely on canonicals, which resource pages do not have (D2) |
+| D2 | Should resource pages carry a self-canonical like blog posts? | PM ruling 2026-08-30, "resource pages stay bare" | The blog test already admits one canonical and nothing else; the same narrowing would work for resources |
+| D3 | May static pages carry outbound links to the sources they attribute (NIA, CFPB, FEMA, Eldercare Locator)? | The standalone-page tests ban any absolute URL | If yes: allowlist named origins in the test, `rel` left plain. If no: record that the site does not cite by link, and expect S2 to be slower |
+| D4 | Replace the em dash in the home `<title>` ("HeyKettle — Know the day started normally.") | LAW-7 | e.g. "HeyKettle. Know the day started normally." or "Know the day started normally. HeyKettle" |
+| D5 | Meta descriptions for `/blog/`, `/resources/`, privacy and terms | copy law | PM drafts; the resources test already scans the description slot |
+| D6 | Organization and Article JSON-LD | `<script>` banned on static pages | Low priority; only worth a ruling if D3 passes |
+
+## 3. First 30 days (2026-09-12 to 2026-10-12), prioritized
+
+Sessions do not draft outreach or new content until the items in §1 that
+gate them are done and the founder has said go.
+
+| P | Item | Owner | Depends on | Evaluate on | Continue if / stop if |
+|---|---|---|---|---|---|
+| 1 | A1 to A6 above | Founder / PM | | 2026-10-06 | Continue when A1 and A5 are in hand |
+| 2 | Prospect list for S2, resource-page inclusion: one row per target with the page URL, its maintainer, what it already links to, which Kettle printable fits, and why. Seed list from `docs/gtm-market-research-2026-08.md` and the audit: PlaneTree Health Library caregiving LibGuide, Caregiver Action Network long-distance page, Daughterhood, Working Daughter, Village to Village member sites, Area Agencies on Aging resource pages, public-library caregiving LibGuides (search "libguides caregiving aging parent"), Where You Live Matters | CC | none | when 25 rows exist | Continue if at least 10 targets already link out to free printables from other makers |
+| 3 | Outreach drafts for the top 10 of P2: one personal note each, plain voice, printable named, no ask beyond "if it fits your list", Kettle described in one sentence with no banned word | CC drafts, founder approves each send | P2, A1, A4 | 8 weeks after first send | Continue if 2 of 10 reply; change the note if 0 of 10; never send a second unsolicited note to the same person |
+| 4 | Publish blog post 3 ("Small things that actually help"): rule-checked and ready; sitemap and index entries; PM review | CC then PM | PM go | Search Console after 8 weeks | It is brand content, not a search bet; judge on shares and links, not rank |
+| 5 | Wave-2 who-to-call crosswalk (DECISIONS 198: dated numbers-checked footer, every number verified on its official page the day the file is generated) | CC, PM review | the five owed research verifications in 198 | 12 weeks after live | Continue if S2 targets cite it; it is the strongest link magnet in the set |
+| 6 | Founder editorial list for S3: podcasts and newsletters that interview founders in this niche (Working Daughter, Daughterhood, Happy Healthy Caregiver as guest, Aging and Health Technology Watch, aiht substack). One pitch each, founder voice, no sponsorship | CC lists, founder pitches | founder go | 3 months | Continue if one booking per 10 pitches |
+| 7 | YC directory entry if the Fall 2026 application is accepted; Show HN when the product is public | Founder | external | on event | |
+| 8 | Monthly reading: Moz root-domain, Search Console, link log, waitlist count, recorded in §5 | CC or founder | A1, A5 | monthly | |
+
+## 4. Later, kept with reasons
+
+- S4 original consented research (a small survey of adult children on calling
+  habits and the worry threshold): the strongest press magnet in this category
+  (Snug's only earned pickup was a survey) but needs a real audience, consent
+  and honest methodology. Not before the beta and a newsletter exist.
+- App-store listings when the family app is public: the largest single link
+  source for every peer. Product-gated.
+- Remaining printables (#5 long-distance planner, #7 home safety check, #8
+  "Who's checking on Mom?", #9 local safety net, #10 monthly check-in) and
+  keep-listed articles (topics 1, 9, 10, 12, 16, 18, merged 6/17). Topic 18
+  first: uncontested SERP.
+- Post 2 ("The button in the drawer"): blocked on two founder anecdotes.
+- Unlinked-mention and lost-link sweep: nothing exists yet; re-check monthly
+  with the Moz reading.
+
+## 5. Ruled out, with the rule
+
+- Reddit, any form: off limits by instruction.
+- Paid links, sponsored posts with passing links, guest-post networks,
+  directories that charge, bulk directory submissions: Google's link spam
+  policy names each.
+- Scaled or AI-generated content for search: scaled content abuse policy and
+  the writers' brief (no invented anecdotes).
+- Expired domains, redirects for score, private blog networks.
+- Client-side analytics of any kind, including "privacy-friendly" ones: LAW-9
+  and DECISIONS 201.
+- Vocabulary: no "monitor", "track", "alert", "elderly", "seniors" about
+  Kettle or a parent, anywhere, including outreach and listings. Searcher
+  words only in contrast position on web pages (DECISIONS 195).
+
+## 6. Experiment and measurement log
+
+Record source, date, scope, confidence. Never credit an action with a change
+merely because the change came after it.
+
+| Date | Reading or event | Source, scope | Value | Confidence, notes |
+|---|---|---|---|---|
+| before 2026-09-12 | Moz DA 1, PA 16, 9 linking domains, 10 links, 0 followed | founder's Moz screenshot, exact page https://heykettle.com/ | | Low as root-domain baseline; domain registered 2026-08-21, Wayback captures exist from 2025-03 under an unknown prior use |
+| 2026-09-12 | Moz root-domain reading attempted | moz.com/domain-analysis in the founder's browser | redirected to free-metrics-limit | Quota spent; retry in October (A5) |
+| 2026-09-12 | Indexed third-party mentions of "HeyKettle" | WebSearch proxy | none | Not Search Console |
+| 2026-09-12 | Sitemap lastmod corrected to git dates; `cd site && npm run ci` green | repo | 21 URLs | Technical hygiene; no DA effect expected |
+| 2026-09-12 | Live pages equal HEAD build except Cloudflare-injected scripts | diff of live vs repo | | No content deploy owed |
+
+## 7. Link log
+
+One row per placement. Verified live means the linking page was fetched and
+the anchor seen in the server HTML.
+
+| Date reported | Linking page | Target | Attribute | Verified live | Seen by Moz | Notes |
+|---|---|---|---|---|---|---|
+| 2026-09-12 | https://linkabitai.com/ | https://heykettle.com/ | none (no anchor in HTML) | no, text only | unknown | A2 |
