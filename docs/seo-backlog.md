@@ -22,7 +22,7 @@ Console clicks) and beta applications.
 | A7 | Request indexing in URL Inspection for the eight priority URLs, one at a time: /resources/okay-living-alone/, /resources/emergency-info/, /resources/normal-day/, /resources/changes-tracker/, /resources/, /blog/parent-doesnt-answer-the-phone/, /blog/how-often-should-you-check-on-a-parent/, /blog/the-information-youll-wish-you-had/ | Founder, or CC in the founder's browser with a go | founder (it submits a request to Google) | 18 of 21 URLs have never been crawled (audit T12). A request is the only lever that does not wait for links |
 | A2 | Make the HeyKettle mention on linkabitai.com a real `<a href="https://heykettle.com/">` in the server-rendered HTML | Founder, or CC in that repository | founder | The only external link that exists is invisible to non-JS crawlers (audit T11) |
 | A3 | Cloudflare: Email Address Obfuscation OFF, done 2026-09-12 and verified live. JavaScript Detections cannot be disabled on the Free plan (Bot Fight Mode already off); the beacon stays until a plan change or Cloudflare fixes it. Closed as a platform limit | Founder | done | audit T3 |
-| A8 | URGENT before 2026-09-15: Cloudflare, Security → Settings, "Block AI bots": switch the preference to "Mixed purpose crawlers will continue to be allowed". Otherwise Googlebot, Bingbot and Applebot may be blocked from the site | Founder (or CC in the founder's browser with a yes) | founder | audit T14 |
+| A8 | Cloudflare "Block AI bots" preference set to "Mixed purpose crawlers will continue to be allowed", done 2026-09-12 on the founder's yes and verified after reload. Googlebot, Bingbot and Applebot stay allowed on 09-15; pure AI-training crawlers stay blocked | Founder, done by CC | done | audit T14 |
 | A4 | Record the waitlist count as the conversion baseline before any outreach | Founder or PM | none | Baseline for the business outcome |
 | A5 | Moz root-domain reading for heykettle.com and, if quota allows, snugsafe.com and parentsareok.app | Founder (the Moz account) | none, no spend | Replaces the exact-page snapshot; peers' DA is unknown (audit §4) |
 | A6 | LinkedIn company page for HeyKettle, linking the site | Founder | founder, creates an account | First foundation listing (S1); peers all have one |
@@ -104,6 +104,7 @@ merely because the change came after it.
 | 2026-09-12 | Search Console sitemap | same | read 09-10, Success, 21 URLs | |
 | 2026-09-12 | Search Console links | same | processing, no data | Re-read 2026-10-06 |
 | 2026-09-12 | Cloudflare Email Address Obfuscation off; live check shows one script (the bundle) plus the challenge-platform beacon; plain mailto restored | founder's Cloudflare session; curl | | Beacon is a Free-plan limit |
+| 2026-09-12 | Cloudflare mixed-purpose crawler preference switched to allowed (A8) | founder's Cloudflare session, founder's yes | | Re-check search crawl in Search Console after 09-15 |
 
 ## 7. Link log
 
