@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 335.** This line is the one to update; the `Next number:` lines inside
+**Next number: 336.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7089,3 +7089,16 @@ browser — all three adopted as the standard for future surfaces.**
      * Deploy (founder): `cd product && fly deploy` → `cd webapp && npm
        run ci && fly deploy`. PM checks the login page in Chrome after.
      * Next number: 335.
+
+335. **(2026-09-13, ~2:30am ET) 333 DEPLOYED and VERIFIED LIVE (668f44e;
+     product and webapp deployed by the founder). The Android server side
+     (330) is live with it.** PM checked the login page in Chrome after
+     signing the founder's Chrome session out: "Email me a code" is the
+     copper primary pill; nothing blue remains on the first screen a beta
+     family sees. Today card unchanged. The founder's Chrome is signed
+     out; the phone is not.
+     * State at close: nothing owed until the Pixel arrives (debug build,
+       claim, permission screens) or the first beta reply lands (PM
+       provisions; founder runs the FaceTime). Fridge on the TestDad row
+       whenever. Google Play developer account: founder to open.
+     * Next number: 336.
