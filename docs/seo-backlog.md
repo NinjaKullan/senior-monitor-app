@@ -40,6 +40,47 @@ Console clicks) and beta applications.
 | D7 | May the home page link to the individual resource pages (not only to /resources/) and the resources index to the articles? | copy law, `copy.ts` | Internal links are the cheapest crawl signal the site can send for T12; four link texts to draft |
 | D8 | Cloudflare's managed robots.txt overrides the repo's and disallows ClaudeBot, GPTBot, Google-Extended and six others, with `ai-train=no` (audit T15) | founder policy | (a) keep: no AI training on the site's text, and no citations from assistants that use those crawlers; (b) switch Cloudflare's robots.txt management off so the repo file is what is served, and decide any AI policy in the repo where a test can hold it; (c) keep the training block but allow search-and-answer crawlers. The repo file cannot currently be trusted as the served file either way |
 
+## 2a. Recommendations on D1 to D8 (Claude Code, 2026-09-12, from first principles)
+
+A search engine rewards three things a site controls: one address per page,
+a crawl path to every page, and honest signals about what each page is and
+cites. The site's own laws already say "one page, one address" (142) and
+"rules live where a test holds them". Each recommendation ships with its
+test changed, plant-and-revert.
+
+- **D1, yes, in nginx.** 168 deferred the www question to avoid a loop; the
+  data now shows the cost (the www privacy page wins the brand query). A
+  third server block 301s www to the apex, one hop, and the canonical-host
+  pin changes from "www serves 200" to "www 301s". Not a Cloudflare rule,
+  which the repo cannot see or test (the D8 problem).
+- **D2, yes.** A canonical is a page's own statement of its address. The blog
+  test already admits exactly one canonical; give resource pages the same
+  narrowing. Still useful after D1 for `/index.html` variants.
+- **D3, yes, to an allowlist of public-sector origins.** The absolute-URL ban
+  was a proxy for "fetches nothing"; an anchor fetches nothing until clicked.
+  Keep the real ban (no foreign link, script, img, iframe); allow `<a href>`
+  to nia.nih.gov, cdc.gov, consumerfinance.gov, fema.gov, eldercare.acl.gov
+  and similar. Public sector only, so no vendor endorsement ever appears.
+- **D4, promise first, brand last, period separator:** "Know the day started
+  normally. HeyKettle". One string in `index.html`.
+- **D5, one description, for /blog/.** Resources already has one; privacy and
+  terms do not need one, D1 fixes their brand-query impressions at source.
+- **D6, Organization JSON-LD on the home page only, later.** Inert data, and
+  the home page already runs a bundle. Value is entity disambiguation
+  (search confuses "hey kettle" with tea companies). Article markup: no.
+- **D7, yes, with zero new copy.** Link each printable and each article from
+  the home page using its existing H1 verbatim; link the three articles from
+  the resources index. The 18 uncrawled pages are two clicks deep today.
+- **D8, switch Cloudflare's robots.txt management off, then set the policy
+  in the repo.** The served file must be the tested file. Then: block
+  training-only crawlers (GPTBot, CCBot, Bytespider, Google-Extended,
+  Applebot-Extended, meta-externalagent), allow search and answer crawlers,
+  state "no training" via the Content-Signal line. A blanket block forfeits
+  assistant citations for no privacy gain on public pages.
+
+Order: D1+D2, then D7, then D3/D4/D5 as one copy pass, D8 when the founder
+has a view on AI policy, D6 last.
+
 ## 3. First 30 days (2026-09-12 to 2026-10-12), prioritized
 
 Sessions do not draft outreach or new content until the items in §1 that
