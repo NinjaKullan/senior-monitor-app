@@ -190,15 +190,36 @@ describe("the resource pages obey the site's laws", () => {
     expect(/<h1[^>]*>[^<]*elderly/i.test(html)).toBe(false);
   });
 
-  it("stand alone: no scripts, no stylesheets, no absolute URLs", () => {
+  /**
+   * The posture, narrowed the way blog.test.tsx narrowed it: one canonical
+   * is admitted (seo-backlog D2, founder ruling 2026-09-12; the 2026-08-30
+   * "resource pages stay bare" ruling is superseded), and it is removed
+   * before the flat bans run so everything else must still hold. The
+   * register page is not a canonical target and stays bare, like /blog/.
+   */
+  const CANONICAL =
+    /<link rel="canonical" href="https:\/\/heykettle\.com\/resources\/[a-z0-9-]+\/" \/>/;
+
+  it("stand alone: no scripts, no stylesheets, no other absolute URLs", () => {
     const pages = [REGISTER, ...resourceSlugs().map((s) =>
       join(PUBLIC, "resources", s, "index.html"))];
     for (const path of pages) {
-      const html = readFileSync(path, "utf8");
+      const html = readFileSync(path, "utf8").replace(CANONICAL, "");
       expect(html, path).not.toMatch(/<script/i);
       expect(html, path).not.toMatch(/<link/i);
       expect(html, path).not.toMatch(/https?:\/\//i);
     }
+  });
+
+  it("each resource page's canonical names its own URL, and the register has none", () => {
+    for (const slug of resourceSlugs()) {
+      const html = readFileSync(join(PUBLIC, "resources", slug, "index.html"), "utf8");
+      const found = html.match(CANONICAL);
+      expect(found, `${slug} lost its canonical`).not.toBeNull();
+      expect(found![0]).toContain(`/resources/${slug}/`);
+      expect(html.match(/rel="canonical"/g)!.length).toBe(1);
+    }
+    expect(readFileSync(REGISTER, "utf8")).not.toMatch(/rel="canonical"/);
   });
 });
 
