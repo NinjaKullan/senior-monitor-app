@@ -15,7 +15,7 @@ from typing import Any
 import psycopg
 
 from kettle import db
-from kettle.signals import ALARM_GRADE, STANDARD_SIGNALS, shortcut_name
+from kettle.signals import ALARM_GRADE, PLATFORM_SIGNALS, SHORTCUT_SIGNALS, shortcut_name
 from kettle.timeutil import now_utc
 from kettle.tokens import new_device_token, new_setup_slug
 
@@ -56,15 +56,21 @@ def check_relationship(label: str | None) -> str | None:
     return label
 
 
-def select_signals(keys: list[str] | None) -> tuple[tuple[str, bool], ...]:
+def select_signals(
+    keys: list[str] | None, platform: str = "ios_shortcuts"
+) -> tuple[tuple[str, bool], ...]:
     """The (signal, alarm_grade) rows a chosen key list provisions.
 
-    None means the standard seed, unchanged. A key outside the vocabulary is a
-    loud error before anything is written: a typo here would otherwise provision
-    a signal no shortcut will ever ping and no label map can render.
+    None means the platform's seed (spec 014 §6.2: `--platform android`
+    selects the Android set; iOS is unchanged). A key outside the vocabulary
+    is a loud error before anything is written: a typo here would otherwise
+    provision a signal nothing will ever ping and no label map can render.
+    The grade is never the caller's (DECISIONS 110).
     """
     if keys is None:
-        return STANDARD_SIGNALS
+        if platform not in PLATFORM_SIGNALS:
+            raise ValueError(f"unknown platform {platform!r}")
+        return PLATFORM_SIGNALS[platform]
     unknown = [k for k in keys if k not in ALARM_GRADE]
     if unknown:
         known = ", ".join(sorted(ALARM_GRADE))
@@ -81,7 +87,9 @@ class ProvisionedSignal:
     signal: str
     alarm_grade: bool
     url: str
-    shortcut: str
+    #: None on an Android parent: the app pings by key and no shortcut, file
+    #: or iCloud link exists to name (014 §6.2: skipped, not faked).
+    shortcut: str | None
 
 
 @dataclass(frozen=True)
@@ -124,8 +132,7 @@ def issue_setup_link(
     thread. Returns (slug, expires_utc).
     """
     conn.execute(
-        "update setup_links set revoked_utc = %s "
-        "where device_id = %s and revoked_utc is null",
+        "update setup_links set revoked_utc = %s where device_id = %s and revoked_utc is null",
         (when, device_id),
     )
     slug = new_setup_slug()
@@ -200,15 +207,14 @@ def provision_family(
     the caller, so a merged `routine` cannot arrive corroborating or a `charger`
     alarm-grade by typo. The set applies to every parent in this invocation.
     """
-    chosen = select_signals(signals)
+    chosen = select_signals(signals, platform)
     # Loud before anything is written, like the signal vocabulary above: a typo
     # here would otherwise render into a family's messages.
     for _name, _tz, *rest in parents:
         check_relationship(rest[0] if rest else None)
     created = now_utc()
     family = conn.execute(
-        "insert into families (name, tz, created_utc) values (%s, %s, %s) "
-        "returning id",
+        "insert into families (name, tz, created_utc) values (%s, %s, %s) returning id",
         (name, tz, created),
     ).fetchone()
     family_id = family["id"]
@@ -245,8 +251,7 @@ def provision_family(
         signals: list[ProvisionedSignal] = []
         for signal, alarm_grade in chosen:
             conn.execute(
-                "insert into parent_signals (parent_id, signal, alarm_grade) "
-                "values (%s, %s, %s)",
+                "insert into parent_signals (parent_id, signal, alarm_grade) values (%s, %s, %s)",
                 (parent_id, signal, alarm_grade),
             )
             signals.append(
@@ -254,7 +259,11 @@ def provision_family(
                     signal=signal,
                     alarm_grade=alarm_grade,
                     url=f"{base_url.rstrip('/')}/p/{token}/{signal}",
-                    shortcut=shortcut_name(signal),
+                    shortcut=(
+                        shortcut_name(signal)
+                        if platform == "ios_shortcuts" and signal in SHORTCUT_SIGNALS
+                        else None
+                    ),
                 )
             )
 
@@ -274,14 +283,10 @@ def provision_family(
             )
         )
 
-    return ProvisionedFamily(
-        family_id=family_id, name=name, tz=tz, parents=provisioned
-    )
+    return ProvisionedFamily(family_id=family_id, name=name, tz=tz, parents=provisioned)
 
 
-def provision_demo_family(
-    conn: psycopg.Connection, base_url: str
-) -> ProvisionedFamily:
+def provision_demo_family(conn: psycopg.Connection, base_url: str) -> ProvisionedFamily:
     """Provision the standard demo family used by tests and walkthroughs."""
     return provision_family(
         conn,
@@ -337,16 +342,13 @@ def set_parent_signals(
             (row["parent_id"], signal, alarm_grade),
         )
     conn.execute(
-        "update parent_signals set active = false where parent_id = %s "
-        "and signal != all(%s)",
+        "update parent_signals set active = false where parent_id = %s and signal != all(%s)",
         (row["parent_id"], [signal for signal, _ in chosen]),
     )
     return row["display_name"], [signal for signal, _ in chosen]
 
 
-def set_parent_relationship(
-    conn: psycopg.Connection, device_token: str, label: str
-) -> str | None:
+def set_parent_relationship(conn: psycopg.Connection, device_token: str, label: str) -> str | None:
     """Set an existing parent's relationship label (DECISIONS 149).
 
     The path for the two live parents, who predate migration 0014, without
@@ -410,8 +412,7 @@ def render_revocation(revoked: RevokedDevice, device_token: str) -> str:
             f"  parent:   {revoked.parent_name}",
             f"  platform: {revoked.platform}",
             "",
-            "That phone's pings are now rejected. Every other device in the "
-            "family is unaffected.",
+            "That phone's pings are now rejected. Every other device in the family is unaffected.",
         ]
     )
 
@@ -437,9 +438,16 @@ def render_summary(family: ProvisionedFamily) -> str:
         )
         for sig in parent.signals:
             grade = "alarm" if sig.alarm_grade else "corroborating"
-            lines.append(f"    - {sig.shortcut}  ({grade})")
+            # An Android signal has no shortcut to name: the key, the grade
+            # and the URL the app will build from its claimed token.
+            lines.append(f"    - {sig.shortcut or sig.signal}  ({grade})")
             lines.append(f"      {sig.url}")
         lines.append("")
+    if any(p.signals and p.signals[0].shortcut is None for p in family.parents):
+        lines.append(
+            "Android parents ship no shortcuts and no iCloud links: the app claims its "
+            "own token from the setup page (spec 014 §5.3)."
+        )
     lines.append(
         "Tokens are per device: revoking one phone leaves the rest working. "
         "Nobody types these URLs — they ship inside pre-built shortcuts."

@@ -10,7 +10,7 @@ household plumbing, so neither may ever stand in for a person (product law #6).
 
 from __future__ import annotations
 
-# (signal, alarm_grade)
+# (signal, alarm_grade): the iOS Shortcuts seed, unchanged since 0001.
 STANDARD_SIGNALS: tuple[tuple[str, bool], ...] = (
     ("whatsapp", True),
     ("youtube", True),
@@ -19,6 +19,25 @@ STANDARD_SIGNALS: tuple[tuple[str, bool], ...] = (
     ("charge_off", False),
     ("device_alive", False),
 )
+
+#: Spec 014 §3 (DECISIONS 329): the Android senior app's voice. `unlock` is a
+#: deliberate human act on a personal device, the same class as opening
+#: WhatsApp; `motion` is a fact about the phone (a non-zero step delta, once
+#: an hour, never a count) and corroborates only; `device_alive` finds its
+#: intended home as a daily heartbeat from a native app.
+ANDROID_SIGNALS: tuple[tuple[str, bool], ...] = (
+    ("unlock", True),
+    ("charger", False),
+    ("motion", False),
+    ("device_alive", False),
+)
+
+#: The default seed per `devices.platform` (DECISIONS 100, cashed in by 014):
+#: what a parent is provisioned with when no `--signals` is given.
+PLATFORM_SIGNALS: dict[str, tuple[tuple[str, bool], ...]] = {
+    "ios_shortcuts": STANDARD_SIGNALS,
+    "android": ANDROID_SIGNALS,
+}
 
 # Human-facing names for the pre-built shortcuts a family receives. Nobody types
 # a URL: each signal ships as a named shortcut behind a tapped iCloud link.
@@ -36,7 +55,19 @@ SIGNAL_LABELS: dict[str, str] = {
     # rebuilt remotely for elegance.
     "routine": "Daily routine",
     "charger": "Charger",
+    # Spec 014 §3: the Android keys. A label names what the phone did, never
+    # an app: "Phone unlocked" over ACTION_USER_PRESENT (or SCREEN_ON when the
+    # phone has no lock screen), "Phone moved" over a non-zero step delta.
+    "unlock": "Phone unlocked",
+    "motion": "Phone moved",
 }
+
+#: The keys that ship as iOS shortcuts (a `.shortcut` file behind an iCloud
+#: link, an automation row on the setup page). The Android keys are the app's
+#: own and never become a shortcut.
+SHORTCUT_SIGNALS: frozenset[str] = frozenset(
+    {"whatsapp", "youtube", "news", "charge_on", "charge_off", "device_alive", "routine", "charger"}
+)
 
 #: Alarm-grade for the whole vocabulary, seed set and merged pair alike, so a
 #: caller choosing signals by name (provision --signals, DECISIONS 94) cannot
@@ -50,6 +81,7 @@ ALARM_GRADE: dict[str, bool] = {
     **dict(STANDARD_SIGNALS),
     "routine": True,
     "charger": False,
+    **dict(ANDROID_SIGNALS),
 }
 
 
