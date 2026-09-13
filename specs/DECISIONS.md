@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 329.** This line is the one to update; the `Next number:` lines inside
+**Next number: 330.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6865,3 +6865,31 @@ browser — all three adopted as the standard for future surfaces.**
        FaceTime; first stranger-family install produces the field-note
        block (005b AC1).
      * Next number: 329.
+
+329. **(2026-09-12, ~3:00pm ET) RULED by Hema: spec 014 §9 items 1 and 2.
+     The Android server side (014 §6 items 1, 2, 4, 5) goes to CC now so
+     the soak is not blocked when the Redmi 15C arrives.**
+     * §9.1 RULED as asked: `unlock` is a new alarm-grade signal, label
+       "Phone unlocked"; `motion` is corroborating, once an hour, label
+       "Phone moved". The vocabulary is the PM session's and this is it.
+       Pinned: no key is alarm-grade on one platform and corroborating on
+       another. `routine` stood in for `unlock` during the branch's own
+       tests only (014 §6 preamble).
+     * §9.2 RULED as written: a ping the phone cannot deliver inside sixty
+       minutes is dropped, never replayed (014 §4.4). Arrival time is the
+       record; a morning unlock delivered at dinner would say the wrong
+       thing about the morning.
+     * Scope of the brief: signals vocabulary and PLATFORM_SIGNALS (§6.1),
+       `--platform android` in provisioning (§6.2), `POST /s/{slug}/claim`
+       (§6.4), `devices.oem` and `devices.app_version` (§6.5). Held back:
+       the setup page's Android branch (§6.3) until the Play listing
+       exists and its strings are ruled; the wizard question (§6.6) has
+       no wizard to live in, since families are provisioned by PM and the
+       platform is chosen there; the runbook section (§6.7) after the
+       first real install.
+     * Founder to open the Google Play developer account now (§9.3):
+       identity verification and the closed-test clock run in the
+       background; the soak uses the internal track or a hand-installed
+       build.
+     * Phone ordered: Redmi 15C, global, unlocked, HyperOS on Android 15.
+     * Next number: 330.
