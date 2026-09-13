@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 333.** This line is the one to update; the `Next number:` lines inside
+**Next number: 334.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6999,3 +6999,70 @@ browser — all three adopted as the standard for future surfaces.**
        any Cloudflare change, read robots.txt from the outside and check
        Search Console within the week.
      * Next number: 333.
+
+333. **(2026-09-13) The housekeeping pass BUILT: 331's claim fix, the login
+     buttons (327), 014 §6.6's two labels, the 309 and 314 nits, the baton
+     rewrite, the spec index, the 294 runbook note. Product, webapp and
+     docs; no migration, no new behaviour beyond the two fixes. Judgement
+     calls.**
+     * **Claim on a link that is not Android** (331): `POST /s/{slug}/claim`
+       on a link whose device platform is not `android` answers 400
+       `platform`, the payload check's own refusal, and writes nothing; the
+       parent's devices are as they were and the iOS token still pings. The
+       refusal is logged like a resolve, slug masked. Judgement: a dead link
+       answers its dead end (410) before its platform is looked at, since it
+       is dead on any platform and the app should learn nothing else from
+       it. The 330 test "an iOS link gets its own android device" is
+       replaced by the refusal test; `insert_device` now takes the link's
+       platform, which is Android by then.
+     * **Login** (327): "Email me a code" and "Sign in" are the app's
+       `<Action variant="primary">`, full width; the resend link stays
+       quiet; no string changed. Judgement, beyond "the least": with both
+       moved the shadcn `Button` had no caller left, so it is deleted. One
+       vocabulary means one component, and a dormant Button is one import
+       away from a fourth style. One file to restore if the PM disagrees.
+       No webapp test asserts the look; the PM checks it in Chrome after the
+       deploy.
+     * **§6.6 labels**: `unlock` "Phone unlocked" and `motion` "Phone moved"
+       in `signalNames.ts`, as ruled in 329. The contract test now compares
+       the whole map to `SIGNAL_LABELS` (it let the Android keys be absent);
+       an Android parent's tripwire rows say what the phone did. §6.6's
+       wizard question is still not built: there is no wizard (329).
+     * **314 nit**: device pings are read for thirty days through their own
+       `HOUSEHOLD_PINGS_WINDOW_DAYS`, beside the phone pings' fourteen. Past
+       "nothing else in those files": a product contract test holds the
+       constant equal to `HOUSEHOLD_SWEEP_DAYS` (the 300 pattern), in
+       `test_webapp_contract.py`, so the two cannot drift again.
+     * **309 nit**: `count()`'s docstring names both readers, the cap and
+       the founder's psql.
+     * **Baton**: 492 → 235 lines, by state. Two lines the PM should confirm
+       or strike, under "not known to be live": the weekly log-summary job
+       (212; its three secrets never recorded as set) and `WAITLIST_ORIGINS`
+       (143; never confirmed, the form posts). §4 empties the owed list to
+       the two deploys below and 014's held items; §5 gains the four traps
+       from the brief.
+     * **Spec index**: 008 to 020, 011 A and 019 A, one line each. The 006
+       and 007 lines were false (site unshipped, Wave A dark) and are
+       corrected in the same commit; not in the brief, named here.
+     * **Runbook**: a new section in `docs/wave-d-dark-stage-runbook.md`
+       between the rollback law and Pass 2 setup: code first, then
+       `OUTBOUND_TRANSPORT` with the transport's own secrets in the same
+       command, why (294), and the Advanced Opt-Out button.
+     * **Counts**: root pytest 902 (330) was already 903 on main after the
+       SEO session's `test_site_caching` addition (332 records no count);
+       now **904** (product 857 + pilot 47), zero xfails; webapp 325 → 325;
+       ruff clean; Postgres up before and after.
+     * **Verified by planting** (three, each reverted): the link-platform
+       check removed → the refusal test fails, 200 where 400 is expected;
+       `unlock` removed from `signalNames.ts` → the contract fails naming
+       the missing item; `HOUSEHOLD_PINGS_WINDOW_DAYS` set to 14 → the sweep
+       contract fails, 14 ≠ 30.
+     * **Process, for the record**: a `git rm` staged in one shell while a
+       commit ran in another swept the Button deletion into the waitlist
+       commit (failure family 4). Caught by `git show --stat` before the
+       push, reset to the claim commit and re-split with explicit paths;
+       the baton's §6 now says so.
+     * **Deploys (founder)**: `cd product && fly deploy` (330 and this) →
+       `cd webapp && npm run ci && fly deploy`. Then the PM in Chrome: the
+       login page copper, not blue.
+     * Next number: 334.
