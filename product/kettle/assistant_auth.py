@@ -267,7 +267,17 @@ def client_row(conn: psycopg.Connection, client_id: str) -> dict[str, Any] | Non
 
 
 def is_cimd_client_id(client_id: str) -> bool:
-    return client_id.startswith("https://")
+    """A CIMD client is one whose document we already ship (DECISIONS 336).
+
+    CIMD is closed to unknown URLs, not guarded by an address check: only a
+    `client_id` that is a key of KNOWN_CLIENT_DOCUMENTS is a CIMD client. Every
+    other `https://` id is an unknown client — `client_for` returns None and
+    fetches nothing, the same silence an unknown `kc_` id gets — so an
+    attacker cannot make kettle-api fetch an arbitrary URL from the
+    unauthenticated `/oauth/authorize` and `/oauth/token` routes (the F1 SSRF,
+    `docs/security-review-2026-09.md`). Adding a CIMD client stays what 319/320
+    already required: ship its document. DCR stays open to everyone."""
+    return client_id in KNOWN_CLIENT_DOCUMENTS
 
 
 class ClientDocuments:

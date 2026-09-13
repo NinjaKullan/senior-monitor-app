@@ -18,6 +18,7 @@ from testsupport_assistant import (
     session_token,
 )
 
+from kettle import assistant_auth
 from kettle.assistant_auth import redirect_allowed, www_authenticate
 from kettle.main import create_app
 from kettle.provisioning import provision_family
@@ -442,7 +443,21 @@ def cimd_api_factory(settings, notifier, conn, clock):
     return make
 
 
-def test_a_cimd_client_connects_without_registering(cimd_api_factory, conn, family):
+@pytest.fixture
+def known_cimd(monkeypatch):
+    """Register CIMD_ID as a known client document for the duration (DECISIONS
+    336): CIMD is closed to unknown URLs, so the CIMD mechanics — connect,
+    redirect validation, shipped-copy fallback — are only reachable for a URL
+    whose document we ship. The shipped copy names CIMD_REDIRECT, so a live
+    fetch that fails falls back to a redirect the test can still use."""
+    monkeypatch.setitem(
+        assistant_auth.KNOWN_CLIENT_DOCUMENTS,
+        CIMD_ID,
+        {"client_id": CIMD_ID, "client_name": "Documented", "redirect_uris": [CIMD_REDIRECT]},
+    )
+
+
+def test_a_cimd_client_connects_without_registering(cimd_api_factory, conn, family, known_cimd):
     calls: list[str] = []
     with cimd_api_factory(cimd_client(calls=calls)) as api:
         assistant = Assistant(api, redirect_uri=CIMD_REDIRECT)
@@ -468,7 +483,13 @@ def test_a_cimd_client_connects_without_registering(cimd_api_factory, conn, fami
     assert {g["client_id"] for g in _grants(conn)} == {CIMD_ID}
 
 
-def test_an_unreachable_or_self_contradicting_document_is_no_client(cimd_api_factory, family):
+def test_a_known_url_with_a_broken_live_document_falls_back_to_its_shipped_copy(
+    cimd_api_factory, family, known_cimd
+):
+    """DECISIONS 336: for a KNOWN url, an unreachable or self-contradicting
+    live document is not "no client" — the shipped copy stands (319/320), the
+    same way Claude's does when its edge challenges the fetch. (For an UNKNOWN
+    url there is no fetch at all; that is the test below.)"""
     for client in (
         cimd_client(status=404),
         cimd_client(status=500),
@@ -480,13 +501,13 @@ def test_an_unreachable_or_self_contradicting_document_is_no_client(cimd_api_fac
             assistant = Assistant(api, redirect_uri=CIMD_REDIRECT)
             assistant.client_id = CIMD_ID
             _, challenge = pkce_pair()
-            refused = assistant.authorize(challenge)
-            assert refused.status_code == 400
-            assert refused.json()["error"] == "invalid_client"
-            assert assistant.token(grant_type="refresh_token", refresh_token="x").status_code == 401
+            # The shipped copy names CIMD_REDIRECT, so authorize proceeds.
+            sent = assistant.authorize(challenge)
+            assert sent.status_code == 302, sent.text
+            assert "request=" in sent.headers["location"]
 
 
-def test_a_cimd_redirect_outside_the_document_is_refused(cimd_api_factory, family):
+def test_a_cimd_redirect_outside_the_document_is_refused(cimd_api_factory, family, known_cimd):
     with cimd_api_factory(cimd_client()) as api:
         assistant = Assistant(api, redirect_uri=CIMD_REDIRECT)
         assistant.client_id = CIMD_ID
@@ -560,22 +581,29 @@ def test_a_challenged_fetch_of_claudes_document_falls_back_to_the_shipped_copy(
     )
 
 
-def test_a_challenged_fetch_of_an_unknown_document_is_still_invalid_client(
+def test_an_unknown_https_client_id_is_invalid_client_with_no_fetch_and_no_log(
     cimd_api_factory, family, caplog
 ):
+    """DECISIONS 336: an `https://` client_id that is not a known document is
+    not a CIMD client at all. It gets `invalid_client` — the same silence an
+    unknown `kc_` id gets — with no fetch and no log line. The recording
+    transport is handed a URL that, if it were reached, would answer 200, so a
+    request arriving would prove the fetch happened; none does."""
     import logging
 
+    calls: list[str] = []
     with (
         caplog.at_level(logging.WARNING, logger="kettle.assistant"),
-        cimd_api_factory(challenged(url=CIMD_ID)) as api,
+        cimd_api_factory(cimd_client(calls=calls)) as api,
     ):
         assistant = Assistant(api, redirect_uri=CIMD_REDIRECT)
-        assistant.client_id = CIMD_ID
+        assistant.client_id = CIMD_ID  # not in KNOWN_CLIENT_DOCUMENTS
         _, challenge = pkce_pair()
         refused = assistant.authorize(challenge)
         assert refused.status_code == 400
         assert refused.json()["error"] == "invalid_client"
-    assert f"client document at {CIMD_ID} refused: 403 text/html; no shipped copy" in caplog.text
+    assert calls == []  # no fetch of the attacker-named URL
+    assert CIMD_ID not in caplog.text  # no log line names it
 
 
 def test_a_live_document_that_differs_wins_over_the_shipped_copy(cimd_api_factory, conn, family):
