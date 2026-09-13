@@ -21,7 +21,8 @@ Console clicks) and beta applications.
 | A1 | Search Console: DONE 2026-09-12, readable in the founder's Chrome session (domain property sc-domain:heykettle.com). Keep the session logged in for the monthly reading | Founder | none | audit §2, §8 |
 | A7 | Request indexing in URL Inspection for the eight priority URLs, one at a time: /resources/okay-living-alone/, /resources/emergency-info/, /resources/normal-day/, /resources/changes-tracker/, /resources/, /blog/parent-doesnt-answer-the-phone/, /blog/how-often-should-you-check-on-a-parent/, /blog/the-information-youll-wish-you-had/ | Founder, or CC in the founder's browser with a go | founder (it submits a request to Google) | 18 of 21 URLs have never been crawled (audit T12). A request is the only lever that does not wait for links |
 | A2 | Make the HeyKettle mention on linkabitai.com a real `<a href="https://heykettle.com/">` in the server-rendered HTML | Founder, or CC in that repository | founder | The only external link that exists is invisible to non-JS crawlers (audit T11) |
-| A3 | Cloudflare: Scrape Shield → Email Address Obfuscation off; Security → Bots → JavaScript Detections off | Founder | founder | Restores the page that fetches nothing; removes a third-party beacon from every page (audit T3, LAW-9 spirit) |
+| A3 | Cloudflare: Email Address Obfuscation OFF, done 2026-09-12 and verified live. JavaScript Detections cannot be disabled on the Free plan (Bot Fight Mode already off); the beacon stays until a plan change or Cloudflare fixes it. Closed as a platform limit | Founder | done | audit T3 |
+| A8 | URGENT before 2026-09-15: Cloudflare, Security → Settings, "Block AI bots": switch the preference to "Mixed purpose crawlers will continue to be allowed". Otherwise Googlebot, Bingbot and Applebot may be blocked from the site | Founder (or CC in the founder's browser with a yes) | founder | audit T14 |
 | A4 | Record the waitlist count as the conversion baseline before any outreach | Founder or PM | none | Baseline for the business outcome |
 | A5 | Moz root-domain reading for heykettle.com and, if quota allows, snugsafe.com and parentsareok.app | Founder (the Moz account) | none, no spend | Replaces the exact-page snapshot; peers' DA is unknown (audit §4) |
 | A6 | LinkedIn company page for HeyKettle, linking the site | Founder | founder, creates an account | First foundation listing (S1); peers all have one |
@@ -37,6 +38,7 @@ Console clicks) and beta applications.
 | D5 | Meta descriptions for `/blog/`, `/resources/`, privacy and terms | copy law | PM drafts; the resources test already scans the description slot |
 | D6 | Organization and Article JSON-LD | `<script>` banned on static pages | Low priority; only worth a ruling if D3 passes |
 | D7 | May the home page link to the individual resource pages (not only to /resources/) and the resources index to the articles? | copy law, `copy.ts` | Internal links are the cheapest crawl signal the site can send for T12; four link texts to draft |
+| D8 | Cloudflare's managed robots.txt overrides the repo's and disallows ClaudeBot, GPTBot, Google-Extended and six others, with `ai-train=no` (audit T15) | founder policy | (a) keep: no AI training on the site's text, and no citations from assistants that use those crawlers; (b) switch Cloudflare's robots.txt management off so the repo file is what is served, and decide any AI policy in the repo where a test can hold it; (c) keep the training block but allow search-and-answer crawlers. The repo file cannot currently be trusted as the served file either way |
 
 ## 3. First 30 days (2026-09-12 to 2026-10-12), prioritized
 
@@ -101,6 +103,7 @@ merely because the change came after it.
 | 2026-09-12 | Search Console indexing | same | 2 indexed, 18 discovered-not-crawled, 1 crawled-not-indexed, 1 alternate (www home), 1 duplicate, 2 redirects | High. Baseline for indexed priority pages: 0 of 8 |
 | 2026-09-12 | Search Console sitemap | same | read 09-10, Success, 21 URLs | |
 | 2026-09-12 | Search Console links | same | processing, no data | Re-read 2026-10-06 |
+| 2026-09-12 | Cloudflare Email Address Obfuscation off; live check shows one script (the bundle) plus the challenge-platform beacon; plain mailto restored | founder's Cloudflare session; curl | | Beacon is a Free-plan limit |
 
 ## 7. Link log
 
