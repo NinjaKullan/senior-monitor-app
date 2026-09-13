@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 337.** This line is the one to update; the `Next number:` lines inside
+**Next number: 338.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7179,3 +7179,65 @@ browser — all three adopted as the standard for future surfaces.**
        Kettle MCP `today` still answers after the deploy (the founder's
        Claude connection is a known-URL CIMD client and must survive).
      * Next number: 337.
+
+337. **(2026-09-13) 336 BUILT in one CC build: F1 + O1 + O2 + the tests, and
+     the sandbox sunset Scope A docs. Product code plus docs; no migration, no
+     secret. Judgement calls named.**
+     * **F1 (product).** `is_cimd_client_id` is true only for a key of
+       `KNOWN_CLIENT_DOCUMENTS`; every other `https://` client_id is an unknown
+       client, so `client_for` returns None with no fetch and no log line — the
+       silence an unknown `kc_` id gets. The live fetch still wins over the
+       shipped copy for a known URL (320); Claude is unaffected, DCR stays open.
+     * **O1 (product).** One comment on `_client_ip`: the key is trustworthy
+       only because Fly sets `Fly-Client-IP`; the `X-Forwarded-For` fallback is
+       for local runs, with the table cap the backstop. No behaviour change.
+     * **O2 (product).** `memory_for` runs `since` through `_parse_date`
+       (False → None), so a `since` that is not YYYY-MM-DD is treated as no
+       `since` and can no longer reach the `::date` cast as a DB error. No new
+       string.
+     * **Tests.** `docs/security-review-2026-09-tests.py` moved to
+       `product/tests/test_security_review_2026_09.py` (now in CI, 17 tests).
+       The finding test inverted: an unknown `https://` client_id returns
+       `invalid_client` on both OAuth routes and the recording transport sees
+       no request. Added: the known Claude URL is fetched live and wins over
+       the shipped copy; and a bad `memory` `since` returns a sentence, not a
+       DB error. The moved file's scratch-era lint (an unused import, an
+       unused local, `__import__` hacks, a long line) was cleaned so it passes
+       `ruff check`.
+     * **Judgement call, named.** The three CIMD-mechanics tests in
+       `test_assistant_oauth.py` used a made-up unknown URL; under the ruling
+       that URL is no longer a CIMD client. A `known_cimd` fixture now
+       registers it as a known document so connect and redirect-validation
+       still run against a known client, and the old "unreachable or
+       self-contradicting document is no client" test became "a known URL with
+       a broken live document falls back to its shipped copy" — the new truth,
+       since every CIMD client now ships a copy. The scratch file's git mv rode
+       into the F1 commit as a zero-line rename; its content rewrites are the
+       following commit. Both noted so the split reads honestly.
+     * **Sandbox sunset Scope A (docs).** The runbook's rollback block is the
+       fail-loud posture now (a refused ask is a `failed` row plus an ops alert
+       with Twilio's words; child-facing stays on email), with the sandbox
+       re-join written out underneath as time-boxed break-glass through the
+       first stranger family's first clean week. Pass 1/Pass 2 are a "how the
+       flip was done" record; v6 is no longer called the live template (it
+       stays approved as break-glass). R7–R10 and R14 prose to past tense (the
+       body-send code path survives as break-glass; its removal is the held
+       Scope B). Spec 011 §sunset marked done; the spec index points here. No
+       Fly secret set or unset; R16 (the site's ask quote) untouched. The
+       console step (remove the sandbox inbound webhook; do not delete the
+       project; do not pause v6) is the founder's, after the docs land.
+     * **Verified by planting** (two, each reverted): `is_cimd_client_id` back
+       to `startswith("https://")` fails the unknown-URL guard (302 where
+       `invalid_client` is expected); `memory`'s `since` bypassing `_parse_date`
+       fails the O2 test (the tool errors on the bad `::date`).
+     * **Counts.** Root `pytest` 904 → **921** (the 17-test suite is now
+       collected); `ruff check .` clean in `product/` (two pre-existing
+       `ruff format` nits in `outbound_whatsapp.py`/`outbound_templates.py`
+       predate this build and were left, per the name-the-files rule);
+       Postgres up before and after.
+     * **Deploy (founder), product only:** `cd product && fly deploy`. The docs
+       carry no deploy. After it, verify Kettle MCP `today` still answers from
+       the founder's Claude connection (a known-URL CIMD client, which must
+       survive the F1 change).
+     * Next number: 338.
+
