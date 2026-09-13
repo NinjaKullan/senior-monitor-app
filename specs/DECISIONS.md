@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 328.** This line is the one to update; the `Next number:` lines inside
+**Next number: 329.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6849,3 +6849,19 @@ browser — all three adopted as the standard for future surfaces.**
        the first thing a beta family sees. Fold into the next webapp
        pass.
      * Next number: 328.
+
+328. **(2026-09-12, ~2:15pm ET) Beta invitations GO OUT, from the founder,
+     one to one, by WhatsApp and email. Text at `docs/beta-invitation.md`,
+     with the after-a-yes steps.**
+     * Founder accepted the price line as drafted: free during the beta,
+       $10 a month per parent afterwards for early families, public price
+       higher. No payment path is built; nothing is charged in the beta.
+     * The message promises: iPhone parent (Android "coming", spec 014);
+       WhatsApp or a +1 number (Amendment A live); a two-minute FaceTime
+       setup with the founder on the call; "Today looks like a normal
+       day" as the everyday screen; no location, camera, listening,
+       scores or daily button. Every promise is live or ruled.
+     * Next: as replies arrive, PM provisions and the founder runs the
+       FaceTime; first stranger-family install produces the field-note
+       block (005b AC1).
+     * Next number: 329.
