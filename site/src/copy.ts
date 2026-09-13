@@ -318,7 +318,10 @@ export const PRIVACY_BODY =
 /* Chrome                                                                   */
 /* ---------------------------------------------------------------------- */
 
-/** DECISIONS 171: the formal name in the tab; the wordmark stays "Kettle". */
-export const PAGE_TITLE_LABEL = "HeyKettle — Know the day started normally.";
+/** DECISIONS 171: the formal name in the tab; the wordmark stays "Kettle".
+ *  Promise first, brand last, a period between (seo-backlog D4, founder
+ *  ruling 2026-09-13): the words a search matches lead, and the em dash the
+ *  copy law bans everywhere else is gone from the one string it had kept. */
+export const PAGE_TITLE_LABEL = "Know the day started normally. HeyKettle";
 export const NOTIF_TIMESTAMP_LABEL = "Today";
 export const NOTIF_APP_LABEL = "Kettle";

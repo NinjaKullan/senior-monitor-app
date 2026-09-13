@@ -163,6 +163,10 @@ function assertEyebrow(text: string) {
 }
 
 function assertCopyLaw(text: string, allow: (string | RegExp)[] = []) {
+  // LAW-7 (docs/feature-backlog.md §5): no em dash in anything human-facing.
+  // The rule was on the record and not in the scan; the title tag carried
+  // one until seo-backlog D4. Commas, periods, colons.
+  expect(text, `an em dash in: ${text}`).not.toContain("\u2014");
   const scanned = mask(text, allow).toLowerCase();
   for (const word of BANNED) {
     expect(
@@ -245,6 +249,7 @@ describe("AC3 — the copy module obeys the marketing bans", () => {
     // AC3 names the first six exactly; the inference pair joined with
     // DECISIONS 129. Each is a sentence someone could plausibly write.
     expect(() => assertCopyLaw("Join now — limited places")).toThrow();
+    expect(() => assertCopyLaw("Kettle notices the normal day \u2014 and says so")).toThrow();
     expect(() => assertCopyLaw("Know she's fine today")).toThrow();
     expect(() => assertCopyLaw("Kettle sends an alert when something is wrong")).toThrow();
     expect(() => assertCopyLaw("Track her daily routine")).toThrow();
@@ -465,7 +470,7 @@ describe("the privacy page obeys the same law", () => {
     // family reads. The title is brand evidence for the entity review; the
     // hero wordmark must NOT follow it.
     const index = readFileSync(join(SRC, "..", "index.html"), "utf8");
-    expect(copy.PAGE_TITLE_LABEL).toBe("HeyKettle — Know the day started normally.");
+    expect(copy.PAGE_TITLE_LABEL).toBe("Know the day started normally. HeyKettle");
     expect(index).toContain(`<title>${copy.PAGE_TITLE_LABEL}</title>`);
     expect(copy.FOOTER_WORDMARK).toBe("Kettle");
     expect(copy.HERO_H1).toBe("Know the day started normally.");
