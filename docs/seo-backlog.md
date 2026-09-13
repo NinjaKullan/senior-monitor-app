@@ -6,7 +6,7 @@ present tense; move history into the log at the bottom.
 
 **Next review: 2026-10-06** (first full week of October, after Moz's free
 quota resets and the first two weekly metrics emails have landed). Triggers
-that bring it forward: Search Console access granted, a PM ruling on D1 to
+that bring it forward: a PM ruling on D1 to
 D6, a YC decision, or a link reported live. No scheduled job polls anything.
 
 Targets, from the audit §6: DA 10 is the first checkpoint, DA 20 the
@@ -18,7 +18,8 @@ Console clicks) and beta applications.
 
 | # | Item | Owner | Approval | Why |
 |---|---|---|---|---|
-| A1 | Grant Search Console read access (or send a monthly export: impressions, clicks, queries, indexed pages, sitemap status) | Founder | access | Nothing below can be evaluated without it (audit §2, §8) |
+| A1 | Search Console: DONE 2026-09-12, readable in the founder's Chrome session (domain property sc-domain:heykettle.com). Keep the session logged in for the monthly reading | Founder | none | audit §2, §8 |
+| A7 | Request indexing in URL Inspection for the eight priority URLs, one at a time: /resources/okay-living-alone/, /resources/emergency-info/, /resources/normal-day/, /resources/changes-tracker/, /resources/, /blog/parent-doesnt-answer-the-phone/, /blog/how-often-should-you-check-on-a-parent/, /blog/the-information-youll-wish-you-had/ | Founder, or CC in the founder's browser with a go | founder (it submits a request to Google) | 18 of 21 URLs have never been crawled (audit T12). A request is the only lever that does not wait for links |
 | A2 | Make the HeyKettle mention on linkabitai.com a real `<a href="https://heykettle.com/">` in the server-rendered HTML | Founder, or CC in that repository | founder | The only external link that exists is invisible to non-JS crawlers (audit T11) |
 | A3 | Cloudflare: Scrape Shield → Email Address Obfuscation off; Security → Bots → JavaScript Detections off | Founder | founder | Restores the page that fetches nothing; removes a third-party beacon from every page (audit T3, LAW-9 spirit) |
 | A4 | Record the waitlist count as the conversion baseline before any outreach | Founder or PM | none | Baseline for the business outcome |
@@ -29,12 +30,13 @@ Console clicks) and beta applications.
 
 | # | Question | Pinned by | Options |
 |---|---|---|---|
-| D1 | Should www.heykettle.com 301 to the apex? | DECISIONS 168 pins www as production-correct and says naming it forces a decision | (a) a Cloudflare redirect rule, nginx untouched, canonicalHost test updated to expect the rule; (b) a `www.heykettle.com` server block in nginx alongside the fly.dev one; (c) leave it and rely on canonicals, which resource pages do not have (D2) |
+| D1 | Should www.heykettle.com 301 to the apex? Evidence: 10 of the site's 18 impressions went to www.heykettle.com/privacy.html, and the www home page is in Google's "alternate page" bucket (audit T13) | DECISIONS 168 pins www as production-correct and says naming it forces a decision | (a) a Cloudflare redirect rule, nginx untouched, canonicalHost test updated to expect the rule; (b) a `www.heykettle.com` server block in nginx alongside the fly.dev one; (c) leave it and rely on canonicals, which resource pages do not have (D2) |
 | D2 | Should resource pages carry a self-canonical like blog posts? | PM ruling 2026-08-30, "resource pages stay bare" | The blog test already admits one canonical and nothing else; the same narrowing would work for resources |
 | D3 | May static pages carry outbound links to the sources they attribute (NIA, CFPB, FEMA, Eldercare Locator)? | The standalone-page tests ban any absolute URL | If yes: allowlist named origins in the test, `rel` left plain. If no: record that the site does not cite by link, and expect S2 to be slower |
 | D4 | Replace the em dash in the home `<title>` ("HeyKettle — Know the day started normally.") | LAW-7 | e.g. "HeyKettle. Know the day started normally." or "Know the day started normally. HeyKettle" |
 | D5 | Meta descriptions for `/blog/`, `/resources/`, privacy and terms | copy law | PM drafts; the resources test already scans the description slot |
 | D6 | Organization and Article JSON-LD | `<script>` banned on static pages | Low priority; only worth a ruling if D3 passes |
+| D7 | May the home page link to the individual resource pages (not only to /resources/) and the resources index to the articles? | copy law, `copy.ts` | Internal links are the cheapest crawl signal the site can send for T12; four link texts to draft |
 
 ## 3. First 30 days (2026-09-12 to 2026-10-12), prioritized
 
@@ -95,6 +97,10 @@ merely because the change came after it.
 | 2026-09-12 | Indexed third-party mentions of "HeyKettle" | WebSearch proxy | none | Not Search Console |
 | 2026-09-12 | Sitemap lastmod corrected to git dates; `cd site && npm run ci` green | repo | 21 URLs | Technical hygiene; no DA effect expected |
 | 2026-09-12 | Live pages equal HEAD build except Cloudflare-injected scripts | diff of live vs repo | | No content deploy owed |
+| 2026-09-12 | Search Console performance, 2026-08-28 to 09-10 | sc-domain:heykettle.com, founder's browser | 0 clicks, 18 impressions, position 17.8, one query "hey kettle" | High. Baseline for clicks and impressions |
+| 2026-09-12 | Search Console indexing | same | 2 indexed, 18 discovered-not-crawled, 1 crawled-not-indexed, 1 alternate (www home), 1 duplicate, 2 redirects | High. Baseline for indexed priority pages: 0 of 8 |
+| 2026-09-12 | Search Console sitemap | same | read 09-10, Success, 21 URLs | |
+| 2026-09-12 | Search Console links | same | processing, no data | Re-read 2026-10-06 |
 
 ## 7. Link log
 

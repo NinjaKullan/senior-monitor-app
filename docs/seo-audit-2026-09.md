@@ -48,12 +48,16 @@ help-hub URLs tried), so the index refresh cadence is unverified here.
 | Moz linking domains / inbound links / followed | 9 / 10 / 0 | same screenshot | same | exact page | Low. Not checked at root scope. The domain was registered 2026-08-21 (Namecheap, WHOIS 2026-09-12) yet Wayback holds captures from 2025-03-10 and 2025-03-11, so some of the 9 may be residue of a previous registrant's site. The 2025 capture body could not be retrieved |
 | Moz root-domain reading | unavailable | moz.com/domain-analysis redirected to /free-metrics-limit in the founder's browser | 2026-09-12 | root | The free quota on this account is spent this month. Re-read after the quota resets |
 | Google index of the site | no result returned by the search tool for site:heykettle.com or "heykettle" | WebSearch proxy | 2026-09-12 | all pages | Low. The proxy is not Google Search Console. It does show that no third-party page mentioning "HeyKettle" is indexed |
-| Search Console | not consulted | DECISIONS 201 says the founder verified ownership by DNS; no data was available to this session | | | Access gap |
+| Search Console, performance | 0 clicks, 18 impressions, average position 17.8; one query, "hey kettle" (4 impressions); pages with impressions: www.heykettle.com/privacy.html 10, the home page 9, post 1 once | Search Console, domain property sc-domain:heykettle.com, read in the founder's browser | 2026-09-12 (data to 09-10) | 2026-08-28 to 2026-09-10 | High |
+| Search Console, indexing | 2 pages indexed, 23 not: 18 "Discovered, currently not indexed" (never crawled, first detected 09-05), 1 "Crawled, currently not indexed", 1 alternate with proper canonical (www.heykettle.com/, crawled 08-23), 1 duplicate without user-selected canonical, 2 page with redirect | same | last update 2026-09-03 | all known URLs | High |
+| Search Console, sitemap | submitted 2026-08-30, last read 2026-09-10, Success, 21 URLs discovered | same | 2026-09-12 | | High |
+| Search Console, links report | "Processing data", nothing yet | same | 2026-09-12 | | Re-read in October |
 | Referral visits | not measurable server-side | nginx `kettle_counts` format logs date, status, path only, by design (DECISIONS 212) | | | Structural: referrals can only come from Search Console clicks and, later, self-reported "how did you hear of us" |
 | Beta applications | not read this session | waitlist table (migration 0009) | | | Baseline to be recorded by the founder or PM before outreach starts |
 
-Do not read "no data" above as zero. Three data gaps block a proper root-domain
-baseline: the Moz quota, Search Console access, and the waitlist count.
+Do not read "no data" above as zero. Two data gaps remain for a proper root-domain baseline: the Moz quota and
+the waitlist count. Search Console is readable through the founder's
+Chrome session (read on 2026-09-12).
 
 ## 3. Current state of the site
 
@@ -96,6 +100,8 @@ baseline: the Moz quota, Search Console access, and the waitlist count.
 | T9 | Blog posts deliberately carry no og:image (DECISIONS 199 and the blog test) | Shares render bare cards | Ruled; not reopened here |
 | T10 | Cloudflare edge caches `.pdf`, `.txt`, `.xml` for 4 hours (`max-age=14400`) above nginx's `no-cache` | A republished PDF can lag up to four hours | Note only |
 | T11 | The only known external link, linkabitai.com's footer line "HeyKettle (heykettle.com) is a LINKABIT AI LABS LLC service", is rendered by JavaScript. The server HTML has the sentence but no `<a href>` | Non-JS crawlers, Moz's included on the stated hypothesis, see no link | Founder or CC in that repository: make it a real anchor in the static HTML. Backlog A2 |
+| T12 | Google has indexed 2 of the 21 sitemap URLs. The other 18 sitemap pages, including every article, every resource page and every PDF, sit in "Discovered, currently not indexed" with no crawl at all since Google first saw them on 09-05. The sitemap was read successfully on 09-10, robots allows everything, and the pages return 200, so nothing blocks the crawl | The resource library, built to earn citations, is invisible in Google. This is the largest technical finding, and its cause is the same as the DA problem: a brand-new domain with no external links gets almost no crawl priority | Three remedies, in order: (a) request indexing for the eight priority URLs in URL Inspection, one at a time (founder, or CC with the founder's go; backlog A7); (b) external links, which is the whole strategy; (c) links from the home page to the individual resource pages rather than only to /resources/ (copy change, D7) |
+| T13 | The www copy of privacy.html is what Google shows for the site's own name: 10 of the 18 impressions in the window went to www.heykettle.com/privacy.html, and the www home page sits in "alternate page with proper canonical". privacy.html carries no canonical by ruling (DECISIONS 142) | The duplicate-host problem is no longer theoretical | Evidence for D1 |
 
 ### 3.3 Content inventory and what each piece is for
 
@@ -161,13 +167,15 @@ Why the gap exists, in order of weight:
 5. **No citation capacity.** T7: the site cannot link out, so it cannot take
    part in the ordinary reciprocity of the caregiving web (a LibGuide
    maintainer checks whether you cite the sources they respect).
-6. **No measurement of referrals.** By design the server keeps no referrer, so
+6. **Not yet crawled.** T12: only two pages are in Google's index, so even
+   the queries the articles were built for cannot show impressions yet.
+7. **No measurement of referrals.** By design the server keeps no referrer, so
    the business outcome of a link can only be seen in Search Console clicks
    and in beta applications.
 
 Unknowns: the real root-domain Moz figures and whether the 9 linking domains
-are residue; Search Console impressions to date; whether Google has indexed
-all 21 URLs; peers' DA.
+are residue; peers' DA; which URL is the "duplicate without user-selected
+canonical" (the drill-down did not load; most likely the www privacy page).
 
 ## 5. Strategies compared
 
@@ -212,17 +220,17 @@ What the evidence supports saying about the targets:
   ceiling only if S3 or S4 produces national coverage. This is stated rather
   than silently changed.
 
-Intermediate milestones, in order: Search Console data in hand; Moz
-root-domain baseline recorded (after the quota resets); Cloudflare scripts
+Intermediate milestones, in order: Search Console data in hand (done
+2026-09-12); the eight priority URLs indexed; Moz root-domain baseline recorded (after the quota resets); Cloudflare scripts
 off; first five foundation listings live; first ten resource-page pitches
 approved and sent; first editorial link verified live; first Moz-discovered
 link; DA 10.
 
 ## 7. Approvals and access needed
 
-- **Access:** Search Console (read access or a monthly export); the waitlist
-  count as a conversion baseline; Moz root-domain reading when the quota
-  resets.
+- **Access:** Search Console is readable in the founder's Chrome session
+  (used 2026-09-12); the waitlist count as a conversion baseline; Moz
+  root-domain reading when the quota resets.
 - **Founder actions, no spend:** Cloudflare toggles (T3); LinkedIn company
   page; a real anchor on linkabitai.com; social accounts named in the writers'
   brief when the founder is ready to post.
