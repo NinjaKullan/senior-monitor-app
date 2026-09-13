@@ -19,13 +19,13 @@ Console clicks) and beta applications.
 | # | Item | Owner | Approval | Why |
 |---|---|---|---|---|
 | A1 | Search Console: DONE 2026-09-12, readable in the founder's Chrome session (domain property sc-domain:heykettle.com). Keep the session logged in for the monthly reading | Founder | none | audit §2, §8 |
-| A7 | Request indexing in URL Inspection for the eight priority URLs, one at a time: /resources/okay-living-alone/, /resources/emergency-info/, /resources/normal-day/, /resources/changes-tracker/, /resources/, /blog/parent-doesnt-answer-the-phone/, /blog/how-often-should-you-check-on-a-parent/, /blog/the-information-youll-wish-you-had/ | Founder, or CC in the founder's browser with a go | founder (it submits a request to Google) | 18 of 21 URLs have never been crawled (audit T12). A request is the only lever that does not wait for links |
+| A7 | Indexing requested in URL Inspection for all eight priority URLs, done 2026-09-12 on the founder's yes, each confirmed by the "Indexing requested" toast: /resources/okay-living-alone/, /resources/emergency-info/, /resources/normal-day/, /resources/changes-tracker/, /resources/, /blog/parent-doesnt-answer-the-phone/, /blog/how-often-should-you-check-on-a-parent/, /blog/the-information-youll-wish-you-had/. Every one showed "Discovered, currently not indexed" with no referring page detected | CC, founder's yes | done | audit T12. Check the indexing report at the next review; a request is a queue entry, not a promise |
 | A2 | linkabitai.com anchor: DONE 2026-09-12 by the LinkaBIT agent, verified by curl of the server HTML (plain href, no rel, page not noindexed, robots allows Googlebot and Bingbot) | Founder | done | audit T11; link log row 1 |
 | A3 | Cloudflare: Email Address Obfuscation OFF, done 2026-09-12 and verified live. JavaScript Detections cannot be disabled on the Free plan (Bot Fight Mode already off); the beacon stays until a plan change or Cloudflare fixes it. Closed as a platform limit | Founder | done | audit T3 |
 | A8 | Cloudflare "Block AI bots" preference set to "Mixed purpose crawlers will continue to be allowed", done 2026-09-12 on the founder's yes and verified after reload. Googlebot, Bingbot and Applebot stay allowed on 09-15; pure AI-training crawlers stay blocked | Founder, done by CC | done | audit T14 |
-| A4 | Record the waitlist count as the conversion baseline before any outreach | Founder or PM | none | Baseline for the business outcome |
+| A4 | Waitlist count baseline: 0 beta applications as of 2026-09-12 (founder). Done | Founder | done | Baseline for the business outcome |
 | A5 | Moz root-domain reading for heykettle.com and, if quota allows, snugsafe.com and parentsareok.app | Founder (the Moz account) | none, no spend | Replaces the exact-page snapshot; peers' DA is unknown (audit §4) |
-| A6 | LinkedIn company page for HeyKettle, linking the site | Founder | founder, creates an account | First foundation listing (S1); peers all have one |
+| A6 | LinkedIn company page for HeyKettle, linking the site. Founder: 2026-09-13 | Founder | founder, creates an account | First foundation listing (S1); peers all have one |
 
 ## 2. Decisions for the PM (each is a ruling, not a fix)
 
@@ -105,6 +105,8 @@ merely because the change came after it.
 | 2026-09-12 | Search Console links | same | processing, no data | Re-read 2026-10-06 |
 | 2026-09-12 | Cloudflare Email Address Obfuscation off; live check shows one script (the bundle) plus the challenge-platform beacon; plain mailto restored | founder's Cloudflare session; curl | | Beacon is a Free-plan limit |
 | 2026-09-12 | Cloudflare mixed-purpose crawler preference switched to allowed (A8) | founder's Cloudflare session, founder's yes | | Re-check search crawl in Search Console after 09-15 |
+| 2026-09-12 | Beta applications | founder, waitlist | 0 | Conversion baseline |
+| 2026-09-12 | Indexing requested for 8 priority URLs (A7) | Search Console URL Inspection | 8 of 8 confirmed | Evaluate: indexed count in the Pages report on 2026-10-06; baseline 2 of 21 |
 
 ## 7. Link log
 
