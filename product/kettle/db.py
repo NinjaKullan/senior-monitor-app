@@ -127,7 +127,7 @@ def setup_link_by_slug(conn: psycopg.Connection, slug: str) -> Row | None:
     """
     return conn.execute(
         """
-        select l.id as link_id, l.created_utc, l.expires_utc, l.revoked_utc,
+        select l.id as link_id, l.device_id, l.created_utc, l.expires_utc, l.revoked_utc,
                d.active as device_active, d.revoked_utc as device_revoked_utc,
                d.platform,
                p.id as parent_id, p.display_name as parent_name, p.tz as parent_tz,
@@ -140,6 +140,56 @@ def setup_link_by_slug(conn: psycopg.Connection, slug: str) -> Row | None:
         """,
         (slug,),
     ).fetchone()
+
+
+def device_by_id(conn: psycopg.Connection, device_id: Any) -> Row | None:
+    return conn.execute(
+        "select id, parent_id, platform, device_token, active, revoked_utc from devices "
+        "where id = %s",
+        (device_id,),
+    ).fetchone()
+
+
+def claim_device(
+    conn: psycopg.Connection,
+    device_id: Any,
+    oem: str | None,
+    app_version: str | None,
+) -> None:
+    """Spec 014 §6.5: the claim record on the device row, written once and
+    read by nothing in the product (the soak-test record)."""
+    conn.execute(
+        "update devices set oem = %s, app_version = %s where id = %s",
+        (oem, app_version, device_id),
+    )
+
+
+def device_claimed(conn: psycopg.Connection, device_id: Any) -> bool:
+    """Has a phone ever claimed this row? (app_version is written at claim.)"""
+    row = conn.execute(
+        "select app_version is not null as claimed from devices where id = %s", (device_id,)
+    ).fetchone()
+    return bool(row and row["claimed"])
+
+
+def insert_device(
+    conn: psycopg.Connection,
+    parent_id: Any,
+    platform: str,
+    token: str,
+    now: datetime,
+    oem: str | None = None,
+    app_version: str | None = None,
+) -> Any:
+    """A device row with a fresh token; the claim record when the claim is
+    what created it."""
+    return conn.execute(
+        """
+        insert into devices (parent_id, platform, device_token, created_utc, oem, app_version)
+        values (%s, %s, %s, %s, %s, %s) returning id
+        """,
+        (parent_id, platform, token, now, oem, app_version),
+    ).fetchone()["id"]
 
 
 def family_owner_name(conn: psycopg.Connection, family_id: Any) -> str | None:
@@ -242,8 +292,7 @@ def clear_pause(conn: psycopg.Connection, parent_id: Any) -> None:
 def families_with_tz(conn: psycopg.Connection) -> list[Row]:
     """Every family, for the per-family infra check."""
     return conn.execute(
-        "select id as family_id, name as family_name, tz as family_tz "
-        "from families order by name"
+        "select id as family_id, name as family_name, tz as family_tz from families order by name"
     ).fetchall()
 
 
@@ -472,8 +521,7 @@ def count_any_pings_between(
     that decides whether asking the senior is even possible.
     """
     row = conn.execute(
-        "select count(*) as n from pings "
-        "where parent_id = %s and ts_utc >= %s and ts_utc < %s",
+        "select count(*) as n from pings where parent_id = %s and ts_utc >= %s and ts_utc < %s",
         (parent_id, start, end),
     ).fetchone()
     return int(row["n"])
@@ -529,9 +577,7 @@ def family_contact(conn: psycopg.Connection, family_id: Any) -> Row | None:
     ).fetchone()
 
 
-def candidate_for_day(
-    conn: psycopg.Connection, parent_id: Any, local_date: date
-) -> Row | None:
+def candidate_for_day(conn: psycopg.Connection, parent_id: Any, local_date: date) -> Row | None:
     """The one candidate this parent may have today, resolved or not."""
     return conn.execute(
         "select * from ladder_candidates where parent_id = %s and local_date = %s",
@@ -589,10 +635,7 @@ def set_candidate_stage(
         sql = "update ladder_candidates set stage = %s where id = %s returning *"
         params: tuple[Any, ...] = (stage, candidate_id)
     else:
-        sql = (
-            f"update ladder_candidates set stage = %s, {column} = %s "
-            "where id = %s returning *"
-        )
+        sql = f"update ladder_candidates set stage = %s, {column} = %s where id = %s returning *"
         params = (stage, when, candidate_id)
     return conn.execute(sql, params).fetchone()
 
@@ -671,9 +714,7 @@ def insert_ops_alert(
     )
 
 
-def latest_ops_alert(
-    conn: psycopg.Connection, parent_id: Any, kind: str
-) -> Row | None:
+def latest_ops_alert(conn: psycopg.Connection, parent_id: Any, kind: str) -> Row | None:
     """The newest ops alert of one kind for one parent, or None.
 
     Spec 010 §3's move alert reads this twice over: whether the change at
@@ -769,9 +810,7 @@ def outbound_contacts(conn: psycopg.Connection, family_id: Any) -> list[Row]:
 
 def parent_whatsapp(conn: psycopg.Connection, parent_id: Any) -> str | None:
     """The parent's WhatsApp number, or None when the founder has not entered it."""
-    row = conn.execute(
-        "select whatsapp_e164 from parents where id = %s", (parent_id,)
-    ).fetchone()
+    row = conn.execute("select whatsapp_e164 from parents where id = %s", (parent_id,)).fetchone()
     return (row or {}).get("whatsapp_e164")
 
 
@@ -831,8 +870,7 @@ def count_pings_between(
     silence honestly.
     """
     return conn.execute(
-        "select count(*) as n from pings "
-        "where parent_id = %s and ts_utc >= %s and ts_utc < %s",
+        "select count(*) as n from pings where parent_id = %s and ts_utc >= %s and ts_utc < %s",
         (parent_id, start, end),
     ).fetchone()["n"]
 
