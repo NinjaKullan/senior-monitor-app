@@ -108,6 +108,35 @@ TWILIO_ASK_CONTENT_SID must be UTILITY category (or the recipient
 must be outside +1). A Marketing template cannot pass this runbook
 for a US rehearsal phone, whatever else is right.
 
+## A new outbound transport: deploy the code, then set the roster (DECISIONS 294)
+
+`fly secrets set` restarts the machine on the image it is already running.
+The transport registry is closed and refuses the boot on a name it does not
+know (154/159), so an `OUTBOUND_TRANSPORT` roster that names a transport the
+running image has never heard of restarts it into a refusal: the CLI waits on
+health checks until they time out and nothing serves until `fly deploy`
+replaces the image. That is what happened on Sep 5 when the roster gained
+`twilio_sms` before the code that knew the name was live.
+
+For any transport the running image does not carry, in this order:
+
+1. `cd product && fly deploy` — the new code boots on the old roster, which it
+   still understands.
+2. `fly secrets set -a kettle-api OUTBOUND_TRANSPORT="..."` with the
+   transport's own secrets in the same command, so a half-set roster never
+   refuses the boot (`twilio_sms` without its Messaging Service SID does).
+3. `curl -s -o /dev/null -w "%{http_code}" https://kettle-api.fly.dev/healthz`
+   reads 200; the next engine pass logs the new leaf.
+
+Rollback touches only the roster: set `OUTBOUND_TRANSPORT` back to the
+previous value. The code can stay.
+
+Same evening, the Twilio side: Advanced Opt-Out on a Messaging Service is not
+on until the "Enable advanced opt-out" button has been pressed. A filled-in
+keyword page is not enough, and Twilio's stock STOP confirmation arriving
+instead of ours is the tell; until it is on, STOP and START reach
+`/outbound/reply` without `OptOutType` and are read as replies.
+
 ## Pass 2 setup (2026-09-01, v6 Approved as Utility)
 
 `kettle_ask_parent_v7` = `HX1ebee977bfd531bf7fdee2bf0d1484ad`, Approved,
