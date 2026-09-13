@@ -7265,4 +7265,9 @@ browser — all three adopted as the standard for future surfaces.**
        console (sandbox project stays joinable; v6 stays approved). No
        ledger line needed for that; the break-glass retirement after the
        first stranger family's first clean week gets one.
+     * Done the same afternoon: PM cleared the sandbox's "When a message
+       comes in" field (was `https://kettle-api.fly.dev/outbound/reply`) in
+       the founder's Chrome; the founder pressed Save; PM reloaded and read
+       it empty. Sandbox project still joinable; v6 untouched. Scope A is
+       complete.
      * Next number: 340.
