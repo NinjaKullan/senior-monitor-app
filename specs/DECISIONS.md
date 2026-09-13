@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 338.** This line is the one to update; the `Next number:` lines inside
+**Next number: 340.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7241,3 +7241,28 @@ browser — all three adopted as the standard for future surfaces.**
        survive the F1 change).
      * Next number: 338.
 
+338. **(2026-09-13, Sunday night ET) 337 ACCEPTED (3c6f3d4).** PM read the
+     product diff: `is_cimd_client_id` is membership in
+     `KNOWN_CLIENT_DOCUMENTS`; `memory_for` parses `since` through
+     `_parse_date` with False → None; the `_client_ip` comment names the
+     Fly dependency. Both judgement calls stand: the `known_cimd` fixture is
+     the right way to keep the CIMD mechanics tests honest, and "a known URL
+     with a broken live document falls back to its shipped copy" is the
+     truth 320 + 336 leave. Runbook rollback section read: fail-loud first,
+     sandbox re-join as time-boxed break-glass, v6 approved and not live.
+     * Deploy owed (founder): `cd product && fly deploy`. PM verifies with
+       Kettle MCP `today` after (the founder's Claude connection must
+       survive F1), then the founder removes the sandbox inbound webhook in
+       the Twilio console; the sandbox project and v6 stay.
+     * Next number: 339.
+
+339. **(2026-09-13, ~4:45pm ET) 337 DEPLOYED and VERIFIED LIVE (product
+     deployed by the founder).** Kettle MCP `today` answered from the PM's
+     Claude connection after the deploy: all four parents, Amma heard from
+     54 minutes ago, Appa 3 hours, TestDad 10 minutes, TestMom 27 days (the
+     SMS dark-stage row, expected). The known-URL CIMD client survived F1.
+     * Owed: the founder removes the sandbox inbound webhook in the Twilio
+       console (sandbox project stays joinable; v6 stays approved). No
+       ledger line needed for that; the break-glass retirement after the
+       first stranger family's first clean week gets one.
+     * Next number: 340.
