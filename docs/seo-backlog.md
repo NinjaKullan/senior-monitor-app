@@ -14,6 +14,52 @@ long-term target, DA 50+ the ceiling kept on record and not planned for.
 Business outcome tracked separately: qualified referral visits (Search
 Console clicks) and beta applications.
 
+## 0. Summary for the PM (2026-09-13)
+
+**What this is.** The founder set a Domain Authority objective on 2026-09-12
+(DA 1 today; DA 10 first checkpoint, DA 20 target, DA 50+ kept as a ceiling
+and judged unrealistic). The audit is `docs/seo-audit-2026-09.md`; this file
+is the state. No spec and no DECISIONS entry were written, by instruction.
+
+**What was found.** The domain is three weeks old with no off-site footprint.
+Google had indexed 2 of 21 pages; the other 18, every guide and article, had
+never been crawled. Cloudflare was set to block Googlebot, Bingbot and
+Applebot from 2026-09-15 and was serving its own robots.txt in place of the
+repo's. The www host served a second copy of every page and was winning the
+brand query with the www copy of privacy.html.
+
+**What the founder ruled, and what shipped on that ruling (all live).**
+Three earlier rulings were superseded on 2026-09-12/13 by the founder, each
+made structural with a test and plant-verified:
+- DECISIONS 168's www pin: www now 301s to the apex (`nginx.conf`,
+  `canonicalHost.test.ts`, `test_site_caching.py`).
+- The 2026-08-30 "resource pages stay bare" ruling: the four guide pages
+  carry a self-canonical; the register stays bare.
+- The absolute-URL ban on static pages: narrowed to admit anchors to a
+  public-sector allowlist (`site/src/lib/citationOrigins.ts`); nothing else
+  passes. No page cites a source yet, so no link exists yet.
+Also live: the footer links every guide and post by its H1 (no new copy; a
+disk-derived test holds it), the home title is "Know the day started
+normally. HeyKettle" and the em-dash ban is now in the copy-law scan, the
+blog index has a description, one Organization JSON-LD record sits on the
+home page, and `robots.txt` states the AI policy (search and answer
+crawlers allowed, training-only crawlers refused) with a test.
+
+**Cloudflare, by the founder's hand or yes:** Email Address Obfuscation off,
+the September 15 mixed-crawler block switched to "continue to be allowed",
+robots.txt management disabled. The bot-detection beacon cannot be removed
+on the Free plan and is recorded as a platform limit.
+
+**Requests made of Google:** indexing requested for the eight priority URLs.
+
+**Copy the PM may want to read:** the footer labels reuse existing H1s; the
+one new sentence is the `/blog/` description and the "Also on the blog"
+line on the resources register. Nothing else human-facing changed.
+
+**Open, none urgent:** LinkedIn page (founder), Moz root-domain reading in
+October, Search Console after 09-15, then outreach drafts and the wave-2
+crosswalk only on a founder go. Next review 2026-10-06.
+
 ## 1. Owed now, by whom
 
 | # | Item | Owner | Approval | Why |
