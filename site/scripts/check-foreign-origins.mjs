@@ -47,7 +47,15 @@ const OURS = new Set([
  * The narrowness is the point: a real beacon would be a host that is *not* on
  * this list, and `tests/foreignOrigins.test.ts` plants one to prove it fails.
  */
-const NAMESPACES = new Set(["www.w3.org", "reactjs.org"]);
+const NAMESPACES = new Set([
+  "www.w3.org",
+  "reactjs.org",
+  // The Organization record in index.html (seo-backlog D6) names two hosts as
+  // text: schema.org is the vocabulary's identifier, linkabitai.com is the
+  // operating entity's own site in `sameAs`. Neither is fetched.
+  "schema.org",
+  "linkabitai.com",
+]);
 
 const TEXT = new Set([".html", ".js", ".css", ".json", ".svg", ".txt", ".webmanifest"]);
 const URL_RE = /(?:https?:)?\/\/([A-Za-z0-9._-]+(?::\d+)?)/g;

@@ -30,6 +30,25 @@
     <!-- DECISIONS 171: "HeyKettle" is the formal public name on legal-ish
          surfaces (title, footer, privacy); "Kettle" stays the wordmark. -->
     <title>HeyKettle — Know the day started normally.</title>
+    <!-- seo-backlog D6 (founder ruling 2026-09-13): one inert Organization
+         record so search engines tie "HeyKettle" to this site and its
+         operating entity rather than to tea kettles. Data, not code: the
+         type is application/ld+json and nothing executes. Every value is a
+         string the site already shows (footer legal line, contact address,
+         share image); nothing new is claimed. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "HeyKettle",
+        "legalName": "LINKABIT AI LABS LLC",
+        "url": "https://heykettle.com/",
+        "logo": "https://heykettle.com/og-image.png",
+        "email": "hello@heykettle.com",
+        "founder": { "@type": "Person", "name": "Hema" },
+        "sameAs": ["https://linkabitai.com/"]
+      }
+    </script>
   </head>
   <body>
     <div id="root"><!--app-html--></div>
