@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 334.** This line is the one to update; the `Next number:` lines inside
+**Next number: 335.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7066,3 +7066,26 @@ browser — all three adopted as the standard for future surfaces.**
        `cd webapp && npm run ci && fly deploy`. Then the PM in Chrome: the
        login page copper, not blue.
      * Next number: 334.
+
+334. **(2026-09-13, ~2:10am ET) 333 REVIEWED and ACCEPTED (668f44e): the
+     claim refusal on a non-Android link, the login buttons in the
+     action vocabulary with the two Android labels, the two nits, the
+     runbook's new-transport order, the spec index through 020 and both
+     amendments, and the baton restated in the present tense (235
+     lines). Deploy owed: product (330 plus the refusal) and webapp.**
+     * Accepted as read: the shadcn Button deleted once nothing imported
+       it; the device window held equal to the sweep's constant by a
+       contract test; the spec index's 006 and 007 lines corrected; a
+       dead iOS link answers 410 before the platform 400.
+     * Two baton lines the PM cannot confirm from here, left as written
+       until the founder reads `fly secrets list -a kettle-api`: the
+       weekly log-summary job's secrets (212) and WAITLIST_ORIGINS
+       (143). If WAITLIST_ORIGINS is unset the code's default is the
+       live domain (test_the_default_origin_list_is_the_live_domain),
+       so the form works either way.
+     * Counts: root pytest 904 (903 on main after the SEO session's
+       caching test, which carried no ledger count; this pass adds one
+       contract test); webapp 325; ruff clean.
+     * Deploy (founder): `cd product && fly deploy` → `cd webapp && npm
+       run ci && fly deploy`. PM checks the login page in Chrome after.
+     * Next number: 335.
