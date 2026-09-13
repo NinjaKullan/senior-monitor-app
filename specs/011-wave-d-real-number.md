@@ -108,9 +108,13 @@ ask must become a template.
   ledger and ops_alerts correct — before any real parent sees it.
 - Flip: the real family moves to the real number. The first real ask
   after the flip is watched live, same as Wave C's first ask.
-- Sunset: after one clean week, sandbox config is removed and DECISIONS
-  records the retirement. Parents never notice anything except that the
-  sender now says HeyKettle.
+- Sunset: **done (DECISIONS 336, Scope A).** The clean week held (flip
+  2026-09-04, 263); the sandbox left the everyday story and is kept
+  joinable only as time-boxed break-glass through the first stranger
+  family's first clean week. v6 stays approved as break-glass; the code's
+  body-send path survives as break-glass and its removal is the held Scope
+  B. Parents never noticed anything except that the sender now says
+  HeyKettle.
 
 ## Costs (recorded so future-us knows what we knew)
 

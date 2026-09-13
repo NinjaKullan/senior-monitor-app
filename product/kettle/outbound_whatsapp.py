@@ -1,4 +1,5 @@
-"""The WhatsApp transport: the ask to the parent, by sandbox or by template.
+"""The WhatsApp transport: the ask to the parent, by template (or, for the
+break-glass sandbox, by body).
 
 Same posture as the email transport (spec 007 §3, DECISIONS 159): its own
 module because the decision core carries no network client; asks only, because
@@ -11,9 +12,12 @@ that kills a pass; logs carry a masked number and no body.
 Phase 2). A registered number may only START a conversation with a
 Meta-approved template, so when `TWILIO_ASK_CONTENT_SID` is set the ask goes
 as `ContentSid` and the words come from Meta's approved copy rather than from
-this process. Unset — the sandbox — and the request is byte-for-byte what it
-has always been: `Body`, rendered from the registry. The registry keeps the
-same words either way (DECISIONS 206), so the two paths say one thing.
+this process — the live path since the Wave D flip (DECISIONS 263). Unset — the
+body send the sandbox used — and the request is `Body`, rendered from the
+registry; that shape stayed in the code as the break-glass sandbox path after
+the sunset (DECISIONS 336, Scope A), and Scope B (making the SID mandatory and
+deleting it) is a held follow-up. The registry keeps the same words either way
+(DECISIONS 206), so the two paths say one thing.
 
 The approved template carries NO buttons (DECISIONS 205: Meta forbids emoji in
 template buttons) and, since v5, exactly ONE variable — the first name of the
@@ -28,10 +32,10 @@ refuses to deliver marketing templates to US numbers (DECISIONS 216, error
 means, and is submitted with category change disallowed so a refusal is a
 verdict rather than a silent downgrade.
 
-The sandbox constraint worth remembering until Phase 3's sunset: a parent must
-have joined the sandbox (sent the join code once) before Twilio will deliver.
-An unjoined number surfaces here as a failed send and an ops alert, which is
-the correct loudness — the registered sender removes the step.
+The sandbox constraint, now only for a break-glass re-point (DECISIONS 336): a
+parent had to have joined the sandbox (sent the join code once) before Twilio
+would deliver. An unjoined number surfaced here as a failed send and an ops
+alert, which was the correct loudness — the registered sender removed the step.
 """
 
 from __future__ import annotations
@@ -122,7 +126,8 @@ class TwilioWhatsAppTransport:
         self._from = from_address
         self._api_base = api_base.rstrip("/")
         self._client = client or httpx.Client(timeout=10.0)
-        # Empty is the sandbox: no SID, no template, the body send unchanged.
+        # Empty was the sandbox: no SID, no template, the body send. Kept as
+        # the break-glass path after the sunset (DECISIONS 336, Scope A).
         self._ask_content_sid = ask_content_sid.strip()
 
     def send(

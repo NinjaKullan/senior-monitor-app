@@ -38,9 +38,9 @@ until Meta says Approved or Rejected — printing Meta's own rejection words
 verbatim, because a paraphrased rejection reason is a rejection reason nobody
 can act on.
 
-Nothing here touches the running system: no Fly secret is set, no family is
-moved, and the sandbox stays the production path until a dark-stage pass shows
-a template actually delivering to a US number.
+Nothing here touches the running system: no Fly secret is set and no family is
+moved. The template has been the production path since the Wave D flip
+(DECISIONS 263); the sandbox was retired to break-glass in DECISIONS 336.
 """
 
 from __future__ import annotations
@@ -69,7 +69,7 @@ CATEGORY = "UTILITY"
 #: The ruled body, VERBATIM (DECISIONS 217). Bare U+1F44D with no variation
 #: selector, straight apostrophe. `{{1}}` is Meta's placeholder syntax; the
 #: same sentence lives in kettle/outbound_templates.py as `{owner_name}` for
-#: the sandbox path, and a test pins the two to the same words.
+#: the break-glass body path, and a test pins the two to the same words.
 BODY = (
     "Hi. {{1}} asked Kettle to check in with you when your morning is not as "
     "usual. Is everything okay? Reply with a \U0001f44d when you can."

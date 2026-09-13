@@ -46,21 +46,24 @@ class Settings:
     # subdomain (docs/auth-smtp-plan.md); reply-to goes to a human.
     resend_api_key: str
     resend_from: str
-    # Wave C's WhatsApp transport (spec 007 §3), Twilio sandbox. All three are
-    # read only when OUTBOUND_TRANSPORT selects twilio_whatsapp — and then all
-    # three must exist, or the app refuses to boot. The auth token doubles as
-    # the inbound webhook's signature secret (§2.6): with it set, a request to
-    # /outbound/reply may authenticate by Twilio's own signature.
+    # Wave C's WhatsApp transport (spec 007 §3), now the registered HeyKettle
+    # sender (the Twilio sandbox was the original path; it is break-glass since
+    # DECISIONS 336). All three are read only when OUTBOUND_TRANSPORT selects
+    # twilio_whatsapp — and then all three must exist, or the app refuses to
+    # boot. The auth token doubles as the inbound webhook's signature secret
+    # (§2.6): with it set, a request to /outbound/reply may authenticate by
+    # Twilio's own signature.
     twilio_account_sid: str
     twilio_auth_token: str
     twilio_whatsapp_from: str
-    # Wave D Phase 2 (spec 011 §4): the approved ask template's Content SID.
-    # THIS setting is the switch between the two send shapes, and it is config
-    # rather than code (DECISIONS 208): set, the ask goes as a template — the
-    # only thing a real registered number may use to START a conversation;
-    # unset, the transport sends a body exactly as the sandbox always has.
-    # The sandbox path is therefore untouched and stays functional until the
-    # Phase 3 sunset, and rolling back the real number is emptying one var.
+    # Wave D Phase 2 (spec 011 §4): the approved ask template's Content SID,
+    # set to v7 in production since the flip. THIS setting is the switch
+    # between the two send shapes, config rather than code (DECISIONS 208):
+    # set, the ask goes as a template — the only thing a real registered number
+    # may use to START a conversation; unset, the transport sends a body, the
+    # shape the sandbox used. After the sunset (DECISIONS 336, Scope A) that
+    # body path survives as break-glass only; making the SID mandatory and
+    # deleting the body path is the held Scope B.
     twilio_ask_content_sid: str
     # Spec 011 Amendment A: the Messaging Service the 10DLC campaign is bound
     # to. Read only when OUTBOUND_TRANSPORT selects twilio_sms — and then it

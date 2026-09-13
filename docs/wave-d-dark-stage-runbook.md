@@ -1,5 +1,15 @@
 # Wave D Phase 3 — dark-stage runbook (founder + PM)
 
+> **Status (DECISIONS 336, 2026-09-13).** The flip is done: the ask has run
+> from the real HeyKettle number since 2026-09-04 (263), the clean week held,
+> and the sandbox is retired from the everyday story. Its rollback is no longer
+> a re-point to the sandbox — it is the **fail-loud posture** below, with the
+> sandbox kept joinable only as **time-boxed break-glass** through the first
+> stranger family's first clean week. The "one pass", Pass 1 and Pass 2
+> sections are the **record of how the flip was done**, not a live procedure;
+> read them for the reasoning, act on the rollback and break-glass sections.
+> v6 stays approved in Twilio as break-glass; it is no longer the live template.
+
 Precondition: Phase 2 built, PM-reviewed (209), deployed to prod.
 Rehearsal parents' `whatsapp_e164` points at Hema's own WhatsApp —
 VERIFY, don't assume: as of Aug 31 both Rehearsal parents had NO
@@ -87,26 +97,51 @@ the real number, then DECISIONS records the retirement.
 Every screenshot from this runbook goes into the Day-30 memo's
 evidence pile.
 
-## Pass 1 result (2026-09-01) and the rollback law
+## Rollback: fail-loud, with the sandbox as break-glass (DECISIONS 336)
 
-Pass 1 FAILED for a structural reason, not a copy one: Twilio error
-63049 — Meta blocks every Marketing-category template to US (+1)
-numbers since 2025-04-01, and our approved template is Marketing
-(207). See DECISIONS 216. Rolled back the same hour.
+The sandbox retirement removed the old one-command rollback (re-point
+`TWILIO_WHATSAPP_FROM` to the sandbox number). That is deliberate. The
+primary posture now is **fail-loud, which the system already does:** a
+refused or undeliverable ask records a `failed` ledger row and fires an
+ops alert carrying Twilio's own code and message (`outbound_whatsapp.py`
+`_refusal`), and **everything child-facing stays on email regardless**, so
+a broken WhatsApp sender never silences a family's digests or escalations.
+What a broken sender costs is the parent *ask* until it is fixed — loudly,
+not silently.
 
-**Rollback = restore, never delete.** To leave the real number:
+**Break-glass (time-boxed, through the first stranger family's first clean
+week).** Only if the ask must go out while the real sender is broken: the
+Twilio sandbox project is still joinable. Re-point the ask to it —
+
 ```
 fly secrets unset TWILIO_ASK_CONTENT_SID --stage
 fly secrets set TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
 ```
-NEVER `fly secrets unset TWILIO_WHATSAPP_FROM` — the transport
-requires a sender and the app fails closed at startup without one.
-One restart, one shortcut blip.
 
-**Precondition added for any future pass:** the template in
-TWILIO_ASK_CONTENT_SID must be UTILITY category (or the recipient
-must be outside +1). A Marketing template cannot pass this runbook
-for a US rehearsal phone, whatever else is right.
+— which drops back to the body-send path (a registered template is not
+used on the sandbox). NEVER `fly secrets unset TWILIO_WHATSAPP_FROM`: the
+transport requires a sender and the app fails closed at startup without
+one. Each parent must have re-joined the sandbox (sent the join code once)
+before Twilio will deliver, so this is not instant. Undo it by setting the
+real `TWILIO_WHATSAPP_FROM` and v7 SID back (the Pass 2 block below).
+After the first stranger family's clean week, the sandbox project's
+retirement gets its own DECISIONS line and this break-glass goes away.
+
+**Precondition for any send from the real number:** the template in
+`TWILIO_ASK_CONTENT_SID` must be UTILITY category (or the recipient must
+be outside +1). A Marketing template cannot deliver to a US number (Meta,
+error 63049; DECISIONS 216).
+
+## How the flip was done (historical record)
+
+*Pass 1 and Pass 2 below are the record of the Sep 1–4 flip, kept for the
+reasoning. They are not a live procedure; the rollback above supersedes
+their rollback language.*
+
+Pass 1 FAILED for a structural reason, not a copy one: Twilio error
+63049 — Meta blocks every Marketing-category template to US (+1)
+numbers since 2025-04-01, and the then-approved template was Marketing
+(207). See DECISIONS 216. Rolled back the same hour.
 
 ## A new outbound transport: deploy the code, then set the roster (DECISIONS 294)
 
@@ -140,18 +175,18 @@ instead of ours is the tell; until it is on, STOP and START reach
 ## Pass 2 setup (2026-09-01, v6 Approved as Utility)
 
 `kettle_ask_parent_v7` = `HX1ebee977bfd531bf7fdee2bf0d1484ad`, Approved,
-WhatsApp category **Utility** (DECISIONS 225; v6 HX61758012edba26686ec7ee361a0f493f
-stays approved as the proven-delivered fallback). Secrets live since
-Sep 1: FROM = whatsapp:+19843704452, SID = v7 (swapped from v6 the
-same day):
+WhatsApp category **Utility** (DECISIONS 225), was set live on Sep 1 and is
+the ask today. v6 (`HX61758012edba26686ec7ee361a0f493f`) stays approved in
+Twilio as break-glass only — it is not the live template. Secrets set Sep 1:
+FROM = whatsapp:+19843704452, SID = v7 (swapped from v6 the same day):
 ```
 fly secrets set TWILIO_WHATSAPP_FROM=whatsapp:+19843704452 TWILIO_ASK_CONTENT_SID=HX1ebee977bfd531bf7fdee2bf0d1484ad
 ```
-TestMom already carries Hema's number (set Tue before pass 1) — no
-address SQL this time, so the ordering law cannot bite. Next ask
-fires 11:00 parent-local on the next quiet Rehearsal morning; the
-verification list above applies unchanged, step 2 with the v6 copy.
-Rollback is the block above, unchanged.
+That command is also how a break-glass sandbox re-point is undone (above).
+TestMom already carried Hema's number (set Tue before pass 1) — no address
+SQL this time, so the ordering law could not bite. The first real ask fired
+11:00 parent-local on the next quiet Rehearsal morning; the verification
+list above was walked with the approved copy.
 
 ### Sender-swap checklist
 

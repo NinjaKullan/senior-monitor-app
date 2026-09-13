@@ -25,7 +25,7 @@ line at its top. Items 1 through 120 are in `DECISIONS-archive.md`.
 | [008](008-webapp-restyle.md) | The webapp wears Kettle v5 | Built and live (DECISIONS 170). |
 | [009](009-glance-redesign.md) | Glance redesign: Today, parent detail, family notes | Built and live (DECISIONS 176–181). Amended in practice by 299 (a day counts from 06:00 local) and 303 (night is not quiet). |
 | [010](010-city-timezone.md) | The city is the timezone: moving a parent | Built and live (DECISIONS 185); the city control's current form is the button pass's (324–327). |
-| [011](011-wave-d-real-number.md) | Wave D: the real HeyKettle number | Built and flipped Sep 4 (DECISIONS 263). v7 is the ask and template iteration is stopped (253/262). The sandbox sunset needs its own ruling. |
+| [011](011-wave-d-real-number.md) | Wave D: the real HeyKettle number | Built and flipped Sep 4 (DECISIONS 263). v7 is the ask and template iteration is stopped (253/262). Sandbox sunset ruled and done, Scope A (336): the sandbox is break-glass, Scope B held. |
 | [011 A](011-wave-d-real-number.md#amendment-a-2026-09-02-sms-transport-for-1-parents) | Amendment A: SMS for +1 parents | Built and live (DECISIONS 291–294); dark stage complete on TestMom (310), so a real +1 parent may be enrolled by text. Amma stays on WhatsApp. |
 | [012](012-family-memory.md) | Family Memory: the journal becomes a place | Built and live, v1.1 (the filter, the scrolling card, "Who to call") included (DECISIONS 202/214); in daily use (327). |
 | [013](013-email-code-sign-in.md) | Sign in with a 6-digit email code | Built and live (DECISIONS 283). |

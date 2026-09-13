@@ -175,9 +175,10 @@ _REGISTRY: tuple[Template, ...] = (
         # does not do.
         #
         # It lives here as well as at Meta on purpose — on the real number the
-        # words come from the approved template, on the sandbox from this
-        # string, and the two must be the same ask (DECISIONS 209). The site's
-        # older quote of this string is illustrative, not binding.
+        # words come from the approved template, and on the break-glass sandbox
+        # body from this string, and the two must be the same ask (DECISIONS
+        # 209). The site's older quote of this string is illustrative, not
+        # binding.
         id="ask_parent",
         kind=KIND_ASK,
         audience=AUDIENCE_PARENT,
@@ -188,7 +189,8 @@ _REGISTRY: tuple[Template, ...] = (
         ),
         # One variable, matching the approved template's {{1}} exactly. The
         # registry is what makes render() refuse a partial fill, so declaring
-        # it here is what stops a sandbox ask going out with a hole in it.
+        # it here is what stopped a sandbox body ask going out with a hole in
+        # it (and still would on a break-glass re-point).
         variables=("owner_name",),
     ),
     Template(
