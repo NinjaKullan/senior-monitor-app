@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 332.** This line is the one to update; the `Next number:` lines inside
+**Next number: 333.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6959,3 +6959,43 @@ browser — all three adopted as the standard for future surfaces.**
        re-enabled it; PM applied 0033 (devices.oem, devices.app_version
        confirmed on the table). Deploy (founder): `cd product && fly deploy`.
      * Next number: 332.
+
+332. **(2026-09-13, morning) The SEO session (Claude Code, goal mode, Sep
+     12 to 13) REVIEWED by PM. Its record lives in `docs/seo-audit-2026-09.md`
+     and `docs/seo-backlog.md` (§0 is the summary); by instruction it
+     wrote no ledger entries, so this entry is the ledger's copy of what
+     it changed and which earlier rulings the founder superseded in it.**
+     * Findings worth the whole exercise: Google had indexed 2 of 21
+       pages and had never crawled a guide or a post; a Cloudflare
+       crawler setting was due to block Googlebot, Bingbot and Applebot
+       from September 15 and Cloudflare was serving its own robots.txt
+       over the repo's; www served a duplicate of every page and was
+       winning the brand query. All three are fixed (Cloudflare by the
+       founder in the session; www now 301s to the apex; robots.txt is
+       the repo's, held by a test).
+     * Founder rulings made in that session, superseding earlier ones:
+       168's www pin → www 301s to the apex; "resource pages stay bare"
+       → the four guides carry a self-canonical; the absolute-URL ban
+       on static pages → narrowed to a public-sector citation allowlist
+       (`site/src/lib/citationOrigins.ts`; no page cites anything yet);
+       171's tab title "HeyKettle — Know the day started normally." →
+       "Know the day started normally. HeyKettle" (the em dash is now
+       caught by the copy-law scan, which it never was).
+     * Also live: the footer links every guide and post by its own H1
+       (labels are the H1s verbatim, held by test); a meta description
+       on the blog index; one Organization JSON-LD record on the home
+       page naming only what the footer already shows (legal name,
+       contact address, founder first name, linkabitai.com); robots.txt
+       states the AI policy (search and answer crawlers allowed,
+       training-only crawlers refused, Content-Signal line); indexing
+       requested for eight priority URLs.
+     * Target reset by PM before the run and accepted: DA 20 long-term,
+       DA 10 first checkpoint; DA 50 recorded as unrealistic for a
+       three-week-old domain. Next review 2026-10-06 (Moz root-domain
+       reading; Search Console after the 15th).
+     * PM note on 306: the Cloudflare pass on Sep 6 turned on Bot Fight
+       Mode; the session found a separate crawler block scheduled for
+       the 15th. Whichever setting it was, the lesson is filed: after
+       any Cloudflare change, read robots.txt from the outside and check
+       Search Console within the week.
+     * Next number: 333.
