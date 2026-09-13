@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 336.** This line is the one to update; the `Next number:` lines inside
+**Next number: 337.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7102,3 +7102,80 @@ browser — all three adopted as the standard for future surfaces.**
        provisions; founder runs the FaceTime). Fridge on the TestDad row
        whenever. Google Play developer account: founder to open.
      * Next number: 336.
+
+336. **(2026-09-13, Sunday evening ET) Security review and sandbox sunset
+     plan (branch `claude/wonderful-galileo-y1deg4`, acae7e6 and ac08e38)
+     REVIEWED. Both accepted as findings. Rulings below; one build carries
+     them (337 on the day).**
+     * **Security review accepted.** F1 (unauthenticated blind SSRF: any
+       `https://` `client_id` on `/oauth/authorize` and `/oauth/token`
+       makes kettle-api fetch that URL) is real and is the only behaviour
+       change. The fifteen `safe_*` answers stand as the record that the
+       door holds: read-only grants cannot write, tokens stay in their
+       circle, removed members cannot write, the shipped copy cannot
+       redirect a code, PKCE and loopback hold, claim hands out one
+       parent's token only, RLS holds for `authenticated`, nothing logs a
+       token or a raw IP.
+     * **F1 ruling: CIMD is closed to unknown URLs, not guarded by an
+       address check.** `is_cimd_client_id` is true only for a `client_id`
+       that is a key of `KNOWN_CLIENT_DOCUMENTS`. Everything else that
+       starts with `https://` is an unknown client (`invalid_client`, no
+       fetch, no log line; the same silence an unknown `kc_` id gets). The
+       live fetch still wins over the shipped copy for a known URL (320),
+       so nothing changes for Claude. Why this over the review's two
+       options: 319/320 already require a shipped copy before a CIMD
+       client works reliably, so "known URL" is the list we already keep;
+       a resolve-then-refuse check has the TOCTOU gap the review names
+       and adds DNS code to an unauthenticated route; a host allowlist is
+       the same list one level looser. Adding a CIMD client stays what it
+       was: ship its document. DCR remains open to everyone (Codex).
+       Lands before any stranger family connects; today only the founder
+       has.
+     * **O1 accepted as is.** One comment on `_client_ip` naming the
+       dependency: the key is trustworthy only because Fly sets
+       `Fly-Client-IP` in front of the app; the `X-Forwarded-For` fallback
+       is for local runs. No behaviour change.
+     * **O2 ruling: `memory` treats a `since` that is not YYYY-MM-DD as no
+       `since`,** through `_parse_date` (False → None), the way `add_note`
+       and `reply` already parse their dates. No new string; the DB error
+       can no longer reach the assistant.
+     * **Tests.** `docs/security-review-2026-09-tests.py` moves to
+       `product/tests/test_security_review_2026_09.py` as a real suite
+       addition. The finding test inverts: an unknown `https://`
+       `client_id` on both routes returns `invalid_client` and the
+       recording transport saw no request. One test more: the known Claude
+       URL is still fetched live and its answer wins over the shipped
+       copy. A test for O2. The two `docs/` copies of the review stay
+       where they are; the tests file leaves `docs/` (one copy, in CI).
+     * **Sandbox sunset: Scope A ruled.** The clean week held: PM read
+       `sent_messages` and `ops_alerts` for Sep 4–12 (an ask sent every
+       day from the real number, no failed row, no sender-related alert;
+       the daily `infra` and `outbound_skipped` alerts are Whitaker's
+       silent pipeline and TestMom's withheld reassurance digest, both
+       known and unrelated). Rulings on the plan's open points:
+       * v6 (`kettle_ask_parent_v6`) stays approved in Twilio as
+         break-glass. The runbook stops calling it the dark-stage's live
+         template.
+       * The Twilio sandbox project stays joinable as time-boxed
+         break-glass through the first stranger family's first clean week;
+         after that its retirement gets its own line here. Its inbound
+         webhook and the join step leave the everyday story now.
+       * The runbook's rollback block is replaced by the fail-loud posture
+         (a refused ask is a `failed` row plus an ops alert with Twilio's
+         words; everything child-facing stays on email) with the sandbox
+         re-join written out underneath as the break-glass steps.
+       * Scope B (SID mandatory at boot, body branch deleted, R2–R4
+         rewritten) is HELD as a follow-up spec, not scheduled. It deletes
+         the last cheap rollback and gets its own build when the fail-loud
+         posture has been lived with.
+       * R7–R10 and R14 prose goes to past tense; R12 marked done; R13
+         points at this number. No Fly secret is set or unset. R16
+         untouched.
+       * Console (founder, after the docs land): remove the sandbox inbound
+         webhook. Do not delete the sandbox project; do not pause v6.
+     * Both land in one CC build: F1 + O1 comment + O2 + tests, and the
+       Scope A docs. CC writes 337 with the counts. Deploy is product only
+       (`cd product && fly deploy`); the docs carry no deploy. Verify:
+       Kettle MCP `today` still answers after the deploy (the founder's
+       Claude connection is a known-URL CIMD client and must survive).
+     * Next number: 337.
