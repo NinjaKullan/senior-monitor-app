@@ -28,4 +28,9 @@ export const SIGNAL_DISPLAY_NAMES: Record<string, string> = {
   // signed and delivered.
   routine: "Daily routine",
   charger: "Charger",
+  // Spec 014 §3 (DECISIONS 329): the Android app's own keys. No shortcut
+  // carries these names; the label names what the phone did, never an app,
+  // and the tripwire row shows it where it once showed the raw key.
+  unlock: "Phone unlocked",
+  motion: "Phone moved",
 };

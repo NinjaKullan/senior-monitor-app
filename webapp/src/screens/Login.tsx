@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Action } from "@/components/ui/action";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -144,9 +143,9 @@ export function Login({
                 onChange={(e) => setCode(e.target.value)}
                 data-testid="login-code"
               />
-              <Button type="submit" disabled={busy} className="w-full">
+              <Action variant="primary" type="submit" disabled={busy} className="w-full">
                 {LOGIN_CODE_BUTTON}
-              </Button>
+              </Action>
               {codeState !== "idle" && (
                 <p role="alert" className="text-sm text-foreground" data-testid="login-error">
                   {codeState === "wrong" ? LOGIN_CODE_WRONG : LOGIN_FAILED}
@@ -181,9 +180,9 @@ export function Login({
               aria-label="Email address"
               onChange={(e) => setEmail(e.target.value)}
             />
-            <Button type="submit" disabled={busy} className="w-full">
+            <Action variant="primary" type="submit" disabled={busy} className="w-full">
               {LOGIN_BUTTON}
-            </Button>
+            </Action>
             {(state === "rate_limited" || state === "failed") && (
               <p role="alert" className="text-sm text-foreground" data-testid="login-error">
                 {state === "rate_limited" ? LOGIN_RATE_LIMITED : LOGIN_FAILED}
