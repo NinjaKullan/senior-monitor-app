@@ -266,6 +266,23 @@ export const NAV_BLOG_LABEL = "Blog";
    header: DECISIONS 174 keeps the header at one destination so the hero can
    still be the page's single decision. */
 export const NAV_RESOURCES_LABEL = "Free guides";
+/*
+ * The footer's way in to every page (seo-backlog D7, founder ruling
+ * 2026-09-12). Authority and crawl priority flow along links, the home page
+ * holds nearly all of both, and every guide and article used to sit two
+ * clicks away behind a register. Each label is the page's own H1, verbatim:
+ * reusing the title adds no new copy surface. resources.test.tsx holds that
+ * every directory under public/resources and public/blog is linked here and
+ * that each label still equals its page's H1.
+ */
+export const GUIDE_LIVING_ALONE_LABEL = "Is Mom or Dad okay living alone?";
+export const GUIDE_NORMAL_DAY_LABEL = "What does a normal day look like?";
+export const GUIDE_IN_CASE_LABEL = "In case something happens";
+export const GUIDE_CHANGES_LABEL = "Changes I've noticed";
+export const POST_PHONE_LABEL = "What to do when a parent doesn't answer the phone";
+export const POST_HOW_OFTEN_LABEL = "How often should you check on a parent who lives alone?";
+export const POST_INFORMATION_LABEL = "The information you'll wish you had";
+export const POST_CALL_LABEL = "The call I've rehearsed and never made";
 
 export const FOOTER_WORDMARK = "Kettle";
 export const FOOTER_LINE = "Three fields. Nothing else.";

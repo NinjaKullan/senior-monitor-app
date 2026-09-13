@@ -231,6 +231,37 @@ describe("the way in", () => {
     expect(link.textContent).toBe("Free guides");
   });
 
+  /** Every blog post on disk, as the site path each one is served at. */
+  const blogSlugs = () =>
+    readdirSync(join(PUBLIC, "blog"), { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name)
+      .sort();
+
+  it("the footer links every guide and every post, each by its page's own H1", () => {
+    // seo-backlog D7: one click from the home page, and no new copy, because
+    // the label IS the title. A page added on disk without a footer link, or
+    // a title edited on one side only, fails here.
+    render(<App />);
+    const links = [...screen.getByTestId("footer-pages").querySelectorAll("a")];
+    const hrefs = links.map((a) => a.getAttribute("href"));
+    for (const slug of resourceSlugs()) expect(hrefs).toContain(`/resources/${slug}/`);
+    for (const slug of blogSlugs()) expect(hrefs).toContain(`/blog/${slug}/`);
+    for (const a of links) {
+      const page = readFileSync(join(PUBLIC, a.getAttribute("href")!, "index.html"), "utf8");
+      const h1 = page.match(/<h1[^>]*>([^<]*)<\/h1>/)![1];
+      expect(a.textContent, a.getAttribute("href")!).toBe(h1);
+    }
+  });
+
+  it("the register links the three articles that lean on the guides", () => {
+    for (const slug of [
+      "parent-doesnt-answer-the-phone",
+      "how-often-should-you-check-on-a-parent",
+      "the-information-youll-wish-you-had",
+    ]) expect(register()).toContain(`href="/blog/${slug}/"`);
+  });
+
   it("the blog index offers it too", () => {
     expect(readFileSync(join(PUBLIC, "blog", "index.html"), "utf8")).toContain(
       'href="/resources/"',
