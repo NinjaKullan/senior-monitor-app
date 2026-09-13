@@ -4,6 +4,8 @@ State file for the Domain Authority objective. Companion to
 `docs/seo-audit-2026-09.md` (evidence and reasoning). Keep this file in the
 present tense; move history into the log at the bottom.
 
+**Owed deploy: `cd site && npm run ci && fly deploy` ships D1, D2 and D7 (founder; production change).**
+
 **Next review: 2026-10-06** (first full week of October, after Moz's free
 quota resets and the first two weekly metrics emails have landed). Triggers
 that bring it forward: a PM ruling on D1 to
@@ -31,13 +33,13 @@ Console clicks) and beta applications.
 
 | # | Question | Pinned by | Options |
 |---|---|---|---|
-| D1 | Should www.heykettle.com 301 to the apex? Evidence: 10 of the site's 18 impressions went to www.heykettle.com/privacy.html, and the www home page is in Google's "alternate page" bucket (audit T13) | DECISIONS 168 pins www as production-correct and says naming it forces a decision | (a) a Cloudflare redirect rule, nginx untouched, canonicalHost test updated to expect the rule; (b) a `www.heykettle.com` server block in nginx alongside the fly.dev one; (c) leave it and rely on canonicals, which resource pages do not have (D2) |
-| D2 | Should resource pages carry a self-canonical like blog posts? | PM ruling 2026-08-30, "resource pages stay bare" | The blog test already admits one canonical and nothing else; the same narrowing would work for resources |
+| D1 | DONE 2026-09-13 (founder ruling 2026-09-12): www is a named host of nginx's redirect block, one 301 to the same path on the apex; canonicalHost.test.ts and test_site_caching.py re-pinned, plant-verified. Awaits `cd site && fly deploy` | was: DECISIONS 168 pin | (a) a Cloudflare redirect rule, nginx untouched, canonicalHost test updated to expect the rule; (b) a `www.heykettle.com` server block in nginx alongside the fly.dev one; (c) leave it and rely on canonicals, which resource pages do not have (D2) |
+| D2 | DONE 2026-09-13: each resource page carries its own canonical, the register stays bare, resources.test.tsx narrowed like blog.test.tsx, plant-verified. Awaits the same deploy | was: PM ruling 2026-08-30 | The blog test already admits one canonical and nothing else; the same narrowing would work for resources |
 | D3 | May static pages carry outbound links to the sources they attribute (NIA, CFPB, FEMA, Eldercare Locator)? | The standalone-page tests ban any absolute URL | If yes: allowlist named origins in the test, `rel` left plain. If no: record that the site does not cite by link, and expect S2 to be slower |
 | D4 | Replace the em dash in the home `<title>` ("HeyKettle — Know the day started normally.") | LAW-7 | e.g. "HeyKettle. Know the day started normally." or "Know the day started normally. HeyKettle" |
 | D5 | Meta descriptions for `/blog/`, `/resources/`, privacy and terms | copy law | PM drafts; the resources test already scans the description slot |
 | D6 | Organization and Article JSON-LD | `<script>` banned on static pages | Low priority; only worth a ruling if D3 passes |
-| D7 | May the home page link to the individual resource pages (not only to /resources/) and the resources index to the articles? | copy law, `copy.ts` | Internal links are the cheapest crawl signal the site can send for T12; four link texts to draft |
+| D7 | DONE 2026-09-13: the footer links every guide and every post by its H1 (labels in copy.ts, no new words), the register names the three articles; a disk-derived test holds both; checked at 360/390/768. Awaits the same deploy | was: copy law | Internal links are the cheapest crawl signal the site can send for T12; four link texts to draft |
 | D8 | Cloudflare's managed robots.txt overrides the repo's and disallows ClaudeBot, GPTBot, Google-Extended and six others, with `ai-train=no` (audit T15) | founder policy | (a) keep: no AI training on the site's text, and no citations from assistants that use those crawlers; (b) switch Cloudflare's robots.txt management off so the repo file is what is served, and decide any AI policy in the repo where a test can hold it; (c) keep the training block but allow search-and-answer crawlers. The repo file cannot currently be trusted as the served file either way |
 
 ## 2a. Recommendations on D1 to D8 (Claude Code, 2026-09-12, from first principles)
@@ -148,6 +150,7 @@ merely because the change came after it.
 | 2026-09-12 | Cloudflare mixed-purpose crawler preference switched to allowed (A8) | founder's Cloudflare session, founder's yes | | Re-check search crawl in Search Console after 09-15 |
 | 2026-09-12 | Beta applications | founder, waitlist | 0 | Conversion baseline |
 | 2026-09-12 | Indexing requested for 8 priority URLs (A7) | Search Console URL Inspection | 8 of 8 confirmed | Evaluate: indexed count in the Pages report on 2026-10-06; baseline 2 of 21 |
+| 2026-09-13 | D1, D2, D7 built and pushed; site ci green (240 tests) | repo, commits 722fd63, 32eeffb and the footer commit | | Not live until `cd site && fly deploy` (founder). After deploy: curl -I https://www.heykettle.com/resources/ must return 301 to the apex |
 
 ## 7. Link log
 
