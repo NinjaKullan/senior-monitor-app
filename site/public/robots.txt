@@ -1,6 +1,27 @@
 # Everything here is meant to be found. Nothing on this origin is private:
 # the webapp lives elsewhere, and this is a document site.
+#
+# The AI policy (seo-backlog D8, founder ruling 2026-09-13): search and
+# answer crawlers are welcome, because a family asking an assistant how to
+# stay close to a parent far away should be able to find these pages.
+# Crawlers that exist only to train models are refused, and the content
+# signal says the same in the vocabulary Cloudflare and the IETF drafts use.
+# This file is served as written: Cloudflare's managed robots.txt is off, so
+# the file the tests hold is the file the web sees (src/tests/robots.test.ts).
 User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
+
+# Training-only crawlers. A vendor's search or user-fetch agent is a
+# different user agent and stays allowed by the rule above.
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: CCBot
+User-agent: Bytespider
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: meta-externalagent
+User-agent: Amazonbot
+Disallow: /
 
 Sitemap: https://heykettle.com/sitemap.xml
