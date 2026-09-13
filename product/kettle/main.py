@@ -60,7 +60,14 @@ HONEYPOT_FIELD = "company"
 def _client_ip(request: Request) -> str | None:
     """Caller IP as seen behind the Fly proxy. Hashed immediately for the ping
     path, held only in process memory for the waitlist's flood counter (307);
-    never stored raw."""
+    never stored raw.
+
+    This key is trustworthy only because Fly sets `Fly-Client-IP` in front of
+    the app (DECISIONS 336, O1): a client cannot forge it. The
+    `X-Forwarded-For` fallback exists for local runs where no proxy is in
+    front; were the app ever exposed without Fly, that fallback would be
+    caller-controlled and the flood key spoofable — the 50,000-row table cap
+    (308) is the backstop for that case."""
     forwarded = request.headers.get("fly-client-ip") or request.headers.get("x-forwarded-for")
     if forwarded:
         return forwarded.split(",")[0].strip()

@@ -296,6 +296,12 @@ def memory_for(
     today: date,
 ) -> str:
     family_ids = [c["id"] for c in circles]
+    # A `since` that is not YYYY-MM-DD is treated as no `since` (DECISIONS 336,
+    # O2), through the same `_parse_date` add_note and reply use: False → None.
+    # This keeps the invalid `::date` cast — a DB error — from reaching the
+    # assistant, without inventing a new sentence for it.
+    parsed_since = _parse_date(since)
+    since_date = parsed_since or None
     rows = conn.execute(
         """
         select j.id, j.family_id, j.parent_id, j.author_label, j.body, j.event_date,
@@ -308,7 +314,7 @@ def memory_for(
         order by j.created_utc desc, j.id desc
         limit %s
         """,
-        (family_ids, parent_id, parent_id, since, since, MEMORY_CAP * 3),
+        (family_ids, parent_id, parent_id, since_date, since_date, MEMORY_CAP * 3),
     ).fetchall()
     notes = [r for r in rows if r["parent_entry_id"] is None][:MEMORY_CAP]
     ids = {r["id"] for r in notes}
