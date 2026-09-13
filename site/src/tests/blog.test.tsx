@@ -26,6 +26,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { CITATION_ANCHOR } from "@/lib/citationOrigins";
 import App from "@/App";
 
 const SITE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -187,8 +188,10 @@ describe("the chrome obeys the site's laws — the body alone is exempt", () => 
   const CANONICAL = /<link rel="canonical" href="https:\/\/heykettle\.com\/[^"]*" \/>/;
 
   it("both pages stand alone: no scripts, no stylesheets, no other absolute URLs", () => {
+    // Citation anchors to the public-sector allowlist are stripped first
+    // (seo-backlog D3); everything else that names a host still fails.
     for (const html of [article(), index()]) {
-      const rest = html.replace(CANONICAL, "");
+      const rest = html.replace(CANONICAL, "").replace(CITATION_ANCHOR, "");
       expect(rest).not.toMatch(/<script/i);
       expect(rest).not.toMatch(/<link/i);
       expect(rest).not.toMatch(/https?:\/\//i);

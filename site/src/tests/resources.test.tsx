@@ -33,6 +33,7 @@ import { fileURLToPath } from "node:url";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import App from "@/App";
+import { CITATION_ANCHOR } from "@/lib/citationOrigins";
 
 const SITE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const PUBLIC = join(SITE, "public");
@@ -204,11 +205,26 @@ describe("the resource pages obey the site's laws", () => {
     const pages = [REGISTER, ...resourceSlugs().map((s) =>
       join(PUBLIC, "resources", s, "index.html"))];
     for (const path of pages) {
-      const html = readFileSync(path, "utf8").replace(CANONICAL, "");
+      const html = readFileSync(path, "utf8")
+        .replace(CANONICAL, "")
+        .replace(CITATION_ANCHOR, ""); // public-sector citations, seo-backlog D3
       expect(html, path).not.toMatch(/<script/i);
       expect(html, path).not.toMatch(/<link/i);
       expect(html, path).not.toMatch(/https?:\/\//i);
     }
+  });
+
+  it("the citation hole admits the allowlist and nothing beside it", () => {
+    const strip = (html: string) => html.replace(CITATION_ANCHOR, "");
+    expect(strip('<a href="https://www.nia.nih.gov/health/caregiving">')).toBe("");
+    // A vendor, a rel attribute, a target, or a bare foreign host all survive
+    // the strip and therefore fail the absolute-URL ban above.
+    for (const bad of [
+      '<a href="https://example.com/guide">',
+      '<a href="https://www.nia.nih.gov/x" rel="nofollow">',
+      '<a target="_blank" href="https://www.cdc.gov/x">',
+      '<link rel="stylesheet" href="https://www.cdc.gov/x.css">',
+    ]) expect(strip(bad), bad).toMatch(/https?:\/\//);
   });
 
   it("each resource page's canonical names its own URL, and the register has none", () => {
