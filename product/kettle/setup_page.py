@@ -664,29 +664,32 @@ def claim_device_for(
     oem: str | None,
     app_version: str | None,
     now: datetime,
-) -> dict[str, Any]:
-    """The device a claim hands out (spec 014 §5.3, DECISIONS 330).
+) -> dict[str, Any] | None:
+    """The device a claim hands out (spec 014 §5.3, DECISIONS 330, 331).
 
-    The link's own device row is claimed when it is an Android row nobody has
-    claimed yet (no app_version): the first install takes the row the link
-    was issued for. Any later claim on the same slug — a reinstall, or a
-    second phone — cannot be told apart from this side (the app sends no
-    stable identity, and OEM plus version is not one), so it is a NEW device
-    row with a fresh token, and the earlier row stays active until the
-    founder revokes it. A claim never revokes.
+    The link's platform is the parent's platform: a link issued for an iOS
+    parent is refused (None, the route's 400) rather than minting an Android
+    row that would inherit the iOS allowlist and fail every ping the app
+    sends (DECISIONS 331). On an Android link, the link's own device row is
+    claimed when nobody has claimed it yet (no app_version): the first
+    install takes the row the link was issued for. Any later claim on the
+    same slug — a reinstall, or a second phone — cannot be told apart from
+    this side (the app sends no stable identity, and OEM plus version is
+    not one), so it is a NEW device row with a fresh token, and the earlier
+    row stays active until the founder revokes it. A claim never revokes.
     """
     link = db.setup_link_by_slug(conn, slug)
     assert link is not None
-    if link["platform"] == "android" and not db.device_claimed(conn, link["device_id"]):
+    if link["platform"] not in CLAIM_PLATFORMS:
+        return None
+    if not db.device_claimed(conn, link["device_id"]):
         db.claim_device(conn, link["device_id"], oem, app_version)
-        device = db.device_by_id(conn, link["device_id"])
-    else:
-        token = new_device_token()
-        device_id = db.insert_device(
-            conn, link["parent_id"], "android", token, now, oem, app_version
-        )
-        device = db.device_by_id(conn, device_id)
-    return device
+        return db.device_by_id(conn, link["device_id"])
+    token = new_device_token()
+    device_id = db.insert_device(
+        conn, link["parent_id"], link["platform"], token, now, oem, app_version
+    )
+    return db.device_by_id(conn, device_id)
 
 
 @router.post("/s/{slug}/claim")
@@ -697,8 +700,11 @@ async def setup_claim(request: Request, slug: str) -> JSONResponse:
     §4.2); a claimed link stays claimable so a reinstall on the same phone
     works without a new link; an expired or revoked slug answers the same
     dead end the page and the state check give (410), an unknown one 404. A
-    platform other than Android is refused. Rate-limited per slug, in
-    memory; logged like a page resolve, slug masked, never a token.
+    platform other than Android is refused (400 "platform"), whether it is
+    the payload's or the link's own: a dead link answers its dead end before
+    its platform is looked at, since it is dead on any platform. Rate-limited
+    per slug, in memory; logged like a page resolve, slug masked, never a
+    token.
     """
     now = now_utc()
     if not claim_counter(request).allow(slug, now):
@@ -722,6 +728,9 @@ async def setup_claim(request: Request, slug: str) -> JSONResponse:
             _claim_field(payload, "app_version"),
             now,
         )
+        if device is None:
+            log.info("setup: claim on …%s refused, the link is not android", slug[-6:])
+            raise StarletteHTTPException(status_code=400, detail="platform")
         signals = [row["signal"] for row in state.signals]
     log.info("setup: claim on …%s by android", slug[-6:])
     return JSONResponse(

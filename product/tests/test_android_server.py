@@ -220,20 +220,34 @@ def test_a_reinstall_claims_again_and_gets_a_fresh_device_leaving_the_old_one_ac
         assert client.get(f"/p/{token}/unlock").status_code == 200
 
 
-def test_an_ios_link_claimed_by_an_android_phone_gets_its_own_android_device(conn, client):
+def test_a_claim_on_a_link_that_is_not_android_is_refused_and_creates_nothing(conn, client):
+    """DECISIONS 331: the link's platform is the parent's platform. An iOS
+    link claimed by the Android app used to mint an Android row that
+    inherited the iOS allowlist, which the app's every ping would then
+    fail; it is refused instead, and the parent's devices are as they were."""
     family = provision_family(
         conn, "Sharma", "Asia/Kolkata", [("Amma", None, "Mom")], base_url=BASE_URL
     )
     [parent] = family.parents
-    body = claim(client, slug_of(parent)).json()
-    assert body["device_token"] != parent.device_token
+    refused = claim(client, slug_of(parent))
+    assert refused.status_code == 400, refused.text
+    assert refused.text == "platform"
+    assert "device_token" not in refused.text
     rows = conn.execute(
-        "select device_token, platform from devices where parent_id = %s", (parent.parent_id,)
+        "select device_token, platform, app_version, oem, active from devices where parent_id = %s",
+        (parent.parent_id,),
     ).fetchall()
-    assert {r["device_token"]: r["platform"] for r in rows} == {
-        parent.device_token: "ios_shortcuts",
-        body["device_token"]: "android",
-    }
+    assert [tuple(r.values()) for r in rows] == [
+        (parent.device_token, "ios_shortcuts", None, None, True)
+    ]
+    # The iOS token still pings; nothing about the parent's setup moved.
+    assert client.get(f"/p/{parent.device_token}/whatsapp").status_code == 200
+    # A dead link is dead on any platform: the dead end comes before the
+    # platform is looked at, so the app never learns anything from a link
+    # that has expired.
+    conn.execute("update setup_links set expires_utc = now() - interval '1 hour'")
+    expired = claim(client, slug_of(parent))
+    assert (expired.status_code, expired.json()) == (410, {"status": "expired"})
 
 
 def test_expired_and_revoked_links_answer_the_dead_end_and_hand_out_nothing(conn, client):
