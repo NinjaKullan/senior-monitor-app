@@ -11,13 +11,16 @@ and `/s/{slug}/claim` routes in `product/kettle/main.py` and
 `product/kettle/setup_page.py`, migrations 0029–0033 (RLS, grants, SECURITY
 DEFINER functions, the view), and the 0032 reply trigger.
 
-**Method.** Sixteen reproductions in `docs/security-review-2026-09-tests.py`, run
-against a real Postgres (RLS and the definer functions actually apply — the
-`authed` connection does `set role authenticated` and presents a Supabase-shaped
-JWT). Fifteen `safe_*` tests pass by showing an attack fails; one `finding_*`
-test passes by demonstrating the one vulnerable behaviour. Run: copy the file
-into `product/tests/` and `KETTLE_REQUIRE_POSTGRES=1 pytest` it (it lives under
-`docs/` so CI does not collect it). All sixteen pass on `668f44e`.
+**Method.** The reproductions run against a real Postgres (RLS and the definer
+functions actually apply — the `authed` connection does `set role authenticated`
+and presents a Supabase-shaped JWT). The `safe_*` tests pass by showing an attack
+fails. After the F1 fix landed (DECISIONS 336/337) the file became a standing
+suite at `product/tests/test_security_review_2026_09.py`; run it with
+`KETTLE_REQUIRE_POSTGRES=1 .venv/bin/python -m pytest
+product/tests/test_security_review_2026_09.py -q`. The former `test_finding_*`
+now proves the fix (`test_f1_*`): an unknown `https://` client_id is
+`invalid_client` with no fetch on either OAuth route, and the known Claude URL is
+still fetched live and wins over the shipped copy.
 
 **Verdict.** One finding worth fixing: an **unauthenticated blind SSRF** through
 the CIMD `client_id` on `/oauth/authorize` and `/oauth/token` (F1, Medium).
@@ -218,13 +221,14 @@ return `DAY_NOTHING`-style text. `test_low_memory_since_is_unvalidated`.
 
 ## Notes for the PM
 
-- F1 is the only item that changes behaviour to fix, and it is a rule for the PM:
-  the SSRF guard (or the host allowlist) is not applied here. It should land
-  before CIMD is relied on for any stranger family; today only the founder has
-  connected, and Claude connects by CIMD while Codex connects by DCR.
-- The reproductions are in `docs/security-review-2026-09-tests.py`. They are
-  evidence, not a suite addition — CI does not collect `docs/`. When F1 is fixed,
-  invert `test_finding_*` to assert the fetch is refused and move the file into
-  `product/tests/`.
-- Nothing in scope was changed on `main`. This report and its test file are the
-  only additions.
+- **F1 was ruled and fixed (DECISIONS 336/337).** The PM chose to close CIMD to
+  unknown URLs rather than guard the fetch with an address check: `is_cimd_client_id`
+  is true only for a key of `KNOWN_CLIENT_DOCUMENTS`, so any other `https://`
+  client_id is an unknown client (`invalid_client`, no fetch, no log). Claude is a
+  known URL and is unaffected; DCR stays open (Codex). O1 got a comment; O2 now
+  treats a bad `since` as no `since`.
+- The reproductions moved to `product/tests/test_security_review_2026_09.py` as a
+  standing suite (337); the former finding test is inverted to prove the fix. The
+  two `docs/` copies of this review stay where they are.
+- The original review was written against `668f44e`; the fix landed in 337. This
+  report is the record of what was found and how it was closed.

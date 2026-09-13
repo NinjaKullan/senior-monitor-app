@@ -1,34 +1,28 @@
-"""Adversarial security review, 2026-09 — the reproductions behind the report.
+"""Adversarial security review, 2026-09 — now a standing suite (DECISIONS 337).
 
-Evidence, not part of the suite. It lives under docs/ so CI does not collect it
-(pytest testpaths are `tests` and `product/tests`); run it by hand:
-
-    cp docs/security-review-2026-09-tests.py product/tests/
-    KETTLE_REQUIRE_POSTGRES=1 .venv/bin/python -m pytest \
-        product/tests/security-review-2026-09-tests.py -q
-
-One file, grouped by the reviewer's ten questions. Every test runs against the
-real Postgres so RLS and the SECURITY DEFINER functions are exercised, not faked.
-Tests named `safe_*` PASS by proving the attack does not work; the one named
-`finding_*` PASSES by demonstrating the vulnerable behaviour so the report has a
-reproduction. When F1 is fixed, invert `test_finding_*` (assert the fetch is
-refused) and move the file into product/tests.
+One file, grouped by the reviewer's ten questions, run against the real Postgres
+so RLS and the SECURITY DEFINER functions are exercised, not faked. Tests named
+`safe_*` prove an attack does not work. F1 was accepted and fixed (336): CIMD is
+closed to unknown URLs, so `test_f1_*` now proves the fix — an unknown `https://`
+client_id is `invalid_client` with no fetch on either OAuth route, and the known
+Claude URL is still fetched live and wins over the shipped copy.
 """
 
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from urllib.parse import parse_qs, urlsplit
 
 import httpx
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
-from testsupport import BASE_URL, add_member, as_user
-from testsupport_assistant import Assistant, jwks_client, mcp_call, session_token
+from testsupport_assistant import Assistant, jwks_client, pkce_pair, session_token
 
 from kettle import assistant_auth
 from kettle.main import create_app
 from kettle.provisioning import provision_family
+from testsupport import BASE_URL, add_member, as_user
 
 USER_A = "11111111-1111-1111-1111-111111111111"
 USER_B = "22222222-2222-2222-2222-222222222222"
@@ -55,8 +49,13 @@ def api(settings, notifier, conn, clock):
 
 def family_with_user(conn, name, user, parent="Amma"):
     fam = provision_family(
-        conn, name, "Asia/Kolkata", [(parent, None, "Mom")], base_url=BASE_URL,
-        owner_email=f"{name.lower()}@example.test", owner_name="Owner",
+        conn,
+        name,
+        "Asia/Kolkata",
+        [(parent, None, "Mom")],
+        base_url=BASE_URL,
+        owner_email=f"{name.lower()}@example.test",
+        owner_name="Owner",
     )
     add_member(conn, fam.family_id, user, role="admin")
     return fam
@@ -107,8 +106,9 @@ def test_safe_removed_member_cannot_write(api, conn):
     a = Assistant(api)
     a.connect(USER_A, scope="kettle:write")
     # The grant is real and unrevoked, but the seat is gone.
-    conn.execute("delete from members where family_id = %s and auth_user_id = %s",
-                 (fam.family_id, USER_A))
+    conn.execute(
+        "delete from members where family_id = %s and auth_user_id = %s", (fam.family_id, USER_A)
+    )
     out = a.text("add_note", text="I was removed a moment ago")
     assert conn.execute("select count(*) as n from journal_entries").fetchone()["n"] == 0
     # The token still resolves (removal does not revoke it) — it simply has no circle.
@@ -121,12 +121,17 @@ def test_safe_removed_member_cannot_write(api, conn):
 def test_safe_cimd_shipped_copy_pins_the_redirect(api):
     # Claude's client_id with an attacker redirect: the shipped copy fixes the
     # redirect_uris, so authorize refuses rather than sending a code anywhere else.
-    r = api.get("/oauth/authorize", params={
-        "client_id": "https://claude.ai/oauth/mcp-oauth-client-metadata",
-        "redirect_uri": "https://evil.example/steal",
-        "response_type": "code", "state": "x",
-        "code_challenge": "abc", "code_challenge_method": "S256",
-    })
+    r = api.get(
+        "/oauth/authorize",
+        params={
+            "client_id": "https://claude.ai/oauth/mcp-oauth-client-metadata",
+            "redirect_uri": "https://evil.example/steal",
+            "response_type": "code",
+            "state": "x",
+            "code_challenge": "abc",
+            "code_challenge_method": "S256",
+        },
+    )
     assert r.status_code == 400
     assert r.json()["error"] == "invalid_client" or "redirect" in r.text.lower()
 
@@ -142,17 +147,17 @@ def test_safe_pkce_is_required_and_verifier_is_checked(api, conn):
     none = a.authorize(None)
     assert none.status_code == 302 and "invalid_request" in none.headers["location"]
     # A challenge, then the wrong verifier at exchange: no tokens.
-    verifier, challenge = __import__("testsupport_assistant", fromlist=["pkce_pair"]).pkce_pair()
+    _, challenge = pkce_pair()
     sent = a.authorize(challenge)
-    request_id = __import__("urllib.parse", fromlist=["parse_qs"]).parse_qs(
-        __import__("urllib.parse", fromlist=["urlsplit"]).urlsplit(sent.headers["location"]).query
-    )["request"][0]
+    request_id = parse_qs(urlsplit(sent.headers["location"]).query)["request"][0]
     approved = a.approve(request_id, session_token(USER_A))
-    code = __import__("urllib.parse", fromlist=["parse_qs"]).parse_qs(
-        __import__("urllib.parse", fromlist=["urlsplit"]).urlsplit(approved.json()["redirect"]).query
-    )["code"][0]
-    bad = a.token(grant_type="authorization_code", code=code,
-                  code_verifier="not-the-verifier", redirect_uri=a.redirect_uri)
+    code = parse_qs(urlsplit(approved.json()["redirect"]).query)["code"][0]
+    bad = a.token(
+        grant_type="authorization_code",
+        code=code,
+        code_verifier="not-the-verifier",
+        redirect_uri=a.redirect_uri,
+    )
     assert bad.status_code == 400 and bad.json()["error"] == "invalid_grant"
 
 
@@ -172,12 +177,20 @@ def test_safe_loopback_exemption_only_helps_loopback_registrations(api, conn):
 
 
 def test_safe_claim_needs_the_secret_slug_and_returns_only_that_parents_token(api, conn):
-    fam = provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None, "Mom")],
-                           base_url=BASE_URL, platform="android")
+    fam = provision_family(
+        conn,
+        "Sharma",
+        "Asia/Kolkata",
+        [("Amma", None, "Mom")],
+        base_url=BASE_URL,
+        platform="android",
+    )
     [amma] = fam.parents
     # A random/guessed slug is a 404 — the slug is the only identity in the URL.
-    assert api.post("/s/notarealslug000000000000/claim",
-                    json={"platform": "android"}).status_code == 404
+    assert (
+        api.post("/s/notarealslug000000000000/claim", json={"platform": "android"}).status_code
+        == 404
+    )
     # The real slug hands back the link's OWN parent's token, nobody else's.
     slug = amma.setup_url.rsplit("/", 1)[-1]
     body = api.post(f"/s/{slug}/claim", json={"platform": "android"}).json()
@@ -209,8 +222,10 @@ def test_safe_authenticated_cannot_read_another_circles_devices_or_pings(authed,
             "returning id",
             (fam.parents[0].parent_id, fam.family_id.hex[:8] + "z" * 32),
         ).fetchone()["id"]
-        conn.execute("insert into household_pings (device_id, ts_utc) values (%s, now())",
-                     (devs[fam.family_id],))
+        conn.execute(
+            "insert into household_pings (device_id, ts_utc) values (%s, now())",
+            (devs[fam.family_id],),
+        )
     as_user(authed, USER_A)
     # The device table carries no grant at all.
     with pytest.raises(psycopg.errors.InsufficientPrivilege):
@@ -223,33 +238,46 @@ def test_safe_authenticated_cannot_read_another_circles_devices_or_pings(authed,
 
 
 def test_safe_authenticated_cannot_touch_another_familys_journal(authed, conn):
-    a = family_with_user(conn, "Sharma", USER_A)
+    family_with_user(conn, "Sharma", USER_A)
     b = family_with_user(conn, "Whitaker", USER_B, parent="Linda")
-    conn.execute("insert into journal_entries (family_id, author_label, body, kind, created_utc) "
-                 "values (%s, 'Owner', 'B private note', 'note', now())", (b.family_id,))
+    conn.execute(
+        "insert into journal_entries (family_id, author_label, body, kind, created_utc) "
+        "values (%s, 'Owner', 'B private note', 'note', now())",
+        (b.family_id,),
+    )
     as_user(authed, USER_A)
     # Cannot read B's note.
     assert authed.execute("select count(*) as n from journal_entries").fetchone()["n"] == 0
     # Cannot insert into B's family.
     with pytest.raises(psycopg.errors.Error):
-        authed.execute("insert into journal_entries (family_id, author_label, body, kind, "
-                       "created_utc) values (%s, 'x', 'forged', 'note', now())", (b.family_id,))
+        authed.execute(
+            "insert into journal_entries (family_id, author_label, body, kind, "
+            "created_utc) values (%s, 'x', 'forged', 'note', now())",
+            (b.family_id,),
+        )
 
 
 def test_safe_a_browser_client_cannot_forge_journal_authorship(authed, conn):
     a = family_with_user(conn, "Sharma", USER_A)
     b = family_with_user(conn, "Whitaker", USER_B, parent="Linda")
-    b_seat = conn.execute("select id from members where family_id = %s and role = 'admin' "
-                          "order by created_utc limit 1", (b.family_id,)).fetchone()["id"]
+    b_seat = conn.execute(
+        "select id from members where family_id = %s and role = 'admin' "
+        "order by created_utc limit 1",
+        (b.family_id,),
+    ).fetchone()["id"]
     as_user(authed, USER_A)
     # Insert into A's own family but claim B's member as the author.
-    authed.execute("insert into journal_entries (family_id, author_member_id, author_label, body, "
-                   "kind, created_utc) values (%s, %s, 'spoof', 'mine', 'note', now())",
-                   (a.family_id, b_seat))
-    got = conn.execute("select author_member_id from journal_entries where family_id = %s",
-                       (a.family_id,)).fetchone()["author_member_id"]
-    a_seat = conn.execute("select id from members where family_id = %s and auth_user_id = %s",
-                          (a.family_id, USER_A)).fetchone()["id"]
+    authed.execute(
+        "insert into journal_entries (family_id, author_member_id, author_label, body, "
+        "kind, created_utc) values (%s, %s, 'spoof', 'mine', 'note', now())",
+        (a.family_id, b_seat),
+    )
+    got = conn.execute(
+        "select author_member_id from journal_entries where family_id = %s", (a.family_id,)
+    ).fetchone()["author_member_id"]
+    a_seat = conn.execute(
+        "select id from members where family_id = %s and auth_user_id = %s", (a.family_id, USER_A)
+    ).fetchone()["id"]
     # The trigger overrode the forged author with A's own seat from the JWT.
     assert got == a_seat
 
@@ -259,6 +287,7 @@ def test_safe_a_browser_client_cannot_forge_journal_authorship(authed, conn):
 
 def test_flood_counter_keying_and_eviction(clock):
     from kettle.waitlist import FloodCounter
+
     fc = FloodCounter(limit=5, window=timedelta(hours=1), max_keys=3)
     now = clock()
     # One key is blocked after five hits.
@@ -287,16 +316,21 @@ def test_safe_ping_and_claim_do_not_log_the_token_or_slug(api, conn, caplog):
     uvicorn runs with --no-access-log so no equivalent is emitted. We assert
     against kettle's records only, then confirm the leaking line was httpx's."""
     import logging
-    fam = provision_family(conn, "Sharma", "Asia/Kolkata", [("Amma", None, "Mom")],
-                           base_url=BASE_URL, platform="android")
+
+    fam = provision_family(
+        conn,
+        "Sharma",
+        "Asia/Kolkata",
+        [("Amma", None, "Mom")],
+        base_url=BASE_URL,
+        platform="android",
+    )
     [amma] = fam.parents
     slug = amma.setup_url.rsplit("/", 1)[-1]
     with caplog.at_level(logging.DEBUG):
         api.get(f"/p/{amma.device_token}/unlock")
         body = api.post(f"/s/{slug}/claim", json={"platform": "android"}).json()
-    kettle_text = "\n".join(
-        r.getMessage() for r in caplog.records if r.name.startswith("kettle")
-    )
+    kettle_text = "\n".join(r.getMessage() for r in caplog.records if r.name.startswith("kettle"))
     assert amma.device_token not in kettle_text
     assert body["device_token"] not in kettle_text
     assert slug not in kettle_text  # only the last 6 chars appear, the masked ops form
@@ -308,6 +342,7 @@ def test_safe_ping_and_claim_do_not_log_the_token_or_slug(api, conn, caplog):
 
 def test_safe_oauth_token_exchange_logs_no_token(api, conn, caplog):
     import logging
+
     family_with_user(conn, "Sharma", USER_A)
     with caplog.at_level(logging.DEBUG):
         a = Assistant(api)
@@ -317,52 +352,107 @@ def test_safe_oauth_token_exchange_logs_no_token(api, conn, caplog):
     assert assistant_auth.sha256(a.access_token) not in caplog.text
 
 
-# ── FINDING: unauthenticated blind SSRF via a CIMD client_id ────────────────────
+# ── F1 (fixed): CIMD is closed to unknown URLs (DECISIONS 336) ──────────────────
+
+CLAUDE_ID = "https://claude.ai/oauth/mcp-oauth-client-metadata"
+CLAUDE_REDIRECT = "https://claude.ai/api/mcp/auth_callback"
 
 
-def test_finding_cimd_client_id_makes_the_server_fetch_any_https_host(settings, notifier, conn):
-    """UNAUTHENTICATED: /oauth/authorize and /oauth/token fetch whatever https
-    URL the client_id names, with no host allowlist and no private-range block.
-    A recording transport stands in for the real httpx client the app builds in
-    production; the request it records is the request prod would put on the wire."""
+def test_f1_an_unknown_https_client_id_is_refused_with_no_fetch_on_either_route(
+    settings, notifier, conn
+):
+    """The finding, inverted (336). An `https://` client_id that is not a known
+    document is `invalid_client` on both unauthenticated OAuth routes, and the
+    server fetches nothing — so the SSRF the review demonstrated is closed. The
+    recording transport would answer 200 if reached; no request arrives."""
     seen: list[str] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen.append(str(request.url))
-        return httpx.Response(200, json={})  # a non-CIMD body: still fetched first
+        return httpx.Response(200, json={})
 
     rec = httpx.Client(transport=httpx.MockTransport(handler))
-    with TestClient(create_app(settings, notifier, jwks_client=jwks_client(),
-                               cimd_client=rec)) as api:
+    with TestClient(
+        create_app(settings, notifier, jwks_client=jwks_client(), cimd_client=rec)
+    ) as api:
         internal = "https://[fdaa:0:1::3]:4280/internal/secrets"
-        r = api.get("/oauth/authorize", params={
-            "client_id": internal, "redirect_uri": "https://claude.ai/cb",
-            "response_type": "code", "code_challenge": "c", "code_challenge_method": "S256",
-        })
-        # The response is a harmless invalid_client (blind: nothing reflected)…
-        assert r.status_code == 400
-        # …but the server already reached out to the attacker-chosen internal host.
-        assert internal in seen, seen
-        # /oauth/token is the same unauthenticated entry point.
-        seen.clear()
-        api.post("/oauth/token", data={"grant_type": "authorization_code",
-                                       "client_id": "https://169.254.169.254/latest/",
-                                       "code": "x", "code_verifier": "y",
-                                       "redirect_uri": "z"},
-                 headers={"content-type": "application/x-www-form-urlencoded"})
-        assert "https://169.254.169.254/latest/" in seen, seen
+        r = api.get(
+            "/oauth/authorize",
+            params={
+                "client_id": internal,
+                "redirect_uri": "https://claude.ai/cb",
+                "response_type": "code",
+                "code_challenge": "c",
+                "code_challenge_method": "S256",
+            },
+        )
+        assert r.status_code == 400 and r.json()["error"] == "invalid_client"
+        t = api.post(
+            "/oauth/token",
+            data={
+                "grant_type": "authorization_code",
+                "client_id": "https://169.254.169.254/latest/",
+                "code": "x",
+                "code_verifier": "y",
+                "redirect_uri": "z",
+            },
+            headers={"content-type": "application/x-www-form-urlencoded"},
+        )
+        assert t.status_code == 401 and t.json()["error"] == "invalid_client"
+        assert seen == []  # neither route reached out to the attacker-named host
 
 
-# ── low: memory's `since` is unvalidated (robustness, not exposure) ─────────────
+def test_f1_the_known_claude_url_is_still_fetched_live_and_wins_over_the_shipped_copy(
+    settings, notifier, conn
+):
+    """The known URL keeps the 319/320 order: the live document is fetched and
+    its answer wins over the shipped copy. A live client_name that differs from
+    the shipped "Claude" proves the live fetch, not the copy, seeded the row."""
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(str(request.url))
+        return httpx.Response(
+            200,
+            json={
+                "client_id": CLAUDE_ID,
+                "client_name": "Claude Live",
+                "redirect_uris": [CLAUDE_REDIRECT],
+            },
+        )
+
+    rec = httpx.Client(transport=httpx.MockTransport(handler))
+    with TestClient(
+        create_app(settings, notifier, jwks_client=jwks_client(), cimd_client=rec)
+    ) as api:
+        r = api.get(
+            "/oauth/authorize",
+            params={
+                "client_id": CLAUDE_ID,
+                "redirect_uri": CLAUDE_REDIRECT,
+                "response_type": "code",
+                "code_challenge": "c",
+                "code_challenge_method": "S256",
+            },
+            follow_redirects=False,
+        )
+        assert r.status_code == 302, r.text  # a known client, authorize proceeds
+    assert seen == [CLAUDE_ID]  # the live document was fetched
+    row = conn.execute(
+        "select client_name from assistant_clients where client_id = %s", (CLAUDE_ID,)
+    ).fetchone()
+    assert row["client_name"] == "Claude Live"  # live won over the shipped "Claude"
 
 
-def test_low_memory_since_is_unvalidated(api, conn):
+# ── O2 (fixed): memory's bad `since` is treated as no `since` (336) ─────────────
+
+
+def test_o2_memory_with_a_bad_since_returns_a_sentence_not_a_db_error(api, conn):
+    """`since` that is not YYYY-MM-DD is treated as no `since` (336), so memory
+    answers the same sentence it would with no filter, never a DB-error result."""
     family_with_user(conn, "Sharma", USER_A)
     a = Assistant(api)
     a.connect(USER_A, scope="kettle:read")
-    r = a.call("memory", {"since": "not-a-date"})
-    body = r.json()
-    # It does not 500 the process, but unlike parent_day it surfaces a DB error
-    # result rather than a sentence; contrast parent_day's floor check.
-    assert r.status_code == 200
-    assert body.get("result", {}).get("isError") or "error" in body
+    bad = a.text("memory", since="not-a-date")  # .text asserts not isError
+    none = a.text("memory")
+    assert bad == none  # a bad since == no since
