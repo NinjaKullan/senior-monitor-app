@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 330.** This line is the one to update; the `Next number:` lines inside
+**Next number: 331.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -6892,4 +6892,45 @@ browser — all three adopted as the standard for future surfaces.**
        background; the soak uses the internal track or a hand-installed
        build.
      * Phone ordered: Redmi 15C, global, unlocked, HyperOS on Android 15.
-     * Next number: 330.
+
+330. **(2026-09-13) 329 BUILT: the Android server side, 014 §6 items 1, 2,
+     4, 5. Product only; migration 0033, unapplied. Judgement calls.**
+     * Vocabulary: `unlock` alarm-grade "Phone unlocked", `motion`
+       corroborating "Phone moved"; `ANDROID_SIGNALS` and
+       `PLATFORM_SIGNALS` beside the unchanged iOS seed (STANDARD_SIGNALS
+       kept as the iOS entry so nothing that imports it moves);
+       `SHORTCUT_SIGNALS` names the keys that ship as shortcuts. Pinned:
+       one grade per key on every platform.
+     * Provisioning: `--platform android` picks the Android seed;
+       `--signals` overrides; the grade is never the caller's. An Android
+       parent's signals carry `shortcut=None` and the summary says no
+       shortcuts and no iCloud links ship. The setup link is still issued:
+       the claim needs it.
+     * **The claim's device choice.** The link's own row is claimed by the
+       first install when it is an Android row with no app_version yet.
+       Any later claim on the slug (a reinstall, a second phone) cannot be
+       told apart from this side — the app sends no stable identity and
+       OEM plus version is not one — so it is a NEW device row with a
+       fresh token, and the earlier row stays active until the founder
+       revokes it. A claim never revokes. An iOS-provisioned link claimed
+       by an Android phone gets its own android row beside the iOS one.
+     * Claim semantics: unknown 404, expired or revoked 410 JSON like the
+       state check, wrong platform 400, ten claims an hour per slug (the
+       308 counter, its own instance) then 429; logged as "claim on …xxxxxx
+       by android", slug masked, never a token. `oem` and `app_version`
+       are trimmed to 120 and optional.
+     * **`GET /s/{slug}` for an Android parent raises today** ("no
+       automation instruction for signal 'unlock'"): the page's Android
+       branch is §6.3, held back by 329 until the Play listing exists. Do
+       not hand an Android family the link until §6.3 lands; the claim
+       route works without the page. The automation-instruction pin now
+       covers SHORTCUT_SIGNALS and asserts the Android keys refuse.
+     * **The webapp's label map is unchanged** (§6.6, out of scope): the
+       contract test now compares the shortcut keys exactly and lets the
+       Android keys be absent from the app, never wrong; an Android
+       parent's tripwire rows would show the raw key until §6.6.
+     * Columns: a test walks kettle/ for any SELECT naming oem or
+       app_version; the one reader is "app_version is not null" (claimed
+       or not). No new ping fields.
+     * Counts: root pytest 885 → 902 (product 838 → 855); ruff clean.
+     * Next number: 331.

@@ -38,7 +38,7 @@ cd webapp && npm run ci
 cd site   && npm run ci
 ```
 
-Current green: **`pytest` 885 from the repo root** (838 product + 47 pilot —
+Current green: **`pytest` 902 from the repo root** (855 product + 47 pilot —
 the root run is what CI prints, DECISIONS 267), zero xfails, **`webapp` 325**,
 **`site` 236**. The replay test is pinned to fixed Phoenix instants (272) and
 the root suite is green at any hour. `ruff check .` clean; `tools/printables/` is excluded by ruling
