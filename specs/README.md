@@ -1,7 +1,7 @@
 # Specs
 
 Every spec, one line, and what state it is in. The specs themselves are the
-authority on what was asked for; this file exists so nobody has to open thirteen
+authority on what was asked for; this file exists so nobody has to open two dozen
 of them to find out which ones still describe the product.
 
 `DECISIONS.md` is the decision log and the PM channel — the next number is the
@@ -20,8 +20,23 @@ line at its top. Items 1 through 120 are in `DECISIONS-archive.md`.
 | [005c](005c-glance-warmth.md) | Glance warmth pass | Built. |
 | [005d](005d-tripwire-health.md) | Tripwire health panel | Built. Carries the app's one scoped copy-law exemption. |
 | [005e](005e-shortcut-forge.md) | Shortcut forge — generate and sign real `.shortcut` files | Built. Signing is a macOS founder step; generation runs anywhere. |
-| [006](006-landing-page.md) | Landing page (heykettle.com) | Built. Five passes since (DECISIONS 134–137, 142) are unshipped pending a founder deploy. The spec says getkettle.* throughout; the domain changed after it was written (DECISIONS 142). |
-| [007](007-outbound-channel.md) | The outbound channel — Kettle learns to speak | **Wave A built and running dark.** Waves B–D are each gated on one founder errand. Supersedes 003 and 004. |
+| [006](006-landing-page.md) | Landing page (heykettle.com) | Built and live, behind Cloudflare's proxy since Sep 6 (DECISIONS 306); the SEO pass of Sep 12–13 is live (332). The spec says getkettle.* throughout; the domain changed after it was written (142). |
+| [007](007-outbound-channel.md) | The outbound channel — Kettle learns to speak | Built and live through Wave D (DECISIONS 263): digests and follow-ons by email, the ask to the parent on WhatsApp from the registered number on the v7 template, the all-clear. Supersedes 003 and 004. |
+| [008](008-webapp-restyle.md) | The webapp wears Kettle v5 | Built and live (DECISIONS 170). |
+| [009](009-glance-redesign.md) | Glance redesign: Today, parent detail, family notes | Built and live (DECISIONS 176–181). Amended in practice by 299 (a day counts from 06:00 local) and 303 (night is not quiet). |
+| [010](010-city-timezone.md) | The city is the timezone: moving a parent | Built and live (DECISIONS 185); the city control's current form is the button pass's (324–327). |
+| [011](011-wave-d-real-number.md) | Wave D: the real HeyKettle number | Built and flipped Sep 4 (DECISIONS 263). v7 is the ask and template iteration is stopped (253/262). The sandbox sunset needs its own ruling. |
+| [011 A](011-wave-d-real-number.md#amendment-a-2026-09-02-sms-transport-for-1-parents) | Amendment A: SMS for +1 parents | Built and live (DECISIONS 291–294); dark stage complete on TestMom (310), so a real +1 parent may be enrolled by text. Amma stays on WhatsApp. |
+| [012](012-family-memory.md) | Family Memory: the journal becomes a place | Built and live, v1.1 (the filter, the scrolling card, "Who to call") included (DECISIONS 202/214); in daily use (327). |
+| [013](013-email-code-sign-in.md) | Sign in with a 6-digit email code | Built and live (DECISIONS 283). |
+| [014](014-android-senior-app.md) | Android senior app (the phone's voice) | Server side built (§6 items 1, 2, 4, 5; DECISIONS 330/331), migration 0033 applied, product deploy owed. The app lives in `android/`; the Xiaomi soak (§8.1) waits on the Redmi 15C. Held: the setup page's Android branch (§6.3, until the Play listing exists) and the runbook section (§6.7, after the first real install). |
+| [015](015-circles.md) | The circle: who sees a household, and who can change it | Built and live (DECISIONS 270/283). |
+| [016](016-replies.md) | Replies on a note | Built and live (DECISIONS 275/283). |
+| [017](017-pause.md) | Pause Kettle for one parent | Built and live (DECISIONS 276/283). |
+| [018](018-notes-edit-delete.md) | Notes: edit, delete, the optimistic composer, viewer-zone dates | Built and live (DECISIONS 281/283). |
+| [019](019-mcp.md) | Ask Kettle from an assistant (read-only MCP) | Built and live (DECISIONS 285–288); Claude and Codex both connected. CIMD works through a shipped copy of Claude's client document (319–321). |
+| [019 A](019-mcp.md#amendment-a-2026-09-08-notes-and-replies-through-the-assistant) | Amendment A: notes and replies through the assistant | Built and live (DECISIONS 317/318/322/323): `add_note` and `reply` behind the `kettle:write` scope, lines marked "{name} via {client}". |
+| [020](020-household-devices.md) | The family's own devices (a recorded fact, never a judgement) | Built and live (DECISIONS 313–315). Nothing a device says feeds the engine. |
 
 ## What "superseded" means here
 
