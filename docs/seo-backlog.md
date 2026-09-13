@@ -20,7 +20,7 @@ Console clicks) and beta applications.
 |---|---|---|---|---|
 | A1 | Search Console: DONE 2026-09-12, readable in the founder's Chrome session (domain property sc-domain:heykettle.com). Keep the session logged in for the monthly reading | Founder | none | audit §2, §8 |
 | A7 | Request indexing in URL Inspection for the eight priority URLs, one at a time: /resources/okay-living-alone/, /resources/emergency-info/, /resources/normal-day/, /resources/changes-tracker/, /resources/, /blog/parent-doesnt-answer-the-phone/, /blog/how-often-should-you-check-on-a-parent/, /blog/the-information-youll-wish-you-had/ | Founder, or CC in the founder's browser with a go | founder (it submits a request to Google) | 18 of 21 URLs have never been crawled (audit T12). A request is the only lever that does not wait for links |
-| A2 | Make the HeyKettle mention on linkabitai.com a real `<a href="https://heykettle.com/">` in the server-rendered HTML | Founder, or CC in that repository | founder | The only external link that exists is invisible to non-JS crawlers (audit T11) |
+| A2 | linkabitai.com anchor: DONE 2026-09-12 by the LinkaBIT agent, verified by curl of the server HTML (plain href, no rel, page not noindexed, robots allows Googlebot and Bingbot) | Founder | done | audit T11; link log row 1 |
 | A3 | Cloudflare: Email Address Obfuscation OFF, done 2026-09-12 and verified live. JavaScript Detections cannot be disabled on the Free plan (Bot Fight Mode already off); the beacon stays until a plan change or Cloudflare fixes it. Closed as a platform limit | Founder | done | audit T3 |
 | A8 | Cloudflare "Block AI bots" preference set to "Mixed purpose crawlers will continue to be allowed", done 2026-09-12 on the founder's yes and verified after reload. Googlebot, Bingbot and Applebot stay allowed on 09-15; pure AI-training crawlers stay blocked | Founder, done by CC | done | audit T14 |
 | A4 | Record the waitlist count as the conversion baseline before any outreach | Founder or PM | none | Baseline for the business outcome |
@@ -113,4 +113,4 @@ the anchor seen in the server HTML.
 
 | Date reported | Linking page | Target | Attribute | Verified live | Seen by Moz | Notes |
 |---|---|---|---|---|---|---|
-| 2026-09-12 | https://linkabitai.com/ | https://heykettle.com/ | none (no anchor in HTML) | no, text only | unknown | A2 |
+| 2026-09-12 | https://linkabitai.com/ | https://heykettle.com/ | followed (no rel) | yes, 2026-09-12, server HTML | not yet; check with the October Moz reading | Self-owned entity domain; counts as a referring domain, low weight |
