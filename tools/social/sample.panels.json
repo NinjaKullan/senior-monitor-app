@@ -1,0 +1,19 @@
+{
+  "panels": [
+    {
+      "scene": "Sam stands alone at a kitchen counter far away, a mug beside a small green kettle, phone in hand, looking thoughtful out a window at morning light.",
+      "dialogue": [["Sam", "I wonder if Mom had a normal morning today."]],
+      "caption": ""
+    },
+    {
+      "scene": "June, upright and busy in her sunny garden with gardening gloves and a watering can, her iPhone tucked in her cardigan pocket, tending tomato plants.",
+      "dialogue": [["June", "These tomatoes need water before the sun gets high."]],
+      "caption": ""
+    },
+    {
+      "scene": "The small green stovetop kettle sits on the stove. Sam, relaxed and smiling, holds a plain phone with a blank lit screen, shoulders easing.",
+      "dialogue": [],
+      "caption": "A normal morning happened."
+    }
+  ]
+}
