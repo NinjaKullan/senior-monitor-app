@@ -22,13 +22,39 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from datetime import date
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 HOST = "https://generativelanguage.googleapis.com/v1beta/models"
-MODELS = [m for m in os.environ.get("KETTLE_IMAGE_MODELS", "gemini-2.5-flash-image").split(",") if m]
+_DEFAULT_MODELS = "gemini-3.1-flash-image,gemini-2.5-flash-image"
+MODELS = [m for m in os.environ.get("KETTLE_IMAGE_MODELS", _DEFAULT_MODELS).split(",") if m]
 STYLE_FILE = HERE / "characters.md"
 SHEET_FILES = sorted((HERE / "characters").glob("*.png")) if (HERE / "characters").exists() else []
+COUNT_FILE = Path.home() / ".kettle_image_count.json"
+
+
+def _image_count_today() -> int:
+    """Today's tally from the counter file, or 0 if absent, unreadable, or stale."""
+    try:
+        data = json.loads(COUNT_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return 0
+    return int(data.get("count", 0)) if data.get("date") == date.today().isoformat() else 0
+
+
+def _cap_guard() -> None:
+    """Exit before an API call once today's attempts reach KETTLE_IMAGE_CAP (default 20)."""
+    if _image_count_today() >= int(os.environ.get("KETTLE_IMAGE_CAP", "20")):
+        raise SystemExit("daily image cap reached")
+
+
+def _cap_bump() -> None:
+    """Record one more attempted call for today."""
+    COUNT_FILE.write_text(
+        json.dumps({"date": date.today().isoformat(), "count": _image_count_today() + 1}),
+        encoding="utf-8",
+    )
 
 
 def _style_bible() -> str:
@@ -52,6 +78,7 @@ def call_gemini(prompt: str, refs: list[Path], aspect: str) -> bytes:
             body = json.dumps({"contents": [{"parts": parts}], "generationConfig": gen}).encode()
             req = urllib.request.Request(f"{HOST}/{model}:generateContent", data=body, headers=headers)
             for attempt in range(4):
+                _cap_guard()
                 try:
                     with urllib.request.urlopen(req, timeout=180) as r:
                         data = json.load(r)
@@ -72,6 +99,8 @@ def call_gemini(prompt: str, refs: list[Path], aspect: str) -> bytes:
                 except (urllib.error.URLError, TimeoutError) as e:
                     last = f"{model}: {e}"
                     time.sleep(5)
+                finally:
+                    _cap_bump()
     raise SystemExit(f"image generation failed: {last}")
 
 
