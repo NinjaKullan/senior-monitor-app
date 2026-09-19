@@ -7,13 +7,8 @@ package com.heykettle.android
  * `GET {api_base}/p/{token}/{signal}` with no body (§4.4). Never a count.
  */
 object Signals {
-    /**
-     * Spec 014 §3 names this key `unlock`. The server vocabulary does not have
-     * it yet (spec 014 §9.1, the PM session's lane), so during the soak the
-     * app sends `routine`, which is already alarm-grade and provisioned for the
-     * rehearsal parent. Flip this one constant to "unlock" when §6 item 1 lands.
-     */
-    const val UNLOCK = "routine"
+    /** `unlock` is alarm-grade in the server vocabulary (DECISIONS 330). */
+    const val UNLOCK = "unlock"
     const val CHARGER = "charger"
     const val MOTION = "motion"
     const val DEVICE_ALIVE = "device_alive"

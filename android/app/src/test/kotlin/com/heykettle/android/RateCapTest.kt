@@ -33,7 +33,7 @@ class RateCapTest {
     }
 
     @Test
-    fun `unlock goes out as routine until the vocabulary has unlock - spec 014 s9_1`() {
-        assertEquals("routine", Signals.UNLOCK)
+    fun `unlock goes out as unlock - spec 014 s3`() {
+        assertEquals("unlock", Signals.UNLOCK)
     }
 }
