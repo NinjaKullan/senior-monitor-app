@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 340.** This line is the one to update; the `Next number:` lines inside
+**Next number: 341.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7271,3 +7271,58 @@ browser — all three adopted as the standard for future surfaces.**
        it empty. Sandbox project still joinable; v6 untouched. Scope A is
        complete.
      * Next number: 340.
+
+340. **(2026-09-19, Saturday evening ET) XIAOMI SOAK DAY 1 STARTED (spec 014
+     §8). Redmi 15C, Xiaomi HyperOS 3 (3.0.301.0.WBNEXM), debug build off
+     052207b.** First the app flip: `Signals.UNLOCK` is `"unlock"` (the
+     vocabulary has had it since 330); CC changed the constant and its pin
+     test, could not run Gradle in its box (no SDK, Google's Maven blocked),
+     the founder ran `./gradlew check` and `assembleDebug` green on the Mac.
+     * Provisioned a throwaway family for the soak: `Soak` / `SoakDad`
+       (America/New_York), `--platform android`, owner the founder. The
+       token went in by the debug long-press (§5.3's claim path is not
+       wired in the app yet). First pings on the server: `device_alive`
+       23:10:15Z, `unlock` 23:10:28Z; the screen went to ON ("Kettle is on.
+       There is nothing you need to do."). `devices.oem` and `app_version`
+       are null: the debug path does not claim, so 0033's columns fill
+       only through `POST /s/{slug}/claim`.
+     * Install path that needs no account of any kind: APK served from the
+       Mac with `python3 -m http.server` on the home Wi-Fi, opened in the
+       phone's browser, "install unknown apps" allowed for the browser,
+       Xiaomi's scan prompt answered either way. No Google account, no Mi
+       account, no adb, no developer mode was needed.
+     * Findings for the OEM "Show me" table and the runbook (§6.7), each
+       seen on this phone:
+       * **"Pause app activity if unused" is ON by default** on the App
+         info page (Android's hibernation: it strips permissions after
+         months without the app being opened, which is exactly a parent's
+         phone). Must be turned off at install. Not in the app's Show-me
+         text today.
+       * **Autostart is not on the app's page on HyperOS 3.** It is a
+         global list: Settings, Apps, Background autostart, Kettle on. The
+         app's Show-me text for Xiaomi names the older per-app location
+         and needs this path.
+       * Battery: Settings, Apps, Manage apps, Kettle, Power, Battery
+         saver, No restrictions (was "Battery saver (recommended)" by
+         default). The app's own battery prompt fired once; after a Clear
+         data it did not fire again because the phone remembers the
+         exemption. Fine, but the runbook should say so.
+       * A mistyped token gives a 403 from `/p/`, which the app reads as
+         REVOKED and then wipes its token; the long-press is disabled in
+         that state, so recovery is Clear data (or reinstall). Debug-only
+         path, but worth a line in the README. The retry used the token
+         pasted from a text file served the same way as the APK.
+       * "Battery used by app" read 12.77% right after setup with the
+         phone at 100%: a share of nothing. §8.7 is judged after the week.
+     * Not done tonight: 8.2 tap count (the debug path is not the real
+       path), 8.3 crossed pair (needs the setup page's Android branch),
+       8.9 largest font. The phone is now on a shelf on a normal charge
+       routine; nobody opens Kettle. A HyperOS update was downloading at
+       close; its reboot is day 1's restart test (§4.2). Passed: the
+       phone updated and rebooted around 8:20pm ET, Background autostart
+       still on, and an `unlock` landed at 8:26pm with nobody opening
+       Kettle. Unlocks that evening: 7:10, 7:41, 8:26.
+     * Soak log (fill from `pings`, first ping of each day ET):
+       Day 1 Sep 19: unlock 19:10, device_alive 19:10, charger —,
+       motion —.
+     * Next number: 341.
