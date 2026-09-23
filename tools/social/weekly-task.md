@@ -25,10 +25,29 @@ report that the session is not in the environment that holds the Gemini credenti
 
 ## 2. Get the files
 
-Prefer the connected Mac folder `senior-monitor-app` when the device is linked (read with
-device_bash, write results there). Otherwise `git clone
-https://github.com/NinjaKullan/senior-monitor-app` into the workspace and work from that.
-If `social/weeks/` exists, read the last two weeks' `posts.json` and pick a different theme.
+`git clone https://github.com/NinjaKullan/senior-monitor-app` into the workspace, then
+`git fetch origin social-drafts` and, if that branch exists, read the last two weeks'
+`social/weeks/*/posts.json` from it so this week's theme is different.
+
+## 2b. Look at the week (research, 10 minutes, not a deliverable)
+
+Run five or six WebSearch queries for the past 7 days on: adult children living far
+from parents, staying in touch across distance, family check-ins, technology for older
+adults, Medicare and benefits deadlines that land in a parent's mailbox, and everyday
+routines. Read two or three promising pieces with WebFetch.
+
+Pick ONE finding as the week's anchor only if it passes all of these:
+- It is a real moment in the reader's own life (a letter that arrives, a call that
+  keeps getting missed, a visit, a season), not an industry story, a policy fight, a
+  product launch or a study about decline.
+- It can be told with the parent as a capable adult, never as a risk to be managed.
+- It needs no banned word, no medical framing, no competitor or product name, and no
+  number that will go stale in a month.
+
+If nothing passes, use an evergreen theme instead. Never invent a news hook. Cite a
+source only in an X post, only once, and only when the fact is the point of the post.
+Delegate the searching to a sonnet subagent; keep the choice of theme in the main
+session.
 
 ## 3. Plan the week
 
@@ -75,8 +94,9 @@ Regenerate up to twice if it fails; if it still fails, leave `image` empty and s
 2. `python tools/social/build_week.py social/weeks/<week>`
 3. Publish `social/weeks/<week>/index.html` with the Artifact tool, title
    `Kettle posts <week>`, favicon 🫖. Send the folder as a zip with SendUserFile too.
-4. If the Mac folder is linked, write the week folder into it at
-   `social/weeks/<week>/` (device_commit_files). Do not commit.
+4. Commit `social/weeks/<week>/` on the branch `social-drafts` (create it from
+   `origin/main` if it does not exist, otherwise check it out and rebase on
+   `origin/main`) and push that branch. Never commit to main.
 5. Final message, short: the theme, the seven posts as one line each (day, channel, first
    sentence, CTA yes/no), any post left without an image and why, and any self-check item
    marked pending. Nothing else.
