@@ -188,7 +188,10 @@ promoted.
   in" (Kettle-as-actor "check in with" is pinned OK).
 - LAW-8 A household-grade signal is never presented as proof that a
   specific person is fine.
-- LAW-9 No client-side analytics on the site or app.
+- LAW-9 No client-side analytics in the app. The site may count visits
+  without cookies, a consent banner, session recording, or anything that
+  identifies a person (DECISIONS 341; Cloudflare Web Analytics is the ruled
+  tool, Google Analytics and Clarity are ruled out).
 - LAW-10 Never scrape WhatsApp "last seen"; no camera, audio,
   keystrokes, or continuous location.
 

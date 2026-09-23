@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 341.** This line is the one to update; the `Next number:` lines inside
+**Next number: 342.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7338,3 +7338,37 @@ browser — all three adopted as the standard for future surfaces.**
        need a deliberate test (unplug and replug; a five-minute walk with
        the phone in a pocket) before 8.1 can be read.
      * Next number: 341.
+
+341. **(2026-09-23, Wednesday morning ET) FOUNDER OVERRULES 201 and LAW-9:
+     heykettle.com may count its visitors.** The founder's reason: "we need
+     to see how customers are finding us to better serve them." The PM
+     pushed back once and the ruling stands, with the shape below.
+     * **LAW-9 amended.** Was: no client-side analytics on the site or app.
+       Now: the site may run cookieless, bannerless visit counting that
+       stores nothing identifying a person; no cookies, no consent banner,
+       no session recording, no advertising or cross-site profiles. The
+       app keeps the old law as written.
+     * **Ruled in: Cloudflare Web Analytics** on heykettle.com, turned on
+       by the founder in the Cloudflare dashboard (automatic setup on the
+       proxied zone; the beacon is added at the edge, so `site/` and its
+       `check-foreign-origins` gate are untouched; nginx sets no CSP, so
+       nothing blocks it). **Bing Webmaster Tools**, imported from Search
+       Console; no script, the Bing side of A1.
+     * **Ruled out, by name:** Google Analytics (cookies, a consent banner
+       for EU and UK visitors, data joined to Google's ad profile) and
+       Microsoft Clarity (session replay). Plausible is deferred, not
+       refused: the founder does not want the subscription now; it comes
+       back when a campaign needs UTM tracking or a waitlist-conversion
+       goal.
+     * **Privacy page string, ruled** (`site/public/privacy.html`, "Cookies
+       and analytics"; names no tooling, per site/CLAUDE.md "what, never
+       how"): "The Kettle website sets no cookies. We count visits: the page
+       you read, the site you came from, your country, and the kind of
+       device. Nothing that identifies you. There are no trackers or
+       advertising scripts." PM edited the file; the founder deploys the
+       site (`cd site && npm run ci && fly deploy`) after Cloudflare is on,
+       so the page never claims less than the site does.
+     * docs/feature-backlog.md LAW-9 and docs/seo-backlog.md §5 updated to
+       match. Search Console stays the search-query source; the Oct 6
+       review reads all three.
+     * Next number: 342.
