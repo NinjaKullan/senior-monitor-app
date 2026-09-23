@@ -100,15 +100,6 @@ function phone(x, y, a, s, lit) {           // a plain lit rectangle, nothing on
   piece(rect(-31, -64, 62, 128), YELLOW, 'phone-screen', { amp: 1, step: 10, shadow: false, alpha: lit });
   ctx.restore();
 }
-function kettle(x, y, s, key = 'k') {       // stovetop, green, curved spout, dark handle, never a face
-  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
-  ink(() => { ctx.arc(0, -80, 70, Math.PI, 2 * Math.PI); }, 15);                    // handle
-  piece([[-95, -40], ...arc(0, -40, 95, 68, Math.PI, 2 * Math.PI, 14), [95, -40], [108, 72], [-108, 72]], GREEN, key + '-body');
-  piece([[68, -14], [118, -44], [162, -96], [188, -110], [196, -96], [170, -52], [132, 2], [92, 34]], GREEN, key + '-spout', { amp: 2, step: 10 });
-  piece(ell(0, -104, 44, 13), GREEN, key + '-lid', { amp: 1.5, step: 8 });
-  piece(ell(0, -118, 13, 11, 16), INK, key + '-knob', { amp: 1, step: 6, shadow: false });
-  ctx.restore();
-}
 function steam(x, y, t, amount, s = 1, color = PAPER) {    // three paper wisps rising from the spout tip
   if (amount <= 0) return;
   for (let i = 0; i < 3; i++) {
@@ -119,7 +110,7 @@ function steam(x, y, t, amount, s = 1, color = PAPER) {    // three paper wisps 
 }
 // ---------- backdrops ----------
 const IMG = {};
-const loaded = Promise.all(['apartment-night', 'mom-house', 'kitchen', 'map', 'apartment-dawn'].map(n => new Promise((ok, fail) => {
+const loaded = Promise.all(['apartment-night', 'mom-house', 'kitchen', 'map', 'apartment-dawn', 'kettle'].map(n => new Promise((ok, fail) => {
   const im = new Image(); im.onload = () => ok(IMG[n] = im); im.onerror = () => fail(new Error('missing assets/' + n + '.png')); im.src = 'assets/' + n + '.png';
 })));
 // Slow push-in: zoom z centred on (cx, cy) for everything fn draws.
@@ -179,8 +170,10 @@ function scene4(t) {     // the kid's phone lights up with a calm card
 function scene5(t) {     // the kettle, the name, the line
   fill(PAPER);
   const k = seg(t, 24.6, 25.8);   // starts inside the crossfade so no empty paper beat
-  ctx.save(); ctx.globalAlpha = k; kettle(540, 840, lerp(1.1, 1.6, k), 'k5'); ctx.restore();
-  steam(540 + 186 * 1.6, 840 - 106 * 1.6, t, seg(t, 26, 27), 1.6);
+  // Painted brand kettle (assets/kettle.png, 660x600, transparent). Spout tip sits at (250, -85) from its centre.
+  const s = lerp(.7, .85, k), K = IMG.kettle;
+  ctx.save(); ctx.globalAlpha = k; ctx.drawImage(K, 540 - K.width * s / 2, 740 - K.height * s / 2, K.width * s, K.height * s); ctx.restore();
+  steam(540 + 250 * s, 740 - 85 * s, t, seg(t, 26, 27), 1.4, GREY);
   words('Kettle', 1160, { size: 150, alpha: seg(t, 26.4, 27.2) });
   words('heykettle.com', 1300, { size: 80, alpha: seg(t, 26.4, 27.2) });
   words('For checking in,\nnot checking up.', 1520, { alpha: seg(t, 27.6, 28.4) });

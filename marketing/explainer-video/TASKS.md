@@ -17,6 +17,11 @@
 - [x] 1080x1920, 30 fps, H.264, yuv420p, one stream, 900 frames, 30.0 s; two renders byte-identical
 - [x] Commit and push `video-explainer`
 
+## v3: painted end-card kettle
+- [x] `assets/kettle.png`: Gemini paper-cutout of the X avatar kettle (2 calls, 1 kept), paper keyed to
+      transparent; prompt in PROMPTS.md. Scene 5 draws it; steam stays in code from the spout tip
+- [x] still-5 checked; two renders byte-identical; pushed
+
 ## Render
     cd marketing/explainer-video && npm install && npm run render
 Needs Google Chrome (or `CHROME=/path/to/chrome`) and `ffmpeg`. Output in `out/`. Never calls Gemini.
