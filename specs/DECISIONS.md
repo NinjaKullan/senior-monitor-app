@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 343.** This line is the one to update; the `Next number:` lines inside
+**Next number: 344.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7414,3 +7414,14 @@ browser — all three adopted as the standard for future surfaces.**
      * Next: founder reads §2 to §4 and §10 and ratifies or edits; then
        the CC brief. Not before.
      * Next number: 343.
+
+343. **(2026-09-23, Wednesday afternoon ET) SPEC 021 RATIFIED as written.**
+     The founder accepted the PM's recommendations in full: the three
+     tools, the §4 sentences, the §10 strings, no auth with the per-IP
+     limit, the CMS-only outbound allowlist, no argument logged, the page
+     as the sole link target. Status line updated; spec index updated.
+     * CC builds from the spec (brief given the same afternoon). The
+       build's result files at 344. Nothing deploys until the PM has
+       reviewed; the Fly app and the `care` DNS record are the founder's
+       console work after that.
+     * Next number: 344.

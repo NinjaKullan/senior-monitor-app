@@ -1,6 +1,7 @@
 # Spec 021 — Care Compare, a free tool under the Kettle name
 
-Status: DRAFT by PM, 2026-09-23, for the founder's ratification.
+Status: RATIFIED by Hema, 2026-09-23 (DECISIONS 343); strings verbatim.
+Written by PM 2026-09-23.
 Ruled: DECISIONS 341 (not a Kettle feature; a marketing asset), and
 the founder's four answers of 2026-09-23 recorded in DECISIONS 342.
 Builds on the MCP door's conventions (019: sentences, names never
