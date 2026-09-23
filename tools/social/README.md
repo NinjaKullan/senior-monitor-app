@@ -18,3 +18,7 @@ page and posts by hand. Nothing here publishes anywhere.
 
 Outputs live in `social/weeks/<ISO week>/`. Committing them is optional; the task reads
 the last two weeks, when present, to avoid repeating a theme.
+
+- `resources-task.md` + `build_resources.py`: the fortnightly "Kettle useful resources" routine
+  (odd ISO weeks): five vetted services or programs for families, with ready Pinterest and X
+  lines and a blog roundup. Outputs in `social/resources/<date>/` on the `social-drafts` branch.
