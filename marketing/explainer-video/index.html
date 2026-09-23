@@ -1,0 +1,290 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Kettle explainer</title>
+<style>
+  @font-face { font-family: Patrick; src: url("../../tools/social/fonts/PatrickHand-Regular.ttf"); }
+  html, body { margin: 0; background: #F7F1E8; }
+  canvas { display: block; }
+</style>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+'use strict';
+// Every frame is a pure function of its index: seeded noise only, no clock.
+const W = 1080, H = 1920, FPS = 30, FRAMES = 30 * FPS;
+const PAPER = '#F7F1E8', INK = '#403C36', GREEN = '#297A5C', GREY = '#C9D3C6', YELLOW = '#E8C77A';
+const NIGHT = '#1F3B3B', CREAM = '#EFE6D6';           // night sky; Sam's sweater and house walls
+const SAFE_TOP = H * 0.12, SAFE_BOTTOM = H * 0.88;    // TikTok / Reels app chrome covers the rest
+
+const main = document.getElementById('c');
+const off = document.createElement('canvas'); off.width = W; off.height = H;
+let ctx = main.getContext('2d');
+
+// ---------- deterministic helpers ----------
+function hash(str) { let h = 2166136261; for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { let s = hash(seed) || 1; return () => { s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const clamp01 = x => x < 0 ? 0 : x > 1 ? 1 : x;
+const io = x => { x = clamp01(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const seg = (t, a, b) => io((t - a) / (b - a));      // eased 0..1 between times a and b
+const lerp = (a, b, k) => a + (b - a) * k;
+
+// ---------- paper primitives ----------
+const rect = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+function arc(cx, cy, rx, ry, a0, a1, n = 20) { const p = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; p.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]); } return p; }
+function ell(cx, cy, rx, ry, n = 36) { return arc(cx, cy, rx, ry, 0, Math.PI * 2, n).slice(0, n); }
+
+// Jitter a polygon's edges so it reads as torn paper. Same key, same tear, every frame.
+function torn(pts, key, amp, step) {
+  const r = rng(key), out = [];
+  for (let i = 0; i < pts.length; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[(i + 1) % pts.length];
+    const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy);
+    if (len < 1) continue;
+    const n = Math.max(1, Math.round(len / step)), nx = -dy / len, ny = dx / len;
+    for (let j = 0; j < n; j++) { const k = j / n, w = (r() - .5) * 2 * amp; out.push([x0 + dx * k + nx * w, y0 + dy * k + ny * w]); }
+  }
+  return out;
+}
+function piece(pts, fill, key, o = {}) {
+  const p = torn(pts, key, o.amp ?? 3, o.step ?? 14);
+  ctx.save();
+  if (o.shadow !== false) { ctx.shadowColor = o.shadowColor || 'rgba(201,211,198,0.9)'; ctx.shadowBlur = 10; ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 7; }
+  ctx.globalAlpha *= o.alpha ?? 1;
+  ctx.fillStyle = fill; ctx.beginPath();
+  p.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+const DARK_SHADOW = 'rgba(12,28,28,0.55)';
+function ink(fn, w = 6, color = INK) { ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath(); fn(); ctx.stroke(); ctx.restore(); }
+function dot(x, y, r, color = INK) { ctx.save(); ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.restore(); }
+function glow(x, y, r, a) {
+  if (a <= 0) return;
+  ctx.save(); const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, `rgba(232,199,122,${a})`); g.addColorStop(1, 'rgba(232,199,122,0)');
+  ctx.fillStyle = g; ctx.fillRect(x - r, y - r, 2 * r, 2 * r); ctx.restore();
+}
+function fill(color) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = color; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+
+// Paper grain, generated once from a fixed seed and overlaid on every frame.
+const grain = document.createElement('canvas'); grain.width = W; grain.height = H;
+{ const g = grain.getContext('2d'), r = rng('grain'), img = g.createImageData(W, H), d = img.data;
+  for (let i = 0; i < d.length; i += 4) { d[i] = d[i + 1] = d[i + 2] = 128 + (r() - .5) * 110 | 0; d[i + 3] = 255; }
+  g.putImageData(img, 0, 0); }
+
+// ---------- words ----------
+// One caption at a time, ink, centred, >= 72px, inside the middle 76%. Violations throw so a render fails loudly.
+function words(text, y, o = {}) {
+  const size = o.size ?? 84, maxW = 920, lh = size * 1.18;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.font = `${size}px Patrick`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const rows = [], widths = [];
+  for (const para of text.split('\n')) { let line = '';
+    for (const w of para.split(' ')) { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { rows.push(line); line = w; } else line = t; }
+    rows.push(line); }
+  const top = y - (rows.length - 1) * lh / 2, bottom = top + (rows.length - 1) * lh;
+  if (size < 72) throw new Error('words: too small: ' + text);
+  if (top - size * .6 < SAFE_TOP || bottom + size * .6 > SAFE_BOTTOM) throw new Error('words: outside safe zone: ' + text);
+  for (const r of rows) { const w = ctx.measureText(r).width; if (w > maxW) throw new Error('words: too wide: ' + r); widths.push(w); }
+  const a = o.alpha ?? 1;
+  if (a > 0) {
+    ctx.globalAlpha = a;
+    if (o.label) { const lw = Math.max(...widths) + 90, lhh = bottom - top + size * 1.3;
+      piece(rect(W / 2 - lw / 2, top - size * .65, lw, lhh), PAPER, 'label:' + text, { amp: 4, step: 18, shadowColor: DARK_SHADOW }); }
+    ctx.fillStyle = INK; rows.forEach((r, i) => ctx.fillText(r, W / 2, top + i * lh));
+  }
+  ctx.restore();
+}
+
+// ---------- props ----------
+function phone(x, y, a, s, lit) {           // a plain lit rectangle, nothing on the screen
+  ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(s, s);
+  glow(0, 0, 220, lit * .35);
+  piece(rect(-40, -76, 80, 152), INK, 'phone-body', { amp: 1.5, step: 10 });
+  piece(rect(-31, -64, 62, 128), YELLOW, 'phone-screen', { amp: 1, step: 10, shadow: false, alpha: lerp(.75, 1, lit) });
+  ctx.restore();
+}
+function kettle(x, y, s, key = 'k') {       // stovetop, green, curved spout, dark handle, never a face
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ink(() => { ctx.arc(0, -80, 70, Math.PI, 2 * Math.PI); }, 15);                    // handle
+  piece([[-95, -40], ...arc(0, -40, 95, 68, Math.PI, 2 * Math.PI, 14), [95, -40], [108, 72], [-108, 72]], GREEN, key + '-body');
+  piece([[68, -14], [118, -44], [162, -96], [188, -110], [196, -96], [170, -52], [132, 2], [92, 34]], GREEN, key + '-spout', { amp: 2, step: 10 });
+  piece(ell(0, -104, 44, 13), GREEN, key + '-lid', { amp: 1.5, step: 8 });
+  piece(ell(0, -118, 13, 11, 16), INK, key + '-knob', { amp: 1, step: 6, shadow: false });
+  ctx.restore();
+}
+function steam(x, y, t, amount, s = 1) {    // three paper wisps rising from the spout tip
+  if (amount <= 0) return;
+  for (let i = 0; i < 3; i++) {
+    const ph = (t * .32 + i / 3) % 1, a = Math.sin(ph * Math.PI) * .8 * amount;
+    const wx = x + s * (Math.sin(ph * 5 + i * 2) * 22 + i * 6), wy = y - s * (20 + ph * 170), r = s * (14 + ph * 22);
+    piece(ell(wx, wy, r * 1.25, r, 20), PAPER, 'steam' + i, { amp: 2, step: 8, alpha: a });
+  }
+}
+function sleeve(ax, ay, bx, by, color, key) {
+  const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy), nx = -dy / len * 34, ny = dx / len * 34;
+  if (len < 1) return;
+  piece([[ax + nx, ay + ny], [bx + nx * .8, by + ny * .8], [bx - nx * .8, by - ny * .8], [ax - nx, ay - ny]], color, key);
+}
+function house(x, y, lit, key) {            // (x, y) is the bottom centre
+  piece(rect(x - 100, y - 150, 200, 150), CREAM, key + '-wall');
+  piece([[x - 118, y - 146], [x, y - 250], [x + 118, y - 146]], GREEN, key + '-roof');
+  piece(rect(x + 40, y - 235, 30, 50), INK, key + '-chimney', { amp: 1.5 });
+  piece(rect(x - 25, y - 80, 50, 80), INK, key + '-door', { amp: 1.5 });
+  glow(x + 50, y - 105, 120, lit * .5);
+  piece(rect(x + 25, y - 125, 50, 45), GREY, key + '-window', { amp: 1.5, shadow: false });
+  piece(rect(x + 25, y - 125, 50, 45), YELLOW, key + '-window', { amp: 1.5, shadow: false, alpha: lit });
+}
+
+// ---------- people ----------
+function samHead(cx, cy, smile) {
+  piece(ell(cx, cy, 100, 115), PAPER, 'sam-head');
+  piece([...arc(cx, cy, 104, 121, Math.PI, 2 * Math.PI, 18), [cx + 104, cy - 28], [cx + 62, cy - 48], [cx + 12, cy - 36], [cx - 48, cy - 54], [cx - 104, cy - 28]], INK, 'sam-hair');
+  ink(() => { ctx.arc(cx - 46, cy + 8, 36, 0, 7); ctx.moveTo(cx + 82, cy + 8); ctx.arc(cx + 46, cy + 8, 36, 0, 7); ctx.moveTo(cx - 10, cy + 4); ctx.lineTo(cx + 10, cy + 4); }, 6);
+  dot(cx - 46, cy + 10, 7); dot(cx + 46, cy + 10, 7);
+  ink(() => { ctx.moveTo(cx - 34, cy + 66); ctx.quadraticCurveTo(cx, cy + 70 + smile * 40, cx + 34, cy + 66); }, 6);
+}
+// Sam at his table. phoneUp 1 = holding it up, 0 = set down on the table.
+function sam(phoneUp, smile, night) {
+  const sh = night ? DARK_SHADOW : undefined;
+  const tableColor = night ? '#5E6E62' : GREY;
+  piece([[420, 1140], [660, 1140], [740, 1470], [340, 1470]], CREAM, 'sam-body', { shadowColor: sh });
+  piece(rect(505, 1090, 70, 60), PAPER, 'sam-neck', { shadowColor: sh });
+  samHead(540, 1010, smile);
+  piece(rect(40, 1400, 1000, 90), tableColor, 'table', { amp: 2, shadowColor: sh });
+  piece(rect(300, 1300, 90, 110), CREAM, 'mug', { amp: 2, shadowColor: sh });
+  ink(() => { ctx.arc(392, 1352, 26, -1.3, 1.3); }, 10, CREAM);
+  const k = phoneUp;
+  const px = lerp(700, 660, k), py = lerp(1372, 1140, k), pa = lerp(1.4, -.22, k);
+  const ex = lerp(760, 770, k), ey = lerp(1330, 1395, k), hx = lerp(830, 652, k), hy = lerp(1395, 1188, k);
+  sleeve(400, 1180, 450, 1395, CREAM, 'sam-arm-l'); piece(ell(452, 1400, 30, 26, 16), PAPER, 'sam-hand-l', { amp: 1.5 });
+  sleeve(690, 1180, ex, ey, CREAM, 'sam-arm-r1'); sleeve(ex, ey, hx, hy, CREAM, 'sam-arm-r2');
+  piece(ell(hx, hy, 32, 28, 16), PAPER, 'sam-hand-r', { amp: 1.5 });
+  phone(px, py, pa, 1, 1);
+  piece(ell(px + 18, py + 40, 15, 12, 12), PAPER, 'sam-thumb', { amp: 1, shadow: false, alpha: k });
+}
+function momHead(cx, cy) {
+  piece(ell(cx, cy, 98, 112), PAPER, 'mom-head');
+  piece([...arc(cx, cy, 106, 122, Math.PI, 2 * Math.PI, 18), [cx + 106, cy + 8], [cx + 82, cy - 22], [cx + 30, cy - 46], [cx - 30, cy - 52], [cx - 84, cy - 18], [cx - 106, cy + 8]], GREY, 'mom-hair');
+  ink(() => { ctx.arc(cx - 32, cy - 100, 26, 0, 7); ctx.moveTo(cx + 58, cy - 100); ctx.arc(cx + 32, cy - 100, 26, 0, 7); ctx.moveTo(cx - 6, cy - 104); ctx.lineTo(cx + 6, cy - 104); }, 6);
+  dot(cx - 38, cy + 4, 7); dot(cx + 38, cy + 4, 7);
+  ink(() => { ctx.moveTo(cx - 32, cy + 60); ctx.quadraticCurveTo(cx, cy + 92, cx + 32, cy + 60); }, 6);
+}
+// Mom in her kitchen: kettle on, phone in hand, mid-morning and busy.
+function mom(t, lit) {
+  piece(rect(700, 470, 260, 320), GREY, 'win-frame', { amp: 2 });
+  glow(830, 630, 260, .35);
+  piece(rect(720, 490, 220, 280), YELLOW, 'win-pane', { amp: 1.5, shadow: false });
+  ink(() => { ctx.moveTo(830, 490); ctx.lineTo(830, 770); ctx.moveTo(720, 630); ctx.lineTo(940, 630); }, 8, GREY);
+  piece([[300, 1010], [500, 1010], [540, 1380], [260, 1380]], GREEN, 'mom-body');
+  piece([[350, 1000], [450, 1000], [400, 1110]], PAPER, 'mom-shirt', { amp: 1.5 });
+  ink(() => { ctx.moveTo(400, 1110); ctx.lineTo(400, 1300); }, 5);
+  piece(rect(365, 960, 70, 60), PAPER, 'mom-neck');
+  momHead(400, 880);
+  piece(rect(40, 1300, 1000, 90), GREY, 'counter', { amp: 2 });
+  piece(rect(590, 1280, 320, 34), INK, 'stove', { amp: 1.5 });
+  kettle(750, 1210, .95);
+  steam(750 + 186 * .95, 1210 - 106 * .95, t, lit, .95);
+  sleeve(480, 1030, 610, 1150, GREEN, 'mom-arm-r'); piece(ell(622, 1152, 30, 26, 16), PAPER, 'mom-hand-r', { amp: 1.5 });
+  sleeve(320, 1030, 290, 1200, GREEN, 'mom-arm-l'); piece(ell(292, 1206, 32, 28, 16), PAPER, 'mom-hand-l', { amp: 1.5 });
+  phone(300, 1170, -.2, .9, lit);
+  piece(ell(322, 1170, 14, 12, 12), PAPER, 'mom-thumb', { amp: 1, shadow: false });
+}
+
+// ---------- the map (world coordinates = screen at scale 1) ----------
+const SAM_HOUSE = [300, 1600], MOM_HOUSE = [780, 840], SUN = [960, 430];
+const ROUTE = [[780, 850], [780, 1200], [420, 1250], [430, 1560]];  // Mom's door to Sam's phone
+function bez(p, k) { const [a, b, c, d] = p, m = 1 - k; return [m * m * m * a[0] + 3 * m * m * k * b[0] + 3 * m * k * k * c[0] + k * k * k * d[0], m * m * m * a[1] + 3 * m * m * k * b[1] + 3 * m * k * k * c[1] + k * k * k * d[1]]; }
+function map(t, o) {   // o.morning 0..1 lights Mom's side; o.samLit lights Sam's phone
+  fill(PAPER);
+  const m = o.morning;
+  const [sx, sy] = SUN; piece(ell(sx, lerp(sy + 200, sy, m), 58, 58), YELLOW, 'sun', { alpha: m });
+  piece(ell(940, 600, 240, 90), GREY, 'hill', { alpha: .6, amp: 4, step: 20 });
+  [[150, 700, 200, 120], [560, 1300, 180, 90], [820, 1750, 220, 110], [180, 1250, 130, 80]].forEach((b, i) => piece(ell(b[0], b[1], b[2], b[3], 28), GREY, 'land' + i, { alpha: .45, amp: 5, step: 22 }));
+  ink(() => { ctx.moveTo(60, 960); ctx.quadraticCurveTo(540, 1040, 1020, 960); ctx.moveTo(60, 1760); ctx.quadraticCurveTo(540, 1700, 1020, 1780); }, 8, 'rgba(64,60,54,0.18)');
+  [[120, 1440], [200, 1470], [640, 780], [930, 1000], [560, 1640], [900, 1450]].forEach(([x, y], i) => { ink(() => { ctx.moveTo(x, y); ctx.lineTo(x, y - 40); }, 8); piece(ell(x, y - 60, 30, 34, 16), GREEN, 'tree' + i, { amp: 3, step: 9 }); });
+  glow(MOM_HOUSE[0], MOM_HOUSE[1] - 100, 560, m * .28);
+  house(...MOM_HOUSE, m, 'mom-house');
+  house(...SAM_HOUSE, 0, 'sam-house');
+  glow(ROUTE[3][0], ROUTE[3][1], 160, o.samLit * .5);
+  phone(ROUTE[3][0], ROUTE[3][1], .15, .55, o.samLit);
+  ctx.save(); ctx.setLineDash([0, 28]); ctx.lineDashOffset = 0;
+  ink(() => { ctx.moveTo(...ROUTE[0]); ctx.bezierCurveTo(...ROUTE[1], ...ROUTE[2], ...ROUTE[3]); }, 11, 'rgba(64,60,54,0.5)'); ctx.restore();
+}
+function note(k) {     // a small folded paper note at route position k
+  if (k <= 0) return;
+  const [x, y] = bez(ROUTE, k), [x2, y2] = bez(ROUTE, Math.min(1, k + .01));
+  const bob = Math.sin(k * 14) * 6;
+  ctx.save(); ctx.translate(x, y - 28 + bob); ctx.rotate(Math.atan2(y2 - y, x2 - x) * .25 - .2);
+  piece(rect(-40, -28, 80, 56), PAPER, 'note', { amp: 2, step: 10, shadowColor: 'rgba(120,135,120,0.8)' });
+  ink(() => { ctx.moveTo(-40, -28); ctx.lineTo(0, 2); ctx.lineTo(40, -28); }, 4);
+  ctx.restore();
+}
+
+// ---------- scenes ----------
+function scene1(t) {     // night; Sam far away, looking at his phone
+  fill(NIGHT);
+  const r = rng('stars');
+  for (let i = 0; i < 40; i++) dot(r() * W, r() * 860, 2 + r() * 3, 'rgba(247,241,232,0.8)');
+  piece(ell(880, 330, 62, 62), PAPER, 'moon', { shadowColor: DARK_SHADOW });
+  piece(ell(912, 312, 54, 54), NIGHT, 'moon-cut', { shadow: false });
+  sam(1, 0, true);
+  words("Is Mom's day starting okay?", 470, { alpha: seg(t, .8, 1.6), label: true });
+}
+function scene2map(t) {  // slide across the map from Sam's side to Mom's house as morning comes up
+  const k = seg(t, 6, 9.4), z = lerp(1.9, 2.4, k);
+  const cx = lerp(SAM_HOUSE[0], MOM_HOUSE[0], k), cy = lerp(SAM_HOUSE[1] - 120, MOM_HOUSE[1] - 130, k);
+  ctx.save(); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-cx, -cy);
+  map(t, { morning: seg(t, 7.2, 9.4), samLit: 0 });
+  ctx.restore();
+  ctx.save(); ctx.globalAlpha = lerp(.32, 0, seg(t, 6.4, 9)); fill(NIGHT); ctx.restore();
+}
+function scene2inside(t) {  // Mom's kitchen: kettle steams, phone glows in her hand
+  fill(PAPER);
+  mom(t, seg(t, 9.6, 11));
+}
+function scene3(t) {     // the note travels to Sam's phone
+  map(t, { morning: 1, samLit: seg(t, 17.2, 18) });
+  note(seg(t, 12.8, 17.4));
+  words("Mom's normal\nmorning happened.", 400, { alpha: seg(t, 13.4, 14.2) });
+}
+function scene4(t) {     // Sam sets the phone down and smiles
+  fill(PAPER);
+  piece(rect(720, 640, 260, 320), GREY, 'sam-win-frame', { amp: 2 });
+  glow(850, 800, 260, .3);
+  piece(rect(740, 660, 220, 280), YELLOW, 'sam-win-pane', { amp: 1.5, shadow: false });
+  ink(() => { ctx.moveTo(850, 660); ctx.lineTo(850, 940); ctx.moveTo(740, 800); ctx.lineTo(960, 800); }, 8, GREY);
+  sam(1 - seg(t, 19.6, 21.2), seg(t, 21, 22), false);
+  words("No call needed. Just a short note, twice a day.", 470, { alpha: seg(t, 20.6, 21.4) });
+}
+function scene5(t) {     // the kettle, the name, the line
+  fill(PAPER);
+  const k = seg(t, 24.6, 25.8);   // starts inside the crossfade so no empty paper beat
+  ctx.save(); ctx.globalAlpha = k; kettle(540, 840, lerp(1.1, 1.6, k), 'k5'); ctx.restore();
+  steam(540 + 186 * 1.6, 840 - 106 * 1.6, t, seg(t, 26, 27), 1.6);
+  words('Kettle', 1160, { size: 150, alpha: seg(t, 26.4, 27.2) });
+  words('heykettle.com', 1300, { size: 80, alpha: seg(t, 26.4, 27.2) });
+  words('For checking in,\nnot checking up.', 1520, { alpha: seg(t, 27.6, 28.4) });
+}
+const SCENES = [[0, scene1], [6, scene2map], [9.6, scene2inside], [12, scene3], [19, scene4], [25, scene5]];
+const XFADE = .6;
+
+function draw(fn, t, c) { ctx = c.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; fn(t); }
+function renderFrame(n) {
+  const t = n / FPS;
+  let i = SCENES.length - 1; while (i > 0 && t < SCENES[i][0]) i--;
+  draw(SCENES[i][1], t, main);
+  const next = SCENES[i + 1];
+  if (next && t > next[0] - XFADE) {   // gentle crossfade into the next scene
+    draw(next[1], t, off);
+    ctx = main.getContext('2d'); ctx.globalAlpha = seg(t, next[0] - XFADE, next[0]); ctx.drawImage(off, 0, 0);
+  }
+  ctx.globalAlpha = .22; ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(grain, 0, 0);
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+}
+window.FRAMES = FRAMES;
+window.frame = n => { renderFrame(n); return main.toDataURL('image/png'); };
+document.fonts.load('84px Patrick').then(() => {
+  if (![...document.fonts].some(f => f.family === 'Patrick' && f.status === 'loaded')) throw new Error('Patrick Hand did not load');
+  renderFrame(0);
+  window.__ready = true;
+});
+</script>
