@@ -1,0 +1,11 @@
+{
+  "name": "kettle-explainer-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "render": "node render.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "25.12.0"
+  }
+}
