@@ -205,6 +205,7 @@ merely because the change came after it.
 | 2026-09-13 | D1, D2, D7 deployed (`fly deploy` on the founder's go) and verified live: www 301s to the apex on three paths, four canonicals present, eight footer links and the register's article line served, old host still 301s, healthz ok | curl against heykettle.com | | Evaluate at the 2026-10-06 review: www impressions should fall to zero; indexed count against baseline 2 of 21 |
 | 2026-09-13 | D3, D5, D6, D8 deployed and verified live: robots.txt equals the repo file, one valid Organization record on the home page, /blog/ description served, www still 301s | curl against heykettle.com | | D4 followed the same day |
 | 2026-09-13 | D4 deployed and verified live; all eight decisions closed | curl against heykettle.com | | Search Console title snippet will lag until the next crawl |
+| 2026-09-23 | Cloudflare Web Analytics, last 30 days, bots excluded (free tier, sampled: counts come in tens) | founder's Cloudflare session, read by the PM | 50 visits, 50 page views, all United States, all on "/"; referrers: direct 40, t.co 10; mobile 30 (Safari 20), desktop 20; page load 1.9s, LCP p75 3.5s (33% "needs improvement") | Baseline. Zero search referrals (matches Search Console); X posts are the only non-direct source; no guide or post page visited in 30 days. LCP is an Oct 6 item |
 
 ## 7. Link log
 
