@@ -38,3 +38,9 @@ Reference: `mom-house.png`
 ```
 Match the paper style and palette of the reference image. A simple paper-cutout picture map seen from directly above, like a map laid on a table. Near the upper right: one small house with a Kettle-green roof, like the reference house. Near the lower left: a small cluster of three taller cream city apartment buildings with rows of small windows. Between them: gentle rolling hills, a winding pale grey-green river, round green trees. No roads or lines connecting the house and the buildings. The top 25% of the image is plain paper with no detail.
 ```
+
+## kettle
+Reference: `../../social/brand/kettle-x-avatar.png` (the brand kettle: shape and green)
+```
+One stovetop kettle alone in the centre of the image, the same kettle as the reference image: same round dome body, same small knob lid, same tall arched dark ink handle with a wrapped grip, same straight spout angled up to the right with a flared tip, same thin pale base ring. The kettle body and spout are sage green #9FB699 exactly like the reference; this green is the one exception to the palette. Make it a paper cutout: flat cut paper pieces with slightly torn edges, faint paper grain, a soft pale grey-green drop shadow under the kettle. Flat colour, no shine highlight, no gloss. The kettle has no face and no eyes. The background is completely plain flat paper colour #F7F1E8 with nothing else in the image: no table, no stove, no steam, no pattern. The kettle fills about half the image width.
+```
