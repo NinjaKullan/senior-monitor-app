@@ -1,0 +1,66 @@
+{
+  "date": "2026-09-23",
+  "items": [
+    {
+      "name": "SHIP: free Medicare counseling",
+      "url": "https://www.shiphelp.org/",
+      "what": "State Health Insurance Assistance Program connects families to a trained local counselor who compares Medicare options one on one, at no cost.",
+      "who": "Anyone on Medicare, or a family member calling on their behalf, in any state.",
+      "cost": "Free. Counselors do not sell plans and are not paid by any insurer.",
+      "why_now": "Medicare's open enrollment window runs October 15 through December 7, 2026, when SHIP appointments fill up fastest.",
+      "lane": "government",
+      "pin_title": "Free help choosing Medicare plans",
+      "pin_description": "Every state has a free, unbiased Medicare counseling program called SHIP. A trained local counselor will sit down with your parent, or with you on their behalf, and walk through the options before the December 7 deadline. No products are sold and no insurer pays the counselors.",
+      "x_line": "Every state has a free Medicare counseling program called SHIP, no products sold, no insurer paying the bill. Open enrollment ends December 7, appointments fill up fast. https://www.shiphelp.org/"
+    },
+    {
+      "name": "Eldercare Locator",
+      "url": "https://eldercare.acl.gov/",
+      "what": "A federal call center and directory that connects families to local services for a parent living alone: transportation, meals, benefits help, and home care, for the area where they live.",
+      "who": "Anyone looking for aging services for themselves or a family member, anywhere in the US.",
+      "cost": "Free. Call 800-677-1116, Monday to Friday, 8am to 9pm ET, or search online.",
+      "why_now": "evergreen",
+      "lane": "government",
+      "pin_title": "One number for local help",
+      "pin_description": "The Eldercare Locator is a free federal service that connects you to the Area Agency on Aging near your parent, for transportation, meals, benefits, and home care questions. Call the number or search by zip code. It is a starting point, not a company trying to sell anything.",
+      "x_line": "One phone number connects you to local help for a parent living alone: transportation, meals, benefits, home care. Free federal directory, no zip code guessing needed. https://eldercare.acl.gov/"
+    },
+    {
+      "name": "BenefitsCheckUp",
+      "url": "https://benefitscheckup.org/",
+      "what": "A free, anonymous online screener that matches your parent's age, income, and zip code against more than 2,000 benefit programs, then lists what to apply for.",
+      "who": "Anyone, with a focus on adults over 55 and their families.",
+      "cost": "Free. No name or personal details are required to see the results.",
+      "why_now": "evergreen",
+      "lane": "practical-tool",
+      "pin_title": "Find benefits your parent may be missing",
+      "pin_description": "BenefitsCheckUp is a free tool from the National Council on Aging. Answer a few anonymous questions about age, income, and location, and it lists the public programs your parent might qualify for, from utility help to prescription costs. Nothing is shared and nothing is sold.",
+      "x_line": "A free, anonymous tool checks your parent's age, income, and zip code against 2,000+ benefit programs and tells you what to apply for. Ten minutes, no name required. https://benefitscheckup.org/"
+    },
+    {
+      "name": "Meals on Wheels: find local meals",
+      "url": "https://www.mealsonwheelsamerica.org/find-meals-and-services/",
+      "what": "A zip code locator that connects you to the Meals on Wheels program near your parent, for home delivered meals.",
+      "who": "Usually adults 60 and older who have trouble shopping or cooking; local programs set the exact rules.",
+      "cost": "Free, a suggested donation, or a sliding scale depending on the local program.",
+      "why_now": "evergreen",
+      "lane": "free-service",
+      "pin_title": "Home delivered meals for your parent",
+      "pin_description": "Meals on Wheels America's locator finds the meal delivery program near your parent by zip code. Most local programs serve adults 60 and up, and cost is often free or a sliding scale based on need. It is a simple way to make sure your parent has food without a delivery app or a credit card.",
+      "x_line": "Find the Meals on Wheels program near your parent by zip code. Home delivered meals, free or sliding scale depending on the area. https://www.mealsonwheelsamerica.org/find-meals-and-services/"
+    },
+    {
+      "name": "Senior Planet: free tech classes",
+      "url": "https://seniorplanet.org/",
+      "what": "Free live online and in person classes that teach older adults how to use a smartphone, video call, and handle online banking, taught by trainers who expect no starting knowledge.",
+      "who": "Older adults; no AARP membership required.",
+      "cost": "Free.",
+      "why_now": "evergreen",
+      "lane": "free-service",
+      "pin_title": "Free tech classes for your parent",
+      "pin_description": "Senior Planet, run by AARP and the nonprofit OATS, teaches free live classes on smartphones, video calling, and online banking. Classes run online and at centers in two dozen states, taught by people used to starting from zero. No membership needed.",
+      "x_line": "Free live classes teach smartphones, video calling, and online banking, built for people starting from zero. Online everywhere, in person in two dozen states. No AARP membership needed. https://seniorplanet.org/"
+    }
+  ],
+  "roundup_md": "Every so often I come across something that would have saved me an afternoon, or a parent a headache, so here are five worth knowing about right now.\n\nMedicare's open enrollment window opens October 15 and closes December 7, and every state has a program called SHIP that will sit down with your parent, or with you on their behalf, and go through the options for free. Nobody is selling anything. If your family has been meaning to look at whether Mom's plan still makes sense, this is the season to make the call before the appointments fill up.\n\nIf you don't know where to start looking for help near your parent, the Eldercare Locator is a single federal phone number and website that routes you to the right local office, for meals, transportation, benefits, or home care. It's free, and it exists so you don't have to guess which local agency to call.\n\nBenefitsCheckUp, from the National Council on Aging, is a short anonymous questionnaire that checks your parent's age, income, and zip code against more than two thousand public programs and tells you what they might actually qualify for. Ten minutes, no name required, and often the answer is a program nobody in the family knew existed.\n\nIf your parent has trouble getting to the store or cooking the way they used to, Meals on Wheels has a locator that finds the program serving their zip code. Most programs are free or based on what a family can pay.\n\nAnd if your parent wants to video call the grandkids or figure out online banking but doesn't want to ask twenty times, Senior Planet runs free classes, live online and at centers around the country, built for people starting from zero.\n\nThat's five. Pass along whichever one your family needs this week."
+}
