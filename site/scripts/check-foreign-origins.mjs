@@ -29,6 +29,10 @@ const OURS = new Set([
   "kettle-api.fly.dev", // the waitlist POST target
   "heykettle.com", // canonical site origin (DECISIONS 142)
   "www.heykettle.com",
+  // Care Compare's connector address (spec 021 §7), printed on /care/ as text
+  // for a reader to copy into an assistant. The page never loads it: no src,
+  // no fetch, not even an anchor. Ours, on our own domain.
+  "care.heykettle.com",
   "localhost",
   "127.0.0.1",
 ]);

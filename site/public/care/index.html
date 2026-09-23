@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Care Compare by HeyKettle</title>
+    <meta name="description" content="A free helper that reads Medicare's own ratings for nursing homes and home health agencies near a ZIP code and tells you plainly. It does not pick for you. It gives you the numbers and the phone number." />
+    <meta property="og:title" content="Care Compare by HeyKettle" />
+    <meta property="og:description" content="A free helper that reads Medicare's own ratings for nursing homes and home health agencies near a ZIP code and tells you plainly. It does not pick for you. It gives you the numbers and the phone number." />
+    <meta property="og:type" content="website" />
+    <link rel="canonical" href="https://heykettle.com/care/" />
+    <style>
+      /* Inlined, the privacy.html and /resources/ posture: this page stands
+         alone and fetches nothing. The connector address below is printed as
+         text to copy, never loaded (spec 021 §7). Values are tokens.css's
+         locked palette; Newsreader is named with Georgia standing in, and no
+         font file is fetched. */
+      body {
+        margin: 0 auto;
+        padding: 2.5rem 1.5rem 4rem;
+        max-width: 42rem;
+        background: #f6f2ec;
+        color: #403c36;
+        font: 16px/1.5 system-ui, sans-serif;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 3.5rem;
+      }
+      header a { text-decoration: none; font-weight: 600; }
+      header nav a { text-decoration: underline; text-underline-offset: 4px; font-weight: 400; }
+      a { color: inherit; }
+      h1 {
+        font-family: "Newsreader", Georgia, serif;
+        font-weight: 500;
+        font-size: 2rem;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.75rem;
+      }
+      h2 {
+        font-family: "Newsreader", Georgia, serif;
+        font-weight: 500;
+        font-size: 1.375rem;
+        line-height: 1.3;
+        margin: 2.75rem 0 0;
+      }
+      main p.body {
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 1.1875rem;
+        line-height: 1.7;
+        max-width: 66ch;
+        margin: 2.25rem 0 0;
+      }
+      /* The address is the one thing on the page a reader has to get exactly
+         right, so it wraps anywhere rather than overflowing a phone. */
+      .address {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 1.25rem 0 0;
+        padding: 0.875rem 1rem;
+        border: 1px solid rgba(64, 60, 54, 0.2);
+        border-radius: 8px;
+        background: #fffdf9;
+      }
+      .address code {
+        flex: 1 1 14rem;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font: 600 1rem/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+      .address button {
+        min-height: 44px;
+        padding: 0 1.25rem;
+        border: 1px solid #403c36;
+        border-radius: 999px;
+        background: #403c36;
+        color: #f6f2ec;
+        font: 600 1rem/1 system-ui, sans-serif;
+        cursor: pointer;
+      }
+      .address button:hover { background: #2b2824; }
+      .address button:focus-visible { outline: 2px solid #403c36; outline-offset: 3px; }
+      ul.examples {
+        list-style: none;
+        margin: 1rem 0 0;
+        padding: 0;
+      }
+      ul.examples li {
+        font-family: "Newsreader", Georgia, serif;
+        font-size: 1.1875rem;
+        line-height: 1.6;
+        margin: 0 0 0.75rem;
+        padding-left: 1rem;
+        border-left: 2px solid rgba(64, 60, 54, 0.25);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="/">Kettle</a>
+      <nav><a href="/blog/">Blog</a> <a href="/resources/">Free guides</a></nav>
+    </header>
+    <main>
+      <h1>Care Compare by HeyKettle</h1>
+      <p class="body">A free helper that reads Medicare's own ratings for nursing homes and home health agencies near a ZIP code and tells you plainly. It does not pick for you. It gives you the numbers and the phone number.</p>
+      <p class="body">Add it to Claude, ChatGPT, or another assistant as a connector, once, with this address. Then ask in your own words.</p>
+      <div class="address">
+        <code id="care-address">https://care.heykettle.com/mcp</code>
+        <button type="button" id="care-copy" hidden>Copy</button>
+      </div>
+      <p class="body">Every number comes from Medicare's Care Compare, the same figures on medicare.gov, and every answer says how old they are. We add nothing and we keep nothing: no account, no history, no record of what you asked.</p>
+      <h2>Things people ask it</h2>
+      <ul class="examples">
+        <li>Nursing homes within 15 miles of 43215 with a rating of 4 or more.</li>
+        <li>Everything Medicare says about Autumn Care of Biscoe.</li>
+        <li>Compare the three home health agencies nearest to 27502.</li>
+      </ul>
+      <p class="body">Kettle is the other thing we make. Know the day started normally. <a href="/">See Kettle</a></p>
+    </main>
+    <script>
+      /* The Copy button, and nothing else: it copies the address above to the
+         clipboard. It fetches nothing. With scripts off the button stays
+         hidden and the address is plain text to select. */
+      (function () {
+        var button = document.getElementById("care-copy");
+        var address = document.getElementById("care-address");
+        if (!button || !address || !navigator.clipboard) return;
+        button.hidden = false;
+        button.addEventListener("click", function () {
+          navigator.clipboard.writeText(address.textContent.trim()).then(function () {
+            button.textContent = "Copied";
+            setTimeout(function () { button.textContent = "Copy"; }, 2000);
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>
