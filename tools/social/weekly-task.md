@@ -14,6 +14,15 @@ anywhere.
 - Model economy: draft copy in the main session; delegate image generation loops and
   self-check tabulation to a sonnet subagent when there are many.
 
+## Plain words first (founder rule, Sep 23 2026)
+
+The reader is a busy adult child who is quietly worried about a parent far away. Every
+post must be understood in one quick read, with no thinking required. Name the worry
+in everyday words, then the answer. Short sentences, common words, concrete things
+(a call, a morning, a note). No metaphors or clever lines that need decoding ("the
+shape held", "the call is the ritual"). Test: would a tired parent of teenagers get it
+while scrolling with one thumb? If not, rewrite it plainer. This outranks style.
+
 ## 1. Check the image API
 
 ```

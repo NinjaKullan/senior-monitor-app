@@ -18,6 +18,15 @@ hands Hema ready-to-post lines. Hema decides what to post; nothing here publishe
 - Model economy: delegate the searching and link checks to a sonnet subagent; keep the
   choice of the five and the wording in the main session.
 
+## Plain words first (founder rule, Sep 23 2026)
+
+The reader is a busy adult child who is quietly worried about a parent far away. Every
+post must be understood in one quick read, with no thinking required. Name the worry
+in everyday words, then the answer. Short sentences, common words, concrete things
+(a call, a morning, a note). No metaphors or clever lines that need decoding ("the
+shape held", "the call is the ritual"). Test: would a tired parent of teenagers get it
+while scrolling with one thumb? If not, rewrite it plainer. This outranks style.
+
 ## 1. Get the files and the memory
 
 `git clone https://github.com/NinjaKullan/senior-monitor-app`. Then `git fetch origin
