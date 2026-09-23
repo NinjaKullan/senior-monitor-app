@@ -173,8 +173,10 @@ gate them are done and the founder has said go.
 - Scaled or AI-generated content for search: scaled content abuse policy and
   the writers' brief (no invented anecdotes).
 - Expired domains, redirects for score, private blog networks.
-- Client-side analytics of any kind, including "privacy-friendly" ones: LAW-9
-  and DECISIONS 201.
+- Google Analytics and Microsoft Clarity (cookies, consent banner, ad
+  profiles, session replay): LAW-9 as amended by DECISIONS 341. Cookieless
+  visit counting is allowed since 341 (Cloudflare Web Analytics on; Plausible
+  deferred on cost).
 - Vocabulary: no "monitor", "track", "alert", "elderly", "seniors" about
   Kettle or a parent, anywhere, including outreach and listings. Searcher
   words only in contrast position on web pages (DECISIONS 195).
