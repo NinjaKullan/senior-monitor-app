@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 344.** This line is the one to update; the `Next number:` lines inside
+**Next number: 345.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7425,3 +7425,166 @@ browser — all three adopted as the standard for future surfaces.**
        reviewed; the Fly app and the `care` DNS record are the founder's
        console work after that.
      * Next number: 344.
+
+344. **(2026-09-23, Wednesday evening ET) SPEC 021 (Care Compare) BUILT, awaiting
+     PM review. Nothing launched, deployed or pointed.** Branch
+     `claude/fervent-brahmagupta-gv38hu`, merged to main. Eight commits: logic,
+     centroid script and sample, Dockerfile and fly.toml, tests, care README,
+     the site ban-list move, the /care page, and this entry.
+     * **Gates.** `cd care && pytest`: 62 passed, no skips, no network (an
+       autouse guard fails any test that opens a socket). `cd care && ruff
+       check .`: clean. `cd site && npm run ci`: lint clean, vitest 254 passed
+       (244 before, plus 10: 9 in `care.test.ts` and 1 foreign-origin case),
+       build, prerender, and all three verify checks green ("No foreign origins
+       in 19 built files"). Plant-and-revert, each watched failing and then
+       reverted: allowlist check removed (6 fail), a ZIP logged (2), httpx
+       logger left at INFO (1), TTL zero (1), rows kept unprojected (1), one
+       word of COMPARE_CLOSE changed (1), "best" planted in it (3), rate limit
+       off by one (2), stale copy dropped (1), paging stopped after one page
+       (2), border state ignored (5), nursing homes placed by ZIP instead of
+       CMS coordinates (6), a socket opened inside the suite (28); on the page:
+       a PAGE_ word changed (3), `fetch` in the script (1), "best" (2), the
+       address made an anchor (3), "track" (2), and care.heykettle.com dropped
+       from the origin list (the verify step fails).
+     * **Fixture provenance: hand-built, not recorded.** data.cms.gov and
+       www2.census.gov were both refused by this box's egress proxy (CONNECT
+       403). So `care/tests/fixtures/` holds hand-built datastore answers for
+       NC (15 nursing homes, 5 agencies) and SC (3 and 1) and two metastore
+       answers (`modified` 2026-08-01 and 2026-05-27, the dates the PM read
+       live in 342). Every row carries the exact §5 columns plus
+       `cms_certification_number_ccn`, `processing_date` and
+       `legal_business_name`, to prove the extras are dropped at the door.
+       Names are fictional and numbers are 555. The 2,300-row pagination
+       state is synthetic, built in the test. **Owed, founder or PM, from a
+       machine that reaches data.cms.gov:** one live call per tool against
+       the real datastore before the DNS record goes in. The value formats are
+       the one thing the fixtures cannot prove: how a null rating is spelled,
+       whether home health stars carry ".0" or ".5", the certification date
+       format, and `abuse_icon` Y/N. `answers.py` accepts every spelling I
+       know of ("", "-", "Not Available"; "4", "4.0", "3.5"; MM/DD/YYYY and
+       ISO dates; Y, Yes, true), but the live data has not been seen.
+     * **Centroids: a sample, and the image refuses it.** `care/scripts/
+       make_zcta.py` is written and tested on a synthetic Gazetteer extract. It
+       downloads `2020_Gaz_zcta_national.zip`, or takes a local path, and writes
+       `zcta,lat,lon`. The checked-in `care/data/zcta.csv` is a 200-row sample
+       I placed by hand near real centroids (every state plus DC, PR and GU,
+       and the page's example ZIPs), so it is not Census data. It is marked by
+       `care/data/zcta.SAMPLE`; the script deletes the marker; the
+       Dockerfile's `RUN test ! -f care/data/zcta.SAMPLE` refuses to build
+       while it exists; and a test says the file is either the 200-row sample
+       with the marker or 30,000 rows or more without it. **Owed, founder:
+       run the script once, run `cd care && pytest`, commit both files.**
+       The suite's own centroids are `tests/fixtures/zcta.csv` (22 rows), so
+       the national file changes no expected sentence. `.gitignore` ignores
+       every `data/`, so `care/data/` gets the exception
+       `webapp/src/data/` already has.
+     * **Judgement calls, named** (each a line to change if the PM rules
+       otherwise):
+       1. **A fifth module, `care/answers.py`**, beyond §6's list: it holds the
+          §4 sentences as pure functions, so the tests can pin them without
+          I/O. `app.py` holds the tools and the service.
+       2. **`care/copy.py` shadows the stdlib `copy`** when `care/` itself is
+          on `sys.path`. `python -m pytest` from `care/` puts it there, and
+          pytest dies before collecting anything. The `pytest` entry point
+          and `python -P -m pytest` both work, and the Docker image imports
+          `care.copy` from `/srv`, so it is safe. I kept the spec's name and
+          wrote the trap into the README. Renaming the file to `texts.py`
+          would remove the trap; PM's call.
+       3. **ZIP to state** is the USPS three-digit prefix table, written as
+          ranges in `geo.py` and tested. It is not a second data file. The
+          prefixes 733 and 885 (TX) and 569 (DC) are handled. "A state whose
+          centroid bounding box lies within the radius" means the box comes
+          within `miles` of the asked centroid, not that the whole box lies
+          inside.
+       4. **One state down means CMS_DOWN for the whole answer.** When a
+          needed (dataset, state) has no copy, the whole answer is CMS_DOWN.
+          Leaving out the state across the line would give an answer that
+          looks complete and is wrong. When any copy is stale, STALE_LINE
+          carries the UTC date of the oldest stale fetch.
+       5. **SOURCE_LINE's date** is the oldest `modified` among the datasets
+          of the providers the answer names. When the answer names none
+          (NO_MATCH, a bare NONE_NEAR), it is the oldest among everything
+          read. `care_details` and `compare_care` take no kind, so they read
+          both datasets, and a mixed comparison says the older date. The
+          date format is "August 1, 2026".
+       6. **The footer placement.** SOURCE_LINE and CALL_LINE end every answer
+          that read CMS, including NONE_NEAR and NO_MATCH. The refusals stand
+          alone because they have no date to cite: KIND_UNKNOWN, ZIP_UNKNOWN,
+          RATE_LIMITED, CMS_DOWN and COMPARE_NEED_TWO.
+       7. **Distance words.** "Under a mile" replaces the whole "about {miles}
+          miles" phrase, so the sentence reads "Apex Ridge Center, Apex, under
+          a mile away." A rounded 1 reads "about 1 mile". "Within 1 miles" in
+          NONE_NEAR and MORE_LINE is made singular the same way. Rounding is
+          half up.
+       8. **Inputs.** `miles` is clamped to 1 to 100 and `min_rating` to 1 to
+          5, because no string exists for out-of-range values. `kind` also
+          accepts "home health agencies". A ZIP must be exactly five digits;
+          "27502-1234" is ZIP_UNKNOWN, as §3.1 reads.
+       9. **The details lines when some values are null.** When overall is null
+          and a sub-rating is not, line 2 reads "CMS rates it not rated
+          overall: 3 for health inspections, ...". §4's substitution, applied
+          literally, is awkward, and I have not seen the case in the fixtures'
+          shape; a string for it is the PM's. A null bed count drops "{beds}
+          certified beds."; a missing certification year drops "Medicare
+          certified since {year}."; a missing phone drops the phone sentence.
+          Ownership is CMS's words as given. Home health sends ownership in
+          capitals, so it is sentence-cased once ("Proprietary.").
+       10. **CMS's two flags.** SPECIAL_FOCUS_LINE fires on `SFF` only, not on
+          "SFF Candidate", because the line says CMS *lists* it as one.
+          ABUSE_LINE fires on Y.
+       11. **compare_care.** An unresolved name gets its NO_MATCH paragraph
+          in the caller's position rather than disappearing. Two names that
+          resolve to one provider count as one. Only the first four names
+          are read. Fewer than two distinct providers is COMPARE_NEED_TWO.
+       12. **Matching.** Apostrophes and periods are dropped and other
+          punctuation becomes a space, so "st marys" finds "ST. MARY'S".
+          NO_MATCH suggests the three nearest names of either kind.
+          NEAREST_BEYOND honours `min_rating` and reads the states within
+          100 miles only when nothing is inside the radius.
+       13. **Title case.** Small words after the first word stay lowercase
+          ("Autumn Care of Biscoe", the page's own spelling), Roman numerals
+          stay in capitals, and an O' or D' keeps its capital.
+       14. **The rate limit** counts every tool call, including one refused
+          for a bad ZIP. A RATE_LIMITED answer is not counted. The window is
+          a sliding hour. The limit falls back to the socket peer when there
+          is no `Fly-Client-IP`.
+       15. **The service.** The server's name is "Care Compare by HeyKettle",
+          equal to PAGE_TITLE and pinned so. `/` answers `ok`, so no new copy
+          was written for it. No OAuth route exists, so every
+          `.well-known/oauth-*` path is a 404 (tested). The machine is always
+          on because a stopped machine means a cold cache.
+       16. **Dependencies.** Nothing new: the versions are product/'s pins
+          minus psycopg. PyJWT and cryptography come along only because
+          `mcp` requires `pyjwt[crypto]`.
+       17. **The page's address is text, not an anchor.** The brief said "links
+          to care.heykettle.com as an href only; it fetches nothing". §7 says
+          the MCP address is never the link target, and a click on an MCP
+          endpoint shows a visitor an error. So the address is printed in a
+          `<code>` element for Copy, and the test refuses an anchor to it. If
+          the PM wants an anchor, it is one line.
+       18. **The page's one script.** The standalone-page posture (no
+          scripts) is the rule for /resources/ and /blog/. /care carries one
+          inline script, for Copy, because §7 names the button. It has no
+          `src`, the test refuses fetch, beacons and DOM injection in it, and
+          with scripts off the button stays hidden. `care.heykettle.com` is on
+          the foreign-origin scan's list of our hosts, with the reason beside
+          it.
+       19. **The page's other choices.** `{tagline}` in PAGE_KETTLE is
+          HERO_H1, "Know the day started normally.", the line the site's
+          `<title>` carries. The meta description is PAGE_LEDE, so no new
+          copy was written. The page is served at `/care/` (a directory, the
+          blog's shape; nginx 301s `/care` to it) and listed in the sitemap.
+          No footer link was added, because none was asked for; the footer
+          test covers guides and posts only. The copy-law ban lists moved,
+          unchanged, to `site/src/tests/copyBans.ts`, so /care is scanned by
+          the same lists as the landing page rather than a copy of them.
+     * **Not done, on purpose.** No hospitals, no hospice, no registry
+       manifest, no auth, no fly launch, no deploy, no DNS. No CI job for
+       `care/`: root CI's `ruff check .` lints it through
+       `care/pyproject.toml`, but its tests do not run in CI. A four-line job
+       in `.github/workflows/ci.yml` (`cd care && pip install -r
+       requirements-dev.txt && pytest`) is the PM's to rule.
+     * **Found, not touched.** Root `ruff check .` is red on main at
+       `tools/social/build_resources.py` (two E501). That file is not in
+       this build, so CI's lint step is red for a reason outside it.
+     * Next number: 345.
