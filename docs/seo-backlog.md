@@ -64,6 +64,7 @@ crosswalk only on a founder go. Next review 2026-10-06.
 
 | # | Item | Owner | Approval | Why |
 |---|---|---|---|---|
+| A1b | Bing Webmaster Tools: DONE 2026-09-23 by import from Search Console; sitemap submitted; Cloudflare Web Analytics confirmed on the same day (DECISIONS 341). Read both on the monthly reading | Founder | done | 341 |
 | A1 | Search Console: DONE 2026-09-12, readable in the founder's Chrome session (domain property sc-domain:heykettle.com). Keep the session logged in for the monthly reading | Founder | none | audit §2, §8 |
 | A7 | Indexing requested in URL Inspection for all eight priority URLs, done 2026-09-12 on the founder's yes, each confirmed by the "Indexing requested" toast: /resources/okay-living-alone/, /resources/emergency-info/, /resources/normal-day/, /resources/changes-tracker/, /resources/, /blog/parent-doesnt-answer-the-phone/, /blog/how-often-should-you-check-on-a-parent/, /blog/the-information-youll-wish-you-had/. Every one showed "Discovered, currently not indexed" with no referring page detected | CC, founder's yes | done | audit T12. Check the indexing report at the next review; a request is a queue entry, not a promise |
 | A2 | linkabitai.com anchor: DONE 2026-09-12 by the LinkaBIT agent, verified by curl of the server HTML (plain href, no rel, page not noindexed, robots allows Googlebot and Bingbot) | Founder | done | audit T11; link log row 1 |

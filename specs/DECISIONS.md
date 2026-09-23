@@ -7371,4 +7371,10 @@ browser — all three adopted as the standard for future surfaces.**
      * docs/feature-backlog.md LAW-9 and docs/seo-backlog.md §5 updated to
        match. Search Console stays the search-query source; the Oct 6
        review reads all three.
+     * Done the same morning: Cloudflare Web Analytics turned out to be
+       already on (the PM read the beacon in the served page), so the
+       privacy page had been behind the site; the founder deployed the
+       site and the PM read the new paragraph live. Bing Webmaster Tools
+       created by import from Search Console, heykettle.com verified,
+       sitemap.xml submitted; data in 48 hours. First readings on Oct 6.
      * Next number: 342.
