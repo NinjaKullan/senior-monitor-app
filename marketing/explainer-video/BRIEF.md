@@ -43,7 +43,7 @@ bottom 12% are covered by app buttons on TikTok and Reels). One line of words on
 - THE KID'S APARTMENT: city window with curtains, a table with a lamp, mug, plant and the phone.
 - THE KETTLE: small stovetop kettle in Kettle green, curved spout, black handle. Never has a face.
   The scene 5 end card uses the painted brand kettle (`assets/kettle.png`), matched to
-  `social/brand/kettle-x-avatar.png`: same shape, its sage green.
+  `social/brand/kettle-x-avatar.png` for shape, recoloured to Kettle green to match the kitchen.
 
 ## Story (on-screen words exactly as written, straight apostrophes)
 1. 0 to 6 s. Night at the kid's city apartment: dark blue-green sky and lit windows outside, the

@@ -26,3 +26,7 @@
     cd marketing/explainer-video && npm install && npm run render
 Needs Google Chrome (or `CHROME=/path/to/chrome`) and `ffmpeg`. Output in `out/`. Never calls Gemini.
 Repaint a backdrop: `GEMINI_API_KEY=... node paint.mjs <name> [ref.png]`, then pick from `candidates/`.
+
+## v4: end-card kettle in Kettle green
+- [x] Recoloured `assets/kettle.png` sage to #297A5C (no repaint, 0 Gemini calls); command in PROMPTS.md
+- [x] still-5 checked; two renders byte-identical; pushed

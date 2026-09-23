@@ -44,3 +44,12 @@ Reference: `../../social/brand/kettle-x-avatar.png` (the brand kettle: shape and
 ```
 One stovetop kettle alone in the centre of the image, the same kettle as the reference image: same round dome body, same small knob lid, same tall arched dark ink handle with a wrapped grip, same straight spout angled up to the right with a flared tip, same thin pale base ring. The kettle body and spout are sage green #9FB699 exactly like the reference; this green is the one exception to the palette. Make it a paper cutout: flat cut paper pieces with slightly torn edges, faint paper grain, a soft pale grey-green drop shadow under the kettle. Flat colour, no shine highlight, no gloss. The kettle has no face and no eyes. The background is completely plain flat paper colour #F7F1E8 with nothing else in the image: no table, no stove, no steam, no pattern. The kettle fills about half the image width.
 ```
+
+### kettle: recoloured after painting
+The painted kettle was sage green (about #A1B598). To match Mom's kitchen kettle it was recoloured,
+not repainted: only sage pixels are scaled per channel toward Kettle green #297A5C, so the shape and
+paper grain are unchanged; the pale base ring, dark handle and knob are untouched.
+```
+M='between(g(X,Y)-r(X,Y),11,32)*between(r(X,Y),100,190)'
+ffmpeg -i kettle-sage.png -vf "format=rgba,geq=r='if($M,r(X,Y)*0.2547,r(X,Y))':g='if($M,g(X,Y)*0.674,g(X,Y))':b='if($M,b(X,Y)*0.605,b(X,Y))':a='alpha(X,Y)'" -map_metadata -1 -fflags +bitexact kettle.png
+```
