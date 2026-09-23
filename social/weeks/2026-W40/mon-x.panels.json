@@ -1,0 +1,19 @@
+{
+  "panels": [
+    {
+      "scene": "Sam stands at a kitchen counter far away, phone in hand, morning light, quietly wondering, a small green kettle nearby on the counter.",
+      "dialogue": [["SAM", "I wonder if her morning held its shape today."]],
+      "caption": ""
+    },
+    {
+      "scene": "June, upright and content, waters plants in her sunny garden with gardening gloves, an iPhone tucked in her cardigan pocket.",
+      "dialogue": [],
+      "caption": ""
+    },
+    {
+      "scene": "The small green kettle rests on the stove. Sam looks at a plain phone with a blank lit screen, relaxed, shoulders easing.",
+      "dialogue": [],
+      "caption": "Same shape as most days."
+    }
+  ]
+}
