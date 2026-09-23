@@ -1,0 +1,19 @@
+{
+  "panels": [
+    {
+      "scene": "Sam sits on a train, phone to his ear, looking out the window, a small smile forming.",
+      "dialogue": [["Sam", "Hi Mom. How are you?"]],
+      "caption": ""
+    },
+    {
+      "scene": "June stands in her sunny kitchen holding her phone to her ear, gardening gloves tucked in her cardigan pocket, the small green kettle quietly on the stove behind her.",
+      "dialogue": [["June", "Good. Just watering the tomatoes."]],
+      "caption": ""
+    },
+    {
+      "scene": "Sam pockets his phone on the train platform, shoulders relaxed, faint smile, nothing else in frame.",
+      "dialogue": [],
+      "caption": "That was the whole call. It was enough."
+    }
+  ]
+}

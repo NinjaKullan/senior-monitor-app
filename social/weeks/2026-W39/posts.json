@@ -1,0 +1,92 @@
+{
+  "week": "2026-W39",
+  "theme": "The call is the ritual, not what gets said on it. A week about the short calls, the missed ones, and letting a normal day be enough without needing to ask about it every time.",
+  "posts": [
+    {
+      "day": "Mon",
+      "channel": "x",
+      "text": "The call still goes short: hi, how are you, good, you? Fine. Okay, talk soon. For years I thought that meant we weren't saying the real things. Now I think the real thing was that the call happened at all.",
+      "image": "mon-x.png",
+      "alt": "Three-panel comic strip: an adult son calls his mother from a train, she answers from her kitchen saying she is watering the tomatoes, he hangs up at the platform looking at ease. Caption: That was the whole call. It was enough.",
+      "destination": "",
+      "cta": false,
+      "note": "Self-check: no banned words. No verdict/score about a person. Uses 'the whole call' not a grade of the person. No 'ordinary'. No em dash. No kinship/culture words. No medical/safety claim. No invented quote or number. No real family in image (Sam/June only). No CTA, correctly. Passivity check: would the privacy-minded attorney nod? Yes, it's about the ritual of the call itself, not surveillance of the parent."
+    },
+    {
+      "day": "Tue",
+      "channel": "pinterest",
+      "title": "Three questions that open a call, not an inspection",
+      "text": "Three questions that open a call, not an inspection\n\nA short daily call goes further with a plain question than with \"are you okay?\" These three keep the answer easy and the tone warm, for anyone who calls a parent from far away.",
+      "image": "tue-pinterest.png",
+      "alt": "Three-panel comic strip: a mother gardening, having tea with a crossword, and reading by the window, each captioned with a simple question to open a call: What's growing this week, What did you have for lunch, Tell me something boring that happened today.",
+      "destination": "heykettle.com",
+      "cta": false,
+      "note": "Self-check: no banned words, no verdict about June, 'normal' vocabulary not needed here so none used, no em dash, no kinship/culture words, no medical claim, no invented stat, June shown capable and busy (gardening, crossword, reading) never frail. Destination is the homepage, not a promotional ask; no CTA line included since this is a reference Pin, not a beta pitch."
+    },
+    {
+      "day": "Wed",
+      "channel": "tiktok",
+      "title": "The calls we keep missing",
+      "script": [
+        {"t": "0:00-0:08", "say": "My parents are twelve hours away. When it's morning for me, it's already night for them. We used to play phone tag for days.", "overlay": "12 hours apart", "broll": "Founder face to camera, kitchen counter behind him, phone visible face down on the counter."},
+        {"t": "0:08-0:20", "say": "I stopped needing the call to tell me her morning was fine. I just wanted to know it had happened, even on the days we never managed to talk.", "overlay": "I just wanted to know it happened", "broll": "Founder face to camera, phone in hand, thoughtful pause."},
+        {"t": "0:20-0:32", "say": "So I built Kettle. It notices when Mom's normal morning happens, on the phone she already carries, and tells our family in a short note, twice a day.", "overlay": "Notices her normal morning. Twice a day.", "broll": "Neutral b-roll: a plain phone face up on a kitchen table, no app visible, morning light."},
+        {"t": "0:32-0:40", "say": "Some days we still miss each other's calls. That's all right now. I already know she's had her tea.", "overlay": "We still miss the calls. That's all right now.", "broll": "Founder face to camera, small smile, kettle visible on the counter behind him."}
+      ],
+      "text": "We keep missing each other's calls.",
+      "image": "wed-tiktok.png",
+      "alt": "Cover image: a man sits at a desk in the evening beside a mug and a face-down phone, looking out a dark window. Caption: We keep missing each other's calls.",
+      "destination": "",
+      "cta": false,
+      "note": "Self-check: no banned words, no verdict ('had her tea' is a routine, not a grade), 'normal' used correctly once, no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, no app screen in b-roll (plain phone only), quiet takeaway close with no CTA. Visual privacy checks (real background, no private info visible) are pending until actual footage is shot -- this is a script for recording, not a finished video."
+    },
+    {
+      "day": "Thu",
+      "channel": "x",
+      "text": "Kettle keeps three things about my parents: who, which normal routine, when. Not what she said on the phone, not who called, not where she went. Just that today looked like her day. Apply for the family beta at heykettle.com.",
+      "image": "thu-x.png",
+      "alt": "Three-panel comic strip: a phone on a kitchen table beside a kettle captioned who, a hand setting down a watering can captioned which routine, and morning light across the table captioned when.",
+      "destination": "",
+      "cta": true,
+      "note": "Self-check: no banned words, no verdict (lists what is NOT tracked rather than grading June), 'normal' used correctly, no em dash, no kinship/culture words, no medical claim, no invented number, CTA is the exact approved line and this is one of the week's two CTAs."
+    },
+    {
+      "day": "Fri",
+      "channel": "pinterest",
+      "title": "A one-page 'normal day' sheet, free to print",
+      "text": "A one-page 'normal day' sheet, free to print\n\nA free printable that helps a family write down what a normal day for Mom or Dad actually looks like, before anyone needs to ask. No email required.",
+      "image": "fri-pinterest.png",
+      "alt": "Three-panel comic strip: a blank sheet and pen beside a kettle, a hand filling in the sheet at a kitchen table, and the finished sheet under a mug in morning light. Caption: One page, free to print.",
+      "destination": "heykettle.com/resources/",
+      "cta": false,
+      "note": "Self-check: no banned words, no verdict, 'normal' used correctly (matches the brief's own 'normal-day sheet' language), no em dash, no kinship/culture words, no medical/safety claim, no invented number, links to the resources index rather than a guessed URL slug, no CTA per the rule that a guide link is a resource reference, not another promotional ask."
+    },
+    {
+      "day": "Sat",
+      "channel": "tiktok",
+      "title": "Right on time",
+      "script": [
+        {"t": "0:00-0:08", "say": "Some mornings the phone actually rings when I expect it. Mom, right on time, telling me about the crossword.", "overlay": "Right on time", "broll": "Founder face to camera, warm kitchen light."},
+        {"t": "0:08-0:20", "say": "Most mornings it doesn't ring at all, and that used to worry me more than it should have. I didn't want to call and check on her. I wanted to know her morning had already happened, on its own.", "overlay": "I wanted to know it already happened", "broll": "Founder face to camera, thoughtful."},
+        {"t": "0:20-0:32", "say": "Kettle notices when Mom's normal morning happens, using the phone she already carries, and sends our family a short note, twice a day.", "overlay": "A short note. Twice a day.", "broll": "Neutral b-roll: a plain phone face up on a kitchen table, no app visible, morning light."},
+        {"t": "0:32-0:42", "say": "If you live far from your parents too, we're taking founding families now. Apply for the family beta at heykettle.com.", "overlay": "Apply for the family beta at heykettle.com", "broll": "Founder face to camera, direct to lens."}
+      ],
+      "text": "Right on time.",
+      "image": "sat-tiktok.png",
+      "alt": "Cover image: a woman sits at a kitchen table doing a crossword beside a lit phone, morning light, a green kettle on the stove behind her. Caption: Right on time.",
+      "destination": "",
+      "cta": true,
+      "note": "Self-check: no banned words, no verdict, 'normal' used correctly, no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, CTA is the exact approved line and this is the second and last of the week's two CTAs. Visual privacy checks pending until actual footage is shot."
+    },
+    {
+      "day": "Sun",
+      "channel": "x",
+      "text": "The call was never really about what got said. It was about it happening at all: the phone ringing, her voice, mine. Everything else was just talk.",
+      "image": "sun-x.png",
+      "alt": "Three-panel comic strip: a phone lights up on a desk, a mother answers at her kitchen table with a kettle steaming behind her. Caption: It happened. That was the whole point.",
+      "destination": "",
+      "cta": false,
+      "note": "Self-check: no banned words, no verdict, 'normal' not needed here so none used, no em dash, no kinship/culture words, no medical claim, no invented number, closes the week's theme with no CTA (budget already used Thu and Sat)."
+    }
+  ]
+}
