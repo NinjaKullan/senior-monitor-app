@@ -10,4 +10,4 @@ addopts = "-rs"
 extend = "../pyproject.toml"
 
 [tool.ruff.lint.isort]
-known-first-party = ["care"]
+known-first-party = ["care", "conftest"]

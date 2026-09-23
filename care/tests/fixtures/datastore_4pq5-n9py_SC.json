@@ -1,0 +1,78 @@
+{
+ "results": [
+  {
+   "cms_certification_number_ccn": "425001",
+   "provider_name": "FORT MILL PLACE",
+   "provider_address": "200 TOM HALL ST",
+   "citytown": "FORT MILL",
+   "state": "SC",
+   "zip_code": "29715",
+   "telephone_number": "8035550201",
+   "ownership_type": "For profit - Corporation",
+   "number_of_certified_beds": "110",
+   "overall_rating": "5",
+   "health_inspection_rating": "4",
+   "staffing_rating": "5",
+   "qm_rating": "5",
+   "abuse_icon": "N",
+   "special_focus_status": "",
+   "latitude": "35.015",
+   "longitude": "-80.935",
+   "processing_date": "2026-08-01",
+   "legal_business_name": "HOLDCO 425001"
+  },
+  {
+   "cms_certification_number_ccn": "425002",
+   "provider_name": "ROCK HILL HEALTH",
+   "provider_address": "90 OAKLAND AVE",
+   "citytown": "ROCK HILL",
+   "state": "SC",
+   "zip_code": "29730",
+   "telephone_number": "8035550202",
+   "ownership_type": "Non profit - Corporation",
+   "number_of_certified_beds": "120",
+   "overall_rating": "3",
+   "health_inspection_rating": "3",
+   "staffing_rating": "3",
+   "qm_rating": "3",
+   "abuse_icon": "N",
+   "special_focus_status": "",
+   "latitude": "34.89",
+   "longitude": "-81.02",
+   "processing_date": "2026-08-01",
+   "legal_business_name": "HOLDCO 425002"
+  },
+  {
+   "cms_certification_number_ccn": "425003",
+   "provider_name": "COLUMBIA RIVER CARE",
+   "provider_address": "1200 GERVAIS ST",
+   "citytown": "COLUMBIA",
+   "state": "SC",
+   "zip_code": "29201",
+   "telephone_number": "8035550203",
+   "ownership_type": "Government - State",
+   "number_of_certified_beds": "150",
+   "overall_rating": "2",
+   "health_inspection_rating": "2",
+   "staffing_rating": "3",
+   "qm_rating": "2",
+   "abuse_icon": "N",
+   "special_focus_status": "",
+   "latitude": "34.00",
+   "longitude": "-81.03",
+   "processing_date": "2026-08-01",
+   "legal_business_name": "HOLDCO 425003"
+  }
+ ],
+ "count": 3,
+ "query": {
+  "limit": 1000,
+  "offset": 0,
+  "conditions": [
+   {
+    "property": "state",
+    "value": "SC"
+   }
+  ]
+ }
+}

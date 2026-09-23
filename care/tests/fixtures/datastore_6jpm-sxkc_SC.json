@@ -1,0 +1,35 @@
+{
+ "results": [
+  {
+   "cms_certification_number_ccn": "427001",
+   "provider_name": "YORK COUNTY HOME HEALTH",
+   "address": "11 MAIN ST",
+   "citytown": "FORT MILL",
+   "state": "SC",
+   "zip_code": "29715",
+   "telephone_number": "8035550401",
+   "type_of_ownership": "PROPRIETARY",
+   "quality_of_patient_care_star_rating": "4.0",
+   "certification_date": "09/09/1999",
+   "offers_nursing_care_services": "Yes",
+   "offers_physical_therapy_services": "No",
+   "offers_occupational_therapy_services": "Yes",
+   "offers_speech_pathology_services": "No",
+   "offers_medical_social_services": "Yes",
+   "offers_home_health_aide_services": "No",
+   "processing_date": "2026-08-01",
+   "legal_business_name": "HOLDCO 427001"
+  }
+ ],
+ "count": 1,
+ "query": {
+  "limit": 1000,
+  "offset": 0,
+  "conditions": [
+   {
+    "property": "state",
+    "value": "SC"
+   }
+  ]
+ }
+}
