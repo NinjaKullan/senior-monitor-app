@@ -9,6 +9,9 @@ data/
 # …but the webapp's curated city list is SOURCE, not pilot data (spec 010):
 # without this exception a fresh clone cannot build the picker.
 !webapp/src/data/
+# …and Care Compare's Census ZCTA centroids are public reference data the app
+# ships with (spec 021 §5), not anyone's pings.
+!care/data/
 
 # Python
 __pycache__/
