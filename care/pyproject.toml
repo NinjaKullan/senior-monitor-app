@@ -1,0 +1,13 @@
+# Care Compare (spec 021) is its own app with its own suite: `cd care && pytest`.
+# The repo root goes on the path so the `care` package imports by name;
+# `care/tests` is not a package.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".."]
+addopts = "-rs"
+
+[tool.ruff]
+extend = "../pyproject.toml"
+
+[tool.ruff.lint.isort]
+known-first-party = ["care"]
