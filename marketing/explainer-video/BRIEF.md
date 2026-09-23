@@ -9,9 +9,12 @@
   changed except one line in the root `.gitignore` for `marketing/explainer-video/out/` and `node_modules/`.
 
 ## What it is
-One `index.html` + JS. Every shape drawn in code on a canvas: no image files, no AI images, no stock,
-no icon fonts. Frame N is a pure function of N (no Math.random without a fixed seed, no wall clock),
-so rendering is repeatable. Render by stepping frames headless and encoding with ffmpeg.
+One `index.html` + JS on a canvas. The still backdrops are paper-cutout paintings made ONCE with
+Gemini (`paint.mjs`, prompts in `assets/PROMPTS.md`) and committed in `assets/`. Everything that
+moves is drawn in code on top: lights switching on, window glow, steam, the travelling light and its
+dotted path, the phone lighting up, all words. No stock, no icon fonts. Render never calls Gemini.
+Frame N is a pure function of N (no Math.random without a fixed seed, no wall clock), so rendering
+is repeatable. Render by stepping frames headless and encoding with ffmpeg.
 
 ## Look
 Paper cutout. Flat shapes with slightly torn, uneven edges, a faint paper grain, a soft drop shadow
@@ -25,25 +28,31 @@ bottom 12% are covered by app buttons on TikTok and Reels). One line of words on
 ## Do not produce
 - Pure black or pure white anywhere; red or orange; neon; gradients that look glossy or 3D.
 - Any phone screen showing an app, chart, graph, number, notification badge or UI. Phones show only
-  a plain lit rectangle.
+  a plain lit rectangle; the kid's phone may add one blank paper card (no words, lines or icons).
 - Hospital, medicine, pills, walkers, alarms, sirens, warning triangles, exclamation marks.
 - The mother looking frail, confused, sad or waiting at a window. She is busy and capable.
 - Text touching a figure's face, text cut off at the edge, two text lines overlapping.
 - Any logo other than the word "Kettle".
+- No human faces or bodies. No hands, silhouettes or figures, and no glow around a figure.
+- Lonely or empty darkness. Night scenes are cozy: a lamp on, lit windows, things on the table.
+- Text inside a painted backdrop. All words come from code, in the font above.
 
-## Characters (paper figures)
-- SAM: adult son, about 45. Short dark hair, round glasses, cream crew-neck sweater.
-- MOM: about 74. Short silver hair, reading glasses pushed up on her head, green cardigan over a collared shirt.
+## Places and things (no people are shown)
+- MOM'S HOUSE: small cream house, Kettle-green roof, one kitchen window, on a green hill.
+- MOM'S KITCHEN: counter, stove, the kettle, her phone standing on the counter.
+- THE KID'S APARTMENT: city window with curtains, a table with a lamp, mug, plant and the phone.
 - THE KETTLE: small stovetop kettle in Kettle green, curved spout, black handle. Never has a face.
 
 ## Story (on-screen words exactly as written, straight apostrophes)
-1. 0 to 6 s. Night, dark blue-green paper sky. Sam at a table, far away, looking at his phone.
+1. 0 to 6 s. Night at the kid's city apartment: dark blue-green sky and lit windows outside, the
+   lamp on, the phone resting dark on the table.
    Words: "Is Mom's day starting okay?"
-2. 6 to 12 s. A simple paper map; the camera slides from Sam's side to Mom's house as morning light
-   comes up there. Inside, the kettle lets out a little steam; Mom's phone glows in her hand. No words.
-3. 12 to 19 s. A small folded paper note travels along a dotted line across the map to Sam's phone.
+2. 6 to 12 s. Mom's house at dawn; the camera eases in as morning comes up and her kitchen window
+   lights. Inside, the kettle lets out a little steam and her phone on the counter lights up. No words.
+3. 12 to 19 s. A paper map: a small warm light travels along a dotted path from Mom's house to the
+   kid's city, which glows as it arrives.
    Words: "Mom's normal morning happened."
-4. 19 to 25 s. Sam sets the phone down and smiles.
+4. 19 to 25 s. The kid's apartment at dawn; the phone on the table lights up with a calm, blank card.
    Words: "No call needed. Just a short note, twice a day."
 5. 25 to 30 s. The green kettle centre screen, then "Kettle" and "heykettle.com" under it.
    Words: "For checking in, not checking up."
