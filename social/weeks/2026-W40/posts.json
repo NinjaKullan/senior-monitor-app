@@ -1,0 +1,92 @@
+{
+  "week": "2026-W40",
+  "theme": "The shape of a normal day: tea, the crossword, the garden. Noticing that the shape held is enough; it does not require interrupting it to ask.",
+  "posts": [
+    {
+      "day": "Mon",
+      "channel": "x",
+      "text": "My mother's day has a shape. Tea, the crossword, the garden if it isn't raining. I used to think I had to call to know it held. Now I think noticing it held is enough.",
+      "image": "mon-x.png",
+      "alt": "Three-panel comic strip: an adult son wonders from his kitchen counter whether his mother's morning held its shape, she waters her garden in gardening gloves with her iPhone in her cardigan pocket, and he looks at his phone's blank lit screen, relaxed. Caption: Same shape as most days.",
+      "destination": "",
+      "cta": false,
+      "note": "Self-check: no banned words, no verdict/score, 'normal' not used so no risk of 'ordinary', no em dash, no kinship/culture words, no medical claim, no invented quote or number, June shown capable and busy, no CTA."
+    },
+    {
+      "day": "Tue",
+      "channel": "pinterest",
+      "title": "Three quiet signs a parent's normal day already happened",
+      "text": "Three quiet signs a parent's normal day already happened\n\nA cup made and put away. A book picked back up. A garden tended in the evening light. None of these need a phone call to notice, and none of them are proof of anything big. They are just what a normal day looks like from the outside.",
+      "image": "tue-pinterest.png",
+      "alt": "Three-panel comic strip stacked: a mother pours tea from a small green kettle, reads a library book in an armchair, and closes the garden gate after watering plants, captioned The tea gets made, The book gets read, The garden gets watered.",
+      "destination": "heykettle.com",
+      "cta": false,
+      "note": "Self-check: no banned words, no verdict, 'normal' used correctly, no em dash, no kinship/culture words, no medical claim, no invented stat, June shown capable and busy throughout, no CTA, link is the brand home rather than a guessed URL."
+    },
+    {
+      "day": "Wed",
+      "channel": "tiktok",
+      "title": "The shape, not the report",
+      "script": [
+        {"t": "0:00-0:08", "say": "My check-ins with my parents got tactical. How are you. How's work. Okay, talk soon.", "overlay": "The tactical call", "broll": "Founder face to camera, kitchen counter behind him."},
+        {"t": "0:08-0:20", "say": "I did not want to watch my mother's day, tap by tap. I wanted to know the shape held: tea, the crossword, the garden.", "overlay": "I wanted to know the shape held", "broll": "Founder face to camera, thoughtful pause."},
+        {"t": "0:20-0:32", "say": "Kettle notices when Mom's normal morning happens, on the phone she already carries, and tells our family in a short note, twice a day.", "overlay": "Notices her normal morning. Twice a day.", "broll": "Neutral b-roll: a plain phone face up on a kitchen table, no app visible, morning light."},
+        {"t": "0:32-0:40", "say": "The shape still holds most days. That's the whole thing I wanted to know.", "overlay": "That's the whole thing I wanted to know.", "broll": "Founder face to camera, small smile, kettle visible on the counter behind him."}
+      ],
+      "text": "Most days, the shape just holds.",
+      "image": "wed-tiktok.png",
+      "alt": "Cover image: a mother sits at her kitchen table with tea and the morning crossword, calm morning light, a green kettle on the stove behind her. Caption: Most days, the shape just holds.",
+      "destination": "",
+      "cta": false,
+      "note": "Self-check: no banned words, no verdict ('tactical' describes the old anxious call, not a claim about Kettle), 'normal' used correctly, no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, no app screen in b-roll, quiet takeaway close with no CTA. Visual privacy checks (real background, no private info visible) are pending until actual footage is shot -- this is a script for recording, not a finished video."
+    },
+    {
+      "day": "Thu",
+      "channel": "x",
+      "text": "Kettle does not watch what Mom does. It notices the shape: tea, the paper, the garden, holding the way it usually does. Not what she typed. Not what she said. Just that the shape held. Apply for the family beta at heykettle.com.",
+      "image": "thu-x.png",
+      "alt": "Three-panel comic strip: a mother sips tea alone at her kitchen table, reads a library book on the porch, and waters the garden with a small green kettle visible nearby, captioned Not what she said, Not what she typed, Just that the shape held.",
+      "destination": "",
+      "cta": true,
+      "note": "Self-check: no banned words, no verdict, 'normal' not needed here so no 'ordinary' risk, no em dash, no kinship/culture words, no medical claim, no invented number, CTA is the exact approved line, first of the week's two CTAs."
+    },
+    {
+      "day": "Fri",
+      "channel": "pinterest",
+      "title": "A free one-page checklist for a parent living alone",
+      "text": "A free one-page checklist for a parent living alone\n\nA short, practical checklist for setting up a home to work well for one person: who to call, what's nearby, what's already written down. One page, free to print, no email required.",
+      "image": "fri-pinterest.png",
+      "alt": "Three-panel comic strip stacked: a mother writes a short list at her kitchen table, tapes a handwritten note inside a cupboard door, and closes a drawer, satisfied, with a small green kettle steaming behind her. Caption: Free, one page, ready when needed.",
+      "destination": "heykettle.com/resources/",
+      "cta": false,
+      "note": "Self-check: no banned words, no verdict, 'normal' not used, no em dash, no kinship/culture words, no medical claim, no invented number, links to the resources index rather than a guessed URL slug, June shown capable and organised rather than at risk, no CTA."
+    },
+    {
+      "day": "Sat",
+      "channel": "tiktok",
+      "title": "Built for my own parents first",
+      "script": [
+        {"t": "0:00-0:08", "say": "I built Kettle for my own parents. They were the first two people on it, and they still are.", "overlay": "Built for my own parents first", "broll": "Founder face to camera, warm kitchen light."},
+        {"t": "0:08-0:20", "say": "I never wanted to watch my mother's day, tap by tap. I wanted to know the shape held, without asking her to prove it.", "overlay": "I wanted the shape to hold, not a report card", "broll": "Founder face to camera, thoughtful."},
+        {"t": "0:20-0:32", "say": "Kettle notices when Mom's normal day happens, using the phone she already carries, and lets our family know in a short note, twice a day.", "overlay": "A short note, twice a day.", "broll": "Neutral b-roll: a plain phone face up on a kitchen table, no app visible, morning light."},
+        {"t": "0:32-0:42", "say": "If you live far from your parents too, we're taking founding families now. Apply for the family beta at heykettle.com.", "overlay": "Apply for the family beta at heykettle.com", "broll": "Founder face to camera, direct to lens."}
+      ],
+      "text": "Built for my own parents first.",
+      "image": "sat-tiktok.png",
+      "alt": "Cover image: a mother waters plants in her sunlit garden, calm and busy, a small green kettle visible on a porch table behind her. Caption: Built for my own parents first.",
+      "destination": "",
+      "cta": true,
+      "note": "Self-check: no banned words, no verdict, 'normal' used correctly, no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, CTA is the exact approved line and the second and last of the week's two CTAs. Visual privacy checks pending until actual footage is shot."
+    },
+    {
+      "day": "Sun",
+      "channel": "x",
+      "text": "Most days nothing happens. Tea, the crossword, the garden, the same shape as always. I used to think there was nothing there to notice. Now I think noticing it is the whole point.",
+      "image": "sun-x.png",
+      "alt": "Three-panel comic strip: a mother closes her library book in a cozy armchair at dusk, a small green kettle glows warm on the stove, and her son smiles at his phone's blank lit screen at his desk far away. Caption: The shape held. Same as always.",
+      "destination": "",
+      "cta": false,
+      "note": "Self-check: no banned words, no verdict, no em dash, no kinship/culture words, no medical claim, no invented number, closes the week's theme with no CTA."
+    }
+  ]
+}
