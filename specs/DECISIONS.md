@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 342.** This line is the one to update; the `Next number:` lines inside
+**Next number: 343.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7378,3 +7378,39 @@ browser — all three adopted as the standard for future surfaces.**
        created by import from Search Console, heykettle.com verified,
        sitemap.xml submitted; data in 48 hours. First readings on Oct 6.
      * Next number: 342.
+
+342. **(2026-09-23, Wednesday afternoon ET) SPEC 021 (Care Compare) WRITTEN,
+     awaiting ratification.** The founder asked the PM to start on the
+     Care Compare idea parked under 341; the PM settled four shapes with
+     him first and wrote `specs/021-care-compare.md` from them.
+     * Founder's answers: nursing homes and home health only in the first
+       release (hospitals and hospice held); its own small Fly app
+       `kettle-care` at care.heykettle.com, nothing shared with
+       kettle-api; "near" is a ZIP plus miles computed offline from the
+       bundled Census 2020 ZCTA centroids, no geocoding service; data read
+       live from CMS one state at a time and cached in memory for a day,
+       no database.
+     * Verified by the PM the same day, keyless and live: nursing homes
+       `4pq5-n9py` (81 columns; overall, health inspection, staffing and
+       QM ratings, abuse icon, special focus status, latitude and
+       longitude, `processing_date`; metastore `modified` 2026-08-01) and
+       home health `6jpm-sxkc` (quality of patient care star rating, six
+       service flags, certification date, no coordinates; `modified`
+       2026-05-27). The datastore query cap is 1500 rows per call
+       (1600 refused), so the spec pages at 1000. Census file
+       `2020_Gaz_zcta_national.zip` confirmed as the centroid source.
+     * Shape the PM chose without asking, named here: three tools
+       (`find_care`, `care_details`, `compare_care`), all read-only; no
+       auth of any kind and a 60-per-hour per-IP limit; an outbound
+       allowlist of `data.cms.gov` only (the F1 lesson on day one); no
+       argument ever logged; every answer ends with the CMS "last
+       updated" date and "call the provider"; no comparative word in a
+       comparison, tested. The page is `heykettle.com/care` in `site/`
+       under the site's laws and is the only link target.
+     * Pushback recorded once more, then dropped: this is a marketing
+       asset built before the first stranger family, on the founder's
+       call. It costs a Fly machine (about $2 to $3 a month) and one CC
+       build; it touches no family code.
+     * Next: founder reads §2 to §4 and §10 and ratifies or edits; then
+       the CC brief. Not before.
+     * Next number: 343.
