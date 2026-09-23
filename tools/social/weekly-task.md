@@ -55,17 +55,24 @@ One theme for the week. Seven posts:
 
 | Day | Channel | Image |
 |---|---|---|
-| Mon | X | strip, 1:1, three panels in a row |
-| Tue | Pinterest | strip, 2:3, three or four panels stacked |
-| Wed | TikTok | one-panel cover, 3:4 |
-| Thu | X | strip, 1:1 |
-| Fri | Pinterest | strip, 2:3 |
-| Sat | TikTok | one-panel cover, 3:4 |
-| Sun | X | strip, 1:1 |
+| Mon | X | strip, layout row, three panels |
+| Tue | Pinterest | strip, layout stack, three panels |
+| Wed | TikTok | cover, layout single, one panel with a caption |
+| Thu | X | strip, layout row |
+| Fri | Pinterest | strip, layout stack |
+| Sat | TikTok | cover, layout single |
+| Sun | X | strip, layout row |
 
 No more than two beta CTAs across the week. Adapt the idea per platform, do not duplicate copy.
 
 ## 4. Write
+
+Hard rule on truth, checked line by line before the self-check: every first-person
+detail (a distance, a time zone, what a parent does or says, what a call was like) must
+appear in docs/kettle-brief-for-ai-writers.md, or it is cut. Kettle knows that a normal
+routine happened, never what the parent did ("had her tea", "did the crossword") and
+never what was said. Links: heykettle.com only, unless the brief lists the exact URL.
+A post that fails this is rewritten, not annotated.
 
 Use the two role prompts at the end of this file: the X/Pinterest strategist for X and
 Pinterest posts, the TikTok strategist for TikTok scripts. For every post, complete the
@@ -74,18 +81,32 @@ pending rather than passed.
 
 ## 5. Draw
 
-For each post write a `panels.json` (see `tools/social/make_strip.py` docstring), then:
+The image model draws each panel with no text; `make_strip.py` letters the bubbles and
+captions itself, so the words are always exact. Casts alternate: even ISO week = cast A
+(Sam, June), odd = cast B (Dana, Walt); `--cast auto` picks. Only the active cast and the
+kettle may appear.
+
+Before the first strip: `python3 -c "import PIL"`; if that fails, `pip install pillow`.
+Then make sure the active cast's sheet exists at
+`tools/social/characters/sheet-<a|b>.png`. If it is missing on main, look on the
+`social-drafts` branch; if it is there, copy it in; if not, generate it once with
+`python3 tools/social/make_strip.py --sheet --cast <A|B> --out tools/social/characters/sheet-<a|b>.png`,
+Read it, and include it in this week's commit so the next run reuses it.
+
+For each post write `<file>.panels.json` (schema in the script docstring; scenes describe
+what is drawn, dialogue and caption are the exact words), then:
 
 ```
-python tools/social/make_strip.py --panels social/weeks/<week>/<file>.panels.json \
-  --out social/weeks/<week>/<file>.png --aspect <2:3|1:1|3:4>
+python3 tools/social/make_strip.py --panels social/weeks/<week>/<file>.panels.json \
+  --out social/weeks/<week>/<file>.png --layout <row|stack|single>
 ```
 
-Only SAM, JUNE and THE KETTLE appear. Bubble text must obey every copy law: it is public
-copy. After generation, look at each image (Read it) and check: the lettering matches the
-panels exactly, no banned words, no charts, screens, alarms, medical items or age cliches.
-Regenerate up to twice if it fails; if it still fails, leave `image` empty and say why in
-`note`.
+The script refuses banned words, curly quotes, em dashes and bubbles over twelve words.
+After it runs, Read the PNG and check only the drawing: right characters, nothing from
+the "must never appear" list, no stray text drawn by the model, bubbles not covering a
+face. To redraw one bad panel, delete its cache file `<file>.pN.png` and run again.
+Redraw a panel at most twice; if still bad, leave `image` empty and say why in `note`.
+Delete the `.pN.png` cache files before packaging.
 
 ## 6. Package and deliver
 

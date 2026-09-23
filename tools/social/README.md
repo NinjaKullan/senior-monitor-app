@@ -5,10 +5,12 @@ Monday: it drafts the week's X, Pinterest and TikTok posts, draws a cartoon stri
 each with `make_strip.py`, and builds one phone page with `build_week.py`. Hema reads the
 page and posts by hand. Nothing here publishes anywhere.
 
-- `characters.md`: the cast (Sam, June, the kettle) and style bible. Change the strips by
-  editing this file.
-- `characters/`: the adopted character sheet PNG(s). Every strip is drawn from these.
-- `make_strip.py`: Gemini image call. No key in code: the Claude cloud environment
+- `characters.md`: the style bible and two casts. Cast A (Sam, June) draws even ISO weeks,
+  cast B (Dana, Walt) odd weeks. Change the strips by editing this file.
+- `characters/`: one adopted character sheet per cast (`sheet-a.png`, `sheet-b.png`).
+- `fonts/`: Patrick Hand (SIL Open Font License) for the lettering.
+- `make_strip.py`: draws each panel with Gemini (no text), then letters bubbles, captions
+  and the signature itself with Pillow, so the words are always exact. No key in code: the Claude cloud environment
   "CC-cloud" holds it as an API credential (host `generativelanguage.googleapis.com`,
   header `x-goog-api-key`). For a local run, `export GEMINI_API_KEY=...`.
 - `build_week.py`: `social/weeks/<week>/posts.json` + PNGs -> `index.html`.
