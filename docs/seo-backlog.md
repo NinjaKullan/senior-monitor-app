@@ -158,6 +158,11 @@ gate them are done and the founder has said go.
 - Post 2 ("The button in the drawer"): blocked on two founder anecdotes.
 - Unlinked-mention and lost-link sweep: nothing exists yet; re-check monthly
   with the Moz reading.
+- Care Compare MCP as a linkable asset (after beta): a free, read-only MCP
+  under the HeyKettle name over CMS Provider Data (nursing homes, home health,
+  hospice), for the people who search for care years before they need Kettle.
+  Marketing, not product; US-only; ruled Sep 21 not a Kettle feature. Source:
+  the founder's Sep 21 research snapshot. Review Oct 6.
 
 ## 5. Ruled out, with the rule
 

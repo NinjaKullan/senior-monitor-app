@@ -7323,6 +7323,18 @@ browser — all three adopted as the standard for future surfaces.**
        still on, and an `unlock` landed at 8:26pm with nobody opening
        Kettle. Unlocks that evening: 7:10, 7:41, 8:26.
      * Soak log (fill from `pings`, first ping of each day ET):
-       Day 1 Sep 19: unlock 19:10, device_alive 19:10, charger —,
-       motion —.
+       Day 1 Sep 19: unlock 19:10 (5 that evening), device_alive 19:10,
+       charger none, motion none.
+       Day 2 Sep 20: unlock 08:15 (2), device_alive 01:02, charger none,
+       motion none.
+       Day 3 Sep 21: unlock 21:55 (1), device_alive 00:02, charger none,
+       motion none.
+       Day 4 Sep 22: unlock none (nobody unlocked it; not an app failure),
+       device_alive 00:12, charger none, motion none.
+       Day 5 Sep 23: device_alive 00:22; rest pending. Read Sep 23 morning.
+       device_alive arrives once a night, so the worker survives every
+       night. charger has never fired: the phone has stayed plugged in, so
+       no edge; motion has never fired: the phone sits on a shelf. Both
+       need a deliberate test (unplug and replug; a five-minute walk with
+       the phone in a pocket) before 8.1 can be read.
      * Next number: 341.
