@@ -1,0 +1,33 @@
+# Care Compare (spec 021): its own app, sharing nothing with kettle-api. The
+# founder creates it (`fly launch --no-deploy` from care/, then `fly deploy`)
+# after the PM's review; the `care` CNAME on heykettle.com is Cloudflare,
+# proxied, to this app.
+app = "kettle-care"
+primary_region = "iad"  # the data and the people asking are in the US
+
+[build]
+
+# No env: no secrets, no keys, no database. The only outbound host is
+# data.cms.gov, and that is enforced in code (cms.py), not configured here.
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_start_machines = true
+  # The cache is this machine's memory; a stopped machine is a cold cache and
+  # a first answer that waits on CMS. One small machine, always on.
+  auto_stop_machines = "off"
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/healthz"
+    protocol = "http"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpus = 1
