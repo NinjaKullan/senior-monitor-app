@@ -16,9 +16,13 @@ from care import copy as text
 SPEC = Path(__file__).resolve().parents[2] / "specs" / "021-care-compare.md"
 
 
+def strings_between(start: str, stop: str) -> dict[str, str]:
+    body = SPEC.read_text().split(start, 1)[1].split(stop, 1)[0]
+    return dict(re.findall(r"\b([A-Z][A-Z0-9_]+) = \"([^\"]*)\"", body))
+
+
 def section_10() -> dict[str, str]:
-    body = SPEC.read_text().split("\n## 10.", 1)[1]
-    found = dict(re.findall(r"\b([A-Z][A-Z0-9_]+) = \"([^\"]*)\"", body))
+    found = strings_between("\n## 10.", "\n## Amendment A")
     assert len(found) == 39, f"§10 changed shape: {len(found)} strings"
     return found
 

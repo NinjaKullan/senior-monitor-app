@@ -26,6 +26,7 @@ from collections import deque
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -106,56 +107,78 @@ def _clamp(value: float | None, low: float, high: float, default: float | None) 
     return min(max(float(value), low), high)
 
 
-def build_server(
-    data: cms.CmsData, centroids: Centroids, limiter: RateLimiter
-) -> MCPServer:
-    """The MCP server: three read-only tools over CMS's own figures."""
-    server = MCPServer(text.SERVER_NAME, instructions=text.SERVER_INSTRUCTIONS)
+@dataclass(frozen=True)
+class Said:
+    """One answer: the text the tool returns, and the providers it names,
+    nearest first, so the web page can link each name (Amendment A.3)."""
 
-    async def read(datasets: list[str], zip5: str, miles: float) -> cms.Read:
-        return await data.read(datasets, centroids.states_within(zip5, miles))
+    text: str
+    shown: tuple[a.Placed, ...] = ()
 
-    @server.tool(name="find_care", description=text.TOOL_FIND, annotations=READ_ONLY)
+
+class Care:
+    """The three answers, shared by the MCP tools and the web page.
+
+    One implementation, so /search says byte for byte what find_care says,
+    and one limiter, so a web search and a tool call count against the same
+    60 an hour (Amendment A.4). `label` is the word the log line starts
+    with: the tool's name, or `search` on the web."""
+
+    def __init__(self, data: cms.CmsData, centroids: Centroids, limiter: RateLimiter) -> None:
+        self.data = data
+        self.centroids = centroids
+        self.limiter = limiter
+
+    async def _read(self, datasets: list[str], zip5: str, miles: float) -> cms.Read:
+        return await self.data.read(datasets, self.centroids.states_within(zip5, miles))
+
     async def find_care(
-        kind: str, zip: str, miles: float | None = None, min_rating: float | None = None
-    ) -> str:
-        if not limiter.allow(CLIENT_IP.get()):
-            _said("find_care", "refused", 0)
-            return text.RATE_LIMITED
+        self,
+        label: str,
+        ip: str,
+        kind: str,
+        zip: str,
+        miles: float | None = None,
+        min_rating: float | None = None,
+    ) -> Said:
+        if not self.limiter.allow(ip):
+            _said(label, "refused", 0)
+            return Said(text.RATE_LIMITED)
         chosen = a.parse_kind(kind)
         if chosen is None:
-            _said("find_care", "refused", 0)
-            return text.KIND_UNKNOWN
-        asked = _zip(zip, centroids)
+            _said(label, "refused", 0)
+            return Said(text.KIND_UNKNOWN)
+        asked = _zip(zip, self.centroids)
         if asked is None:
-            _said("find_care", "refused", 0)
-            return text.ZIP_UNKNOWN
+            _said(label, "refused", 0)
+            return Said(text.ZIP_UNKNOWN)
         zip5, here = asked
         radius = _clamp(miles, 1, a.MAX_MILES, a.DEFAULT_MILES)
         floor = _clamp(min_rating, 1, 5, None)
         assert radius is not None
         try:
-            got = await read([a.DATASET[chosen]], zip5, radius)
+            got = await self._read([a.DATASET[chosen]], zip5, radius)
         except cms.CmsDown:
-            _said("find_care", "cms_down", 0)
-            return text.CMS_DOWN
+            _said(label, "cms_down", 0)
+            return Said(text.CMS_DOWN)
 
         def keep(p: a.Placed) -> bool:
             return floor is None or (p.score is not None and p.score >= floor)
 
-        placed = [p for p in a.place(got.rows, here, centroids) if keep(p)]
+        placed = [p for p in a.place(got.rows, here, self.centroids) if keep(p)]
         within = [p for p in placed if p.miles <= radius]
         radius_words = f"{radius:g}"
         if within:
-            blocks = ["\n".join(a.list_sentence(p) for p in within[: a.LIST_CAP])]
+            listed = within[: a.LIST_CAP]
+            blocks = ["\n".join(a.list_sentence(p) for p in listed)]
             if len(within) > a.LIST_CAP:
                 blocks.append(
                     a.one_mile(
                         text.MORE_LINE.format(more=len(within) - a.LIST_CAP, miles=radius_words)
                     )
                 )
-            _said("find_care", "ok", min(len(within), a.LIST_CAP))
-            return _answer(blocks, got, within[: a.LIST_CAP])
+            _said(label, "ok", len(listed))
+            return Said(_answer(blocks, got, listed), tuple(listed))
 
         none = a.one_mile(
             text.NONE_NEAR.format(kind_plural=a.PLURAL[chosen], miles=radius_words, zip=zip5)
@@ -164,13 +187,13 @@ def build_server(
         shown: list[a.Placed] = []
         if radius < a.MAX_MILES:
             try:
-                wider = await read([a.DATASET[chosen]], zip5, a.MAX_MILES)
+                wider = await self._read([a.DATASET[chosen]], zip5, a.MAX_MILES)
             except cms.CmsDown:
-                _said("find_care", "cms_down", 0)
-                return text.CMS_DOWN
+                _said(label, "cms_down", 0)
+                return Said(text.CMS_DOWN)
             beyond = [
                 p
-                for p in a.place(wider.rows, here, centroids)
+                for p in a.place(wider.rows, here, self.centroids)
                 if keep(p) and p.miles <= a.MAX_MILES
             ]
             if beyond:
@@ -185,76 +208,96 @@ def build_server(
                     )
                 ]
                 got, shown = wider, [nearest]
-        _said("find_care", "none", 0)
-        return _answer(blocks, got, shown)
+        _said(label, "none", 0)
+        return Said(_answer(blocks, got, shown), tuple(shown))
 
-    async def resolve_all(
-        names: list[str], zip5: str, here: tuple[float, float]
+    async def _resolve_all(
+        self, names: list[str], zip5: str, here: tuple[float, float]
     ) -> tuple[list[a.Placed | None], list[a.Placed], cms.Read]:
-        got = await read([cms.NURSING_HOMES, cms.HOME_HEALTH], zip5, a.MATCH_MILES)
-        placed = a.place(got.rows, here, centroids)
+        got = await self._read([cms.NURSING_HOMES, cms.HOME_HEALTH], zip5, a.MATCH_MILES)
+        placed = a.place(got.rows, here, self.centroids)
         return [a.resolve(n, placed) for n in names], placed, got
 
-    def no_match(asked: str, zip5: str, placed: list[a.Placed]) -> str:
+    @staticmethod
+    def _no_match(asked: str, zip5: str, placed: list[a.Placed]) -> str:
         return text.NO_MATCH.format(
             zip=zip5, asked=" ".join(asked.split()), names=a.nearest_names(placed)
         )
 
-    @server.tool(name="care_details", description=text.TOOL_DETAILS, annotations=READ_ONLY)
-    async def care_details(name: str, zip: str) -> str:
-        if not limiter.allow(CLIENT_IP.get()):
-            _said("care_details", "refused", 0)
-            return text.RATE_LIMITED
-        asked = _zip(zip, centroids)
+    async def care_details(self, label: str, ip: str, name: str, zip: str) -> Said:
+        if not self.limiter.allow(ip):
+            _said(label, "refused", 0)
+            return Said(text.RATE_LIMITED)
+        asked = _zip(zip, self.centroids)
         if asked is None:
-            _said("care_details", "refused", 0)
-            return text.ZIP_UNKNOWN
+            _said(label, "refused", 0)
+            return Said(text.ZIP_UNKNOWN)
         zip5, here = asked
         try:
-            (found,), placed, got = await resolve_all([name], zip5, here)
+            (found,), placed, got = await self._resolve_all([name], zip5, here)
         except cms.CmsDown:
-            _said("care_details", "cms_down", 0)
-            return text.CMS_DOWN
+            _said(label, "cms_down", 0)
+            return Said(text.CMS_DOWN)
         if found is None:
-            _said("care_details", "none", 0)
-            return _answer([no_match(name, zip5, placed)], got, [])
-        _said("care_details", "ok", 1)
-        return _answer(["\n".join(a.details(found, zip5))], got, [found])
+            _said(label, "none", 0)
+            return Said(_answer([self._no_match(name, zip5, placed)], got, []))
+        _said(label, "ok", 1)
+        return Said(_answer(["\n".join(a.details(found, zip5))], got, [found]), (found,))
 
-    @server.tool(name="compare_care", description=text.TOOL_COMPARE, annotations=READ_ONLY)
-    async def compare_care(names: list[str], zip: str) -> str:
-        if not limiter.allow(CLIENT_IP.get()):
-            _said("compare_care", "refused", 0)
-            return text.RATE_LIMITED
+    async def compare_care(self, label: str, ip: str, names: list[str], zip: str) -> Said:
+        if not self.limiter.allow(ip):
+            _said(label, "refused", 0)
+            return Said(text.RATE_LIMITED)
         asked_names = [n for n in names if str(n).strip()][:4]
         if len(asked_names) < 2:
-            _said("compare_care", "refused", 0)
-            return text.COMPARE_NEED_TWO
-        asked = _zip(zip, centroids)
+            _said(label, "refused", 0)
+            return Said(text.COMPARE_NEED_TWO)
+        asked = _zip(zip, self.centroids)
         if asked is None:
-            _said("compare_care", "refused", 0)
-            return text.ZIP_UNKNOWN
+            _said(label, "refused", 0)
+            return Said(text.ZIP_UNKNOWN)
         zip5, here = asked
         try:
-            found, placed, got = await resolve_all(asked_names, zip5, here)
+            found, placed, got = await self._resolve_all(asked_names, zip5, here)
         except cms.CmsDown:
-            _said("compare_care", "cms_down", 0)
-            return text.CMS_DOWN
+            _said(label, "cms_down", 0)
+            return Said(text.CMS_DOWN)
         distinct = {id(p.row) for p in found if p is not None}
         if len(distinct) < 2:
-            _said("compare_care", "refused", len(distinct))
-            return text.COMPARE_NEED_TWO
+            _said(label, "refused", len(distinct))
+            return Said(text.COMPARE_NEED_TWO)
         blocks = []
         seen: set[int] = set()
         for index, p in enumerate(found):
             if p is None:
-                blocks.append(no_match(asked_names[index], zip5, placed))
+                blocks.append(self._no_match(asked_names[index], zip5, placed))
             elif id(p.row) not in seen:
                 seen.add(id(p.row))
                 blocks.append("\n".join(a.details(p, zip5)))
         blocks.append(text.COMPARE_CLOSE)
-        _said("compare_care", "ok", len(distinct))
-        return _answer(blocks, got, [p for p in found if p is not None])
+        _said(label, "ok", len(distinct))
+        named = [p for p in found if p is not None]
+        return Said(_answer(blocks, got, named), tuple(named))
+
+
+def build_server(care: Care) -> MCPServer:
+    """The MCP server: three read-only tools over CMS's own figures."""
+    server = MCPServer(text.SERVER_NAME, instructions=text.SERVER_INSTRUCTIONS)
+
+    @server.tool(name="find_care", description=text.TOOL_FIND, annotations=READ_ONLY)
+    async def find_care(
+        kind: str, zip: str, miles: float | None = None, min_rating: float | None = None
+    ) -> str:
+        said = await care.find_care("find_care", CLIENT_IP.get(), kind, zip, miles, min_rating)
+        return said.text
+
+    @server.tool(name="care_details", description=text.TOOL_DETAILS, annotations=READ_ONLY)
+    async def care_details(name: str, zip: str) -> str:
+        return (await care.care_details("care_details", CLIENT_IP.get(), name, zip)).text
+
+    @server.tool(name="compare_care", description=text.TOOL_COMPARE, annotations=READ_ONLY)
+    async def compare_care(names: list[str], zip: str) -> str:
+        return (await care.compare_care("compare_care", CLIENT_IP.get(), names, zip)).text
 
     return server
 
@@ -282,7 +325,8 @@ def create_app(
     http = client or cms.make_client()
     data = cms.CmsData(http, clock)
     points = centroids or Centroids.load()
-    mcp_server = build_server(data, points, limiter or RateLimiter())
+    care = Care(data, points, limiter or RateLimiter())
+    mcp_server = build_server(care)
     mcp_asgi = mcp_server.streamable_http_app(
         streamable_http_path="/mcp",
         stateless_http=True,
