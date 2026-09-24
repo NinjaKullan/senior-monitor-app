@@ -1,5 +1,0 @@
-care/data/zcta.csv is currently a 200-row SAMPLE, hand-placed near real ZIP
-centroids for local runs only. census.gov was unreachable from the build box
-(DECISIONS 344). Run `python care/scripts/make_zcta.py` once from a machine that
-can reach census.gov; it writes the national file (about 33,000 rows) and
-deletes this marker. The Dockerfile refuses to build while this file exists.
