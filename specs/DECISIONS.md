@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 345.** This line is the one to update; the `Next number:` lines inside
+**Next number: 346.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7588,3 +7588,42 @@ browser — all three adopted as the standard for future surfaces.**
        `tools/social/build_resources.py` (two E501). That file is not in
        this build, so CI's lint step is red for a reason outside it.
      * Next number: 345.
+
+345. **(2026-09-24, Thursday morning ET) 344 ACCEPTED (9d3012b). Real CMS
+     formats checked by the PM; the founder owes one script run, then the
+     app.** PM read `cms.py` (allowlist at the transport, https only),
+     `app.py` (60 an hour on `fly-client-ip`, log line is tool, status,
+     count), `answers.py` (parsing tolerant of every format below), the
+     fixtures, and `fly.toml`.
+     * **Real value formats, read live from CMS on Sep 24, all handled by
+       the code as built:** nursing homes give every field as a string
+       (`"3"`, `"157"`, `"35.7965"`), `abuse_icon` is `"N"` or `"Y"`,
+       `special_focus_status` is `""` or `"SFF"` (candidates are not
+       flagged, which is the spec's intent), `processing_date`
+       `"2026-08-01"`. Home health: stars `"4"` (halves possible),
+       footnote `"-"` when none, `certification_date` `"02/27/1989"`,
+       service flags `"Yes"`, ownership shouted (`"PROPRIETARY"`), and
+       `telephone_number` can be `"-"`, which the phone formatter turns
+       into no phone clause rather than nonsense. The founder's owed
+       "one live call per tool" is therefore done from the data side; the
+       first live tool calls happen after deploy.
+     * **Judgement calls, all accepted:** `care/answers.py` as its own
+       module; `care/copy.py` keeps the spec's name with the `python -m
+       pytest` trap documented (plain `pytest` and the image are fine);
+       the connector address shown as text, not a link; all-or-nothing
+       CMS_DOWN when any needed state is missing; the older dataset date
+       as the "last updated" date.
+     * **Follow-ups, not this build:** root CI should run `care/` tests
+       (a job like product's); root `ruff` is red on
+       `tools/social/build_resources.py` (two long lines), the social
+       session's file, reported to the founder for that session.
+     * **Founder, in order:** (1) `cd care && python3 scripts/make_zcta.py
+       && pytest` on the Mac (census.gov is reachable there), commit
+       `care/data/zcta.csv` and the removed marker; (2) `fly apps create
+       kettle-care` then `fly deploy` from `care/`; (3) `fly certs add
+       care.heykettle.com`, then in Cloudflare a proxied CNAME `care` to
+       `kettle-care.fly.dev` and the `_acme-challenge.care` CNAME `fly
+       certs show` prints, as heykettle.com was done (306); (4) the site
+       deploy for `/care` (`cd site && npm run ci && fly deploy`). PM
+       verifies with a real connector after (3).
+     * Next number: 346.
