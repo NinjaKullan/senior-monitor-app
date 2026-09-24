@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 354.** This line is the one to update; the `Next number:` lines inside
+**Next number: 355.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7920,3 +7920,18 @@ browser — all three adopted as the standard for future surfaces.**
      * Deploy (founder): `cd care && fly deploy`, then `cd site && npm run
        ci && fly deploy`. PM reads the page after.
      * Next number: 354.
+
+354. **(2026-09-24, Thursday night ET) 352 DEPLOYED and VERIFIED LIVE (care,
+     then site).** PM read `heykettle.com/care` in Chrome: the first link
+     after the lede is "Search near a ZIP code" (44px, primary look), the
+     assistant path reads "Or add it to…", the footnote is gone. On the
+     care host: `robots.txt` is the three lines byte for byte; a GET of
+     `/search?kind=nursing+home&zip=27502` answers `X-Robots-Tag: noindex`
+     and carries the meta tag; the bare `/search` answers no robots header.
+     (A HEAD request does not carry the header; crawlers use GET, and the
+     meta tag stands regardless. Noted, not owed.)
+     * Care Compare is complete for this release: MCP, page, web search,
+       robots. What remains is outside the code: the two directory
+       submissions (Asana) and the Oct 6 review deciding where the page
+       gets linked from.
+     * Next number: 355.
