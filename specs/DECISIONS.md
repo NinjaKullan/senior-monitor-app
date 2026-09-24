@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 347.** This line is the one to update; the `Next number:` lines inside
+**Next number: 348.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7331,7 +7331,9 @@ browser — all three adopted as the standard for future surfaces.**
        motion none.
        Day 4 Sep 22: unlock none (nobody unlocked it; not an app failure),
        device_alive 00:12, charger none, motion none.
-       Day 5 Sep 23: device_alive 00:22; rest pending. Read Sep 23 morning.
+       Day 5 Sep 23: unlock 22:23 (1), device_alive 00:22, charger 22:48
+       (the deliberate unplug and replug; the first try earlier that day
+       used a dead charger, so no edge), motion none (no walk yet).
        device_alive arrives once a night, so the worker survives every
        night. charger has never fired: the phone has stayed plugged in, so
        no edge; motion has never fired: the phone sits on a shelf. Both
@@ -7660,3 +7662,22 @@ browser — all three adopted as the standard for future surfaces.**
        Oct 6 review decides where it gets linked from (registry listing,
        a post, outreach).
      * Next number: 347.
+
+347. **(2026-09-23, Wednesday night ET) SPEC 021 AMENDMENT A WRITTEN and
+     RATIFIED: search on the web, on the care app.** The founder asked for
+     people to be able to search from heykettle.com; the PM's shape, which
+     he accepted: the site page stays a page that fetches nothing, and
+     links "Or search here" to `care.heykettle.com/search`, a plain
+     server-rendered form on the care app (kind, ZIP, miles, minimum
+     rating), no JavaScript, no cookies, the same sentences the tools
+     give, the same per-IP limit, the same nothing-logged rule. Results
+     carry the connector address so web searchers learn the assistant
+     route exists. Details by name on `/search/details`; no compare on
+     the web in this release. Strings in the amendment, verbatim.
+     * Bundled into the same CC pass: the "Unc Rex" acronym fix, a root
+       CI job for `care/` tests (345 follow-ups).
+     * Also today: Asana task created on the Kettle board for the
+       Claude connector directory and ChatGPT apps directory
+       submissions (founder console work). Soak day 5: charger passes
+       (22:48), see 340's log.
+     * Next number: 348.

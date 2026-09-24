@@ -284,3 +284,86 @@ Page (`site/`, heykettle.com/care):
 - PAGE_SOURCE = "Every number comes from Medicare's Care Compare, the same figures on medicare.gov, and every answer says how old they are. We add nothing and we keep nothing: no account, no history, no record of what you asked."
 - PAGE_KETTLE = "Kettle is the other thing we make. {tagline}"
 - PAGE_KETTLE_LINK = "See Kettle"
+
+## Amendment A — Search on the web (ratified 2026-09-23, DECISIONS 347)
+
+### A.1 What
+A page on the care app, `https://care.heykettle.com/search`, where a
+person with no assistant types a ZIP code and reads the same sentences
+the tools give. Server-rendered HTML, no JavaScript, no cookies, no
+image; one stylesheet inlined. The site page `heykettle.com/care` gains
+one line under the address block: PAGE_SEARCH_LINE with PAGE_SEARCH_LINK
+as the link text to `/search` on the care host (an `href` only; the site
+still fetches nothing).
+
+### A.2 The form (GET, so a result has a shareable address)
+Fields, in order: `kind` (a select: SEARCH_KIND_NURSING, SEARCH_KIND_HH),
+`zip` (text, five digits, `inputmode="numeric"`), `miles` (a select: 5,
+10, 15, 25, 50; default 15), `min_rating` (a select: SEARCH_RATING_ANY,
+3, 4, 5; default any). One button, SEARCH_BUTTON. Labels are
+SEARCH_LABEL_*. Every control at least 44px tall; the page reads at
+360px wide and at the largest font size.
+
+### A.3 Results
+Under the form, on the same page, `find_care`'s exact answer rendered as
+one paragraph per provider, nearest first, each provider's name a link
+to `/search/details?name=…&zip=…`. The MORE_LINE, NONE_NEAR,
+NEAREST_BEYOND, ZIP_UNKNOWN, CMS_DOWN, STALE_LINE and RATE_LIMITED
+strings appear exactly as the tool would say them. SOURCE_LINE and
+CALL_LINE close the results. Below them, SEARCH_ASSISTANT_LINE with the
+address in a `<code>` element and SEARCH_ASSISTANT_LINK to
+`https://heykettle.com/care`.
+
+`/search/details` renders `care_details`'s answer for the name and ZIP
+given, with SEARCH_BACK as a link to `/search?kind=…&zip=…` carrying the
+same query. No compare on the web in this release.
+
+### A.4 Rules
+- The limiter counts a web search as a tool call: 60 an hour per IP,
+  shared with `/mcp`.
+- Nothing about a search is logged; the log line is `search ok 8` in the
+  §6 shape.
+- The page names Medicare as the source (data provenance) and nothing
+  else about mechanism; site/CLAUDE.md's copy law applies to every
+  string here and a test scans the rendered page for the banned words.
+- Title casing: acronyms stay upper. The list, applied after the §4
+  title-case: UNC, LLC, PLLC, LLP, LP, INC (rendered "Inc."), USA, VA,
+  SNF, and the two-letter state codes. "Unc Rex" reads "UNC Rex".
+
+### A.5 Strings (verbatim)
+- SEARCH_TITLE = "Care Compare by HeyKettle"
+- SEARCH_LEDE = "Nursing homes and home health agencies near a ZIP code, with Medicare's own ratings. Nothing here picks for you."
+- SEARCH_LABEL_KIND = "Looking for"
+- SEARCH_KIND_NURSING = "Nursing homes"
+- SEARCH_KIND_HH = "Home health agencies"
+- SEARCH_LABEL_ZIP = "ZIP code"
+- SEARCH_LABEL_MILES = "Within"
+- SEARCH_MILES_UNIT = "{n} miles"
+- SEARCH_LABEL_RATING = "Rated at least"
+- SEARCH_RATING_ANY = "Any rating"
+- SEARCH_RATING_N = "{n} of 5"
+- SEARCH_BUTTON = "Search"
+- SEARCH_RESULTS_HEAD = "Near {zip}"
+- SEARCH_ASSISTANT_LINE = "You can also ask this from Claude, ChatGPT, or another assistant. Add this address as a connector once:"
+- SEARCH_ASSISTANT_LINK = "How to add it"
+- SEARCH_BACK = "Back to the list"
+- PAGE_SEARCH_LINE = "No assistant? Search here instead."
+- PAGE_SEARCH_LINK = "Search here"
+
+### A.6 Acceptance (CC)
+1. `/search` with no query renders the form only; with a full query
+   renders form plus results whose text equals `find_care`'s answer for
+   the same arguments, character for character, plus the links.
+2. Each of ZIP_UNKNOWN, NONE_NEAR, CMS_DOWN, RATE_LIMITED renders on
+   the page as the tool would say it.
+3. The 61st search in an hour from one IP, counting MCP calls, renders
+   RATE_LIMITED.
+4. The rendered page contains no `<script>`, sets no cookie, and
+   requests nothing from any host (a test reads the HTML for `src=`,
+   `href=` to other hosts other than heykettle.com/care, and
+   `Set-Cookie`).
+5. A search logs one line without the ZIP or a name.
+6. "UNC Rex Rehab & Nursing Care Center of Apex" renders with "UNC".
+7. The site page carries PAGE_SEARCH_LINE and the link; `npm run ci`
+   stays green.
+8. Every A.5 string pinned verbatim.
