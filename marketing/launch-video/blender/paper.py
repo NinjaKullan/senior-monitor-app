@@ -8,6 +8,8 @@ import math
 from pathlib import Path
 
 import bpy
+import numpy as np
+from mathutils import Euler, Matrix, Vector
 
 HERE = Path(__file__).resolve().parent.parent          # marketing/launch-video
 PAPER, INK, GREEN, YELLOW = "F7F1E8", "403C36", "297A5C", "E8C77A"
@@ -93,17 +95,57 @@ def card(name: str, image: str, height: float, x: float, y: float, z: float = 0.
     img = bpy.data.images.load(str(HERE / image), check_existing=True)
     w = height * img.size[0] / img.size[1]
     rot = (0, 0, turn) if flat else (90 - lean, 0, turn)
-    loc = (x, y, z + 0.0006) if flat else (x, y, z + height / 2)
+    # Seat the lowest opaque pixel on the surface: PNGs carry clear rows under the object
+    # (the kettle has 52), which would otherwise leave the card hanging in the air.
+    a = np.array(img.pixels[:], dtype=np.float32).reshape(img.size[1], img.size[0], 4)[..., 3]
+    drop = height * int(np.argmax(a.max(axis=1) > 0.5)) / img.size[1]   # Blender rows start at the bottom
+    loc = (x, y, z + 0.0006) if flat else (x, y, z - drop * math.cos(math.radians(lean)))
     ob = _obj(name, lambda: bpy.ops.mesh.primitive_plane_add(size=1), paper_material(name, image=image, tint=tint, sat=sat),
               loc, rot, (w, height, 1))
+    if not flat:                                           # pivot on the bottom edge: cards fold up from the table
+        ob.data.transform(Matrix.Translation((0, 0.5, 0)))
     thick = ob.modifiers.new("paper", "SOLIDIFY")          # card stock, so edges catch light
     thick.thickness, thick.offset = 0.0015, 0
     return ob
 
 
-def box(name: str, color: str, size, loc, rot=(0, 0, 0), glow: float = 0.0):
-    return _obj(name, lambda: bpy.ops.mesh.primitive_cube_add(size=1), paper_material(name, color, glow=glow),
-                loc, rot, size)
+def box(name: str, color: str, size, loc, rot=(0, 0, 0), glow: float = 0.0, round_: float = 0.0):
+    """A paper block, `size` baked into the mesh so `round_` (corner radius, metres) stays round."""
+    ob = _obj(name, lambda: bpy.ops.mesh.primitive_cube_add(size=1), paper_material(name, color, glow=glow), loc, rot)
+    ob.data.transform(Matrix.Diagonal((*size, 1)))
+    if round_:
+        bev = ob.modifiers.new("round", "BEVEL")
+        bev.width, bev.segments, bev.affect = round_, 8, "EDGES"
+        bev.limit_method = "ANGLE"
+    return ob
+
+
+def disc(name: str, color: str, radius: float, thick: float, x: float, y: float, z: float = 0.0,
+         upright: bool = False, glow: float = 0.0):
+    """A round paper piece lying on a surface (a trivet), top at z + thick; or `upright`, centred at z,
+    facing the camera (a paper sun)."""
+    loc, rot = ((x, y, z), (90, 0, 0)) if upright else ((x, y, z + thick / 2), (0, 0, 0))
+    return _obj(name, lambda: bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=1, depth=1),
+                paper_material(name, color, glow=glow), loc, rot, (radius, radius, thick))
+
+
+def phone(name: str, x: float, y: float, z: float, w: float = 0.11, lean: float = 15.0, turn: float = 0.0,
+          body: str = INK, lit: float = 1.2, stand: bool = True):
+    """A phone standing on its bottom edge, tipped back `lean` degrees, screen to the camera: an ink body,
+    a plain warm yellow face (glowing when `lit` > 0, dark ink when 0), and a small cream paper stand
+    behind it. Never anything on the screen."""
+    h, t = w * 2.0, 0.009
+    rot = Euler((math.radians(-lean), 0, math.radians(turn)))
+    m = rot.to_matrix()
+    centre = Vector((x, y, z)) + m @ Vector((0, 0, h / 2))
+    deg = (-lean, 0, turn)
+    box(name, body, (w, t, h), centre, deg, round_=w * 0.14)
+    face = centre + m @ Vector((0, -t / 2 - 0.0006, 0))
+    box(name + "-screen", YELLOW if lit else "2E2B27", (w * 0.84, 0.001, h * 0.88), face, deg, glow=lit,
+        round_=w * 0.08)
+    if stand:                                   # a cream paper wedge behind, out of sight from the front
+        back = Vector((x, y, z)) + m @ Vector((0, t / 2 + 0.035, 0))
+        box(name + "-stand", PAPER, (w * 0.6, 0.05, h * 0.42), (back.x, back.y + 0.012, z + h * 0.18), (-lean - 30, 0, turn))
 
 
 def stage(table_front: float = -0.6, wall_y: float = 0.62):
@@ -128,6 +170,18 @@ def light(key=(-1.6, -1.4, 2.3), power: float = 110.0, fill: float = 0.16):
     return k
 
 
+def key(ob, path: str, frame: int, value) -> None:
+    """Set and keyframe one property, with eased (Bezier) interpolation, which is Blender's default."""
+    setattr(ob, path, value)
+    ob.keyframe_insert(path, frame=frame)
+
+
+def key_socket(mat_name: str, socket: str, frame: int, value) -> None:
+    sock = bpy.data.materials[mat_name].node_tree.nodes["Principled BSDF"].inputs[socket]
+    sock.default_value = value
+    sock.keyframe_insert("default_value", frame=frame)
+
+
 def camera(loc, target, lens: float = 50.0):
     bpy.ops.object.camera_add(location=loc)
     cam = bpy.context.active_object
@@ -137,7 +191,7 @@ def camera(loc, target, lens: float = 50.0):
     aim.target = bpy.context.active_object
     aim.track_axis, aim.up_axis = "TRACK_NEGATIVE_Z", "UP_Y"
     bpy.context.scene.camera = cam
-    return cam
+    return cam, aim.target
 
 
 def render_settings(samples: int = 96, width: int = 1920, height: int = 1080, engine: str = "CYCLES") -> None:
@@ -169,7 +223,40 @@ def render_settings(samples: int = 96, width: int = 1920, height: int = 1080, en
     sc.render.film_transparent = False
 
 
-def still(path: str) -> None:
+def still(path: str, frame: int = 1) -> None:
     sc = bpy.context.scene
+    sc.frame_set(frame)
     sc.render.filepath = str(HERE / path)
     bpy.ops.render.render(write_still=True)
+
+
+def frames(folder: str, count: int) -> None:
+    """Render frames 1..count to <folder>/0001.png and on."""
+    sc = bpy.context.scene
+    sc.frame_start, sc.frame_end = 1, count
+    sc.render.filepath = str(HERE / folder) + "/"
+    bpy.ops.render.render(animation=True)
+
+
+def run(build, shots: dict[str, int]) -> None:
+    """Shared command line for every set script, after Blender's `--`:
+    <shot> still [frame] [out.png]   one frame (default the shot's middle) to out/stills/<shot>.png
+    <shot> frames [WxH]              every frame to out/frames/<shot>[-WxH]/
+    `build(shot)` builds the set and animates it for that shot; `shots` maps shot id to frame count."""
+    import sys
+    args = sys.argv[sys.argv.index("--") + 1:]
+    shot, mode = args[0], args[1] if len(args) > 1 else "still"
+    if shot not in shots:
+        raise SystemExit(f"unknown shot {shot}; this set renders {sorted(shots)}")
+    reset()
+    build(shot)
+    count = shots[shot]
+    if mode == "frames":
+        size = args[2] if len(args) > 2 else "1920x1080"
+        w, h = (int(v) for v in size.split("x"))
+        render_settings(samples=48, width=w, height=h)
+        frames(f"out/frames/{shot}" + ("" if size == "1920x1080" else f"-{size}"), count)
+    else:
+        render_settings()
+        frame = int(args[2]) if len(args) > 2 else count // 2
+        still(args[3] if len(args) > 3 else f"out/stills/{shot}.png", frame)

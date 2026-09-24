@@ -56,7 +56,7 @@ A kitchen window cut from paper: a square window with a soft ink paper frame and
 
 ## layer-counter
 ```
-The front of a small kitchen counter and stove unit cut from cream paper, a wide low rectangle about three times wider than tall. On the right third, a simple ink paper oven door with one short ink handle bar. On the left two thirds, two plain cream cupboard doors with small round ink knobs. A thin ink paper strip along the top edge as the worktop edge.
+The front of a small kitchen counter and stove unit cut from cream paper, a wide low rectangle about three times wider than tall. On the right third, a simple oven door cut from soft sage green paper (#9DB39B) with one short thin ink handle bar near its top. On the left two thirds, two plain cream cupboard doors with small round ink knobs. A thin soft ink paper strip along the top edge as the worktop edge.
 ```
 
 ## layer-mug
@@ -72,4 +72,34 @@ A small potted plant cut from paper: a cream paper pot with a thin ink rim, and 
 ## layer-steam
 ```
 Three soft cream paper steam wisps, each a gentle S-shaped curl, rising side by side, tallest in the middle, with small gaps between them.
+```
+
+## layer-thumbs
+```
+A thumbs-up symbol cut from Kettle green paper as a plain rounded sticker shape: a soft rounded fist block with one rounded thumb pointing straight up, cut off flat at the bottom with no wrist, no arm, no sleeve, no fingernails, no skin tone. It reads as an emoji-style sticker, not a hand.
+```
+
+## layer-map
+```
+A picture map cut from paper, seen from directly above, as one wide flat rectangular sheet about twice as wide as tall with gently torn edges: a cream paper ground, soft Kettle-green paper fields in rounded patches, a winding pale blue-grey paper river crossing from top to bottom near the middle, and a faint dotted ink path winding from the left edge to the right edge. No roads, no labels, no buildings, no compass.
+```
+
+## layer-city
+```
+A small cluster of three cream paper city apartment buildings side by side, different heights, the tallest in the middle, flat front view, each with neat rows of small soft ink windows, a few windows warm yellow.
+```
+
+## layer-house
+```
+A small single-storey house cut from paper, flat front view: cream walls, a Kettle-green pitched roof, a small green chimney, an ink arched door on the left, and one square kitchen window on the right glowing warm yellow.
+```
+
+## layer-hills
+```
+A wide low strip of gently rolling hills cut from Kettle-green paper, two overlapping layers of slightly different greens, about five times wider than tall, flat along the bottom edge.
+```
+
+## layer-tree
+```
+One simple round tree cut from paper: a round Kettle-green canopy and a short soft ink trunk, flat front view.
 ```
