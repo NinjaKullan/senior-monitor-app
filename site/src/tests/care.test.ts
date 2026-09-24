@@ -34,16 +34,29 @@ const SEARCH = "https://care.heykettle.com/search";
 
 const html = () => readFileSync(PAGE, "utf8");
 
-/** §10's PAGE_* strings and Amendment A.5's two, straight from the spec. */
-function pageStrings(): Record<string, string> {
-  const spec = readFileSync(SPEC, "utf8");
-  const section = spec.split("\n## 10.")[1].split("\n## Amendment A")[0]
-    + spec.split("\n### A.5")[1].split("\n### A.6")[0];
+/** The PAGE_* strings in one stretch of the spec. */
+function pageStringsBetween(start: string, stop: string): Record<string, string> {
+  const section = readFileSync(SPEC, "utf8").split(start)[1].split(stop)[0];
   const found: Record<string, string> = {};
   for (const [, name, value] of section.matchAll(/\b(PAGE_[A-Z0-9_]+) = "([^"]*)"/g)) {
     found[name] = value;
   }
   return found;
+}
+
+/** Amendment A.5's two, retired by Amendment B.1. */
+const retired = () => pageStringsBetween("\n### A.5", "\n### A.6");
+/** Amendment B.3's two, verbatim. */
+const amendmentB = () => pageStringsBetween("\n### B.3", "\n### B.4");
+
+/** The page's strings today, straight from the spec: §10's, with PAGE_HOW
+ *  replaced by PAGE_HOW_SECOND, and B.3's button (Amendment B.1). */
+function pageStrings(): Record<string, string> {
+  const found = pageStringsBetween("\n## 10.", "\n## Amendment A");
+  const replaced = found.PAGE_HOW;
+  delete found.PAGE_HOW;
+  expect(replaced, "§10 lost PAGE_HOW; re-read Amendment B").toBeTruthy();
+  return { ...found, ...amendmentB() };
 }
 
 /** What a reader sees: the body's text, the script left out. */
@@ -58,9 +71,14 @@ describe("the /care page says §10, verbatim", () => {
     const strings = pageStrings();
     expect(Object.keys(strings).sort()).toEqual([
       "PAGE_ADDRESS", "PAGE_COPIED", "PAGE_COPY", "PAGE_EXAMPLES_HEAD", "PAGE_EXAMPLE_1",
-      "PAGE_EXAMPLE_2", "PAGE_EXAMPLE_3", "PAGE_HOW", "PAGE_KETTLE", "PAGE_KETTLE_LINK",
-      "PAGE_LEDE", "PAGE_SEARCH_LINE", "PAGE_SEARCH_LINK", "PAGE_SOURCE", "PAGE_TITLE",
+      "PAGE_EXAMPLE_2", "PAGE_EXAMPLE_3", "PAGE_HOW_SECOND", "PAGE_KETTLE", "PAGE_KETTLE_LINK",
+      "PAGE_LEDE", "PAGE_SEARCH_BUTTON", "PAGE_SOURCE", "PAGE_TITLE",
     ]);
+    expect(amendmentB()).toEqual({
+      PAGE_SEARCH_BUTTON: "Search near a ZIP code",
+      PAGE_HOW_SECOND: "Or add it to Claude, ChatGPT, or another assistant as a connector, "
+        + "once, with this address. Then ask in your own words.",
+    });
     const text = readable();
     const page = html();
     for (const [name, value] of Object.entries(strings)) {
@@ -86,20 +104,55 @@ describe("the /care page says §10, verbatim", () => {
     expect(page).toContain(`<code id="care-address">${strings.PAGE_ADDRESS}</code>`);
     expect(page).toContain(`<button type="button" id="care-copy" hidden>${strings.PAGE_COPY}</button>`);
     expect(page).toContain(`<a href="/">${strings.PAGE_KETTLE_LINK}</a>`);
-    // Amendment A.1: the search line, its link text the link, under the address.
-    const [before, after] = strings.PAGE_SEARCH_LINE.split(strings.PAGE_SEARCH_LINK);
+    // Amendment B.1: the search is a button-styled link, the primary action.
     expect(page).toContain(
-      `<p class="search">${before}<a href="${SEARCH}">${strings.PAGE_SEARCH_LINK}</a>${after}</p>`,
+      `<p class="search"><a class="search" href="${SEARCH}">${strings.PAGE_SEARCH_BUTTON}</a></p>`,
     );
     // The doorway says the lede; no new copy was written for it.
     expect(page).toContain(`<meta name="description" content="${strings.PAGE_LEDE}" />`);
-    // Order: lede, how, the address, where the numbers come from, the examples, Kettle.
+    // Order (Amendment B.1): lede, the search, the assistant path second,
+    // the address, where the numbers come from, the examples, Kettle.
     const at = (s: string) => page.indexOf(s);
-    const order = [strings.PAGE_LEDE, strings.PAGE_HOW, `id="care-address"`,
-      `<p class="search">`, strings.PAGE_SOURCE,
+    const order = [`<p class="body">${strings.PAGE_LEDE}`, `<p class="search">`,
+      strings.PAGE_HOW_SECOND, `id="care-address"`, strings.PAGE_SOURCE,
       strings.PAGE_EXAMPLE_1, strings.PAGE_EXAMPLE_3, strings.PAGE_KETTLE_LINK].map((s) => at(`${s}`));
     expect(order.every((n) => n > 0)).toBe(true);
     expect([...order].sort((x, y) => x - y)).toEqual(order);
+  });
+
+  it("puts the search first: the first link after the lede (B.4.1)", () => {
+    const page = html();
+    const strings = pageStrings();
+    const afterLede = page.split(`${strings.PAGE_LEDE}</p>`)[1];
+    const first = afterLede.match(/<a\b[^>]*>([^<]*)<\/a>/);
+    expect(first, "no link after the lede").not.toBeNull();
+    expect(first![0]).toBe(`<a class="search" href="${SEARCH}">${strings.PAGE_SEARCH_BUTTON}</a>`);
+  });
+
+  it("retires A.5's footnote and §10's PAGE_HOW (Amendment B.1)", () => {
+    const text = readable();
+    const retiredStrings = retired();
+    expect(Object.keys(retiredStrings).sort()).toEqual(["PAGE_SEARCH_LINE", "PAGE_SEARCH_LINK"]);
+    expect(text).not.toContain(retiredStrings.PAGE_SEARCH_LINE);
+    expect(text).not.toContain(retiredStrings.PAGE_SEARCH_LINK);
+    const old = pageStringsBetween("\n## 10.", "\n## Amendment A").PAGE_HOW;
+    expect(text).not.toContain(old);
+  });
+
+  it("styles the search as the primary action: Copy's look, 44px, full width on a phone", () => {
+    const css = html().match(/<style>([\s\S]*?)<\/style>/)![1];
+    const rule = css.match(/\n\s*a\.search \{([^}]*)\}/)![1];
+    const copy = css.match(/\.address button \{([^}]*)\}/)![1];
+    for (const decl of ["min-height: 44px", "background: #403c36", "color: #f6f2ec",
+      "border: 1px solid #403c36", "border-radius: 999px"]) {
+      expect(copy, `Copy lost ${decl}`).toContain(decl);
+      expect(rule, decl).toContain(decl);
+    }
+    expect(rule).toContain("width: 100%");
+    // Only past a phone's width does it size to its words.
+    expect(css).toMatch(/@media \(min-width: 30rem\) \{\s*a\.search \{ display: inline-flex; width: auto; \}/);
+    // Hover is colour only (the motion law).
+    expect(css).toContain("a.search:hover { background: #2b2824; }");
   });
 
   it("has no other copy of its own beyond the site's nav", () => {
@@ -138,7 +191,7 @@ describe("the /care page fetches nothing", () => {
     const page = html()
       .replace('<link rel="canonical" href="https://heykettle.com/care/" />', "")
       .replace(ADDRESS, "")
-      .replace(`<a href="${SEARCH}">`, "<a>");
+      .replace(`<a class="search" href="${SEARCH}">`, "<a>");
     expect(page).not.toMatch(/<img|<link|<iframe|<video|<audio|<source/i);
     expect(page).not.toMatch(/https?:\/\//i);
   });

@@ -41,7 +41,7 @@ stricter.
 | Notification proportions live in one place | `motion.test.tsx` against `lib/notification.ts` |
 | No foreign origin in `dist/` | `scripts/check-foreign-origins.mjs`, in `npm run ci` |
 | The page reads with JavaScript off | `scripts/check-prerender.mjs`, in `npm run ci` |
-| `/care/` (spec 021) says §10's PAGE_* verbatim, read from the spec; fetches nothing; prints the connector address and never links it; its one inline script only copies | `care.test.ts`, with the copy-law lists shared through `copyBans.ts` |
+| `/care/` (spec 021) says its PAGE_* strings verbatim, read from the spec (§10 as amended by B); the search button is the first link after the lede; fetches nothing; prints the connector address and never links it; its one inline script only copies | `care.test.ts`, with the copy-law lists shared through `copyBans.ts` |
 | The meta description never drifts from `HERO_BODY` | `scripts/check-prerender.mjs` compares them structurally |
 | Sections stay in argument order (scenarios → story → three fields) | `story.test.tsx`, rendered and static |
 
