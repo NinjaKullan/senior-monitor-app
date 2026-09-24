@@ -119,3 +119,36 @@ HH_SERVICE_WORDS = (
 DETAILS_LINE_1 = "{name}, {address}, {city}, {state} {zip}, {distance} from {asked_zip}.{phone}"
 DISTANCE_ABOUT = "about {miles} miles"
 DISTANCE_ABOUT_ONE = "about 1 mile"
+
+# --- Amendment A.5: the web search page (verbatim) ------------------------------
+# PAGE_SEARCH_LINE and PAGE_SEARCH_LINK are the site's and live in the site's
+# page, like the other PAGE_* strings.
+
+SEARCH_TITLE = "Care Compare by HeyKettle"
+SEARCH_LEDE = (
+    "Nursing homes and home health agencies near a ZIP code, with Medicare's own ratings. "
+    "Nothing here picks for you."
+)
+SEARCH_LABEL_KIND = "Looking for"
+SEARCH_KIND_NURSING = "Nursing homes"
+SEARCH_KIND_HH = "Home health agencies"
+SEARCH_LABEL_ZIP = "ZIP code"
+SEARCH_LABEL_MILES = "Within"
+SEARCH_MILES_UNIT = "{n} miles"
+SEARCH_LABEL_RATING = "Rated at least"
+SEARCH_RATING_ANY = "Any rating"
+SEARCH_RATING_N = "{n} of 5"
+SEARCH_BUTTON = "Search"
+SEARCH_RESULTS_HEAD = "Near {zip}"
+SEARCH_ASSISTANT_LINE = (
+    "You can also ask this from Claude, ChatGPT, or another assistant. Add this address as a "
+    "connector once:"
+)
+SEARCH_ASSISTANT_LINK = "How to add it"
+SEARCH_BACK = "Back to the list"
+
+#: Printed in a <code> element under the results (A.3); the site's PAGE_ADDRESS.
+CONNECTOR_ADDRESS = "https://care.heykettle.com/mcp"
+#: SEARCH_ASSISTANT_LINK's target (A.3). The trailing slash is the page's own
+#: address; without it nginx answers with a 301 first.
+SITE_CARE_URL = "https://heykettle.com/care/"

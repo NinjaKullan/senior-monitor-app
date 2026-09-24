@@ -60,3 +60,26 @@ def test_no_string_the_tools_say_carries_a_dash_or_a_verdict():
             value = value.replace("does not rank, recommend, or give", "")
         for word in VERDICTS:
             assert not re.search(rf"\b{word}\b", value, re.IGNORECASE), (name, word)
+
+
+def amendment_a5() -> dict[str, str]:
+    found = strings_between("\n### A.5", "\n### A.6")
+    assert len(found) == 18, f"A.5 changed shape: {len(found)} strings"
+    return found
+
+
+def test_every_amendment_a_string_is_verbatim():
+    """A.6.8. The two PAGE_SEARCH_* strings are the site's page's and are
+    pinned there; the sixteen SEARCH_* are the care app's."""
+    strings = amendment_a5()
+    assert sorted(n for n in strings if n.startswith("PAGE_")) == [
+        "PAGE_SEARCH_LINE", "PAGE_SEARCH_LINK"]
+    for name, value in strings.items():
+        if name.startswith("PAGE_"):
+            continue
+        assert getattr(text, name) == value, name
+
+
+def test_the_search_page_prints_the_sites_address():
+    assert section_10()["PAGE_ADDRESS"] == text.CONNECTOR_ADDRESS
+    assert text.SEARCH_TITLE == text.SERVER_NAME
