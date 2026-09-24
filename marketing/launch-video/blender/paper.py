@@ -2,6 +2,7 @@
 transparent PNGs, soft table-top light, and the render settings. Units are metres; the camera looks
 along +Y, Z is up. Colours are the brief's hex values, converted to linear for the shader.
 """
+
 from __future__ import annotations
 
 import math
@@ -11,15 +12,16 @@ import bpy
 import numpy as np
 from mathutils import Euler, Matrix, Vector
 
-HERE = Path(__file__).resolve().parent.parent          # marketing/launch-video
+HERE = Path(__file__).resolve().parent.parent  # marketing/launch-video
 PAPER, INK, GREEN, YELLOW = "F7F1E8", "403C36", "297A5C", "E8C77A"
-TABLE, WALL = "EDE4D6", "F2EADF"                      # the look reference's table and wall creams
+TABLE, WALL = "EDE4D6", "F2EADF"  # the look reference's table and wall creams
 
 
 def lin(hexc: str, a: float = 1.0) -> tuple[float, float, float, float]:
     def ch(v: int) -> float:
         c = v / 255
         return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
     return (ch(int(hexc[0:2], 16)), ch(int(hexc[2:4], 16)), ch(int(hexc[4:6], 16)), a)
 
 
@@ -40,11 +42,17 @@ def _fibre(nt, strength: float):
     return bump
 
 
-def paper_material(name: str, color: str | None = None, image: str | None = None, glow: float = 0.0,
-                   tint: str | None = None, sat: float = 1.0):
+def paper_material(
+    name: str,
+    color: str | None = None,
+    image: str | None = None,
+    glow: float = 0.0,
+    tint: str | None = None,
+    sat: float = 1.0,
+):
     """Matte paper: no specular, no sheen, a little fibre bump. Image cards take colour and alpha
-    from the PNG. `glow` adds emission in the card's own colour (a lit phone screen). `tint` multiplies an
-    image card's colour (cream steam reads on a cream wall); `sat` pulls Gemini's browns back to ink."""
+    from the PNG. `glow` adds emission in the card's own colour (a lit phone screen). `tint`
+    multiplies an image card's colour; `sat` pulls Gemini's browns back to ink."""
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
     nt = mat.node_tree
@@ -88,30 +96,55 @@ def _obj(name, mesh_op, mat, loc, rot=(0, 0, 0), scale=(1, 1, 1)):
     return ob
 
 
-def card(name: str, image: str, height: float, x: float, y: float, z: float = 0.0,
-         lean: float = 0.0, turn: float = 0.0, flat: bool = False, tint: str | None = None, sat: float = 1.0):
+def card(
+    name: str,
+    image: str,
+    height: float,
+    x: float,
+    y: float,
+    z: float = 0.0,
+    lean: float = 0.0,
+    turn: float = 0.0,
+    flat: bool = False,
+    tint: str | None = None,
+    sat: float = 1.0,
+):
     """A paper cut-out standing on its bottom edge at (x, y, z), `height` tall, width from the PNG.
-    `lean` tips it back (degrees), `turn` rotates it about Z. `flat` lays it on the surface instead."""
+    `lean` tips it back (degrees), `turn` rotates it about Z. `flat` lays it on the surface."""
     img = bpy.data.images.load(str(HERE / image), check_existing=True)
     w = height * img.size[0] / img.size[1]
     rot = (0, 0, turn) if flat else (90 - lean, 0, turn)
     # Seat the lowest opaque pixel on the surface: PNGs carry clear rows under the object
     # (the kettle has 52), which would otherwise leave the card hanging in the air.
     a = np.array(img.pixels[:], dtype=np.float32).reshape(img.size[1], img.size[0], 4)[..., 3]
-    drop = height * int(np.argmax(a.max(axis=1) > 0.5)) / img.size[1]   # Blender rows start at the bottom
+    drop = (
+        height * int(np.argmax(a.max(axis=1) > 0.5)) / img.size[1]
+    )  # Blender rows start at the bottom
     loc = (x, y, z + 0.0006) if flat else (x, y, z - drop * math.cos(math.radians(lean)))
-    ob = _obj(name, lambda: bpy.ops.mesh.primitive_plane_add(size=1), paper_material(name, image=image, tint=tint, sat=sat),
-              loc, rot, (w, height, 1))
-    if not flat:                                           # pivot on the bottom edge: cards fold up from the table
+    ob = _obj(
+        name,
+        lambda: bpy.ops.mesh.primitive_plane_add(size=1),
+        paper_material(name, image=image, tint=tint, sat=sat),
+        loc,
+        rot,
+        (w, height, 1),
+    )
+    if not flat:  # pivot on the bottom edge: cards fold up from the table
         ob.data.transform(Matrix.Translation((0, 0.5, 0)))
-    thick = ob.modifiers.new("paper", "SOLIDIFY")          # card stock, so edges catch light
+    thick = ob.modifiers.new("paper", "SOLIDIFY")  # card stock, so edges catch light
     thick.thickness, thick.offset = 0.0015, 0
     return ob
 
 
 def box(name: str, color: str, size, loc, rot=(0, 0, 0), glow: float = 0.0, round_: float = 0.0):
     """A paper block, `size` baked into the mesh so `round_` (corner radius, metres) stays round."""
-    ob = _obj(name, lambda: bpy.ops.mesh.primitive_cube_add(size=1), paper_material(name, color, glow=glow), loc, rot)
+    ob = _obj(
+        name,
+        lambda: bpy.ops.mesh.primitive_cube_add(size=1),
+        paper_material(name, color, glow=glow),
+        loc,
+        rot,
+    )
     ob.data.transform(Matrix.Diagonal((*size, 1)))
     if round_:
         bev = ob.modifiers.new("round", "BEVEL")
@@ -120,37 +153,84 @@ def box(name: str, color: str, size, loc, rot=(0, 0, 0), glow: float = 0.0, roun
     return ob
 
 
-def disc(name: str, color: str, radius: float, thick: float, x: float, y: float, z: float = 0.0,
-         upright: bool = False, glow: float = 0.0):
-    """A round paper piece lying on a surface (a trivet), top at z + thick; or `upright`, centred at z,
+def disc(
+    name: str,
+    color: str,
+    radius: float,
+    thick: float,
+    x: float,
+    y: float,
+    z: float = 0.0,
+    upright: bool = False,
+    glow: float = 0.0,
+):
+    """A round paper piece lying on a surface (a trivet), top at z + thick; or `upright`,
+    centred at z,
     facing the camera (a paper sun)."""
     loc, rot = ((x, y, z), (90, 0, 0)) if upright else ((x, y, z + thick / 2), (0, 0, 0))
-    return _obj(name, lambda: bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=1, depth=1),
-                paper_material(name, color, glow=glow), loc, rot, (radius, radius, thick))
+    return _obj(
+        name,
+        lambda: bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=1, depth=1),
+        paper_material(name, color, glow=glow),
+        loc,
+        rot,
+        (radius, radius, thick),
+    )
 
 
-def phone(name: str, x: float, y: float, z: float, w: float = 0.11, lean: float = 15.0, turn: float = 0.0,
-          body: str = INK, lit: float = 1.2, stand: bool = True):
-    """A phone standing on its bottom edge, tipped back `lean` degrees, screen to the camera: an ink body,
-    a plain warm yellow face (glowing when `lit` > 0, dark ink when 0), and a small cream paper stand
-    behind it. Never anything on the screen."""
+def phone(
+    name: str,
+    x: float,
+    y: float,
+    z: float,
+    w: float = 0.11,
+    lean: float = 15.0,
+    turn: float = 0.0,
+    body: str = INK,
+    lit: float = 1.2,
+    stand: bool = True,
+    corner: float = 0.14,
+):
+    """A phone standing on its bottom edge, tipped back `lean` degrees, screen to the camera:
+    an ink body, a plain warm yellow face (glowing when `lit` > 0, dark ink when 0), and a small
+    cream paper stand behind it. Never anything on the screen.
+    `lean=90, stand=False, z=0.0045` lays it face up on a surface;
+    `corner` (a fraction of the width) tells two makes apart."""
     h, t = w * 2.0, 0.009
     rot = Euler((math.radians(-lean), 0, math.radians(turn)))
     m = rot.to_matrix()
     centre = Vector((x, y, z)) + m @ Vector((0, 0, h / 2))
     deg = (-lean, 0, turn)
-    box(name, body, (w, t, h), centre, deg, round_=w * 0.14)
+    box(name, body, (w, t, h), centre, deg, round_=w * corner)
     face = centre + m @ Vector((0, -t / 2 - 0.0006, 0))
-    box(name + "-screen", YELLOW if lit else "2E2B27", (w * 0.84, 0.001, h * 0.88), face, deg, glow=lit,
-        round_=w * 0.08)
-    if stand:                                   # a cream paper wedge behind, out of sight from the front
+    box(
+        name + "-screen",
+        YELLOW if lit else "2E2B27",
+        (w * 0.84, 0.001, h * 0.88),
+        face,
+        deg,
+        glow=lit,
+        round_=w * 0.08,
+    )
+    if stand:  # a cream paper wedge behind, out of sight from the front
         back = Vector((x, y, z)) + m @ Vector((0, t / 2 + 0.035, 0))
-        box(name + "-stand", PAPER, (w * 0.6, 0.05, h * 0.42), (back.x, back.y + 0.012, z + h * 0.18), (-lean - 30, 0, turn))
+        box(
+            name + "-stand",
+            PAPER,
+            (w * 0.6, 0.05, h * 0.42),
+            (back.x, back.y + 0.012, z + h * 0.18),
+            (-lean - 30, 0, turn),
+        )
 
 
 def stage(table_front: float = -0.6, wall_y: float = 0.62):
     """Table top at z=0 with a visible front edge, and a plain wall behind it."""
-    box("table", TABLE, (6, wall_y - table_front + 1, 0.12), (0, (table_front + wall_y + 1) / 2, -0.06))
+    box(
+        "table",
+        TABLE,
+        (6, wall_y - table_front + 1, 0.12),
+        (0, (table_front + wall_y + 1) / 2, -0.06),
+    )
     box("wall", WALL, (6, 0.05, 3), (0, wall_y + 0.025, 1.5))
 
 
@@ -171,7 +251,7 @@ def light(key=(-1.6, -1.4, 2.3), power: float = 110.0, fill: float = 0.16):
 
 
 def key(ob, path: str, frame: int, value) -> None:
-    """Set and keyframe one property, with eased (Bezier) interpolation, which is Blender's default."""
+    """Set and keyframe one property, eased (Bezier, Blender's default)."""
     setattr(ob, path, value)
     ob.keyframe_insert(path, frame=frame)
 
@@ -194,8 +274,10 @@ def camera(loc, target, lens: float = 50.0):
     return cam, aim.target
 
 
-def render_settings(samples: int = 96, width: int = 1920, height: int = 1080, engine: str = "CYCLES") -> None:
-    """CYCLES for stills; EEVEE (raytraced, soft shadows) where frame count makes Cycles too slow."""
+def render_settings(
+    samples: int = 96, width: int = 1920, height: int = 1080, engine: str = "CYCLES"
+) -> None:
+    """CYCLES by default; EEVEE (raytraced, soft shadows) if Cycles ever gets too slow."""
     sc = bpy.context.scene
     if engine == "CYCLES":
         sc.render.engine = "CYCLES"
@@ -203,7 +285,7 @@ def render_settings(samples: int = 96, width: int = 1920, height: int = 1080, en
         prefs.compute_device_type = "METAL"
         prefs.get_devices()
         for d in prefs.devices:
-            d.use = d.type != "CPU"                       # GPU only; the CPU slows Metal renders down
+            d.use = d.type != "CPU"  # GPU only; the CPU slows Metal renders down
         sc.cycles.device = "GPU"
         sc.cycles.samples = samples
         sc.cycles.use_denoising = True
@@ -217,7 +299,7 @@ def render_settings(samples: int = 96, width: int = 1920, height: int = 1080, en
         sc.eevee.shadow_step_count = 12
     sc.render.resolution_x, sc.render.resolution_y = width, height
     sc.render.fps = 30
-    sc.view_settings.view_transform = "Standard"        # the brief's hex values, not a film curve
+    sc.view_settings.view_transform = "Standard"  # the brief's hex values, not a film curve
     sc.view_settings.look = "None"
     sc.render.image_settings.file_format = "PNG"
     sc.render.film_transparent = False
@@ -242,9 +324,10 @@ def run(build, shots: dict[str, int]) -> None:
     """Shared command line for every set script, after Blender's `--`:
     <shot> still [frame] [out.png]   one frame (default the shot's middle) to out/stills/<shot>.png
     <shot> frames [WxH]              every frame to out/frames/<shot>[-WxH]/
-    `build(shot)` builds the set and animates it for that shot; `shots` maps shot id to frame count."""
+    `build(shot)` builds and animates the set for that shot; `shots` maps shot id to frames."""
     import sys
-    args = sys.argv[sys.argv.index("--") + 1:]
+
+    args = sys.argv[sys.argv.index("--") + 1 :]
     shot, mode = args[0], args[1] if len(args) > 1 else "still"
     if shot not in shots:
         raise SystemExit(f"unknown shot {shot}; this set renders {sorted(shots)}")
