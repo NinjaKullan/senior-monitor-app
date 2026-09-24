@@ -210,6 +210,12 @@ def test_the_allowlist_is_the_only_way_out():
             assert source.count("httpx.AsyncClient(") == 1
             assert "transport=AllowlistTransport(inner)" in source
             continue
-        for word in ("import httpx", "urllib", "requests", "socket", "http.client"):
+        # urllib.parse builds web.py's query strings and opens nothing;
+        # every module that can open a connection is refused.
+        for word in ("import httpx", "urllib.request", "import urllib\n", "requests",
+                     "socket", "http.client", "aiohttp"):
             assert word not in source, f"{word} in {path.name}"
+        for line in source.splitlines():
+            if "urllib" in line and ("import" in line):
+                assert line.strip() == "from urllib.parse import urlencode", line
     assert frozenset({"data.cms.gov"}) == cms.ALLOWED_HOSTS

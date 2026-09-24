@@ -30,15 +30,15 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from mcp.server.mcpserver import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
 from starlette.routing import Route
 
 from care import answers as a
-from care import cms
+from care import cms, web
 from care import copy as text
 from care.geo import Centroids
 
@@ -304,10 +304,11 @@ def build_server(care: Care) -> MCPServer:
 
 def _quiet_loggers() -> None:
     """The SDK and httpx log request lines that can carry an argument or a
-    CMS URL with the state in it. Neither is ours to write (§6). Our own
+    CMS URL with the state in it, and httpx2 (the SDK's) logs a /search URL
+    with the ZIP in it. None of that is ours to write (§6). Our own
     lines go to stderr at INFO; basicConfig is a no-op when something (a
     test's log capture) already holds the root logger."""
-    for name in ("mcp", "httpx", "httpcore", "uvicorn.access"):
+    for name in ("mcp", "httpx", "httpcore", "httpx2", "httpcore2", "uvicorn.access"):
         logging.getLogger(name).setLevel(logging.WARNING)
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     log.setLevel(logging.INFO)
@@ -364,6 +365,46 @@ def create_app(
                 CLIENT_IP.reset(token)
 
     app.router.routes.append(Route("/mcp", endpoint=Mcp(), methods=["GET", "POST", "DELETE"]))
+
+    def caller(request: Request) -> str:
+        """The address the limit counts, as /mcp reads it."""
+        forwarded = request.headers.get("fly-client-ip", "").strip()
+        return forwarded or (request.client.host if request.client else "unknown")
+
+    def number(value: str | None) -> float | None:
+        try:
+            return float(value) if value not in (None, "") else None
+        except ValueError:
+            return None
+
+    @app.get("/search")
+    async def search(request: Request) -> HTMLResponse:
+        """Amendment A: the form, and find_care's answer under it once a ZIP
+        is given. No ZIP in the query is the empty form and reads nothing."""
+        query = dict(request.query_params)
+        if "zip" not in query:
+            return HTMLResponse(web.render_search(query, None), headers=web.HEADERS)
+        said = await care.find_care(
+            "search",
+            caller(request),
+            query.get("kind", "nursing home"),
+            query["zip"],
+            number(query.get("miles")),
+            number(query.get("min_rating")),
+        )
+        return HTMLResponse(web.render_search(query, said.text, said.shown), headers=web.HEADERS)
+
+    @app.get("/search/details", response_model=None)
+    async def search_details(request: Request) -> HTMLResponse | RedirectResponse:
+        """care_details's answer for one name near one ZIP, and the way back."""
+        query = dict(request.query_params)
+        if not query.get("name", "").strip() or "zip" not in query:
+            back = "/search?" + web.urlencode(web.search_query(query))
+            return RedirectResponse(back, status_code=303, headers=web.HEADERS)
+        said = await care.care_details(
+            "search_details", caller(request), query["name"], query["zip"]
+        )
+        return HTMLResponse(web.render_details(query, said.text), headers=web.HEADERS)
 
     @app.get("/", response_class=PlainTextResponse)
     async def root() -> str:
