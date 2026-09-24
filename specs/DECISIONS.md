@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 350.** This line is the one to update; the `Next number:` lines inside
+**Next number: 351.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7823,3 +7823,20 @@ browser — all three adopted as the standard for future surfaces.**
        PM reads `care.heykettle.com/search?kind=nursing+home&zip=27502`
        in Chrome after.
      * Next number: 350.
+
+350. **(2026-09-24, Thursday ET) 348 DEPLOYED and VERIFIED LIVE: care
+     then site, in that order.** PM read
+     `care.heykettle.com/search?kind=nursing+home&zip=27502&miles=15` in
+     Chrome: the form, "Near 27502", eight linked results in the tools'
+     sentences, "UNC Rex" correct. Then `heykettle.com/care` carries
+     "Search here" linking to `https://care.heykettle.com/search`. Care is
+     one machine.
+     * Also today: `docs/launch-video-brief.md` written by the PM for a
+       separate Opus session to write and build a 75 to 90 second launch
+       video (feature-led, shows the app from the Rehearsal family and
+       the Claude connector; distinct from the 30-second explainer on
+       branch `video-explainer`). Nothing in the ledger changes for it
+       until a script exists.
+     * Owed: noindex on result pages (349) in the next care pass; the
+       directory submissions (Asana); motion on the Redmi (a walk).
+     * Next number: 351.
