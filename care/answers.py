@@ -44,6 +44,33 @@ _SMALL_WORDS = {"of", "and", "the", "at", "in", "on", "for", "a", "an", "to", "b
 _ROMAN = {"ii", "iii", "iv", "vi", "vii", "viii", "ix", "xi", "xii"}
 _UNRATED = {"", "-", "not available", "n/a", "na", "none"}
 
+#: Amendment A.4: acronyms stay upper, applied after the title-case. The
+#: two-letter state codes are in it, except the ones that are also English
+#: or Spanish words in a provider's name or city ("Care in the Pines", "La
+#: Grange", "De Soto", "Oh"), and MT, which CMS uses for Mount ("Mt Olive"):
+#: upper-casing those would break far more names than it mends. DECISIONS 348.
+_AMBIGUOUS_STATES = {
+    "in", "or", "me", "oh", "ok", "hi", "de", "la", "al", "co", "ma", "pa", "id", "mt",
+}
+_STATE_CODES = {
+    "ak", "al", "ar", "az", "ca", "co", "ct", "dc", "de", "fl", "ga", "gu", "hi", "ia", "id",
+    "il", "in", "ks", "ky", "la", "ma", "md", "me", "mi", "mn", "mo", "ms", "mt", "nc", "nd",
+    "ne", "nh", "nj", "nm", "nv", "ny", "oh", "ok", "or", "pa", "pr", "ri", "sc", "sd", "tn",
+    "tx", "ut", "va", "vi", "vt", "wa", "wi", "wv", "wy",
+}
+ACRONYMS: dict[str, str] = {
+    **{code: code.upper() for code in _STATE_CODES - _AMBIGUOUS_STATES},
+    "unc": "UNC",
+    "llc": "LLC",
+    "pllc": "PLLC",
+    "llp": "LLP",
+    "lp": "LP",
+    "inc": "Inc.",
+    "usa": "USA",
+    "va": "VA",
+    "snf": "SNF",
+}
+
 
 def parse_kind(kind: str | None) -> str | None:
     return KINDS.get(" ".join(str(kind or "").lower().split()))
@@ -51,12 +78,18 @@ def parse_kind(kind: str | None) -> str | None:
 
 def title(value: object) -> str:
     """CMS's shouting, title-cased once: small words stay small after the
-    first, Roman numerals stay upper, an O' or D' keeps its capital."""
+    first, Roman numerals stay upper, an O' or D' keeps its capital, and the
+    acronyms in ACRONYMS stay upper (INC reads Inc.)."""
     words = str(value or "").strip().split()
     out = []
     for index, word in enumerate(words):
         lower = word.lower()
-        if index > 0 and lower in _SMALL_WORDS:
+        core = lower.rstrip(",.")
+        if core in ACRONYMS:
+            tail = lower[len(core):]
+            said = ACRONYMS[core]
+            out.append(said + (tail.lstrip(".") if said.endswith(".") else tail))
+        elif index > 0 and lower in _SMALL_WORDS:
             out.append(lower)
         elif lower.strip(",.") in _ROMAN:
             out.append(word.upper())
