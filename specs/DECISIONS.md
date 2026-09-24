@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 352.** This line is the one to update; the `Next number:` lines inside
+**Next number: 353.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7851,3 +7851,61 @@ browser — all three adopted as the standard for future surfaces.**
      robots ruling rides the same pass. Strings verbatim in the amendment.
      CC brief given the same evening; the build's result files at 352.
      * Next number: 352.
+
+352. **(2026-09-24, Thursday evening ET) SPEC 021 AMENDMENT B BUILT: search
+     first on `/care`, noindex on results. Not deployed; after the PM's read
+     the founder deploys care, then site.** Branch
+     `claude/fervent-brahmagupta-gv38hu`, merged to main in three commits:
+     the site reorder, the care robots, and this entry.
+     * **Gates.** `cd care && pytest`: 87 passed (81 before, plus 6 in the new
+       `test_robots.py`), no skips, no network. `ruff check care`: clean.
+       `cd site && npm run ci`: lint clean, vitest 257 passed (254 before,
+       plus 3 in `care.test.ts`), build, prerender, and all three verify
+       checks green, including "No foreign origins in 19 built files".
+     * **Plant and revert**, each watched failing and then reverted:
+       - site: the button moved below the assistant line (4 fail), the old
+         footnote put back (4), the old PAGE_HOW put back (4), one word of
+         the button changed (4), the button not full width (1), the button
+         36px tall (1).
+       - care: the bare form noindexed (1), the meta tag dropped (3), details
+         indexable (1), a query without a ZIP left indexable (1), an extra
+         byte in robots.txt (1), the details 303 indexable (1).
+       - A real browser checked `/care` at 360, 390 and 768, scripts on and
+         off: the button is 44px tall, full width on phones (312 and 342px,
+         the column's width), sizes to its words at 768, and the page makes
+         one request.
+     * **B.4.1.** The first link after the lede is `<a class="search"
+       href="https://care.heykettle.com/search">Search near a ZIP code</a>`.
+       PAGE_SEARCH_LINE, PAGE_SEARCH_LINK and the old PAGE_HOW are absent,
+       and all three are tested.
+     * **B.4.2.** `/search` with no query sends no robots header. Every
+       `/search` with a query and every `/search/details` sends `X-Robots-Tag:
+       noindex` and the meta tag. `/robots.txt` equals `User-agent:
+       *\nDisallow: /search/details\nAllow: /\n` byte for byte.
+     * **B.4.3.** The site test reads B.3 out of the spec and also asserts
+       both strings literally, so the ruling has a copy the spec cannot
+       drift from silently. The care side has no B.3 strings; `test_copy`
+       already refuses any PAGE_* in `care/copy.py`.
+     * **Judgement calls, named:**
+       1. **Which queries are noindex.** "Any query" means any query string
+          at all. `/search?kind=nursing+home`, which shows only the form,
+          is noindex, and so is `/search?utm_source=x`. `/search?`, with an
+          empty query, is the bare form and stays indexable. Refusals,
+          ZIP_UNKNOWN, RATE_LIMITED and CMS_DOWN pages are all noindex,
+          and so is the `/search/details` 303 back to the list, as a header.
+       2. **robots.txt ends in a newline** after `Allow: /`, which is the
+          conventional form: three lines, each terminated. It is served as
+          `text/plain`, reads nothing, and is not counted against the limit.
+       3. **The button's width.** It is full width up to 30rem (480px), where
+          phones end, and sizes to its words above that, as Copy does. It
+          shares Copy's five colour and shape declarations, and the test
+          pins that, so one cannot change without the other being seen.
+          Hover changes colour only.
+       4. **The site test now builds the live strings** as §10's, with
+          PAGE_HOW swapped for B.3's two. A.5's two are read only in order
+          to assert that they are gone.
+     * **Founder, after the PM:** `cd care && pytest && fly deploy` (one
+       machine), then `cd site && npm run ci && fly deploy`. Either order
+       is safe this time: the button's target already exists. Care first
+       keeps the habit.
+     * Next number: 353.

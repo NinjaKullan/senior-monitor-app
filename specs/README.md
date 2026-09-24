@@ -37,7 +37,7 @@ line at its top. Items 1 through 120 are in `DECISIONS-archive.md`.
 | [019](019-mcp.md) | Ask Kettle from an assistant (read-only MCP) | Built and live (DECISIONS 285–288); Claude and Codex both connected. CIMD works through a shipped copy of Claude's client document (319–321). |
 | [019 A](019-mcp.md#amendment-a-2026-09-08-notes-and-replies-through-the-assistant) | Amendment A: notes and replies through the assistant | Built and live (DECISIONS 317/318/322/323): `add_note` and `reply` behind the `kettle:write` scope, lines marked "{name} via {client}". |
 | [020](020-household-devices.md) | The family's own devices (a recorded fact, never a judgement) | Built and live (DECISIONS 313–315). Nothing a device says feeds the engine. |
-| [021](021-care-compare.md) | Care Compare, a free public MCP under the Kettle name (marketing asset, not a product feature) | RATIFIED (343); built (344); live (346). Amendment A (web search, 347) built at 348, awaiting PM review; not deployed. Its own Fly app; shares nothing with kettle-api. |
+| [021](021-care-compare.md) | Care Compare, a free public MCP under the Kettle name (marketing asset, not a product feature) | RATIFIED (343); built (344); live (346). Amendment A (web search, 347) built (348), live (350). Amendment B (search first, noindex, 351) built at 352, awaiting PM review; not deployed. Its own Fly app; shares nothing with kettle-api. |
 
 ## What "superseded" means here
 
