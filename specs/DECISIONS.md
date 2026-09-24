@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 346.** This line is the one to update; the `Next number:` lines inside
+**Next number: 347.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7627,3 +7627,36 @@ browser — all three adopted as the standard for future surfaces.**
        deploy for `/care` (`cd site && npm run ci && fly deploy`). PM
        verifies with a real connector after (3).
      * Next number: 346.
+
+346. **(2026-09-24, Thursday ET) CARE COMPARE LIVE and VERIFIED:
+     `https://care.heykettle.com/mcp` and `https://heykettle.com/care`.**
+     In order, the same afternoon: real ZCTA centroids built on the Mac
+     (33,144 rows, 62 tests green, 6c97cfb); `fly apps create kettle-care`
+     and `fly deploy` from `care/`; scaled to one machine (Fly had added a
+     second "for high availability", which doubles the bill and splits
+     the cache); `fly certs add care.heykettle.com`; the four DNS records
+     in Cloudflare, which the PM added in the founder's Chrome at his
+     word "go ahead and take care of it" (a one-time departure from
+     "PM fills, founder saves", on his explicit ask): `care` A and AAAA
+     proxied, `_acme-challenge.care` CNAME and `_fly-ownership.care` TXT
+     DNS only; certificate issued by Let's Encrypt within three minutes;
+     then the site deploy for `/care`.
+     * **Verified live by the PM from Chrome, JSON-RPC straight at `/mcp`:**
+       initialize answers with the §10 `instructions` line; `find_care`
+       nursing homes near 27502 gives eight nearest-first with real CMS
+       ratings and phones and the MORE_LINE (3 more); home health with
+       `min_rating` 4 gives three including a 4.5; `care_details`
+       Glenaire and `compare_care` Glenaire against Windsor Point give the
+       full §4 sentence sets with "last updated August 1, 2026"; kind
+       "hospital" gets KIND_UNKNOWN. First answer for a state about 4
+       seconds (the CMS fetch), cached after. `/healthz` 200. The page
+       renders with the address and Copy.
+     * **Follow-ups for the next care pass, none blocking:** title-casing
+       turns "UNC Rex" into "Unc Rex" (a short acronym list: UNC, LLC,
+       PLLC, LLP, USA, VA, and state codes); root CI job for `care/`
+       tests; the `copy.py` name.
+     * Cost: one shared-cpu-1x, 512 MB, always on. The SEO backlog's
+       "Care Compare as a linkable asset" line is now a live asset; the
+       Oct 6 review decides where it gets linked from (registry listing,
+       a post, outreach).
+     * Next number: 347.
