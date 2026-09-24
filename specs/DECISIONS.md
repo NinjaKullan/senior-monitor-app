@@ -7685,7 +7685,7 @@ browser — all three adopted as the standard for future surfaces.**
 348. **(2026-09-24, Thursday ET) SPEC 021 AMENDMENT A BUILT (web search), with
      the two 345 follow-ups. Not deployed; the PM reviews, then the founder
      deploys `care/` and `site/`.** Branch `claude/fervent-brahmagupta-gv38hu`,
-     merged to main in nine commits: the Care service refactor, the A.5
+     merged to main in eight commits: the Care service refactor, the A.5
      strings, the acronyms, `/search`, the site line, the CI job, the care
      README, this entry.
      * **Gates.** `cd care && pytest`: 81 passed (62 before: 17 in the new
