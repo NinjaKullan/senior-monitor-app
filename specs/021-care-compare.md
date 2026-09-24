@@ -367,3 +367,33 @@ same query. No compare on the web in this release.
 7. The site page carries PAGE_SEARCH_LINE and the link; `npm run ci`
    stays green.
 8. Every A.5 string pinned verbatim.
+
+## Amendment B — Search first on the page; noindex on results (ratified 2026-09-24, DECISIONS 351)
+
+### B.1 The page, reordered
+On `heykettle.com/care`, directly under PAGE_LEDE: one button-styled
+link, PAGE_SEARCH_BUTTON, to `https://care.heykettle.com/search`, styled
+as the site's primary action (the same look as the Copy button, full
+width on phones, at least 44px tall). Below it the assistant path as the
+second option: PAGE_HOW_SECOND replaces PAGE_HOW, then the address block
+with Copy as before. PAGE_SEARCH_LINE and PAGE_SEARCH_LINK are retired;
+nothing else on the page moves.
+
+### B.2 Robots (DECISIONS 349)
+- `GET /search` with no query: indexable, no robots header.
+- `GET /search` with any query, and `GET /search/details`: header
+  `X-Robots-Tag: noindex` and `<meta name="robots" content="noindex">`.
+- `GET /robots.txt` on the care host: `User-agent: *`, `Disallow:
+  /search/details`, `Allow: /`. `/mcp` needs nothing; it answers JSON.
+
+### B.3 Strings (verbatim)
+- PAGE_SEARCH_BUTTON = "Search near a ZIP code"
+- PAGE_HOW_SECOND = "Or add it to Claude, ChatGPT, or another assistant as a connector, once, with this address. Then ask in your own words."
+
+### B.4 Acceptance
+1. The page's first link after the lede is PAGE_SEARCH_BUTTON to the
+   search address; PAGE_SEARCH_LINE no longer appears; `npm run ci` green.
+2. `/search` bare answers no robots header; `/search?kind=…` and
+   `/search/details?…` answer the header and the meta tag; `/robots.txt`
+   matches B.2 byte for byte.
+3. Strings pinned.

@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 351.** This line is the one to update; the `Next number:` lines inside
+**Next number: 352.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7840,3 +7840,14 @@ browser — all three adopted as the standard for future surfaces.**
      * Owed: noindex on result pages (349) in the next care pass; the
        directory submissions (Asana); motion on the Redmi (a walk).
      * Next number: 351.
+
+351. **(2026-09-24, Thursday evening ET) SPEC 021 AMENDMENT B RATIFIED:
+     search first on the page, noindex on results.** The founder could not
+     find "Search here" on `heykettle.com/care` without being pointed at
+     it; the PM agreed the footnote buries the path most visitors will
+     use. Ruled: a primary-styled button link "Search near a ZIP code"
+     directly under the lede, the assistant path second ("Or add it to
+     Claude, ChatGPT, or another assistant…"), the footnote retired. 349's
+     robots ruling rides the same pass. Strings verbatim in the amendment.
+     CC brief given the same evening; the build's result files at 352.
+     * Next number: 352.
