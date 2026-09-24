@@ -52,6 +52,36 @@ jobs:
       - name: Test (pilot + product)
         run: pytest
 
+  # Care Compare (spec 021, DECISIONS 345/347): its own app with its own suite
+  # and no database, so no service container. Modelled on the product job.
+  # Its lint is `ruff check care`, not the root `ruff check .`, so this job's
+  # verdict is about care/ alone.
+  care:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: care/requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r care/requirements-dev.txt
+
+      - name: Lint
+        run: ruff check care
+
+      # The pytest entry point, never `python -m pytest`: from care/, -m puts
+      # care/ on sys.path and care/copy.py shadows the stdlib (DECISIONS 344).
+      - name: Test
+        working-directory: care
+        run: pytest
+
   webapp:
     runs-on: ubuntu-latest
     defaults:
