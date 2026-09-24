@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 353.** This line is the one to update; the `Next number:` lines inside
+**Next number: 354.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7909,3 +7909,14 @@ browser — all three adopted as the standard for future surfaces.**
        is safe this time: the button's target already exists. Care first
        keeps the habit.
      * Next number: 353.
+
+353. **(2026-09-24, Thursday night ET) 352 ACCEPTED (ac0147a).** The button
+     is the first link after the lede, the assistant path reads "Or add
+     it to…", the footnote is gone; result pages and details answer
+     noindex, the bare form does not, robots.txt is B.2's three lines.
+     All four judgement calls stand (any query is noindex, including a
+     bare `?utm_source=`; the trailing newline; the button's width rule
+     and its tie to the Copy button's style).
+     * Deploy (founder): `cd care && fly deploy`, then `cd site && npm run
+       ci && fly deploy`. PM reads the page after.
+     * Next number: 354.
