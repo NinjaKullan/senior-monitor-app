@@ -382,8 +382,11 @@ def create_app(
         """Amendment A: the form, and find_care's answer under it once a ZIP
         is given. No ZIP in the query is the empty form and reads nothing."""
         query = dict(request.query_params)
+        # Amendment B.2: only the bare form, with no query at all, is indexable.
+        bare = not request.url.query
+        headers = web.HEADERS if bare else web.NOINDEX_HEADERS
         if "zip" not in query:
-            return HTMLResponse(web.render_search(query, None), headers=web.HEADERS)
+            return HTMLResponse(web.render_search(query, None, noindex=not bare), headers=headers)
         said = await care.find_care(
             "search",
             caller(request),
@@ -392,7 +395,7 @@ def create_app(
             number(query.get("miles")),
             number(query.get("min_rating")),
         )
-        return HTMLResponse(web.render_search(query, said.text, said.shown), headers=web.HEADERS)
+        return HTMLResponse(web.render_search(query, said.text, said.shown), headers=headers)
 
     @app.get("/search/details", response_model=None)
     async def search_details(request: Request) -> HTMLResponse | RedirectResponse:
@@ -400,11 +403,16 @@ def create_app(
         query = dict(request.query_params)
         if not query.get("name", "").strip() or "zip" not in query:
             back = "/search?" + web.urlencode(web.search_query(query))
-            return RedirectResponse(back, status_code=303, headers=web.HEADERS)
+            return RedirectResponse(back, status_code=303, headers=web.NOINDEX_HEADERS)
         said = await care.care_details(
             "search_details", caller(request), query["name"], query["zip"]
         )
-        return HTMLResponse(web.render_details(query, said.text), headers=web.HEADERS)
+        return HTMLResponse(web.render_details(query, said.text), headers=web.NOINDEX_HEADERS)
+
+    @app.get("/robots.txt", response_class=PlainTextResponse)
+    async def robots() -> PlainTextResponse:
+        """Amendment B.2: crawl the form, never the details pages."""
+        return PlainTextResponse(web.ROBOTS_TXT)
 
     @app.get("/", response_class=PlainTextResponse)
     async def root() -> str:

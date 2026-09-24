@@ -15,6 +15,10 @@ a plain form for people with no assistant. It gives the same sentences the
 tools give, because it calls the same code, and the same limit applies:
 a web search counts as a tool call. The page has no script, no cookie and
 no image, and it sends no referrer.
+Amendment B (DECISIONS 351) keeps result pages out of search engines: the
+bare form may be indexed, every page with a query and every details page
+answers `X-Robots-Tag: noindex` with the matching meta tag, and
+`/robots.txt` disallows `/search/details`.
 
 It is its own app. It shares no process, database, secret, table or code
 with kettle-api. The MCP wiring is kettle-api's pattern, copied: the SDK's
@@ -35,7 +39,7 @@ WARNING, because a CMS URL carries the state.
 
 | File | What it does |
 |---|---|
-| `app.py` | FastAPI; `Care`, the three answers that the tools and the web page share; the per-IP limit (60 an hour, `Fly-Client-IP`, shared by `/mcp` and `/search`); `/search`, `/search/details`, `/`, and `/healthz` |
+| `app.py` | FastAPI; `Care`, the three answers that the tools and the web page share; the per-IP limit (60 an hour, `Fly-Client-IP`, shared by `/mcp` and `/search`); `/search`, `/search/details`, `/robots.txt`, `/`, and `/healthz` |
 | `web.py` | The `/search` pages: one template string, one inlined stylesheet, every value escaped |
 | `cms.py` | Fetch, page (1000 a page), cache, stale copy, `CmsDown`, and the `data.cms.gov`-only allowlist in the transport |
 | `geo.py` | Centroids, great-circle miles, ZIP prefix to state, and which states a radius reaches |

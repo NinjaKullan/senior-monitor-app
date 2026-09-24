@@ -37,6 +37,14 @@ HEADERS = {
     "Referrer-Policy": "no-referrer",
     "X-Content-Type-Options": "nosniff",
 }
+#: Amendment B.2 (DECISIONS 349): the bare form may be indexed; every page
+#: with a query, and every details page, is not. Thousands of thin result
+#: pages would cost the site's standing and spend crawlers' hourly limits.
+NOINDEX_HEADERS = {**HEADERS, "X-Robots-Tag": "noindex"}
+NOINDEX_META = '<meta name="robots" content="noindex">\n'
+
+#: Amendment B.2, byte for byte. /mcp needs nothing: it answers JSON.
+ROBOTS_TXT = "User-agent: *\nDisallow: /search/details\nAllow: /\n"
 
 # The site's locked palette (site/src/tokens.css), as /care uses it. Sizes are
 # rem so the page grows with the reader's font size; every control is at
@@ -47,7 +55,7 @@ PAGE = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>{title}</title>
+{robots}<title>{title}</title>
 <style>
 body {{ margin: 0 auto; padding: 2.5rem 1rem 4rem; max-width: 42rem; background: #f6f2ec;
   color: #403c36; font: 1rem/1.5 system-ui, sans-serif; }}
@@ -162,16 +170,23 @@ def _assistant() -> str:
     )
 
 
-def _page(body: str) -> str:
+def _page(body: str, noindex: bool) -> str:
     return PAGE.format(
-        title=escape(text.SEARCH_TITLE), lede=escape(text.SEARCH_LEDE), body=body
+        title=escape(text.SEARCH_TITLE),
+        lede=escape(text.SEARCH_LEDE),
+        body=body,
+        robots=NOINDEX_META if noindex else "",
     )
 
 
 def render_search(
-    query: Mapping[str, str], said_text: str | None, shown: tuple[a.Placed, ...] = ()
+    query: Mapping[str, str],
+    said_text: str | None,
+    shown: tuple[a.Placed, ...] = (),
+    noindex: bool = True,
 ) -> str:
-    """/search: the form, and under it the answer when a search ran."""
+    """/search: the form, and under it the answer when a search ran.
+    `noindex` is False only for the bare form (Amendment B.2)."""
     body = _form(query)
     if said_text is not None:
         carried = search_query(query)
@@ -184,7 +199,7 @@ def render_search(
             if p.miles <= a.MATCH_MILES
         ]
         body += _section(zip_value, _answer(said_text, links) + _assistant())
-    return _page(body)
+    return _page(body, noindex)
 
 
 def render_details(query: Mapping[str, str], said_text: str) -> str:
@@ -192,4 +207,4 @@ def render_details(query: Mapping[str, str], said_text: str) -> str:
     back = "/search?" + urlencode(search_query(query))
     body = f'<p class="back"><a href="{escape(back)}">{escape(text.SEARCH_BACK)}</a></p>'
     body += _section(query.get("zip", ""), _answer(said_text, []) + _assistant())
-    return _page(body)
+    return _page(body, noindex=True)
