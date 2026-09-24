@@ -8,11 +8,12 @@
 - [x] Phase 4: kitchen look approved; fixes applied (phone on a stand, cream steam, sage oven door, kettle on a trivet, every card seated)
 - [x] Phase 4: kitchen animates for shots 2, 6, 7 (blender/kitchen.py)
 - [x] Phase 4: map set, shot 1 (blender/map.py)
-- [ ] Phase 4: phones set, shot 3
-- [ ] Phase 4: close, shot 15, and the plate under the screen shots
-- [ ] Phase 4: render all frames; captions; screen placeholders; assemble 16:9
-- [ ] Phase 4: 9:16 cut from the same scenes
-- [ ] Phase 4: README with the one render command
+- [x] Phase 4: phones set, shot 3 (blender/phones.py)
+- [x] Phase 4: close, shot 15, and the plate under the screen shots (blender/close.py)
+- [x] Phase 4: compositor (render.py): captions, placeholders, recordings path, 16:9 and 9:16
+- [x] Phase 4: README with the one render command
+- [ ] Phase 4: all frames rendered (in progress); full 16:9 and 9:16 cuts built and checked
+- [ ] Needs from founder: recordings R1 to R9 (placeholders until then)
 Gemini images, phase 4: 12 of 60
 - [ ] Phase 4: remaining scenes, compositing, 16:9 + 9:16 renders, README, PROMPTS.md (<= 60 Gemini images)
 - [ ] Commit and push on branch launch-video
