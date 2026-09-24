@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 349.** This line is the one to update; the `Next number:` lines inside
+**Next number: 350.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7800,3 +7800,26 @@ browser — all three adopted as the standard for future surfaces.**
        machine), then `cd site && npm run ci && fly deploy`, in that order,
        so the site's link never points at a page that does not exist yet.
      * Next number: 349.
+
+349. **(2026-09-24, Thursday ET) 348 ACCEPTED (0a9ea37). The web search
+     deploys; one ruling on crawlers.** PM read `care/web.py` (every value
+     escaped, GET form, `no-store`, a page-loads-nothing content policy,
+     `no-referrer`) and the logger fix in `care/app.py` (the MCP SDK's own
+     HTTP logger was writing request URLs, which on `/search` carry the
+     ZIP; held at WARNING with a test). All twelve judgement calls stand,
+     the state-code exception list and the extra headers included; the
+     logger catch is the kind of thing the "nothing logged" rule exists
+     to find.
+     * **Ruling on the open item:** the bare `/search` form page may be
+       indexed; every page with a query (`/search?…` and
+       `/search/details`) answers `X-Robots-Tag: noindex` and a `<meta
+       name="robots" content="noindex">`, and `care.heykettle.com/robots.txt`
+       disallows `/search/details`. Thousands of thin result pages would
+       hurt the site's own standing and spend crawlers' hourly limits for
+       nothing; the page that earns links is `heykettle.com/care`. Small
+       enough to ride the next care pass; not a deploy blocker.
+     * **Deploy (founder), care first then site:** `cd care && fly deploy`
+       (one machine, unchanged), then `cd site && npm run ci && fly deploy`.
+       PM reads `care.heykettle.com/search?kind=nursing+home&zip=27502`
+       in Chrome after.
+     * Next number: 350.
