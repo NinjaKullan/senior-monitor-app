@@ -65,10 +65,10 @@ def build(shot: str) -> None:
             "slip",
             P.PAPER,
             (0.07, 0.003, 0.045),
-            (PHONE[0], PHONE[1] - 0.03, TOP + 0.35),
+            (PHONE[0], PHONE[1] - 0.03, TOP + 0.9),
             (-14, 0, 0),
         )
-        P.key(slip, "location", 12, (PHONE[0], PHONE[1] - 0.03, TOP + 0.35))
+        P.key(slip, "location", 12, (PHONE[0], PHONE[1] - 0.03, TOP + 0.9))
         P.key(slip, "location", 42, (PHONE[0], PHONE[1] - 0.035, TOP + 0.075))
         thumbs = P.card("thumbs", "assets/layers/thumbs.png", 0.14, -0.12, 0.26, z=TOP, lean=88)
         P.key(thumbs, "rotation_euler", 66, (math.radians(2), 0, 0))
