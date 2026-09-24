@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 348.** This line is the one to update; the `Next number:` lines inside
+**Next number: 349.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7681,3 +7681,122 @@ browser — all three adopted as the standard for future surfaces.**
        submissions (founder console work). Soak day 5: charger passes
        (22:48), see 340's log.
      * Next number: 348.
+
+348. **(2026-09-24, Thursday ET) SPEC 021 AMENDMENT A BUILT (web search), with
+     the two 345 follow-ups. Not deployed; the PM reviews, then the founder
+     deploys `care/` and `site/`.** Branch `claude/fervent-brahmagupta-gv38hu`,
+     merged to main in nine commits: the Care service refactor, the A.5
+     strings, the acronyms, `/search`, the site line, the CI job, the care
+     README, this entry.
+     * **Gates.** `cd care && pytest`: 81 passed (62 before: 17 in the new
+       `test_search.py`, 2 in `test_copy.py`), no skips, no network.
+       `ruff check care`: clean. `cd site && npm run ci`: lint clean, vitest
+       254 passed (the same count, because `care.test.ts` grew assertions,
+       not cases), build, prerender, and all three verify checks green,
+       including "No foreign origins in 19 built files". **Plant and
+       revert,** each watched failing and then reverted:
+       - care: acronyms off (2 fail), MT upper-cased (1), a `<script>` in the
+         page (2), the web dropping answer lines (3), the web given its own
+         limiter key (1), the query logged (1), the no-referrer header
+         removed (1), a foreign URL in the page (2), "now" in SEARCH_LEDE (2),
+         the httpx2 logger left at INFO (1), names unlinked (3), the ZIP
+         echoed unescaped (1).
+       - site: PAGE_SEARCH_LINE changed (3), the link removed (2), an `<img>`
+         loaded from the care host (3), the line moved above the address (3).
+       - A real browser checked `/search`, its results and its details at
+         360, 390 and 768, at the default font size and at 200%: no
+         overflow, every control at least 44px, and not one request off the
+         page. `/care` was checked again at 360, 390 and 768 with scripts on
+         and off.
+     * **How A.6.1's "equals find_care's answer" is held.** The tool bodies
+       moved out of `build_server`'s closures into one `Care` class in
+       `app.py`. The MCP tools and the two web routes call the same methods,
+       so the text is the same code's output, not a copy of it. The test
+       reads the text back out of the page, a `<div>` per paragraph and a
+       `<p>` per line, and compares it to a real `/mcp` `find_care` call,
+       character for character. It does this for four queries, including
+       a border ZIP and NEAREST_BEYOND, and does the same for
+       `care_details`.
+       The refactor landed first, on its own, with the 62 tests untouched.
+     * **Judgement calls, named:**
+       1. **Acronyms.** A.4's list is applied as written, except for the state
+          codes that are also words in real provider names and cities: IN,
+          OR, ME, OH, OK, HI, DE, LA, AL, CO, MA, PA and ID ("Care in the
+          Pines", "La Grange", "De Soto"). MT is also excluded, because CMS
+          writes Mount that way ("Mt Olive", "Mt Airy"). VA stays in, as A.4
+          lists it. The rule runs over names, addresses and cities, because
+          §4's title-case does. "INC" and "INC." both read "Inc.", and
+          trailing commas are kept ("LLC,"). Directions such as NW and SE
+          are not in A.4's list and still read "Nw"; adding them is one line
+          if the PM wants it.
+       2. **What "no query" means.** No `zip` parameter at all shows the form
+          and reads nothing. An empty or bad ZIP runs the search and says
+          ZIP_UNKNOWN, as the tool would. A missing `kind` means nursing
+          home, the form's first choice. A `miles` or `min_rating` that is
+          not a number is treated as absent, and the tool's own clamping
+          does the rest.
+       3. **SEARCH_RESULTS_HEAD only over a five-digit ZIP.** "Near abc"
+          above ZIP_UNKNOWN would repeat the mistake back to the reader.
+       4. **Which names link.** Every provider the answer names links to its
+          details, including NEAREST_BEYOND's, unless it is more than 50
+          miles away. `care_details` only matches within 50 miles, so that
+          link would land on NO_MATCH. The link carries the whole search
+          plus the name, and SEARCH_BACK returns the four search fields.
+          `/search/details` with no name answers a 303 back to the search,
+          which reads nothing.
+       5. **The log labels.** A search logs `search ok 8` and the details page
+          logs `search_details ok 1`, in the §6 shape and with the same
+          status words. The `httpx2` and `httpcore2` loggers (the SDK's)
+          are now held at WARNING with the others: the planted test found
+          `httpx2` writing a request URL, and a `/search` URL carries the ZIP.
+       6. **Headers beyond the amendment, as defence.**
+          - `Content-Security-Policy: default-src 'none'`, with inline style
+            only, `form-action 'self'`, `base-uri 'none'` and
+            `frame-ancestors 'none'`, so that even a future slip cannot load
+            anything.
+          - `Cache-Control: no-store`, because a stale limit or a stale CMS
+            page must not be replayed from a cache.
+          - `Referrer-Policy: no-referrer`, also as a meta tag. A result's
+            address carries the ZIP, and a click to heykettle.com would
+            otherwise hand it to the site's visit counting in the Referer.
+       7. **SEARCH_ASSISTANT_LINK's target is `https://heykettle.com/care/`**,
+          with the slash, because that is the page's own address; without it
+          nginx answers with a 301 first. A.6.4's "heykettle.com/care" is met.
+       8. **Rate limit sharing is by address.** `/search` reads
+          `Fly-Client-IP` as `/mcp` does, and a refused search reads nothing.
+          The test runs 30 tool calls and 30 searches, then the 61st, a
+          search, gets RATE_LIMITED. After it, a details page and a tool call
+          are refused too, and another address is not.
+       9. **The copy law on the care side** reads the site's own lists out of
+          `site/src/tests/copyBans.ts`, so there is one law and not a copy of
+          it. The test scans every rendered page, including CMS_DOWN and
+          STALE_LINE. The one exception is "just now" in those two ruled §10
+          answers, named in the test, because the urgency ban is about
+          pressing a reader and they report when Medicare's site failed.
+          Provider names are CMS's data and could carry a banned word ("...
+          Hospital SNF"). The fixtures do not, and the scan would flag one
+          if they did.
+       10. **The 44px rule.** Controls are 2.75rem tall and every size is in rem
+          or percent, so the page grows with the reader's font size. The
+          test pins that in the stylesheet, and the browser probe measured
+          it at 1x and 2x. The site's new inline link is 20px tall, like
+          "See Kettle" on the same page; WCAG 2.5.8 exempts inline links.
+       11. **`test_cms`'s network check.** "Only cms.py opens connections" now
+          admits exactly one import, `from urllib.parse import urlencode`,
+          in web.py. It builds query strings and opens nothing; every module
+          that can open a connection is still refused.
+       12. **CI.** A `care` job beside `test`, `webapp` and `site`: Python
+          3.12, `care/requirements-dev.txt`, `ruff check care`, then `pytest`
+          from `care/`. The `pytest` entry point is used because of the
+          `copy.py` trap. The product job's root `ruff check .` and
+          `tools/social` are untouched, as briefed.
+     * **Open, for the PM, not built.** Crawlers. `/search?zip=...` pages
+       are GET and linkable, so a crawler that follows the form's links
+       spends that crawler's 60 an hour and warms CMS copies. Nothing
+       indexes them today, because nothing links a result. A `noindex` meta
+       tag on result pages, or a `Disallow: /search` in a care robots.txt,
+       is one line if wanted.
+     * **Founder, after the PM:** `cd care && pytest && fly deploy` (one
+       machine), then `cd site && npm run ci && fly deploy`, in that order,
+       so the site's link never points at a page that does not exist yet.
+     * Next number: 349.
