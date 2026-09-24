@@ -29,9 +29,10 @@ const OURS = new Set([
   "kettle-api.fly.dev", // the waitlist POST target
   "heykettle.com", // canonical site origin (DECISIONS 142)
   "www.heykettle.com",
-  // Care Compare's connector address (spec 021 §7), printed on /care/ as text
-  // for a reader to copy into an assistant. The page never loads it: no src,
-  // no fetch, not even an anchor. Ours, on our own domain.
+  // Care Compare, ours on our own domain: /care/ prints the connector address
+  // as text to copy (spec 021 §7) and links the care app's /search page
+  // (Amendment A). An href only; the page loads nothing from it, and
+  // care.test.ts holds that to exactly one href and no src.
   "care.heykettle.com",
   "localhost",
   "127.0.0.1",

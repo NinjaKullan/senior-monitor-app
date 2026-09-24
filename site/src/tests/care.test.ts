@@ -29,12 +29,16 @@ const SITE = process.cwd();
 const PAGE = join(SITE, "public", "care", "index.html");
 const SPEC = join(SITE, "..", "specs", "021-care-compare.md");
 const ADDRESS = "https://care.heykettle.com/mcp";
+/** Amendment A.1: the care app's search page, the one link to the care host. */
+const SEARCH = "https://care.heykettle.com/search";
 
 const html = () => readFileSync(PAGE, "utf8");
 
-/** §10's PAGE_* strings, straight from the spec. */
+/** §10's PAGE_* strings and Amendment A.5's two, straight from the spec. */
 function pageStrings(): Record<string, string> {
-  const section = readFileSync(SPEC, "utf8").split("\n## 10.")[1];
+  const spec = readFileSync(SPEC, "utf8");
+  const section = spec.split("\n## 10.")[1].split("\n## Amendment A")[0]
+    + spec.split("\n### A.5")[1].split("\n### A.6")[0];
   const found: Record<string, string> = {};
   for (const [, name, value] of section.matchAll(/\b(PAGE_[A-Z0-9_]+) = "([^"]*)"/g)) {
     found[name] = value;
@@ -55,7 +59,7 @@ describe("the /care page says §10, verbatim", () => {
     expect(Object.keys(strings).sort()).toEqual([
       "PAGE_ADDRESS", "PAGE_COPIED", "PAGE_COPY", "PAGE_EXAMPLES_HEAD", "PAGE_EXAMPLE_1",
       "PAGE_EXAMPLE_2", "PAGE_EXAMPLE_3", "PAGE_HOW", "PAGE_KETTLE", "PAGE_KETTLE_LINK",
-      "PAGE_LEDE", "PAGE_SOURCE", "PAGE_TITLE",
+      "PAGE_LEDE", "PAGE_SEARCH_LINE", "PAGE_SEARCH_LINK", "PAGE_SOURCE", "PAGE_TITLE",
     ]);
     const text = readable();
     const page = html();
@@ -82,11 +86,17 @@ describe("the /care page says §10, verbatim", () => {
     expect(page).toContain(`<code id="care-address">${strings.PAGE_ADDRESS}</code>`);
     expect(page).toContain(`<button type="button" id="care-copy" hidden>${strings.PAGE_COPY}</button>`);
     expect(page).toContain(`<a href="/">${strings.PAGE_KETTLE_LINK}</a>`);
+    // Amendment A.1: the search line, its link text the link, under the address.
+    const [before, after] = strings.PAGE_SEARCH_LINE.split(strings.PAGE_SEARCH_LINK);
+    expect(page).toContain(
+      `<p class="search">${before}<a href="${SEARCH}">${strings.PAGE_SEARCH_LINK}</a>${after}</p>`,
+    );
     // The doorway says the lede; no new copy was written for it.
     expect(page).toContain(`<meta name="description" content="${strings.PAGE_LEDE}" />`);
     // Order: lede, how, the address, where the numbers come from, the examples, Kettle.
     const at = (s: string) => page.indexOf(s);
-    const order = [strings.PAGE_LEDE, strings.PAGE_HOW, `id="care-address"`, strings.PAGE_SOURCE,
+    const order = [strings.PAGE_LEDE, strings.PAGE_HOW, `id="care-address"`,
+      `<p class="search">`, strings.PAGE_SOURCE,
       strings.PAGE_EXAMPLE_1, strings.PAGE_EXAMPLE_3, strings.PAGE_KETTLE_LINK].map((s) => at(`${s}`));
     expect(order.every((n) => n > 0)).toBe(true);
     expect([...order].sort((x, y) => x - y)).toEqual(order);
@@ -105,7 +115,10 @@ describe("the /care page fetches nothing", () => {
   it("prints the address and never loads it or links it", () => {
     const page = html();
     expect(page.split(ADDRESS).length - 1).toBe(1);
-    expect(page).not.toMatch(/(?:src|href|action)="https:\/\/care\.heykettle\.com/);
+    // One href to the care host, the search page; nothing loaded from it.
+    const toCare = [...page.matchAll(/(src|href|action|srcset|data)="https:\/\/care\.heykettle\.com[^"]*"/g)]
+      .map((m) => m[0]);
+    expect(toCare).toEqual([`href="${SEARCH}"`]);
   });
 
   it("carries one inline script, which reads the page and writes the clipboard, and nothing else", () => {
@@ -121,10 +134,11 @@ describe("the /care page fetches nothing", () => {
     expect(body).toContain("navigator.clipboard.writeText");
   });
 
-  it("no image, no stylesheet, and no absolute URL but its canonical and the address", () => {
+  it("no image, no stylesheet, and no absolute URL but its canonical, the address and search", () => {
     const page = html()
       .replace('<link rel="canonical" href="https://heykettle.com/care/" />', "")
-      .replace(ADDRESS, "");
+      .replace(ADDRESS, "")
+      .replace(`<a href="${SEARCH}">`, "<a>");
     expect(page).not.toMatch(/<img|<link|<iframe|<video|<audio|<source/i);
     expect(page).not.toMatch(/https?:\/\//i);
   });

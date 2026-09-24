@@ -12,7 +12,8 @@
     <style>
       /* Inlined, the privacy.html and /resources/ posture: this page stands
          alone and fetches nothing. The connector address below is printed as
-         text to copy, never loaded (spec 021 §7). Values are tokens.css's
+         text to copy, never loaded (spec 021 §7); the search line links to
+         the care app's /search page and loads nothing from it (Amendment A). Values are tokens.css's
          locked palette; Newsreader is named with Georgia standing in, and no
          font file is fetched. */
       body {
@@ -85,6 +86,13 @@
       }
       .address button:hover { background: #2b2824; }
       .address button:focus-visible { outline: 2px solid #403c36; outline-offset: 3px; }
+      /* Amendment A: the one line under the address, for a reader with no
+         assistant. A link to the care app's own search page; this page
+         still loads nothing from it. */
+      p.search {
+        margin: 1rem 0 0;
+        font-size: 1.0625rem;
+      }
       ul.examples {
         list-style: none;
         margin: 1rem 0 0;
@@ -113,6 +121,7 @@
         <code id="care-address">https://care.heykettle.com/mcp</code>
         <button type="button" id="care-copy" hidden>Copy</button>
       </div>
+      <p class="search">No assistant? <a href="https://care.heykettle.com/search">Search here</a> instead.</p>
       <p class="body">Every number comes from Medicare's Care Compare, the same figures on medicare.gov, and every answer says how old they are. We add nothing and we keep nothing: no account, no history, no record of what you asked.</p>
       <h2>Things people ask it</h2>
       <ul class="examples">
