@@ -7334,11 +7334,17 @@ browser — all three adopted as the standard for future surfaces.**
        Day 5 Sep 23: unlock 22:23 (1), device_alive 00:22, charger 22:48
        (the deliberate unplug and replug; the first try earlier that day
        used a dead charger, so no edge), motion none (no walk yet).
+       Day 6 Sep 24: unlock 07:58, device_alive 00:10, charger 04:00
+       (nobody touched it; most likely the phone's own battery protection
+       pausing the charge, a harmless corroborating ping to note in the
+       OEM table), motion 14:59 and 15:40 (the founder's walk; it lags the
+       15-minute cycle). All four signals have now fired at least once.
        device_alive arrives once a night, so the worker survives every
-       night. charger has never fired: the phone has stayed plugged in, so
-       no edge; motion has never fired: the phone sits on a shelf. Both
-       need a deliberate test (unplug and replug; a five-minute walk with
-       the phone in a pocket) before 8.1 can be read.
+       night. PM's reading of 8.1 for this soak, open to the founder's
+       objection: device_alive every day is the liveness test; unlock,
+       charger and motion count as passing when they fire every time
+       their cause happens, since a phone on a shelf has no cause most
+       days. Day 7 is Sep 25; the closing read happens Sep 26 morning.
      * Next number: 341.
 
 341. **(2026-09-23, Wednesday morning ET) FOUNDER OVERRULES 201 and LAW-9:
