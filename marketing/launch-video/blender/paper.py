@@ -8,9 +8,10 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
+import bmesh
 import bpy
 import numpy as np
-from mathutils import Euler, Matrix, Vector
+from mathutils import Matrix, Vector
 
 HERE = Path(__file__).resolve().parent.parent  # marketing/launch-video
 PAPER, INK, GREEN, YELLOW = "F7F1E8", "403C36", "297A5C", "E8C77A"
@@ -178,6 +179,111 @@ def disc(
     )
 
 
+def _rounded_rect(name: str, w: float, h: float, r: float, mat, thick: float = 0.0):
+    """A w x h card in the local XZ plane, facing -Y, corners of radius r, UVs spanning it
+    exactly (so a screen image fits). `thick` gives it depth. A beveled box cannot do this: the
+    bevel is capped by the thickness, which is what kept the old phone corners square."""
+    bpy.ops.mesh.primitive_plane_add(size=1)
+    ob = bpy.context.active_object
+    ob.name = name
+    me = ob.data
+    me.transform(Matrix.Diagonal((w, h, 1, 1)))
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bmesh.ops.bevel(
+        bm, geom=list(bm.verts), offset=r, segments=10, affect="VERTICES", profile=0.5
+    )  # 0.5 is a round corner; the op defaults to a concave one
+    bm.to_mesh(me)
+    bm.free()
+    me.transform(Matrix.Rotation(math.radians(90), 4, "X"))  # XY -> XZ, normal +Z -> -Y
+    uv = me.uv_layers.active or me.uv_layers.new()
+    for loop in me.loops:
+        co = me.vertices[loop.vertex_index].co
+        uv.data[loop.index].uv = (co.x / w + 0.5, co.z / h + 0.5)
+    ob.data.materials.append(mat)
+    if thick:
+        sol = ob.modifiers.new("depth", "SOLIDIFY")
+        sol.thickness, sol.offset = thick, 0
+    return ob
+
+
+def _hex01(c: str) -> np.ndarray:
+    return np.array([int(c[i : i + 2], 16) / 255 for i in (0, 2, 4)], dtype=np.float32)
+
+
+def screen_image(name: str, notch: bool, size=(360, 780)):
+    """A phone's home screen, drawn here so nothing real is shown: a warm wallpaper, a grid of
+    plain rounded squares in the palette, a dock, and a notch bar or a punch-hole camera.
+    No logos, no text, no real app."""
+    W, H = size
+    y = np.linspace(0, 1, H, dtype=np.float32)[:, None, None]  # 0 at the top
+    img = (1 - y) * _hex01("F2D48C") + y * _hex01("F7EAD2")
+    img = np.broadcast_to(img, (H, W, 3)).copy()
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+
+    def rounded(x0, y0, sw, sh, r, colour, alpha=1.0):
+        cx = np.clip(xx, x0 + r, x0 + sw - r)
+        cy = np.clip(yy, y0 + r, y0 + sh - r)
+        inside = (xx - cx) ** 2 + (yy - cy) ** 2 <= r * r
+        img[inside] = img[inside] * (1 - alpha) + _hex01(colour) * alpha
+
+    tiles = ["297A5C", "F7F1E8", "9DB39B", "8A847B", "F7E3AE", "C9D3C6"]
+    s, gap = W * 0.155, W * 0.075
+    left = (W - 4 * s - 3 * gap) / 2
+    for row in range(5):
+        for col in range(4):
+            colour = tiles[(row * 4 + col * 3) % len(tiles)]
+            rounded(
+                left + col * (s + gap), H * 0.13 + row * (s + gap * 1.6), s, s, s * 0.26, colour
+            )
+    rounded(W * 0.05, H * 0.855, W * 0.9, s * 1.45, s * 0.4, "FFF8EC", alpha=0.45)  # the dock
+    for col in range(4):
+        rounded(left + col * (s + gap), H * 0.855 + s * 0.22, s, s, s * 0.26, tiles[col + 1])
+    if notch:
+        rounded(W * 0.32, -H * 0.03, W * 0.36, H * 0.065, H * 0.028, "24221F")
+    else:
+        rounded(W * 0.5 - W * 0.022, H * 0.022, W * 0.044, W * 0.044, W * 0.022, "24221F")
+    out = np.concatenate(
+        [img[::-1], np.ones((H, W, 1), dtype=np.float32)], axis=2
+    )  # rows bottom-up
+    im = bpy.data.images.new(name, W, H)
+    im.pixels.foreach_set(out.ravel())
+    return im
+
+
+def screen_material(name: str, notch: bool, lit: float):
+    """The screen: its drawn home screen when lit, near-black glass when off. The node "on" mixes
+    the two (0 off, 1 on) so a shot can key the moment it lights up (light_screen)."""
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    bsdf.inputs["Roughness"].default_value = 0.6
+    bsdf.inputs["Specular IOR Level"].default_value = 0.05
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.image = screen_image(name + "-img", notch)
+    mix = nt.nodes.new("ShaderNodeMix")
+    mix.name, mix.data_type = "on", "RGBA"
+    mix.inputs["A"].default_value = lin("24221F")
+    nt.links.new(tex.outputs["Color"], mix.inputs["B"])
+    nt.links.new(mix.outputs["Result"], bsdf.inputs["Base Color"])
+    nt.links.new(tex.outputs["Color"], bsdf.inputs["Emission Color"])
+    mix.inputs["Factor"].default_value = 1.0 if lit else 0.0
+    bsdf.inputs["Emission Strength"].default_value = lit
+    return mat
+
+
+def light_screen(name: str, frame: int, lit: float) -> None:
+    """Key phone `name`'s screen on (lit > 0, the emission strength) or off at `frame`."""
+    nt = bpy.data.materials[name + "-screen"].node_tree
+    fac = nt.nodes["on"].inputs["Factor"]
+    fac.default_value = 1.0 if lit else 0.0
+    fac.keyframe_insert("default_value", frame=frame)
+    glow = nt.nodes["Principled BSDF"].inputs["Emission Strength"]
+    glow.default_value = lit
+    glow.keyframe_insert("default_value", frame=frame)
+
+
 def phone(
     name: str,
     x: float,
@@ -187,32 +293,36 @@ def phone(
     lean: float = 15.0,
     turn: float = 0.0,
     body: str = INK,
-    lit: float = 1.2,
+    lit: float = 0.5,
     stand: bool = True,
-    corner: float = 0.14,
+    notch: bool = False,
 ):
-    """A phone standing on its bottom edge, tipped back `lean` degrees, screen to the camera:
-    an ink body, a plain warm yellow face (glowing when `lit` > 0, dark ink when 0), and a small
-    cream paper stand behind it. Never anything on the screen.
-    `lean=90, stand=False, z=0.0045` lays it face up on a surface;
-    `corner` (a fraction of the width) tells two makes apart."""
-    h, t = w * 2.0, 0.009
-    rot = Euler((math.radians(-lean), 0, math.radians(turn)))
-    m = rot.to_matrix()
-    centre = Vector((x, y, z)) + m @ Vector((0, 0, h / 2))
-    deg = (-lean, 0, turn)
-    box(name, body, (w, t, h), centre, deg, round_=w * corner)
-    face = centre + m @ Vector((0, -t / 2 - 0.0006, 0))
-    box(
-        name + "-screen",
-        YELLOW if lit else "2E2B27",
-        (w * 0.84, 0.001, h * 0.88),
-        face,
-        deg,
-        glow=lit,
-        round_=w * 0.08,
-    )
+    """A phone standing on its bottom edge at (x, y, z), tipped back `lean` degrees, screen to the
+    camera: a rounded paper body with a side button, and a screen showing a drawn home screen
+    (lit) or dark glass (`lit=0`), with a notch bar (`notch`) or a punch-hole camera.
+    `lean=90, stand=False, z=0.0045` lays it face up on a surface."""
+    h, t = w * 2.05, 0.009
+    pivot = bpy.data.objects.new(name, None)
+    bpy.context.collection.objects.link(pivot)
+    pivot.location = (x, y, z)
+    pivot.rotation_euler = (math.radians(-lean), 0, math.radians(turn))
+    parts = [
+        _rounded_rect(name + "-body", w, h, w * 0.17, paper_material(name + "-body", body), t),
+        _rounded_rect(
+            name + "-screen",
+            w * 0.9,
+            h * 0.94,
+            w * 0.12,
+            screen_material(name + "-screen", notch, lit),
+        ),
+        box(name + "-button", body, (0.0035, 0.005, h * 0.13), (w / 2 + 0.0015, 0, h * 0.68)),
+    ]
+    parts[0].location = (0, 0, h / 2)
+    parts[1].location = (0, -t / 2 - 0.0004, h / 2)
+    for part in parts:
+        part.parent = pivot
     if stand:  # a cream paper wedge behind, out of sight from the front
+        m = pivot.rotation_euler.to_matrix()
         back = Vector((x, y, z)) + m @ Vector((0, t / 2 + 0.035, 0))
         box(
             name + "-stand",
@@ -221,6 +331,46 @@ def phone(
             (back.x, back.y + 0.012, z + h * 0.18),
             (-lean - 30, 0, turn),
         )
+    return pivot
+
+
+def contact(name: str, x: float, y: float, z: float, rx: float, ry: float, strength: float = 0.5):
+    """A soft contact shadow lying on a surface: dark in the middle, gone by its edge. It seats a
+    standing card where the key light's own shadow falls behind it."""
+    bpy.ops.mesh.primitive_plane_add(size=2, location=(x, y, z + 0.0005))
+    ob = bpy.context.active_object
+    ob.name = name
+    ob.scale = (rx, ry, 1)
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    bsdf.inputs["Base Color"].default_value = lin("2A2622")
+    bsdf.inputs["Roughness"].default_value = 1.0
+    bsdf.inputs["Specular IOR Level"].default_value = 0.0
+    coords = nt.nodes.new("ShaderNodeTexCoord")
+    grad = nt.nodes.new("ShaderNodeTexGradient")
+    grad.gradient_type = "SPHERICAL"
+    nt.links.new(coords.outputs["Object"], grad.inputs["Vector"])
+    fall = nt.nodes.new("ShaderNodeMath")
+    fall.operation, fall.inputs[1].default_value = "POWER", 1.6
+    nt.links.new(grad.outputs["Fac"], fall.inputs[0])
+    amt = nt.nodes.new("ShaderNodeMath")
+    amt.operation, amt.inputs[1].default_value = "MULTIPLY", strength
+    nt.links.new(fall.outputs["Value"], amt.inputs[0])
+    nt.links.new(amt.outputs["Value"], bsdf.inputs["Alpha"])
+    ob.data.materials.append(mat)
+    return ob
+
+
+def kettle(x: float, y: float, z: float = 0.0, height: float = 0.27):
+    """The explainer's kettle seated on a paper burner: the burner is wider than the kettle's base
+    (about 0.13 m at this height), the base rests on its top, and a soft contact shadow sits
+    under it. Kitchen and close share it so the kettle is seated the same way in both."""
+    thick = 0.012
+    disc("trivet", INK, 0.105, thick, x, y, z)
+    contact("kettle-contact", x, y, z + thick, 0.085, 0.032, strength=0.55)
+    return card("kettle", "assets/kettle.png", height, x, y, z=z + thick)
 
 
 def stage(table_front: float = -0.6, wall_y: float = 0.62):
@@ -254,12 +404,6 @@ def key(ob, path: str, frame: int, value) -> None:
     """Set and keyframe one property, eased (Bezier, Blender's default)."""
     setattr(ob, path, value)
     ob.keyframe_insert(path, frame=frame)
-
-
-def key_socket(mat_name: str, socket: str, frame: int, value) -> None:
-    sock = bpy.data.materials[mat_name].node_tree.nodes["Principled BSDF"].inputs[socket]
-    sock.default_value = value
-    sock.keyframe_insert("default_value", frame=frame)
 
 
 def camera(loc, target, lens: float = 50.0):

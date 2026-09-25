@@ -20,8 +20,7 @@ def build(shot: str) -> None:
     if shot == "plate":
         P.camera((0.0, -2.6, 0.95), (0.0, 0.3, 0.42))
         return
-    P.disc("trivet", P.INK, 0.085, 0.012, 0.0, 0.2)
-    P.card("kettle", "assets/kettle.png", 0.27, 0.0, 0.2, z=0.012)
+    P.kettle(0.0, 0.2)
     steam = P.card("steam", "assets/layers/steam.png", 0.13, 0.105, 0.21, z=0.186)
     n = FRAMES[shot]
     full = tuple(steam.scale)

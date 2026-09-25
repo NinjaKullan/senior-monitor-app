@@ -29,7 +29,7 @@ CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 PAPER, INK, MUTED, GREY = "#F7F1E8", "#403C36", "#6E6860", "#C9C4BC"
 FPS = 30
 # 9:16 takes a 1080 px square from each painted frame: centred, unless a set needs it moved.
-CROP_9X16 = {"03": 250}  # both phones, not the napkin
+CROP_9X16: dict[str, int] = {}
 SET_SCRIPT = {
     "01": "map.py",
     "02": "kitchen.py",

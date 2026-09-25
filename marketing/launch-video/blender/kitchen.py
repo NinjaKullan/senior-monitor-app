@@ -23,14 +23,15 @@ def build(shot: str) -> None:
     P.card(
         "window", "assets/layers/window.png", 0.25, -0.02, 0.595, z=0.56
     )  # low, clear of the caption band
-    P.disc("trivet", P.INK, 0.085, 0.012, 0.30, 0.30, z=TOP)  # a paper burner the kettle sits on
-    P.card("kettle", "assets/kettle.png", 0.27, 0.30, 0.30, z=TOP + 0.012)
+    P.kettle(0.30, 0.30, TOP)
     P.card("plant", "assets/layers/plant.png", 0.26, -0.40, 0.40, z=TOP)
+    P.contact("plant-contact", -0.40, 0.40, TOP, 0.06, 0.022)
     mug_x = -0.12 if shot != "07" else 0.06  # in the close-up the mug steps aside for the thumbs up
     P.card("mug", "assets/layers/mug.png", 0.11, mug_x, 0.33, z=TOP)
+    P.contact("mug-contact", mug_x - 0.01, 0.33, TOP, 0.05, 0.02)
     # Her phone on a little paper stand, warm screen to the camera.
     # Shot 6: dark, the day not started.
-    P.phone("phone", *PHONE, TOP, w=0.11, lean=14, lit=0.5 if shot != "06" else 0.0)
+    P.phone("phone", *PHONE, TOP, w=0.11, lean=14, lit=0.35 if shot != "06" else 0.0)
     P.light()
     n = FRAMES[shot]
 
@@ -49,10 +50,8 @@ def build(shot: str) -> None:
             n,
             (steam.location.x + 0.01, steam.location.y, steam.location.z + 0.03),
         )
-        dark, lit = P.lin("2E2B27"), P.lin(P.YELLOW)
-        for f, col, glow in ((1, dark, 0.0), (48, dark, 0.0), (60, lit, 0.5)):
-            P.key_socket("phone-screen", "Base Color", f, col)
-            P.key_socket("phone-screen", "Emission Strength", f, glow)
+        for f, glow in ((1, 0.0), (48, 0.0), (60, 0.35)):  # her phone wakes at about 1.6 s
+            P.light_screen("phone", f, glow)
     elif shot == "06":  # held low and still, a whisper of drift; no steam
         cam, _ = P.camera((-0.05, -2.9, 1.0), (0.0, 0.3, 0.52))
         P.key(cam, "location", 1, (-0.05, -2.9, 1.0))
