@@ -56,19 +56,14 @@ def build(shot: str) -> None:
         cam, _ = P.camera((-0.05, -2.9, 1.0), (0.0, 0.3, 0.52))
         P.key(cam, "location", 1, (-0.05, -2.9, 1.0))
         P.key(cam, "location", n, (0.05, -2.9, 1.0))
-    else:  # close on the phone: a paper slip settles, a thumbs up folds up
+    else:  # close on the phone: a message arrives, a thumbs up folds up
         cam, _ = P.camera((-0.30, -1.35, 1.02), (-0.18, 0.25, 0.66))
         P.key(cam, "location", 1, (-0.30, -1.35, 1.02))
         P.key(cam, "location", n, (-0.20, -1.28, 1.00))
-        slip = P.box(
-            "slip",
-            P.PAPER,
-            (0.07, 0.003, 0.045),
-            (PHONE[0], PHONE[1] - 0.03, TOP + 0.9),
-            (-14, 0, 0),
-        )
-        P.key(slip, "location", 12, (PHONE[0], PHONE[1] - 0.03, TOP + 0.9))
-        P.key(slip, "location", 42, (PHONE[0], PHONE[1] - 0.035, TOP + 0.075))
+        # Kettle's message arrives on her phone, then a thumbs up folds up beside it.
+        msg = P.bubble("message", "phone")
+        P.key(msg, "scale", 12, (0.01, 0.01, 0.01))
+        P.key(msg, "scale", 30, (1, 1, 1))
         thumbs = P.card("thumbs", "assets/layers/thumbs.png", 0.14, -0.12, 0.26, z=TOP, lean=88)
         P.key(thumbs, "rotation_euler", 66, (math.radians(2), 0, 0))
         P.key(thumbs, "rotation_euler", 90, (math.radians(90), 0, 0))

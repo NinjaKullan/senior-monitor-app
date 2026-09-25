@@ -286,6 +286,57 @@ def light_screen(name: str, frame: int, lit: float) -> None:
     glow.keyframe_insert("default_value", frame=frame)
 
 
+def bubble(name: str, phone_name: str, w: float = 0.088):
+    """A message arriving on phone `phone_name`'s screen: a cream speech bubble with a tail and
+    three soft grey bars where words would be. Deliberately no text: the only true words are
+    the ask itself, and drawing them on a phone would fake an app screen. Parented to the phone,
+    upper half of its screen; key its scale to make it arrive."""
+    W, H = 600, 330
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    img = np.zeros((H, W, 4), dtype=np.float32)
+
+    def fill(mask, colour):
+        img[mask, :3] = _hex01(colour)
+        img[mask, 3] = 1.0
+
+    r, top, bottom = 70, 10, 270
+    cx = np.clip(xx, 10 + r, W - 10 - r)
+    cy = np.clip(yy, top + r, bottom - r)
+    body = (xx - cx) ** 2 + (yy - cy) ** 2 <= r * r
+    tail = (yy >= bottom - 30) & (yy <= H - 6) & (xx >= 60) & (xx <= 60 + (H - 6 - yy) * 1.3)
+    edge = (xx - cx) ** 2 + (yy - cy) ** 2 <= (r + 7) ** 2
+    fill(edge | (tail & (xx >= 54) & (xx <= 66 + (H - yy) * 1.3)), "8A847B")  # a soft ink outline
+    fill(body | (tail & (yy <= H - 12)), "FBF6EC")
+    for i, frac in enumerate((0.78, 0.66, 0.42)):
+        bar = (np.abs(yy - (70 + i * 62)) <= 14) & (xx >= 64) & (xx <= 64 + frac * (W - 128))
+        fill(bar, "C9C4BC")
+    im = bpy.data.images.new(name + "-img", W, H, alpha=True)
+    im.pixels.foreach_set(img[::-1].ravel())
+    bpy.ops.mesh.primitive_plane_add(size=1)
+    ob = bpy.context.active_object
+    ob.name = name
+    ob.data.transform(Matrix.Diagonal((w, w * H / W, 1, 1)))
+    ob.data.transform(Matrix.Rotation(math.radians(90), 4, "X"))  # face -Y, like the screen
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = nt.nodes["Principled BSDF"]
+    bsdf.inputs["Roughness"].default_value = 0.95
+    bsdf.inputs["Specular IOR Level"].default_value = 0.0
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    tex.image = im
+    nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    nt.links.new(tex.outputs["Color"], bsdf.inputs["Emission Color"])
+    bsdf.inputs["Emission Strength"].default_value = 0.2  # holds its own on the lit screen
+    nt.links.new(tex.outputs["Alpha"], bsdf.inputs["Alpha"])
+    ob.data.materials.append(mat)
+    pivot = bpy.data.objects[phone_name]
+    h = pivot["height"]
+    ob.parent = pivot
+    ob.location = (0, -0.0065, h * 0.64)
+    return ob
+
+
 def phone(
     name: str,
     x: float,
@@ -308,6 +359,7 @@ def phone(
     bpy.context.collection.objects.link(pivot)
     pivot.location = (x, y, z)
     pivot.rotation_euler = (math.radians(-lean), 0, math.radians(turn))
+    pivot["height"] = h
     parts = [
         _rounded_rect(name + "-body", w, h, w * 0.17, paper_material(name + "-body", body), t),
         _rounded_rect(
