@@ -109,18 +109,20 @@ def card(
     flat: bool = False,
     tint: str | None = None,
     sat: float = 1.0,
+    seat: int | None = None,
 ):
     """A paper cut-out standing on its bottom edge at (x, y, z), `height` tall, width from the PNG.
-    `lean` tips it back (degrees), `turn` rotates it about Z. `flat` lays it on the surface."""
+    `lean` tips it back (degrees), `turn` rotates it about Z. `flat` lays it on the surface.
+    `seat` is the pixel row (from the bottom) that rests on the surface; default, the lowest
+    opaque row."""
     img = bpy.data.images.load(str(HERE / image), check_existing=True)
     w = height * img.size[0] / img.size[1]
     rot = (0, 0, turn) if flat else (90 - lean, 0, turn)
     # Seat the lowest opaque pixel on the surface: PNGs carry clear rows under the object
     # (the kettle has 52), which would otherwise leave the card hanging in the air.
     a = np.array(img.pixels[:], dtype=np.float32).reshape(img.size[1], img.size[0], 4)[..., 3]
-    drop = (
-        height * int(np.argmax(a.max(axis=1) > 0.5)) / img.size[1]
-    )  # Blender rows start at the bottom
+    row = seat if seat is not None else int(np.argmax(a.max(axis=1) > 0.5))  # rows start at bottom
+    drop = height * row / img.size[1]
     loc = (x, y, z + 0.0006) if flat else (x, y, z - drop * math.cos(math.radians(lean)))
     ob = _obj(
         name,
@@ -364,13 +366,21 @@ def contact(name: str, x: float, y: float, z: float, rx: float, ry: float, stren
 
 
 def kettle(x: float, y: float, z: float = 0.0, height: float = 0.27):
-    """The explainer's kettle seated on a paper burner: the burner is wider than the kettle's base
-    (about 0.13 m at this height), the base rests on its top, and a soft contact shadow sits
-    under it. Kitchen and close share it so the kettle is seated the same way in both."""
-    thick = 0.012
-    disc("trivet", INK, 0.105, thick, x, y, z)
-    contact("kettle-contact", x, y, z + thick, 0.085, 0.032, strength=0.55)
-    return card("kettle", "assets/kettle.png", height, x, y, z=z + thick)
+    """The explainer's kettle on a low paper burner cut as a flat strip in the kettle's own plane,
+    seen side-on, so no part of it shows behind the kettle (a round disc read as pasted). The
+    kettle's base rim (from row 64 up, 298 px wide, centred 78 px left of the image's centre, of
+    600) rests on the strip's top edge, seated at row 72 so the rim's curved underside tucks
+    behind the strip; rows 52 to 63 are a baked-in shadow blob, hidden there too.
+    A soft contact shadow lies on the surface beneath."""
+    px = height / 600
+    base_x, base_w = x - 78 * px, 298 * px
+    lift = 0.018
+    strip = _rounded_rect(
+        "burner", base_w * 1.25, lift, lift * 0.35, paper_material("burner", INK), 0.004
+    )
+    strip.location = (base_x, y - 0.0025, z + lift / 2)  # a hair in front of the kettle card
+    contact("kettle-contact", base_x, y, z, base_w * 0.8, 0.03, strength=0.5)
+    return card("kettle", "assets/kettle.png", height, x, y, z=z + lift, seat=72)
 
 
 def stage(table_front: float = -0.6, wall_y: float = 0.62):

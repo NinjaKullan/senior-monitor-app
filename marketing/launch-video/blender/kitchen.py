@@ -39,7 +39,7 @@ def build(shot: str) -> None:
         cam, _ = P.camera((0.0, -3.0, 1.12), (0.0, 0.3, 0.50))
         P.key(cam, "location", 1, (0.0, -3.0, 1.12))
         P.key(cam, "location", n, (0.03, -2.78, 1.08))
-        steam = P.card("steam", "assets/layers/steam.png", 0.15, 0.415, 0.31, z=TOP + 0.186)
+        steam = P.card("steam", "assets/layers/steam.png", 0.15, 0.415, 0.31, z=TOP + 0.183)
         full = tuple(steam.scale)
         P.key(steam, "scale", 1, (full[0] * 0.6, full[1] * 0.6, 1))
         P.key(steam, "scale", 30, full)

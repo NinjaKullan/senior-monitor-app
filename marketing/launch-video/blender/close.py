@@ -21,7 +21,7 @@ def build(shot: str) -> None:
         P.camera((0.0, -2.6, 0.95), (0.0, 0.3, 0.42))
         return
     P.kettle(0.0, 0.2)
-    steam = P.card("steam", "assets/layers/steam.png", 0.13, 0.105, 0.21, z=0.186)
+    steam = P.card("steam", "assets/layers/steam.png", 0.13, 0.105, 0.21, z=0.183)
     n = FRAMES[shot]
     full = tuple(steam.scale)
     P.key(steam, "scale", 1, (full[0] * 0.5, full[1] * 0.5, 1))
