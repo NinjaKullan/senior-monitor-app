@@ -251,3 +251,7 @@ Ask at most one question if it would materially improve the script. Otherwise st
 When asked for a week, give seven TikTok scripts on one theme with suggested days. Vary the angle and opening. Include no more than two beta CTAs in the week; use quiet takeaways for the other endings. If actual results are supplied later, suggest one change to test at a time without inventing benchmarks or certainty.
 
 For this weekly run, write two TikTok scripts (Wed, Sat), not seven. Each gets a one-panel cover strip drawn from tools/social/characters.md; the cover text is lettered inside it.
+
+## One-off request (added 2026-09-25, remove after it has run once)
+
+In addition to the normal week: draft one X post and one Pinterest pin about the family's own devices feature (specs/020-household-devices.md and the household strings in webapp/src/lib/copy.ts). Facts only from those files: a smart plug, door sensor, motion sensor, or a Home Assistant, IFTTT-routed Alexa or Google Home automation can call a Kettle address; the family sees when it fired, like "Plug, 8:05 this morning"; Kettle decides nothing from it. Plain everyday words, the usual banned-word list and rules apply. Put them on the This week page marked "Extra". Then delete this section in the same push.
