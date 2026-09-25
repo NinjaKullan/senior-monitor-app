@@ -12,7 +12,7 @@
 - [x] Phase 4: close, shot 15, and the plate under the screen shots (blender/close.py)
 - [x] Phase 4: compositor (render.py): captions, placeholders, recordings path, 16:9 and 9:16
 - [x] Phase 4: README with the one render command
-- [ ] Phase 4: all frames rendered (in progress); full 16:9 and 9:16 cuts built and checked
+- [x] Phase 4: all frames rendered; 16:9 and 9:16 cuts built, 88.5 s, H.264 yuv420p 30 fps, stills in out/shots/
 - [ ] Needs from founder: recordings R1 to R9 (placeholders until then)
 Gemini images, phase 4: 12 of 60
 - [ ] Phase 4: remaining scenes, compositing, 16:9 + 9:16 renders, README, PROMPTS.md (<= 60 Gemini images)
