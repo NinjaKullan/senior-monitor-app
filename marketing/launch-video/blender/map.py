@@ -1,5 +1,5 @@
 """Shot 1: a paper map on the table. The city on the left, Mom and Dad's house far off on the right,
-the sun coming up behind it while the camera drifts from one to the other.
+the sun coming up behind it while the camera drifts gently, both places in frame.
 
 blender -b -P blender/map.py -- 01 [still [frame] [out.png] | frames [WxH]]
 """
@@ -14,7 +14,7 @@ FRAMES = {"01": 126}  # 4.2 s
 
 
 def build(shot: str) -> None:
-    P.stage()
+    P.stage(table_front=-1.4)  # the table edge stays out of frame with the camera further back
     P.card("map", "assets/layers/map.png", 0.86, 0.0, 0.0, flat=True)  # 1.54 m wide, lying flat
     P.card("hills-back", "assets/layers/hills.png", 0.12, -0.28, 0.36)
     P.card("hills", "assets/layers/hills.png", 0.16, 0.42, 0.34)
@@ -29,11 +29,11 @@ def build(shot: str) -> None:
     n = FRAMES[shot]
     P.key(sun, "location", 1, (0.60, 0.40, 0.02))
     P.key(sun, "location", n, (0.60, 0.40, 0.155))  # just clears the hills
-    cam, aim = P.camera((-0.30, -2.25, 1.30), (-0.22, 0.12, 0.12))
-    P.key(cam, "location", 1, (-0.30, -2.25, 1.30))
-    P.key(cam, "location", n, (0.30, -2.20, 1.26))
-    P.key(aim, "location", 1, (-0.22, 0.12, 0.12))
-    P.key(aim, "location", n, (0.26, 0.12, 0.12))
+    # A slight drift and a small push, both places in frame throughout (founder: no zoom toward
+    # the house; the city must not leave the frame).
+    cam, _ = P.camera((-0.03, -2.62, 1.40), (0.0, 0.10, 0.10))
+    P.key(cam, "location", 1, (-0.03, -2.62, 1.40))
+    P.key(cam, "location", n, (0.03, -2.52, 1.36))
 
 
 P.run(build, FRAMES)

@@ -31,8 +31,9 @@ CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 PAPER, INK, MUTED, GREY = "#F7F1E8", "#403C36", "#6E6860", "#C9C4BC"
 FPS = 30
 READY: dict[str, Path | None] = {}  # recording -> its prepared file, filled by main()
-# 9:16 takes a 1080 px square from each painted frame: centred, unless a set needs it moved.
-CROP_9X16: dict[str, int] = {}
+# 9:16 takes a 1080 px square from each painted frame, centred; "fit" instead scales the whole frame
+# to 1080 wide (shot 1: the apartments and the house must both stay in view).
+CROP_9X16: dict[str, str] = {"01": "fit"}
 SET_SCRIPT = {
     "01": "map.py",
     "02": "kitchen.py",
@@ -344,8 +345,11 @@ def segment(i: int, row, offsets: dict[str, int], fmt: str) -> Path:
         else:  # a square from the middle of the frame, feathered onto paper
             y0 = 560 if kind == "blender" else 300
             graph.append(f"color=c={PAPER}:s={W}x{H}:r={FPS}[paper]")
-            cx = CROP_9X16.get(shot, "(iw-1080)/2")
-            graph.append(f"[0]crop=1080:1080:{cx}:0,{feather()}[sq]")
+            if CROP_9X16.get(shot) == "fit":
+                graph.append(f"[0]scale=1080:-2,{feather()}[sq]")
+                y0 += 236  # centre the 608 px strip where the square would sit
+            else:
+                graph.append(f"[0]crop=1080:1080:(iw-1080)/2:0,{feather()}[sq]")
             graph.append(f"[paper][sq]overlay=0:{y0}:shortest=1[bg]")
         last = "bg"
         if kind == "close":
