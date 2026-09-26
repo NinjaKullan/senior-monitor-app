@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import paper as P  # noqa: E402
 
 TOP = 0.50  # worktop height
-FRAMES = {"02": 141, "06": 141, "07": 267, "10b": 135}  # 4.7, 4.7, 8.9 (07a + 07b), 4.5 s
+FRAMES = {"02": 141, "06": 141, "07": 267, "10b": 141}  # 4.7, 4.7, 8.9 (07a + 07b), 4.7 s
 PHONE = (-0.27, 0.22)
 
 
