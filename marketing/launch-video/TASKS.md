@@ -17,7 +17,7 @@
 - [x] R9 in (typing x5, lookup x4, agencies and the scroll to the source line); R6 holds the full list with the 911 line covered
 - [x] R1 in (Dad's morning note, Outlook, cropped to the message); render.py run 2026-09-26, no placeholders left
 - [x] Shot 10b (her own smart plug) built in Blender; 11b held to 4.7 s; total 95.0 s (founder's cap)
-- [ ] Founder: pick 10b's words (working line "Kettle can add Mom's smart plug.", 6 words or fewer fits)
+- [x] 10b's words: "Works with Alexa and smart plugs." (founder, 2026-09-26)
 - [ ] Founder: rename Rehearsal's parents back to TestMom / TestDad (recordings/SETUP-LOG.md)
 Gemini images, phase 4: 17 of 60
 - [x] Phase 4: remaining scenes, compositing, 16:9 + 9:16 renders, README, PROMPTS.md (<= 60 Gemini images)

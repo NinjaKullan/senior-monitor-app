@@ -22,7 +22,7 @@ SHOTS = [
     ("08", 5.2, "screen|R3|Memory", "Notes and replies,\nin the family's\nown words."),
     ("09", 5.2, "screen|R4|Who to call", "Who to call,\nif you can't\nreach her."),
     ("10", 5.0, "screen|R5|Family circle", "Brothers and sisters\nsee the same notes."),
-    ("10b", 4.5, "blender|10b", "Kettle can add Mom's smart plug."),
+    ("10b", 4.5, "blender|10b", "Works with Alexa and smart plugs."),
     ("11a", 3.7, "screen|R6|Claude: the question", "Kettle works\ninside Claude, too."),
     ("11b", 4.7, "screen|R6|Claude: Kettle's answer", "Ask who to call,\nright from Claude."),
     ("12", 6.0, "screen|R7|Claude: add a note", "Or tell it something\nfor the family."),

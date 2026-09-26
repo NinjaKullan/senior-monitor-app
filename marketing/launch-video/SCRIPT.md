@@ -19,7 +19,7 @@ Painted shots are paper-diorama scenes: no people, no text inside the painting.
 | 8 | 39.1 to 44.3 | Memory | Screen: Memory, with "Dad's cataract appointment is Thursday." and a reply "Called Mom, she sounded great." | Notes and replies, in the family's own words. |
 | 9 | 44.3 to 49.5 | Who to call | Screen: Who to call, Mom's number and the neighbour, the cousin, the building manager | Who to call, if you can't reach her. |
 | 10 | 49.5 to 54.5 | Circle | Screen: Family, the circle list with two people and "Add someone" | Brothers and sisters see the same notes. |
-| 10b | 54.5 to 59.0 | Home | Painted: the kitchen closer on the worktop; a paper lamp's cord runs to a plain plug in the wall outlet, a small round speaker beside it; the lamp switches on softly, camera still | Kettle can add Mom's smart plug. (working line) |
+| 10b | 54.5 to 59.0 | Home | Painted: the kitchen closer on the worktop; a paper lamp's cord runs to a plain plug in the wall outlet, a small round speaker beside it; the lamp switches on softly, camera still | Works with Alexa and smart plugs. |
 | 11a | 59.0 to 62.7 | AI | Screen: Claude, the question typed: "Who can I call if I can't reach mom?" | Kettle works inside Claude, too. |
 | 11b | 62.7 to 67.4 | AI | (same recording) Kettle's answer: Mom's number and the people to call, ending before Claude's closing emergency line | Ask who to call, right from Claude. |
 | 12 | 67.4 to 73.4 | AI | Screen: Claude, "Add a note: her cataract appointment is Thursday", the note read back, "Add it as written", then "I added the note, so the family will see..." | Or tell it something for the family. |
