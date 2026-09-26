@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -249,6 +250,29 @@ def prepared(rec: str) -> Path | None:
     return out
 
 
+HOME_SCREEN_Y = (
+    190  # mean brightness: Kettle and Claude screens sit at 219+, the home screen at 113
+)
+
+
+def refuse_home_screen(rec: str, path: Path, seconds: float) -> None:
+    """Stop the build if any frame the cut uses from `rec` is dark enough to be the iPhone home
+    screen or the app switcher (founder: no personal apps anywhere in either cut)."""
+    probe_out = subprocess.run(
+        ["ffmpeg", "-loglevel", "error", "-t", f"{seconds:.3f}", "-i", str(path), "-vf",
+         "scale=120:-2,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-",
+         "-f", "null", "-"],
+        check=True, capture_output=True, text=True,
+    ).stdout  # fmt: skip
+    dark = [i for i, y in enumerate(re.findall(r"YAVG=([0-9.]+)", probe_out))
+            if float(y) < HOME_SCREEN_Y]  # fmt: skip
+    if dark:
+        raise SystemExit(
+            f"{rec}: {len(dark)} frame(s) look like the home screen or app switcher, first at "
+            f"{dark[0] / FPS:.2f} s of the cut; trim it in shots.RECORDINGS"
+        )
+
+
 def recording_box(path: Path, f: dict) -> tuple[int, int]:
     info = json.loads(
         subprocess.run(
@@ -473,8 +497,14 @@ def main() -> None:
     if "--frames-only" in sys.argv:
         return
     (OUT / "overlays").mkdir(parents=True, exist_ok=True)
-    for rec in sorted({r[2].split("|")[1] for r in SHOTS if r[2].startswith("screen")}):
+    used: dict[str, float] = {}
+    for r in SHOTS:
+        if r[2].startswith("screen"):
+            used[r[2].split("|")[1]] = used.get(r[2].split("|")[1], 0) + r[1]
+    for rec, seconds in sorted(used.items()):
         READY[rec] = prepared(rec)
+        if READY[rec]:
+            refuse_home_screen(rec, READY[rec], seconds)
     total = sum(r[1] for r in SHOTS)
     for fmt, name in (("16x9", "kettle-launch.mp4"), ("9x16", "kettle-launch-9x16.mp4")):
         offsets: dict[str, int] = {}

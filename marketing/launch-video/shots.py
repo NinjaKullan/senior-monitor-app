@@ -55,8 +55,9 @@ SHOTS = [
 # A recording with no entry plays from its first frame, uncropped.
 RECORDINGS = {
     "R2": {"crop": (410, None), "cuts": [(1.5, None, 1)]},  # founder: trim the first 1.5 s
-    "R3": {"crop": (410, None)},
-    "R4": {"crop": (410, None)},
+    # R3, R4: the first 0.9 s is the home screen and the app opening (founder: no personal apps).
+    "R3": {"crop": (410, None), "cuts": [(1.0, None, 1)]},
+    "R4": {"crop": (410, None), "cuts": [(1.0, None, 1)]},
     # The circle only, before "Add someone" opens a form that pushes the connector address
     # (".../mcp") and the list of connected assistants into view.
     "R5": {"crop": (190, 1180), "cuts": [(0.0, 3.9, 1)]},
