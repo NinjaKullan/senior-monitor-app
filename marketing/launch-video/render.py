@@ -35,6 +35,7 @@ READY: dict[str, Path | None] = {}  # recording -> its prepared file, filled by 
 # to 1080 wide (shot 1: the apartments and the house must both stay in view).
 CROP_9X16: dict[str, str] = {"01": "fit"}
 SET_SCRIPT = {
+    "10b": "kitchen.py",
     "01": "map.py",
     "02": "kitchen.py",
     "06": "kitchen.py",

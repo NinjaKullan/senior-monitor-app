@@ -22,8 +22,9 @@ SHOTS = [
     ("08", 5.2, "screen|R3|Memory", "Notes and replies,\nin the family's\nown words."),
     ("09", 5.2, "screen|R4|Who to call", "Who to call,\nif you can't\nreach her."),
     ("10", 5.0, "screen|R5|Family circle", "Brothers and sisters\nsee the same notes."),
+    ("10b", 4.5, "blender|10b", "Kettle can add Mom's smart plug."),
     ("11a", 3.7, "screen|R6|Claude: the question", "Kettle works\ninside Claude, too."),
-    ("11b", 3.7, "screen|R6|Claude: Kettle's answer", "Ask who to call,\nright from Claude."),
+    ("11b", 4.7, "screen|R6|Claude: Kettle's answer", "Ask who to call,\nright from Claude."),
     ("12", 6.0, "screen|R7|Claude: add a note", "Or tell it something\nfor the family."),
     ("13", 4.2, "screen|R8|Memory: the new note", "It lands in the\nfamily's notes."),
     (
@@ -54,6 +55,9 @@ SHOTS = [
 #   hold:  one frame, at this second, for the whole shot.
 # A recording with no entry plays from its first frame, uncropped.
 RECORDINGS = {
+    # R1: one static frame of the Outlook email; keep the message, drop the status bar, Outlook's
+    # back arrow, and its reply bar and tab bar (a coloured assistant icon sits there).
+    "R1": {"crop": (300, 1790), "cuts": [(0.3, None, 1)]},
     "R2": {"crop": (410, None), "cuts": [(1.5, None, 1)]},  # founder: trim the first 1.5 s
     # R3, R4: the first 0.9 s is the home screen and the app opening (founder: no personal apps).
     "R3": {"crop": (410, None), "cuts": [(1.0, None, 1)]},
@@ -140,5 +144,6 @@ if __name__ == "__main__":  # self-check: the words pass, and a planted breach i
             continue
         raise AssertionError(f"copy law missed {planted!r}")
     total = sum(s[1] for s in SHOTS)
-    assert 75 <= total <= 90, total
+    # The founder raised the cap from 90 to 95 s for shot 10b (2026-09-26).
+    assert 75 <= round(total, 3) <= 95, total
     print(f"{len(SHOTS)} shots, {total:.1f} s, words clean")

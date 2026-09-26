@@ -30,6 +30,7 @@ MOCK = {
     "03": "phones",
     "06": "quiet",
     "07": "thumbs",
+    "10b": "kitchen",  # added after the mockups were locked; no mock of its own
 }  # set shot -> assets/mock
 
 
