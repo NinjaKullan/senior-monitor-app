@@ -16,6 +16,6 @@
 - [x] Recordings R2 to R8 in, cut per shots.RECORDINGS (crops, trims, typing sped up, R6 ends before the 911 line, R8 held)
 - [x] R9 in (typing x5, lookup x4, agencies and the scroll to the source line); R6 holds the full list with the 911 line covered
 - [ ] Needs from founder: R1 (Dad's morning note, due 2026-09-26 after 8:30 am ET); then render.py; then the founder renames Rehearsal's parents back (SETUP-LOG.md)
-Gemini images, phase 4: 12 of 60
-- [ ] Phase 4: remaining scenes, compositing, 16:9 + 9:16 renders, README, PROMPTS.md (<= 60 Gemini images)
-- [ ] Commit and push on branch launch-video
+Gemini images, phase 4: 17 of 60
+- [x] Phase 4: remaining scenes, compositing, 16:9 + 9:16 renders, README, PROMPTS.md (<= 60 Gemini images)
+- [x] Commit and push on branch launch-video (kept current)
