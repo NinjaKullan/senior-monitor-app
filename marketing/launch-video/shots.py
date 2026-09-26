@@ -23,8 +23,8 @@ SHOTS = [
     ("09", 5.2, "screen|R4|Who to call", "Who to call,\nif you can't\nreach her."),
     ("10", 5.0, "screen|R5|Family circle", "Brothers and sisters\nsee the same notes."),
     ("11a", 3.7, "screen|R6|Claude: the question", "Kettle works\ninside Claude, too."),
-    ("11b", 3.7, "screen|R6|Claude: Kettle's answer", "Ask how Mom's\nmorning went."),
-    ("12", 5.0, "screen|R7|Claude: add a note", "Or tell it something\nfor the family."),
+    ("11b", 3.7, "screen|R6|Claude: Kettle's answer", "Ask who to call,\nright from Claude."),
+    ("12", 6.0, "screen|R7|Claude: add a note", "Or tell it something\nfor the family."),
     ("13", 4.2, "screen|R8|Memory: the new note", "It lands in the\nfamily's notes."),
     (
         "14a",
@@ -42,6 +42,38 @@ SHOTS = [
     ("15b", 4.7, "close|15", "For checking in, not checking up."),
     ("15c", 3.7, "close|15", "Now open to founding families."),
 ]
+
+# How each recording is cut before it goes on screen (source is 1206x2622, 60 fps).
+#   crop:  (top, bottom) rows kept; bottom None = to the end. App screens lose the status bar and
+#          the circle switcher (410); Claude loses the status bar and, in R7, the faded tail of
+#          R6's last line above the chat (300).
+#   cuts:  (start, end, speed) pieces played in order; end None = to the end. Gaps are cut out.
+#   hold:  one frame, at this second, for the whole shot.
+# A recording with no entry plays from its first frame, uncropped.
+RECORDINGS = {
+    "R2": {"crop": (410, None), "cuts": [(1.5, None, 1)]},  # founder: trim the first 1.5 s
+    "R3": {"crop": (410, None)},
+    "R4": {"crop": (410, None)},
+    # The circle only, before "Add someone" opens a form that pushes the connector address
+    # (".../mcp") and the list of connected assistants into view.
+    "R5": {"crop": (190, 1180), "cuts": [(0.0, 3.9, 1)]},
+    # Typing x5, Claude's lookup x4, then the answer streaming in; it stops at 22.36 s, the last
+    # frame before the "call 911" line starts (founder: end on the list of people to call).
+    "R6": {"crop": (300, None), "cuts": [(2.7, 13.5, 5), (13.5, 22.0, 4), (22.0, 22.36, 1)]},
+    # Skips 5.8 to 7.3 s (sending scrolls R6's 911 line back into view) and 10.6 to 17.6 s (idle).
+    "R7": {
+        "crop": (300, None),
+        "cuts": [
+            (2.6, 5.8, 4),
+            (7.3, 10.0, 3),
+            (10.0, 10.6, 1),
+            (17.6, 22.3, 5),
+            (22.3, 27.8, 5),
+            (27.8, 29.6, 1),
+        ],
+    },  # fmt: skip
+    "R8": {"crop": (410, None), "hold": 2.0},  # founder: hold the frame
+}
 
 BANNED = [
     "monitor",

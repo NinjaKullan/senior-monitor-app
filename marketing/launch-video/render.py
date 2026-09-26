@@ -7,7 +7,8 @@
 3. ffmpeg composes one segment per row of shots.py, in 16:9 and 9:16, and joins them.
 Out: out/kettle-launch.mp4 (1920x1080) and out/kettle-launch-9x16.mp4 (1080x1920), 30 fps, H.264
 yuv420p, silent unless audio/music.* exists; a still per shot in out/shots/.
-A recording dropped in recordings/<R>.mp4 replaces its grey card on the next run.
+A recording saved as recordings/<R>.mp4 replaces its grey card on the next run, cut per
+shots.RECORDINGS.
 Flags: --frames-only (Blender only), --no-blender (fail if frames are missing).
 """
 
@@ -19,7 +20,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from shots import SHOTS, check
+from shots import RECORDINGS, SHOTS, check
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
@@ -28,6 +29,7 @@ BLENDER = "/Applications/Blender.app/Contents/MacOS/Blender"
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 PAPER, INK, MUTED, GREY = "#F7F1E8", "#403C36", "#6E6860", "#C9C4BC"
 FPS = 30
+READY: dict[str, Path | None] = {}  # recording -> its prepared file, filled by main()
 # 9:16 takes a 1080 px square from each painted frame: centred, unless a set needs it moved.
 CROP_9X16: dict[str, int] = {}
 SET_SCRIPT = {
@@ -205,6 +207,41 @@ def screen_dressing(
 # ---------------------------------------------------------------- segments (ffmpeg)
 
 
+def source(rec: str) -> Path | None:
+    """recordings/<rec>.mp4 or .mov, any case (the iPhone writes R2.MP4)."""
+    for p in sorted((HERE / "recordings").glob(f"{rec}.*")):
+        if p.suffix.lower() in (".mp4", ".mov"):
+            return p
+    return None
+
+
+def prepared(rec: str) -> Path | None:
+    """The recording as it plays: cut, sped and cropped per shots.RECORDINGS, at 30 fps H.264,
+    written to out/rec/<rec>.mp4. None until the founder's file exists."""
+    src = source(rec)
+    if not src:
+        return None
+    edit = RECORDINGS.get(rec, {})
+    out = OUT / "rec" / f"{rec}.mp4"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    top, bottom = edit.get("crop", (0, None))
+    crop = f"crop=iw:{f'{bottom}-{top}' if bottom else f'ih-{top}'}:0:{top}"
+    if "hold" in edit:
+        t = edit["hold"]
+        graph = f"[0:v]trim=start={t}:duration=0.05,setpts=PTS-STARTPTS,{crop},fps={FPS}[v]"
+    else:
+        pieces = edit.get("cuts", [(0, None, 1)])
+        parts = []
+        for k, (a, b, speed) in enumerate(pieces):
+            end = f":end={b}" if b is not None else ""
+            parts.append(f"[0:v]trim=start={a}{end},setpts=(PTS-STARTPTS)/{speed},fps={FPS}[p{k}]")
+        joined = "".join(f"[p{k}]" for k in range(len(pieces)))
+        graph = ";".join(parts) + f";{joined}concat=n={len(pieces)}:v=1:a=0,{crop}[v]"
+    run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-filter_complex", graph,
+         "-map", "[v]", *X264, str(out)])  # fmt: skip
+    return out
+
+
 def recording_box(path: Path, f: dict) -> tuple[int, int]:
     info = json.loads(
         subprocess.run(
@@ -285,8 +322,8 @@ def segment(i: int, row, offsets: dict[str, int], fmt: str) -> Path:
     else:
         rec, label = rest[0], rest[1]
         under = rest[2] if len(rest) > 2 else ""
-        path = HERE / "recordings" / f"{rec}.mp4"
-        live = recording_box(path, f) if path.exists() else None
+        path = READY.get(rec)
+        live = recording_box(path, f) if path else None
         if fmt == "16x9":
             inputs += loop + [str(OUT / "frames/plate.png")]
             graph.append("[0]null[bg]")
@@ -429,6 +466,8 @@ def main() -> None:
     if "--frames-only" in sys.argv:
         return
     (OUT / "overlays").mkdir(parents=True, exist_ok=True)
+    for rec in sorted({r[2].split("|")[1] for r in SHOTS if r[2].startswith("screen")}):
+        READY[rec] = prepared(rec)
     total = sum(r[1] for r in SHOTS)
     for fmt, name in (("16x9", "kettle-launch.mp4"), ("9x16", "kettle-launch-9x16.mp4")):
         offsets: dict[str, int] = {}
@@ -436,14 +475,7 @@ def main() -> None:
         join(parts, OUT / name, total)
         stills(parts, fmt)
         print(f"{name}: {probe(OUT / name).strip()}")
-    missing = sorted(
-        {
-            r[2].split("|")[1]
-            for r in SHOTS
-            if r[2].startswith("screen")
-            and not (HERE / "recordings" / f"{r[2].split('|')[1]}.mp4").exists()
-        }
-    )
+    missing = sorted(rec for rec, path in READY.items() if path is None)
     if missing:
         print("placeholders still in the cut for:", ", ".join(missing))
 

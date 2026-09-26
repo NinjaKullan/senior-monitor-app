@@ -1,6 +1,6 @@
 # Kettle launch video: script (approved 2026-09-24, with the shot 14 change)
 
-1920x1080, 30 fps, 88.5 s. Phase 3 marks applied 2026-09-24 (shots 5, 7, 10, 14, 15). No voice-over. One line of words on screen at a time,
+1920x1080, 30 fps, 89.5 s. Phase 3 marks applied 2026-09-24 (shots 5, 7, 10, 14, 15); recording marks 2026-09-25 (11b words; shot 12 now 6.0 s so Claude's reply can be read). No voice-over. One line of words on screen at a time,
 Patrick Hand, ink, centred on paper, never over a face or a screen's text.
 Hold rule: at least 1.2 s + 0.5 s per word (a short line read twice), plus a 0.4 s fade in.
 App screens are real recordings of the Rehearsal family, renamed on screen to "Mom" and "Dad".
@@ -20,14 +20,14 @@ Painted shots are paper-diorama scenes: no people, no text inside the painting.
 | 9 | 44.3 to 49.5 | Who to call | Screen: Who to call, Mom's number and the neighbour, the cousin, the building manager | Who to call, if you can't reach her. |
 | 10 | 49.5 to 54.5 | Circle | Screen: Family, the circle list with two people and "Add someone" | Brothers and sisters see the same notes. |
 | 11a | 54.5 to 58.2 | AI | Screen: Claude, the question typed: "How was Mom's morning?" | Kettle works inside Claude, too. |
-| 11b | 58.2 to 61.9 | AI | (same recording) Kettle's own sentence comes back | Ask how Mom's morning went. |
-| 12 | 61.9 to 66.9 | AI | Screen: Claude, "Add a note: her cataract appointment is Thursday", then "Saved. The family will see it in Memory." | Or tell it something for the family. |
-| 13 | 66.9 to 71.1 | AI | Screen: the app's Memory, the new note at the top, marked "via Claude" | It lands in the family's notes. |
-| 14a | 71.1 to 74.9 | AI | Screen: Claude with Care Compare: "Home health agencies within 15 miles of 43215 rated 4 or more" and the real answer (five agencies, 4 to 5 of 5). Small under the screen: "Care Compare by HeyKettle" | Looking for home health care? |
-| 14b | 74.9 to 79.1 | AI | (same recording, the answer scrolled to the Source line) | Medicare's ratings, in plain words. Free. |
-| 15 | 79.1 to 88.5 | Close | Painted kettle (assets/kettle.png) on the paper, a wisp of steam | Kettle / heykettle.com (79.1), then For checking in, not checking up. (80.1), then Now open to founding families. (84.8) |
+| 11b | 58.2 to 61.9 | AI | (same recording) Kettle's answer: Mom's number and the people to call, ending before Claude's closing emergency line | Ask who to call, right from Claude. |
+| 12 | 61.9 to 67.9 | AI | Screen: Claude, "Add a note: her cataract appointment is Thursday", the note read back, "Add it as written", then "I added the note, so the family will see..." | Or tell it something for the family. |
+| 13 | 67.9 to 72.1 | AI | Screen: the app's Memory, the new note at the top, marked "via Claude" | It lands in the family's notes. |
+| 14a | 72.1 to 75.9 | AI | Screen: Claude with Care Compare: "Home health agencies within 15 miles of 43215 rated 4 or more" and the real answer (five agencies, 4 to 5 of 5). Small under the screen: "Care Compare by HeyKettle" | Looking for home health care? |
+| 14b | 75.9 to 80.1 | AI | (same recording, the answer scrolled to the Source line) | Medicare's ratings, in plain words. Free. |
+| 15 | 80.1 to 89.5 | Close | Painted kettle (assets/kettle.png) on the paper, a wisp of steam | Kettle / heykettle.com (80.1), then For checking in, not checking up. (81.1), then Now open to founding families. (85.8) |
 
-Part 5 (AI) runs 54.5 to 79.1, 24.6 s: the longest part, as the brief allows.
+Part 5 (AI) runs 54.5 to 80.1, 25.6 s: the longest part, as the brief allows.
 Silent unless a `audio/music.*` file exists.
 
 ## Self-check (brief §5 and the writers' brief), run on every line
