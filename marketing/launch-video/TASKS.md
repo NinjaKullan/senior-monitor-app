@@ -15,7 +15,10 @@
 - [x] Phase 4: all frames rendered; 16:9 and 9:16 cuts built, 88.5 s, H.264 yuv420p 30 fps, stills in out/shots/
 - [x] Recordings R2 to R8 in, cut per shots.RECORDINGS (crops, trims, typing sped up, R6 ends before the 911 line, R8 held)
 - [x] R9 in (typing x5, lookup x4, agencies and the scroll to the source line); R6 holds the full list with the 911 line covered
-- [ ] Needs from founder: R1 (Dad's morning note, due 2026-09-26 after 8:30 am ET); then render.py; then the founder renames Rehearsal's parents back (SETUP-LOG.md)
+- [x] R1 in (Dad's morning note, Outlook, cropped to the message); render.py run 2026-09-26, no placeholders left
+- [x] Shot 10b (her own smart plug) built in Blender; 11b held to 4.7 s; total 95.0 s (founder's cap)
+- [ ] Founder: pick 10b's words (working line "Kettle can add Mom's smart plug.", 6 words or fewer fits)
+- [ ] Founder: rename Rehearsal's parents back to TestMom / TestDad (recordings/SETUP-LOG.md)
 Gemini images, phase 4: 17 of 60
 - [x] Phase 4: remaining scenes, compositing, 16:9 + 9:16 renders, README, PROMPTS.md (<= 60 Gemini images)
 - [x] Commit and push on branch launch-video (kept current)

@@ -1,6 +1,6 @@
 # Kettle launch video: script (approved 2026-09-24, with the shot 14 change)
 
-1920x1080, 30 fps, 89.5 s. Phase 3 marks applied 2026-09-24 (shots 5, 7, 10, 14, 15); recording marks 2026-09-25 (11b words; shot 12 now 6.0 s so Claude's reply can be read). No voice-over. One line of words on screen at a time,
+1920x1080, 30 fps, 95.0 s. Phase 3 marks applied 2026-09-24 (shots 5, 7, 10, 14, 15); recording marks 2026-09-25 (11b words; shot 12 now 6.0 s so Claude's reply can be read); 2026-09-26 shot 10b added, 11b held to 4.7 s, cap raised to 95 s by the founder. No voice-over. One line of words on screen at a time,
 Patrick Hand, ink, centred on paper, never over a face or a screen's text.
 Hold rule: at least 1.2 s + 0.5 s per word (a short line read twice), plus a 0.4 s fade in.
 App screens are real recordings of the Rehearsal family, renamed on screen to "Mom" and "Dad".
@@ -11,7 +11,7 @@ Painted shots are paper-diorama scenes: no people, no text inside the painting.
 | 1 | 0.0 to 4.2 | Day | Painted: paper map on a table, a city apartment on one side, Mom and Dad's house far off on the other, dawn coming up there | Mom and Dad live far away. |
 | 2 | 4.2 to 8.9 | Day | Painted: Mom's kitchen in morning light, green kettle steaming, her phone on the counter lighting up | Mom's phone does what it always does. |
 | 3 | 8.9 to 14.1 | Day | Painted: two paper phones side by side on the table, both plain lit screens | iPhone or Android. The phone she already owns. |
-| 4 | 14.1 to 19.8 | Day | Screen: the morning note as the family receives it: "Mom's morning looked like a normal morning. Next note this evening." | Twice a day, the family gets a short note. |
+| 4 | 14.1 to 19.8 | Day | Screen: the morning note as the family receives it, in Outlook: "Dad's morning looked like a normal morning. Next note this evening." | Twice a day, the family gets a short note. |
 | 5 | 19.8 to 25.5 | Day | Screen: the app's Today card, "Heard from 54 minutes ago" | The app shows when Kettle last heard from her. |
 | 6 | 25.5 to 30.2 | Day | Painted: the same kitchen, bright and tidy, kettle cold, phone on the table | If a morning doesn't look like hers, |
 | 7a | 30.2 to 33.9 | Day | Painted: the phone on the table; a small paper message slip settles on it, then a paper thumbs up rises beside it | Kettle asks her first, quietly. |
@@ -19,15 +19,16 @@ Painted shots are paper-diorama scenes: no people, no text inside the painting.
 | 8 | 39.1 to 44.3 | Memory | Screen: Memory, with "Dad's cataract appointment is Thursday." and a reply "Called Mom, she sounded great." | Notes and replies, in the family's own words. |
 | 9 | 44.3 to 49.5 | Who to call | Screen: Who to call, Mom's number and the neighbour, the cousin, the building manager | Who to call, if you can't reach her. |
 | 10 | 49.5 to 54.5 | Circle | Screen: Family, the circle list with two people and "Add someone" | Brothers and sisters see the same notes. |
-| 11a | 54.5 to 58.2 | AI | Screen: Claude, the question typed: "How was Mom's morning?" | Kettle works inside Claude, too. |
-| 11b | 58.2 to 61.9 | AI | (same recording) Kettle's answer: Mom's number and the people to call, ending before Claude's closing emergency line | Ask who to call, right from Claude. |
-| 12 | 61.9 to 67.9 | AI | Screen: Claude, "Add a note: her cataract appointment is Thursday", the note read back, "Add it as written", then "I added the note, so the family will see..." | Or tell it something for the family. |
-| 13 | 67.9 to 72.1 | AI | Screen: the app's Memory, the new note at the top, marked "via Claude" | It lands in the family's notes. |
-| 14a | 72.1 to 75.9 | AI | Screen: Claude with Care Compare: "Home health agencies within 15 miles of 43215 rated 4 or more" and the real answer (five agencies, 4 to 5 of 5). Small under the screen: "Care Compare by HeyKettle" | Looking for home health care? |
-| 14b | 75.9 to 80.1 | AI | (same recording, the answer scrolled to the Source line) | Medicare's ratings, in plain words. Free. |
-| 15 | 80.1 to 89.5 | Close | Painted kettle (assets/kettle.png) on the paper, a wisp of steam | Kettle / heykettle.com (80.1), then For checking in, not checking up. (81.1), then Now open to founding families. (85.8) |
+| 10b | 54.5 to 59.0 | Home | Painted: the kitchen closer on the worktop; a paper lamp's cord runs to a plain plug in the wall outlet, a small round speaker beside it; the lamp switches on softly, camera still | Kettle can add Mom's smart plug. (working line) |
+| 11a | 59.0 to 62.7 | AI | Screen: Claude, the question typed: "Who can I call if I can't reach mom?" | Kettle works inside Claude, too. |
+| 11b | 62.7 to 67.4 | AI | (same recording) Kettle's answer: Mom's number and the people to call, ending before Claude's closing emergency line | Ask who to call, right from Claude. |
+| 12 | 67.4 to 73.4 | AI | Screen: Claude, "Add a note: her cataract appointment is Thursday", the note read back, "Add it as written", then "I added the note, so the family will see..." | Or tell it something for the family. |
+| 13 | 73.4 to 77.6 | AI | Screen: the app's Memory, the new note at the top, marked "via Claude" | It lands in the family's notes. |
+| 14a | 77.6 to 81.4 | AI | Screen: Claude with Care Compare: "Home health agencies within 15 miles of 43215 rated 4 or more" and the real answer (five agencies, 4 to 5 of 5). Small under the screen: "Care Compare by HeyKettle" | Looking for home health care? |
+| 14b | 81.4 to 85.6 | AI | (same recording, the answer scrolled to the Source line) | Medicare's ratings, in plain words. Free. |
+| 15 | 85.6 to 95.0 | Close | Painted kettle (assets/kettle.png) on the paper, a wisp of steam | Kettle / heykettle.com (85.6), then For checking in, not checking up. (86.6), then Now open to founding families. (91.3) |
 
-Part 5 (AI) runs 54.5 to 80.1, 25.6 s: the longest part, as the brief allows.
+Part 5 (AI) runs 59.0 to 85.6, 26.6 s: the longest part, as the brief allows.
 Silent unless a `audio/music.*` file exists.
 
 ## Self-check (brief §5 and the writers' brief), run on every line
