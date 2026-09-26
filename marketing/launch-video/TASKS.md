@@ -14,7 +14,8 @@
 - [x] Phase 4: README with the one render command
 - [x] Phase 4: all frames rendered; 16:9 and 9:16 cuts built, 88.5 s, H.264 yuv420p 30 fps, stills in out/shots/
 - [x] Recordings R2 to R8 in, cut per shots.RECORDINGS (crops, trims, typing sped up, R6 ends before the 911 line, R8 held)
-- [ ] Needs from founder: recordings R1 and R9; then render.py; then the founder renames Rehearsal's parents back (SETUP-LOG.md)
+- [x] R9 in (typing x5, lookup x4, agencies and the scroll to the source line); R6 holds the full list with the 911 line covered
+- [ ] Needs from founder: R1 (Dad's morning note, due 2026-09-26 after 8:30 am ET); then render.py; then the founder renames Rehearsal's parents back (SETUP-LOG.md)
 Gemini images, phase 4: 12 of 60
 - [ ] Phase 4: remaining scenes, compositing, 16:9 + 9:16 renders, README, PROMPTS.md (<= 60 Gemini images)
 - [ ] Commit and push on branch launch-video

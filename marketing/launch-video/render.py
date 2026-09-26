@@ -232,9 +232,16 @@ def prepared(rec: str) -> Path | None:
     else:
         pieces = edit.get("cuts", [(0, None, 1)])
         parts = []
-        for k, (a, b, speed) in enumerate(pieces):
+        for k, (a, b, speed, *extra) in enumerate(pieces):
             end = f":end={b}" if b is not None else ""
-            parts.append(f"[0:v]trim=start={a}{end},setpts=(PTS-STARTPTS)/{speed},fps={FPS}[p{k}]")
+            piece = f"[0:v]trim=start={a}{end},setpts=(PTS-STARTPTS)/{speed},fps={FPS}"
+            if extra and "mask" in extra[0]:  # cover rows m0..m1 with blank page from `sample`
+                m0, m1, sample = extra[0]["mask"]
+                parts.append(f"{piece},split[b{k}][c{k}]")
+                parts.append(f"[c{k}]crop=iw:50:0:{sample},scale=iw:{m1 - m0}[patch{k}]")
+                parts.append(f"[b{k}][patch{k}]overlay=0:{m0}[p{k}]")
+            else:
+                parts.append(f"{piece}[p{k}]")
         joined = "".join(f"[p{k}]" for k in range(len(pieces)))
         graph = ";".join(parts) + f";{joined}concat=n={len(pieces)}:v=1:a=0,{crop}[v]"
     run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-filter_complex", graph,

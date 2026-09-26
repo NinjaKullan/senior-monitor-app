@@ -47,7 +47,10 @@ SHOTS = [
 #   crop:  (top, bottom) rows kept; bottom None = to the end. App screens lose the status bar and
 #          the circle switcher (410); Claude loses the status bar and, in R7, the faded tail of
 #          R6's last line above the chat (300).
-#   cuts:  (start, end, speed) pieces played in order; end None = to the end. Gaps are cut out.
+#   cuts:  (start, end, speed[, {"mask": (top, bottom, hex)}]) pieces played in order; end None =
+#          to the end. Gaps are cut out. A mask covers source rows top..bottom with blank page
+#          stretched from 50 rows starting at `sample` in the same frame, so the colour matches
+#          exactly (a painted colour came out grey against the iPhone's encoding).
 #   hold:  one frame, at this second, for the whole shot.
 # A recording with no entry plays from its first frame, uncropped.
 RECORDINGS = {
@@ -57,9 +60,19 @@ RECORDINGS = {
     # The circle only, before "Add someone" opens a form that pushes the connector address
     # (".../mcp") and the list of connected assistants into view.
     "R5": {"crop": (190, 1180), "cuts": [(0.0, 3.9, 1)]},
-    # Typing x5, Claude's lookup x4, then the answer streaming in; it stops at 22.36 s, the last
-    # frame before the "call 911" line starts (founder: end on the list of people to call).
-    "R6": {"crop": (300, None), "cuts": [(2.7, 13.5, 5), (13.5, 22.0, 4), (22.0, 22.36, 1)]},
+    # Typing x5, Claude's lookup x4, the answer streaming in, then a hold on 24.0 s, when the list
+    # is fully drawn, with Claude's closing "call 911" line (rows 1725 to 1910) covered by blank
+    # page from the same frame, rows 1905 to 1955 (founder: end on the list of people to call; the
+    # full list reads better than a faint last entry).
+    "R6": {
+        "crop": (300, None),
+        "cuts": [
+            (2.7, 13.5, 5),
+            (13.5, 22.0, 4),
+            (22.0, 22.36, 1),
+            (24.0, 24.05, 1, {"mask": (1725, 1910, 1905)}),
+        ],
+    },  # fmt: skip
     # Skips 5.8 to 7.3 s (sending scrolls R6's 911 line back into view) and 10.6 to 17.6 s (idle).
     "R7": {
         "crop": (300, None),
@@ -73,6 +86,12 @@ RECORDINGS = {
         ],
     },  # fmt: skip
     "R8": {"crop": (410, None), "hold": 2.0},  # founder: hold the frame
+    # Typing x5, the lookup x4 (as R6), the five agencies streaming in x2, then the slow scroll to
+    # Medicare's source line x2.4, which holds.
+    "R9": {
+        "crop": (300, None),
+        "cuts": [(0.0, 3.3, 5), (3.3, 12.0, 4), (12.0, 16.0, 2), (16.0, 23.2, 2.4)],
+    },
 }
 
 BANNED = [
