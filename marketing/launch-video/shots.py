@@ -16,7 +16,7 @@ SHOTS = [
     ("04", 3.7, "screen|R1|Morning note email", "Twice a day,\nthe family gets\na short note."),
     ("05", 3.7, "screen|R2|Today card", "The app shows when\nKettle last heard\nfrom her."),
     # From frame 8, so the bubble (12 to 30) and the thumbs up (66 to 90) both land in 2.9 s.
-    ("07", 2.9, "blender|07|8", "Kettle asks her first,\nbefore anyone else hears."),
+    ("07", 2.9, "blender|07|8", "Morning looks different?\nKettle asks her first."),
     ("08", 3.4, "screen|R3|Memory", "Notes and replies,\nin the family's\nown words."),
     ("09", 3.4, "screen|R4|Who to call", "Who to call,\nif you can't\nreach her."),
     ("10", 3.1, "screen|R5|Family circle", "Brothers and sisters\nsee the same notes."),

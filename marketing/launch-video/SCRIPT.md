@@ -12,7 +12,7 @@ Painted shots are paper-diorama scenes: no people, no text inside the painting.
 | 03 | 2.3 to 5.2 | Day | Painted: two phones on the table, lit, one with a notch, one with a punch-hole (merged phone beat, old shots 2 and 3) | The phone she already owns. iPhone or Android. | 2.9 |
 | 04 | 5.2 to 8.9 | Day | Screen R1: Dad's morning note in Outlook, "Dad's morning looked like a normal morning. Next note this evening." | Twice a day, the family gets a short note. | 3.7 |
 | 05 | 8.9 to 12.6 | Day | Screen R2: the app's Today card, "Heard from 44 minutes ago" | The app shows when Kettle last heard from her. | 3.7 |
-| 07 | 12.6 to 15.5 | Day | Painted: close on her phone, a message bubble arrives, then a paper thumbs up folds up (merged beat, old shots 6, 7a, 7b) | Kettle asks her first, before anyone else hears. | 2.9 |
+| 07 | 12.6 to 15.5 | Day | Painted: close on her phone, a message bubble arrives, then a paper thumbs up folds up (merged beat, old shots 6, 7a, 7b) | Morning looks different? Kettle asks her first. | 2.6 |
 | 08 | 15.5 to 18.9 | Memory | Screen R3: Memory, a note and its reply, the upcoming birthday dinner | Notes and replies, in the family's own words. | 3.4 |
 | 09 | 18.9 to 22.3 | Who to call | Screen R4: Who to call, the neighbour, the cousin, the front desk | Who to call, if you can't reach her. | 3.4 |
 | 10 | 22.3 to 25.4 | Circle | Screen R5: the family circle, two people and Add someone | Brothers and sisters see the same notes. | 3.1 |
