@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 355.** This line is the one to update; the `Next number:` lines inside
+**Next number: 357.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7975,3 +7975,24 @@ browser — all three adopted as the standard for future surfaces.**
      * The Soak family stays provisioned; the phone stays on the shelf as
        a standing canary. Nothing to deploy.
      * Next number: 356.
+
+356. **(2026-09-26, Saturday night ET) FOUNDER: A THIRD FILM WITH AI-MADE
+     PEOPLE; FACES ALLOWED IN MARKETING VIDEO.** The founder wants a
+     30-second film with realistic AI-generated people and voice
+     (Higgsfield or similar) for the release post, social and possibly
+     paid social, alongside the painted launch video and the no-faces
+     explainer. Rulings taken tonight: the audience is any adult child
+     with a parent aging in place, not daughters only; story is a day in
+     the life of an adult child and a parent; real Rehearsal screens
+     (R1 to R9) are the only app footage; picture and voice both
+     AI-generated; a new session with its own charter and log runs it.
+     * The "no faces" rule was the explainer's style rule, never a law;
+       nothing in LAW-1 to LAW-10 bars people on screen. The copy laws
+       apply to the voice-over and end card in full.
+     * Charter: `docs/human-video-brief.md`. Session log:
+       `docs/human-video-log.md`. Branch `human-video`. Never touches
+       product code, specs or this ledger.
+     * Open for the founder (defaults in the brief): an end-card line
+       saying the people are AI-made (recommended yes), 30 s master,
+       no music. Cost cap $100 without asking.
+     * Next number: 357.
