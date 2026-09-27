@@ -2,6 +2,7 @@
 
 1920x1080, 30 fps, 46.6 s (re-timed 2026-09-26 after a test viewer drifted in the first 50 s). No voice-over. One line of words on screen at a time,
 Patrick Hand, ink, centred on paper, never over a face or a screen's text.
+Transitions: straight cuts, except a 0.4 s cross-dissolve from shot 01 into the phone beat and from the phone beat into shot 04 (the outgoing shot runs on underneath, so no time is added).
 Hold rule: read once, at 0.3 s a word, plus 0.5 s; app screens (04, 05, 08, 09, 10, 13) plus 1.0 s instead. Painted shots at most 3 s. shots.py asserts both.
 App screens are real recordings of the Rehearsal family, renamed on screen to "Mom" and "Dad".
 Painted shots are paper-diorama scenes: no people, no text inside the painting.

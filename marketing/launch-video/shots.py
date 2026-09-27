@@ -33,6 +33,11 @@ SHOTS = [
     ("15c", 2.0, "close|15", "Now open to founding families."),
 ]  # fmt: skip
 
+# Cross-dissolves (founder, 2026-09-26): (outgoing, incoming) -> seconds. The outgoing shot runs on
+# under the incoming one for that long, so the join adds no time and no caption loses its hold.
+# Every other join is a straight cut.
+DISSOLVES = {("01", "03"): 0.4, ("03", "04"): 0.4}
+
 # Hold rule (founder, 2026-09-26, after a test viewer drifted): read once at 0.3 s a word, plus
 # 0.5 s; app screens, which carry the most reading, plus 1.0 s instead. Painted shots at most 3 s.
 APP_SCREENS = {"04", "05", "08", "09", "10", "13"}

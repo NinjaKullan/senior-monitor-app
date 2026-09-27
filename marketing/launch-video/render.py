@@ -21,7 +21,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from shots import RECORDINGS, SHOTS, check
+from shots import DISSOLVES, RECORDINGS, SHOTS, check
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
@@ -322,7 +322,8 @@ def segment(i: int, row, offsets: dict[str, int], fmt: str) -> Path:
     sid, sec, pic, words = row
     f = FMT[fmt]
     W, H = f["W"], f["H"]
-    n = round(sec * FPS)
+    after = SHOTS[i + 1][0] if i + 1 < len(SHOTS) else None
+    n = round((sec + DISSOLVES.get((sid, after), 0.0)) * FPS)  # runs on under a dissolve
     kind, *rest = pic.split("|")
     out = OUT / "seg" / fmt / f"{i:02d}-{sid}.mp4"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -422,38 +423,38 @@ def segment(i: int, row, offsets: dict[str, int], fmt: str) -> Path:
 
 
 def join(parts: list[Path], out: Path, total: float) -> None:
-    lst = out.with_suffix(".txt")
-    lst.write_text("".join(f"file '{p}'\n" for p in parts))
+    """Join the segments: straight cuts, except a cross-dissolve at each shots.DISSOLVES join,
+    where the outgoing segment (rendered that much longer) runs on under the incoming one."""
+    ins: list[str] = []
+    for p in parts:
+        ins += ["-i", str(p)]
+    graph, label, clock = [], "0:v", 0.0
+    for k, row in enumerate(SHOTS):
+        if k == 0:
+            clock = row[1]
+            continue
+        cross = DISSOLVES.get((SHOTS[k - 1][0], row[0]), 0.0)
+        if cross:  # the incoming shot starts on its cut; the outgoing one fades out over it
+            graph.append(
+                f"[{label}][{k}:v]xfade=transition=fade:duration={cross}:offset={clock:.3f}[j{k}]"
+            )
+        else:
+            graph.append(f"[{label}][{k}:v]concat=n=2:v=1:a=0[j{k}]")
+        label, clock = f"j{k}", clock + row[1]
+    fades = f"fade=in:st=0:d=0.5:color={PAPER},fade=out:st={total - 0.8:.2f}:d=0.8:color={PAPER}"
+    graph.append(f"[{label}]{fades}[v]")
     music = sorted((HERE / "audio").glob("music.*")) if (HERE / "audio").exists() else []
-    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst)]
-    vf = f"fade=in:st=0:d=0.5:color={PAPER},fade=out:st={total - 0.8:.2f}:d=0.8:color={PAPER}"
-    if music:  # quiet, no vocals (the founder's file), faded with the picture
+    cmd = ["ffmpeg", "-y", "-loglevel", "error", *ins]
+    if music:  # quiet, no vocals (the founder's file), faded out over the last 2 s
         cmd += ["-i", str(music[0])]
-        af = f"volume=0.35,afade=in:st=0:d=1,afade=out:st={total - 2:.2f}:d=2"
-        cmd += [
-            "-vf",
-            vf,
-            "-af",
-            af,
-            "-map",
-            "0:v",
-            "-map",
-            "1:a",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "160k",
-            *[a for a in X264 if a != "-an"],
-            "-t",
-            f"{total:.3f}",
-            "-movflags",
-            "+faststart",
-            str(out),
-        ]
+        graph.append(f"[{len(parts)}:a]volume=0.35,afade=in:st=0:d=1,"
+                     f"afade=out:st={total - 2:.2f}:d=2[a]")  # fmt: skip
+        maps = ["-map", "[v]", "-map", "[a]", "-c:a", "aac", "-b:a", "160k"]
+        enc = [a for a in X264 if a != "-an"]
     else:
-        cmd += ["-vf", vf, *X264, "-t", f"{total:.3f}", "-movflags", "+faststart", str(out)]
-    run(cmd)
-    lst.unlink()
+        maps, enc = ["-map", "[v]"], X264
+    run([*cmd, "-filter_complex", ";".join(graph), *maps, *enc, "-t", f"{total:.3f}",
+         "-movflags", "+faststart", str(out)])  # fmt: skip
 
 
 def stills(parts: list[Path], fmt: str) -> None:
