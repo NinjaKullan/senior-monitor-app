@@ -1,6 +1,6 @@
 # Kettle launch video
 
-An 88.5 s launch film for heykettle.com, LinkedIn and YouTube, plus a 9:16 cut for TikTok and
+A 46.6 s launch film for heykettle.com, LinkedIn and YouTube, plus a 9:16 cut for TikTok and
 Reels made from the same scenes. It has no voice-over: the words on screen tell the story. The
 brief is `docs/launch-video-brief.md`, the approved words and timings are in `SCRIPT.md`, the shots
 are in `STORYBOARD.md`, and progress is in `TASKS.md`.

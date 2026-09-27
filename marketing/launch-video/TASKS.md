@@ -18,6 +18,7 @@
 - [x] R1 in (Dad's morning note, Outlook, cropped to the message); render.py run 2026-09-26, no placeholders left
 - [x] Shot 10b (her own smart plug) built in Blender; 11b held to 4.7 s; total 95.0 s (founder's cap)
 - [x] 10b's words: "Add Mom's smart plug or Alexa routine." (founder, 2026-09-26); 10b 4.7 s, shot 12 5.8 s
+- [x] Re-timed to 46.6 s (founder, 2026-09-26): read once + 0.5 s, app screens + 1.0 s, painted shots at most 3 s; shots 2+3 and 6+7a+7b merged
 - [ ] Founder: rename Rehearsal's parents back to TestMom / TestDad (recordings/SETUP-LOG.md)
 Gemini images, phase 4: 17 of 60
 - [x] Phase 4: remaining scenes, compositing, 16:9 + 9:16 renders, README, PROMPTS.md (<= 60 Gemini images)
