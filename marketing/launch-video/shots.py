@@ -2,8 +2,8 @@
 human copy; mockup.py and render.py both read this list, so the words live in one place.
 
 picture:
-  "blender|<set shot>"               frames from out/frames/<set shot>/ (consecutive rows share
-                                     a set shot and play on through its frames)
+  "blender|<set shot>[|<frame>]"     frames from out/frames/<set shot>/, from <frame> (default 1;
+                                     consecutive rows share a set shot and play on through it)
   "screen|<rec>|<label>[|<under>]"   recordings/<rec>.mp4 on the plate, or a grey card saying
                                      <label> until it exists; <under>: small type below the screen
   "close|15"                         the close set, with the name and address laid over it
@@ -11,38 +11,37 @@ words: "\n" is a line break the caption keeps. Screen captions sit in the left c
 """
 
 SHOTS = [
-    ("01", 4.2, "blender|01", "Mom and Dad live far away."),
-    ("02", 4.7, "blender|02", "Mom's phone does what it always does."),
-    ("03", 5.2, "blender|03", "iPhone or Android. The phone she already owns."),
-    ("04", 5.7, "screen|R1|Morning note email", "Twice a day,\nthe family gets\na short note."),
-    ("05", 5.7, "screen|R2|Today card", "The app shows when\nKettle last heard\nfrom her."),
-    ("06", 4.7, "blender|06", "If a morning doesn't look like hers,"),
-    ("07a", 3.7, "blender|07", "Kettle asks her first, quietly."),
-    ("07b", 5.2, "blender|07", "The family hears only if she doesn't answer."),
-    ("08", 5.2, "screen|R3|Memory", "Notes and replies,\nin the family's\nown words."),
-    ("09", 5.2, "screen|R4|Who to call", "Who to call,\nif you can't\nreach her."),
-    ("10", 5.0, "screen|R5|Family circle", "Brothers and sisters\nsee the same notes."),
-    ("10b", 4.7, "blender|10b", "Add Mom's smart plug or Alexa routine."),
-    ("11a", 3.7, "screen|R6|Claude: the question", "Kettle works\ninside Claude, too."),
-    ("11b", 4.7, "screen|R6|Claude: Kettle's answer", "Ask who to call,\nright from Claude."),
-    ("12", 5.8, "screen|R7|Claude: add a note", "Or tell it something\nfor the family."),
-    ("13", 4.2, "screen|R8|Memory: the new note", "It lands in the\nfamily's notes."),
-    (
-        "14a",
-        3.8,
-        "screen|R9|Claude: Care Compare|Care Compare by HeyKettle",
-        "Looking for\nhome health care?",
-    ),
-    (
-        "14b",
-        4.2,
-        "screen|R9|Claude: Care Compare|Care Compare by HeyKettle",
-        "Medicare's ratings,\nin plain words. Free.",
-    ),
-    ("15a", 1.0, "close|15", ""),
-    ("15b", 4.7, "close|15", "For checking in, not checking up."),
-    ("15c", 3.7, "close|15", "Now open to founding families."),
-]
+    ("01", 2.3, "blender|01", "Mom and Dad live far away."),
+    ("03", 2.9, "blender|03", "The phone she already owns.\niPhone or Android."),
+    ("04", 3.7, "screen|R1|Morning note email", "Twice a day,\nthe family gets\na short note."),
+    ("05", 3.7, "screen|R2|Today card", "The app shows when\nKettle last heard\nfrom her."),
+    # From frame 8, so the bubble (12 to 30) and the thumbs up (66 to 90) both land in 2.9 s.
+    ("07", 2.9, "blender|07|8", "Kettle asks her first,\nbefore anyone else hears."),
+    ("08", 3.4, "screen|R3|Memory", "Notes and replies,\nin the family's\nown words."),
+    ("09", 3.4, "screen|R4|Who to call", "Who to call,\nif you can't\nreach her."),
+    ("10", 3.1, "screen|R5|Family circle", "Brothers and sisters\nsee the same notes."),
+    ("10b", 2.6, "blender|10b", "Add Mom's smart plug or Alexa routine."),
+    ("11a", 2.0, "screen|R6|Claude: the question", "Kettle works\ninside Claude, too."),
+    ("11b", 2.6, "screen|R6|Claude: Kettle's answer", "Ask who to call,\nright from Claude."),
+    ("12", 2.6, "screen|R7|Claude: add a note", "Or tell it something\nfor the family."),
+    ("13", 2.8, "screen|R8|Memory: the new note", "It lands in the\nfamily's notes."),
+    ("14a", 2.0, "screen|R9|Claude: Care Compare|Care Compare by HeyKettle",
+     "Looking for\nhome health care?"),
+    ("14b", 2.3, "screen|R9|Claude: Care Compare|Care Compare by HeyKettle",
+     "Medicare's ratings,\nin plain words. Free."),
+    ("15b", 2.3, "close|15", "For checking in, not checking up."),
+    ("15c", 2.0, "close|15", "Now open to founding families."),
+]  # fmt: skip
+
+# Hold rule (founder, 2026-09-26, after a test viewer drifted): read once at 0.3 s a word, plus
+# 0.5 s; app screens, which carry the most reading, plus 1.0 s instead. Painted shots at most 3 s.
+APP_SCREENS = {"04", "05", "08", "09", "10", "13"}
+PAINTED_MAX = 3.0
+
+
+def hold(sid: str, words: str) -> float:
+    return (1.0 if sid in APP_SCREENS else 0.5) + 0.3 * len(words.split())
+
 
 # How each recording is cut before it goes on screen (source is 1206x2622, 60 fps).
 #   crop:  (top, bottom) rows kept; bottom None = to the end. App screens lose the status bar and
@@ -65,37 +64,29 @@ RECORDINGS = {
     # The circle only, before "Add someone" opens a form that pushes the connector address
     # (".../mcp") and the list of connected assistants into view.
     "R5": {"crop": (190, 1180), "cuts": [(0.0, 3.9, 1)]},
-    # Typing x5, Claude's lookup x4, the answer streaming in, then a hold on 24.0 s, when the list
-    # is fully drawn, with Claude's closing "call 911" line (rows 1725 to 1910) covered by blank
-    # page from the same frame, rows 1905 to 1955 (founder: end on the list of people to call; the
-    # full list reads better than a faint last entry).
+    # Typing x10, Claude's lookup x8 (founder's re-time), the answer streaming in, then a hold on
+    # 24.0 s, when the list is fully drawn, with Claude's closing "call 911" line (rows 1725 to
+    # 1910) covered by blank page from the same frame, rows 1905 to 1955 (founder: end on the list
+    # of people to call; the full list reads better than a faint last entry).
     "R6": {
         "crop": (300, None),
         "cuts": [
-            (2.7, 13.5, 5),
-            (13.5, 22.0, 4),
+            (2.7, 13.5, 10),
+            (13.5, 22.0, 8),
             (22.0, 22.36, 1),
             (24.0, 24.05, 1, {"mask": (1725, 1910, 1905)}),
         ],
     },  # fmt: skip
-    # Skips 5.8 to 7.3 s (sending scrolls R6's 911 line back into view) and 10.6 to 17.6 s (idle).
-    "R7": {
-        "crop": (300, None),
-        "cuts": [
-            (2.6, 5.8, 4),
-            (7.3, 10.0, 3),
-            (10.0, 10.6, 1),
-            (17.6, 22.3, 5),
-            (22.3, 27.8, 5),
-            (27.8, 29.6, 1),
-        ],
-    },  # fmt: skip
+    # The note pasted in x8, Claude reading it back x4, then a hold on its proposed note. It skips
+    # 5.8 to 7.3 s (sending scrolls R6's 911 line back into view); the confirm and Claude's reply
+    # no longer fit the 2.6 s shot, and shot 13 shows the note landing in the app instead.
+    "R7": {"crop": (300, None), "cuts": [(2.6, 5.8, 8), (7.3, 10.0, 4), (10.0, 12.0, 1)]},
     "R8": {"crop": (410, None), "hold": 2.0},  # founder: hold the frame
-    # Typing x5, the lookup x4 (as R6), the five agencies streaming in x2, then the slow scroll to
-    # Medicare's source line x2.4, which holds.
+    # Typing x10, the lookup x8 (as R6), the five agencies streaming in x3, then a quick scroll to
+    # Medicare's source line x6, which holds.
     "R9": {
         "crop": (300, None),
-        "cuts": [(0.0, 3.3, 5), (3.3, 12.0, 4), (12.0, 16.0, 2), (16.0, 23.2, 2.4)],
+        "cuts": [(0.0, 3.3, 10), (3.3, 12.0, 8), (12.0, 16.0, 3), (16.0, 23.2, 6)],
     },
 }
 
@@ -143,7 +134,11 @@ if __name__ == "__main__":  # self-check: the words pass, and a planted breach i
         except SystemExit:
             continue
         raise AssertionError(f"copy law missed {planted!r}")
+    for sid, sec, pic, words in SHOTS:
+        assert sec >= round(hold(sid, words), 2) - 0.05, f"{sid}: {sec} s is under its hold"
+        if pic.startswith("blender"):
+            assert sec <= PAINTED_MAX, f"{sid}: painted shots run at most {PAINTED_MAX} s"
     total = sum(s[1] for s in SHOTS)
-    # The founder raised the cap from 90 to 95 s for shot 10b (2026-09-26).
-    assert 75 <= round(total, 3) <= 95, total
+    # The founder re-timed the cut to 45 to 50 s (2026-09-26).
+    assert 45 <= round(total, 3) <= 50, total
     print(f"{len(SHOTS)} shots, {total:.1f} s, words clean")

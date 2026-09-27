@@ -31,6 +31,7 @@ CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 PAPER, INK, MUTED, GREY = "#F7F1E8", "#403C36", "#6E6860", "#C9C4BC"
 FPS = 30
 READY: dict[str, Path | None] = {}  # recording -> its prepared file, filled by main()
+FIRST_CLOSE = next(r[0] for r in SHOTS if r[2].startswith("close"))  # the name fades in here
 # 9:16 takes a 1080 px square from each painted frame, centred; "fit" instead scales the whole frame
 # to 1080 wide (shot 1: the apartments and the house must both stay in view).
 CROP_9X16: dict[str, str] = {"01": "fit"}
@@ -331,7 +332,8 @@ def segment(i: int, row, offsets: dict[str, int], fmt: str) -> Path:
 
     if kind in ("blender", "close"):
         shot = rest[0]
-        start = offsets.get(shot, 0) + 1
+        first = int(rest[1]) if len(rest) > 1 else 1  # "blender|07|8": start at frame 8
+        start = offsets.get(shot, first - 1) + 1
         offsets[shot] = start - 1 + n
         inputs += [
             "-framerate",
@@ -388,7 +390,7 @@ def segment(i: int, row, offsets: dict[str, int], fmt: str) -> Path:
     idx = sum(1 for a in inputs if a == "-i")  # next input index
     if kind == "close":  # the name and address: fade in on the first close row only
         graph.append(
-            f"[1]format=rgba{',fade=in:st=0:d=0.5:alpha=1' if sid == '15a' else ''}[brand]"
+            f"[1]format=rgba{',fade=in:st=0:d=0.5:alpha=1' if sid == FIRST_CLOSE else ''}[brand]"
         )
         graph.append(f"[{last}][brand]overlay=0:0[branded]")
         last = "branded"
