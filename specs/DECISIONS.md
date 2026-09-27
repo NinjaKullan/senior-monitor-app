@@ -7345,6 +7345,10 @@ browser — all three adopted as the standard for future surfaces.**
        charger and motion count as passing when they fire every time
        their cause happens, since a phone on a shelf has no cause most
        days. Day 7 is Sep 25; the closing read happens Sep 26 morning.
+       Day 7 Sep 25: unlock none (nobody touched it), device_alive 00:12,
+       charger none, motion none.
+       Day 8 Sep 26 (bonus, read Sat 11pm ET): unlock 23:02, device_alive
+       01:02, charger 23:03. Verdict in 355.
      * Next number: 341.
 
 341. **(2026-09-23, Wednesday morning ET) FOUNDER OVERRULES 201 and LAW-9:
@@ -7941,3 +7945,33 @@ browser — all three adopted as the standard for future surfaces.**
        submissions (Asana) and the Oct 6 review deciding where the page
        gets linked from.
      * Next number: 355.
+
+355. **(2026-09-26, Saturday night ET) XIAOMI SOAK VERDICT: PASS (spec 014
+     §8, log in 340).** Redmi 15C, HyperOS 3, debug build off 052207b,
+     seven days on a shelf Sep 19 to 25 plus a bonus day 26.
+     * Liveness: `device_alive` landed every night, eight nights running
+       (00:02 to 01:02 ET), across one OS update reboot (day 1) and with
+       nobody opening Kettle. That is 8.1 met on the PM's reading in 340,
+       which the founder did not object to.
+     * Cause-and-effect signals: `unlock` fired on every day the phone was
+       unlocked (days 1, 2, 3, 5, 6, 8) and never on the days nobody
+       touched it (4, 7); `charger` fired on both deliberate replugs
+       (day 5 22:48, day 8 23:03) plus the 04:00 battery-protection pause;
+       `motion` fired on the one walk (day 6). No signal fired without a
+       cause; no cause went unreported.
+     * Findings for the OEM table and the setup page's Android branch
+       (014 §6.3, still held): "Pause app activity if unused" is ON by
+       default and must be off; Background autostart lives at Settings >
+       Apps > Background autostart on HyperOS 3, not under the app;
+       battery to "No restrictions"; the phone remembers the battery
+       prompt across Clear data; a mistyped token is a 403 and the app
+       shows REVOKED with long-press disabled, and Clear data (or a
+       reinstall) is the way back; the 04:00 charger ping is the OS
+       pausing the charge, not a person.
+     * Not covered by this soak, still owed before a stranger's Android:
+       8.3 crossed pair (needs the setup page's Android branch), 8.9
+       largest font, a second OEM (the friend's Pixel), and the Google
+       Play developer account (founder).
+     * The Soak family stays provisioned; the phone stays on the shelf as
+       a standing canary. Nothing to deploy.
+     * Next number: 356.
