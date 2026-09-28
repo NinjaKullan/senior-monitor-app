@@ -1,7 +1,9 @@
-"""Mom's kitchen: shots 2 (a busy morning), 6 (a morning that isn't hers), 7 (Kettle asks;
-a thumbs up) and 10b (her own smart plug and speaker, the lamp switching on).
+"""Mom's kitchen: shots 2 (a busy morning), 6 (a morning that isn't hers), 7 (Kettle asks: a
+message bubble arrives on her phone, a paper thumbs up folds up), 07c (the same, but the camera
+pushes in to the real text message and pulls back as the thumbs up pops: A/B clip C) and 10b (her
+own smart plug and speaker, the lamp on).
 
-blender -b -P blender/kitchen.py -- <02|06|07|10b> [still [frame] [out.png] | frames [WxH]]
+blender -b -P blender/kitchen.py -- <02|06|07|07c|10b> [still [frame] [out.png] | frames ...]
 """
 
 import math
@@ -14,7 +16,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import paper as P  # noqa: E402
 
 TOP = 0.50  # worktop height
-FRAMES = {"02": 141, "06": 141, "07": 267, "10b": 141}  # 4.7, 4.7, 8.9 (07a + 07b), 4.7 s
+# 07 keeps its committed pace: the camera is keyed over 267 frames; v5 renders only what it uses.
+FRAMES = {"02": 141, "06": 141, "07": 267, "07c": 210, "10b": 141}
 PHONE = (-0.27, 0.22)
 
 
@@ -22,17 +25,19 @@ def build(shot: str) -> None:
     P.stage()
     P.card("counter", "assets/layers/counter.png", 0.53, 0.0, 0.14)
     P.box("worktop", P.PAPER, (1.12, 0.34, 0.012), (0.0, 0.31, TOP - 0.006))
-    P.card(
-        "window", "assets/layers/window.png", 0.25, -0.02, 0.595, z=0.56
-    )  # low, clear of the caption band
-    P.kettle(0.30, 0.30, TOP)
+    P.card("window", "assets/layers/window.png", 0.25, -0.02, 0.595, z=0.56)  # clear of the caption
+    # The kettle is wide and its spout faces left. In 07 its base sits where the old kettle's did
+    # (0.265: the old card's centre, 0.30, less its base offset), so it is fully in frame; in 10b
+    # it steps right, clear of the lamp's plug.
+    kettle_x = {"07": 0.265, "07c": 0.265, "10b": 0.34}.get(shot, 0.30)
+    P.kettle(kettle_x, 0.30, TOP)
     P.card("plant", "assets/layers/plant.png", 0.26, -0.40, 0.40, z=TOP)
     P.contact("plant-contact", -0.40, 0.40, TOP, 0.06, 0.022)
-    mug_x = -0.12 if shot != "07" else 0.06  # in the close-up the mug steps aside for the thumbs up
+    mug_x = 0.06 if shot in ("07", "07c") else -0.12  # in 07 the mug steps aside for the thumbs up
     P.card("mug", "assets/layers/mug.png", 0.11, mug_x, 0.33, z=TOP)
     P.contact("mug-contact", mug_x - 0.01, 0.33, TOP, 0.05, 0.02)
-    # Her phone on a little paper stand, warm screen to the camera.
-    # Shot 6: dark, the day not started.
+    # Her phone on a little paper stand, warm screen to the camera. Shot 6: dark, the day not
+    # started.
     P.phone("phone", *PHONE, TOP, w=0.11, lean=14, lit=0.35 if shot != "06" else 0.0)
     P.light()
     n = FRAMES[shot]
@@ -62,17 +67,39 @@ def build(shot: str) -> None:
         lamp_on = household(0.10, 0.40)
         P.camera((0.04, -1.15, 0.98), (0.07, 0.40, 0.62))
         lamp_on(35, 65)
-    else:  # close on the phone: a message arrives, a thumbs up folds up
-        cam, _ = P.camera((-0.30, -1.35, 1.02), (-0.18, 0.25, 0.66))
-        P.key(cam, "location", 1, (-0.30, -1.35, 1.02))
+    elif shot == "07":  # a message arrives on her phone, a thumbs up folds up beside it
+        cam, _ = P.camera(WIDE_CAM, WIDE_AIM)
+        P.key(cam, "location", 1, WIDE_CAM)
         P.key(cam, "location", n, (-0.20, -1.28, 1.00))
-        # Kettle's message arrives on her phone, then a thumbs up folds up beside it.
         msg = P.bubble("message", "phone")
         P.key(msg, "scale", 12, (0.01, 0.01, 0.01))
         P.key(msg, "scale", 30, (1, 1, 1))
-        thumbs = P.card("thumbs", "assets/layers/thumbs.png", 0.14, -0.12, 0.26, z=TOP, lean=88)
-        P.key(thumbs, "rotation_euler", 66, (math.radians(2), 0, 0))
-        P.key(thumbs, "rotation_euler", 90, (math.radians(90), 0, 0))
+        thumbs(66, 90)
+    else:  # 07c: push in to the real text message, pull back as the thumbs up pops
+        cam, aim = P.camera(WIDE_CAM, WIDE_AIM)
+        close_cam = (PHONE[0] + 0.05, PHONE[1] - 0.46, TOP + 0.208)
+        close_aim = (PHONE[0] + 0.035, PHONE[1], TOP + 0.176)
+        for frame, c, t in ((1, WIDE_CAM, WIDE_AIM), (20, WIDE_CAM, WIDE_AIM),
+                            (50, close_cam, close_aim), (140, close_cam, close_aim),
+                            (172, WIDE_CAM, WIDE_AIM)):  # fmt: skip
+            P.key(cam, "location", frame, c)
+            P.key(aim, "location", frame, t)
+        P.screen_sequence(
+            "phone",
+            ["assets/sms/thread-0.png", "assets/sms/thread-1.png", "assets/sms/thread-2.png"],
+            [(1, 0), (12, 1), (150, 2)],  # the message at 0.4 s; her reply as the camera pulls out
+        )
+        thumbs(150, 174)
+
+
+WIDE_CAM, WIDE_AIM = (-0.30, -1.35, 1.02), (-0.18, 0.25, 0.66)  # shot 7's committed framing
+
+
+def thumbs(start: int, end: int) -> None:
+    """The paper thumbs up beside her phone, folding up from the worktop between two frames."""
+    card = P.card("thumbs", "assets/layers/thumbs.png", 0.14, -0.12, 0.26, z=TOP, lean=88)
+    P.key(card, "rotation_euler", start, (math.radians(2), 0, 0))
+    P.key(card, "rotation_euler", end, (math.radians(90), 0, 0))
 
 
 def household(x: float, y: float):

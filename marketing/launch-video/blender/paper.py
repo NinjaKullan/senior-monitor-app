@@ -5,7 +5,9 @@ along +Y, Z is up. Colours are the brief's hex values, converted to linear for t
 
 from __future__ import annotations
 
+import json
 import math
+import os
 from pathlib import Path
 
 import bmesh
@@ -275,6 +277,38 @@ def screen_material(name: str, notch: bool, lit: float):
     return mat
 
 
+def screen_sequence(name: str, images: list[str], steps: list[tuple[int, int]]) -> None:
+    """Show phone `name`'s screen as a sequence of pictures (e.g. a message thread growing): the
+    screen switches to images[i] at frame f for each (f, i) in `steps`, cutting cleanly. None
+    keeps the phone's own drawn home screen."""
+    nt = bpy.data.materials[name + "-screen"].node_tree
+    bsdf, on = nt.nodes["Principled BSDF"], nt.nodes["on"]
+    home = next(n for n in nt.nodes if n.type == "TEX_IMAGE")
+    texs = []
+    for path in images:
+        if path is None:
+            texs.append(home)
+            continue
+        tex = nt.nodes.new("ShaderNodeTexImage")
+        tex.image = bpy.data.images.load(str(HERE / path))
+        tex.interpolation = "Cubic"
+        texs.append(tex)
+    colour = texs[0].outputs["Color"]
+    for i, tex in enumerate(texs[1:], start=1):
+        mix = nt.nodes.new("ShaderNodeMix")
+        mix.data_type = "RGBA"
+        nt.links.new(colour, mix.inputs["A"])
+        nt.links.new(tex.outputs["Color"], mix.inputs["B"])
+        fac = mix.inputs["Factor"]
+        first = min(f for f, j in steps if j == i)
+        for frame, value in ((1, 0.0), (first - 1, 0.0), (first, 1.0)):
+            fac.default_value = value
+            fac.keyframe_insert("default_value", frame=frame)
+        colour = mix.outputs["Result"]
+    nt.links.new(colour, on.inputs["B"])
+    nt.links.new(colour, bsdf.inputs["Emission Color"])
+
+
 def light_screen(name: str, frame: int, lit: float) -> None:
     """Key phone `name`'s screen on (lit > 0, the emission strength) or off at `frame`."""
     nt = bpy.data.materials[name + "-screen"].node_tree
@@ -418,21 +452,26 @@ def contact(name: str, x: float, y: float, z: float, rx: float, ry: float, stren
 
 
 def kettle(x: float, y: float, z: float = 0.0, height: float = 0.27):
-    """The explainer's kettle on a low paper burner cut as a flat strip in the kettle's own plane,
-    seen side-on, so no part of it shows behind the kettle (a round disc read as pasted). The
-    kettle's base rim (from row 64 up, 298 px wide, centred 78 px left of the image's centre, of
-    600) rests on the strip's top edge, seated at row 72 so the rim's curved underside tucks
-    behind the strip; rows 52 to 63 are a baked-in shadow blob, hidden there too.
-    A soft contact shadow lies on the surface beneath."""
-    px = height / 600
-    base_x, base_w = x - 78 * px, 298 * px
+    """The kettle on a low paper burner cut as a flat strip in the kettle's own plane, seen
+    side-on, so no part of it shows behind the kettle (a round disc read as pasted). Which kettle,
+    and where its base and spout tip are, come from a measurement file (measure_kettle.py):
+    assets/kettle.json, or the file named by KETTLE_JSON. The base's centre sits at x, resting on
+    the strip's top edge, with a soft contact shadow on the surface beneath. Returns the card and
+    the spout tip's (x, z), for steam."""
+    k = json.loads((HERE / os.environ.get("KETTLE_JSON", "assets/kettle.json")).read_text())
+    (w, h), px = k["size"], height / k["size"][1]
+    base_w = k["base_w"] * px
     lift = 0.018
     strip = _rounded_rect(
         "burner", base_w * 1.25, lift, lift * 0.35, paper_material("burner", INK), 0.004
     )
-    strip.location = (base_x, y - 0.0025, z + lift / 2)  # a hair in front of the kettle card
-    contact("kettle-contact", base_x, y, z, base_w * 0.8, 0.03, strength=0.5)
-    return card("kettle", "assets/kettle.png", height, x, y, z=z + lift, seat=72)
+    strip.location = (x, y - 0.0025, z + lift / 2)  # a hair in front of the kettle card
+    contact("kettle-contact", x, y, z, base_w * 0.8, 0.03, strength=0.5)
+    seat = h - 1 - k["seat"]  # rows from the bottom
+    cx = x - (k["base_x"] - w / 2) * px  # the card's centre, so the base lands on x
+    ob = card("kettle", k["image"], height, cx, y, z=z + lift, seat=seat)
+    tip = (cx + (k["tip"][0] - w / 2) * px, z + lift + (h - 1 - k["tip"][1] - seat) * px)
+    return ob, tip
 
 
 def stage(table_front: float = -0.6, wall_y: float = 0.62):
@@ -518,10 +557,10 @@ def still(path: str, frame: int = 1) -> None:
     bpy.ops.render.render(write_still=True)
 
 
-def frames(folder: str, count: int) -> None:
-    """Render frames 1..count to <folder>/0001.png and on."""
+def frames(folder: str, count: int, start: int = 1) -> None:
+    """Render frames start..count to <folder>/0001.png and on (numbered by frame)."""
     sc = bpy.context.scene
-    sc.frame_start, sc.frame_end = 1, count
+    sc.frame_start, sc.frame_end = start, count
     sc.render.filepath = str(HERE / folder) + "/"
     bpy.ops.render.render(animation=True)
 
@@ -529,7 +568,7 @@ def frames(folder: str, count: int) -> None:
 def run(build, shots: dict[str, int]) -> None:
     """Shared command line for every set script, after Blender's `--`:
     <shot> still [frame] [out.png]   one frame (default the shot's middle) to out/stills/<shot>.png
-    <shot> frames [WxH]              every frame to out/frames/<shot>[-WxH]/
+    <shot> frames [WxH] [from=N] [to=N]  frames (all, or a range) to out/frames/<shot>[-WxH]/
     `build(shot)` builds and animates the set for that shot; `shots` maps shot id to frames."""
     import sys
 
@@ -541,10 +580,13 @@ def run(build, shots: dict[str, int]) -> None:
     build(shot)
     count = shots[shot]
     if mode == "frames":
-        size = args[2] if len(args) > 2 else "1920x1080"
+        rest = args[2:]
+        start = next((int(a[5:]) for a in rest if a.startswith("from=")), 1)
+        count = next((int(a[3:]) for a in rest if a.startswith("to=")), count)
+        size = next((a for a in rest if "x" in a), "1920x1080")
         w, h = (int(v) for v in size.split("x"))
         render_settings(samples=48, width=w, height=h)
-        frames(f"out/frames/{shot}" + ("" if size == "1920x1080" else f"-{size}"), count)
+        frames(f"out/frames/{shot}" + ("" if size == "1920x1080" else f"-{size}"), count, start)
     else:
         render_settings()
         frame = int(args[2]) if len(args) > 2 else count // 2
