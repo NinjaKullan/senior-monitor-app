@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 357.** This line is the one to update; the `Next number:` lines inside
+**Next number: 358.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -7996,3 +7996,25 @@ browser — all three adopted as the standard for future surfaces.**
        saying the people are AI-made (recommended yes), 30 s master,
        no music. Cost cap $100 without asking.
      * Next number: 357.
+
+357. **(2026-09-27, Sunday ET) FOUNDER: THE APP AND THE API MOVE TO OUR OWN
+     DOMAIN BEFORE THE RELEASE POST.** `kettle-app.fly.dev` becomes
+     `app.heykettle.com`; `kettle-api.fly.dev` becomes `api.heykettle.com`.
+     `fly.dev` reads as a borrowed address and is printed where customers
+     see it: parents' setup links, the Family tab's connector address,
+     Claude's own answers, and the two directory submissions still owed.
+     Same recipe as `care.heykettle.com` (345/346).
+     * The old hosts stay up. Every forged shortcut and every connector
+       already added points at `kettle-api.fly.dev`; the API answers on
+       both hosts indefinitely, and the old app host redirects (301).
+       Nobody re-installs anything.
+     * Brief for Claude Code: `docs/own-domain-brief.md` §2 (config
+       defaults, `APP_ORIGINS_EXTRA` for the cutover, setupLinks,
+       nginx redirect, script defaults, tests, runbook). Cutover order
+       for the PM and founder in §3: deploy, DNS and certs, then
+       `PUBLIC_BASE_URL` and the Twilio webhook in the same minute (the
+       signature check is tied to the public address), Supabase redirect
+       list, verify, re-record R5, update the Asana submission task.
+     * `APP_ORIGINS_EXTRA` comes off after a week with no 4xx from the old
+       app host; that removal is a one-line follow-up, not a new entry.
+     * Next number: 358.
