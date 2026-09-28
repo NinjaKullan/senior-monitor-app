@@ -161,7 +161,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--base-url",
-        default=os.environ.get("PUBLIC_BASE_URL", "https://kettle-api.fly.dev"),
+        default=os.environ.get("PUBLIC_BASE_URL", "https://api.heykettle.com"),
     )
     parser.add_argument(
         "--database-url",

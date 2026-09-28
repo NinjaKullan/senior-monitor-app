@@ -67,7 +67,7 @@ describe("the foreign-origin scan", () => {
   });
 
   it("allows the API we control, because the form has to reach it", () => {
-    expect(scan('fetch("https://kettle-api.fly.dev/waitlist")').ok).toBe(true);
+    expect(scan('fetch("https://api.heykettle.com/waitlist")').ok).toBe(true);
   });
 
   it("allows the Care Compare address /care prints, and nothing dressed as it", () => {

@@ -56,8 +56,11 @@ such file or directory: PUBLIC_BASE_URL=…`, which has cost time once already.
 cd ~/Projects/senior-monitor-app/product
 source .venv/bin/activate
 export DATABASE_URL='postgresql://…'
-export PUBLIC_BASE_URL=https://kettle-api.fly.dev
+export PUBLIC_BASE_URL=https://api.heykettle.com
 ```
+
+Old shortcuts keep working: every phone set up on `https://kettle-api.fly.dev` still reaches the
+API, which answers on both hosts (DECISIONS 357). Nobody re-installs anything.
 
 The venv must be **Python 3.12**. Xcode's bundled 3.9 fails on `datetime.UTC`; if the venv was built
 against that, rebuild it with `/opt/homebrew/bin/python3.12`.
@@ -124,7 +127,7 @@ Same terminal as §2, so the exports are still live. One line at a time, once pe
 ```bash
 FAM=~/Projects/kettle-files/<family-slug>
 mkdir -p "$FAM"
-python -m scripts.forge --device-token <TOKEN_FROM_§3> --base-url https://kettle-api.fly.dev --out "$FAM/<person>-shortcuts"
+python -m scripts.forge --device-token <TOKEN_FROM_§3> --base-url https://api.heykettle.com --out "$FAM/<person>-shortcuts"
 ```
 
 Then the same for the second parent, with their token and their own folder. The tokens come from the
@@ -145,7 +148,7 @@ signal list from the server, so what you generate cannot disagree with what the 
 `--signals` is not optional:
 
 ```bash
-python -m scripts.forge --device-token <AMMA_TOKEN> --name "Amma" --signals whatsapp,youtube,charge_on,charge_off,device_alive --base-url https://kettle-api.fly.dev --out "$FAM/amma-shortcuts"
+python -m scripts.forge --device-token <AMMA_TOKEN> --name "Amma" --signals whatsapp,youtube,charge_on,charge_off,device_alive --base-url https://api.heykettle.com --out "$FAM/amma-shortcuts"
 ```
 
 **Before moving on, count the files.** Five per folder, named for the right person. The forge prints

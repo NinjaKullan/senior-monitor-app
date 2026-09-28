@@ -104,6 +104,13 @@ class Settings:
     # the session it is handed against this and nothing else; empty means
     # approve refuses every session, so an unconfigured deploy fails closed.
     supabase_jwks_url: str
+    # DECISIONS 357: further app origins granted CORS beside `app_origin`,
+    # comma-separated, empty by default. It exists for the move to
+    # app.heykettle.com: the old host (kettle-app.fly.dev) is granted here
+    # during the cutover the way WAITLIST_ORIGINS grants old site origins, and
+    # comes off once nothing calls from it. Never an issuer and never a
+    # redirect target: `public_base_url` and `app_origin` stay the only two.
+    app_origins_extra: tuple[str, ...] = ()
 
 
 def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
@@ -124,7 +131,7 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         ip_hash_salt=salt,
         default_tz=src.get("DEFAULT_TZ", "").strip() or "Asia/Kolkata",
         public_base_url=(
-            src.get("PUBLIC_BASE_URL", "").strip().rstrip("/") or "https://kettle-api.fly.dev"
+            src.get("PUBLIC_BASE_URL", "").strip().rstrip("/") or "https://api.heykettle.com"
         ),
         heartbeat_loop=_flag(src, "HEARTBEAT_LOOP", default=True),
         outbound_enabled=_flag(src, "OUTBOUND_ENABLED", default=False),
@@ -142,8 +149,9 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         site_metrics_token=src.get("SITE_METRICS_TOKEN", "").strip(),
         site_metrics_email=src.get("SITE_METRICS_EMAIL", "").strip(),
         waitlist_origins=_origins(src, "WAITLIST_ORIGINS"),
-        app_origin=(src.get("APP_ORIGIN", "").strip().rstrip("/") or "https://kettle-app.fly.dev"),
+        app_origin=(src.get("APP_ORIGIN", "").strip().rstrip("/") or "https://app.heykettle.com"),
         supabase_jwks_url=src.get("SUPABASE_JWKS_URL", "").strip(),
+        app_origins_extra=_origins(src, "APP_ORIGINS_EXTRA", default=()),
     )
 
 
@@ -160,11 +168,13 @@ DEFAULT_WAITLIST_ORIGINS = (
 )
 
 
-def _origins(src: Mapping[str, str], name: str) -> tuple[str, ...]:
+def _origins(
+    src: Mapping[str, str], name: str, default: tuple[str, ...] = DEFAULT_WAITLIST_ORIGINS
+) -> tuple[str, ...]:
     """Comma-separated origin allowlist, falling back to the shipped default."""
     raw = src.get(name, "").strip()
     if not raw:
-        return DEFAULT_WAITLIST_ORIGINS
+        return default
     return tuple(origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip())
 
 

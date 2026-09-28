@@ -18,7 +18,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from kettle import waitlist
-from kettle.main import HONEYPOT_FIELD
+from kettle.main import HONEYPOT_FIELD, create_app
 from testsupport import as_user
 
 SITE_COPY_TS = Path(__file__).resolve().parent.parent.parent / "site" / "src" / "copy.ts"
@@ -324,6 +324,50 @@ def test_setting_the_env_var_replaces_the_default_rather_than_adding_to_it():
 
     empty = settings_from_env({"DATABASE_URL": "postgresql:///x"})
     assert empty.waitlist_origins == DEFAULT_WAITLIST_ORIGINS
+
+
+def test_the_default_hosts_are_our_own_domain():
+    """DECISIONS 357: with no env var set, the API is its own issuer at
+    api.heykettle.com and sends people to the app at app.heykettle.com. The
+    fly.dev hosts keep answering, but nothing ships them as a default."""
+    from kettle.config import settings_from_env
+
+    empty = settings_from_env({"DATABASE_URL": "postgresql:///x"})
+    assert empty.public_base_url == "https://api.heykettle.com"
+    assert empty.app_origin == "https://app.heykettle.com"
+    assert empty.app_origins_extra == ()
+
+
+def test_app_origins_extra_parses_like_waitlist_origins_and_joins_cors(settings, notifier, conn):
+    """DECISIONS 357: `APP_ORIGINS_EXTRA` is the cutover grant for the old app
+    host. It is a comma list trimmed the way `WAITLIST_ORIGINS` is, empty by
+    default (no shipped grant, unlike the waitlist's default list), and it is
+    added to the CORS allow-list beside `app_origin`, never in place of it."""
+    from dataclasses import replace
+
+    from kettle.config import settings_from_env
+
+    parsed = settings_from_env(
+        {
+            "DATABASE_URL": "postgresql:///x",
+            "APP_ORIGINS_EXTRA": " https://kettle-app.fly.dev/ ,, https://other.test ",
+        }
+    )
+    assert parsed.app_origins_extra == ("https://kettle-app.fly.dev", "https://other.test")
+
+    granted = replace(settings, app_origins_extra=("https://kettle-app.fly.dev",))
+    with TestClient(create_app(granted, notifier)) as c:
+        for origin in ("https://kettle-app.fly.dev", settings.app_origin):
+            ok = c.options(
+                "/oauth/approve",
+                headers={"Origin": origin, "Access-Control-Request-Method": "POST"},
+            )
+            assert ok.headers.get("access-control-allow-origin") == origin, origin
+        refused = c.options(
+            "/oauth/approve",
+            headers={"Origin": "https://other.test", "Access-Control-Request-Method": "POST"},
+        )
+        assert "access-control-allow-origin" not in refused.headers
 
 
 # --- flood guards (DECISIONS 307) ---------------------------------------------------

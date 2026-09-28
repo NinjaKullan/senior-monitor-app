@@ -583,7 +583,7 @@ def reply_for(
 def build_server(
     connect: Callable[[], Any],
     clock: Callable[[], datetime] = now_utc,
-    app_origin: str = "https://kettle-app.fly.dev",
+    app_origin: str = "https://app.heykettle.com",
 ) -> MCPServer:
     """The MCP server: five read tools and, since Amendment A, two writes.
     `connect()` is a context manager yielding a pooled connection; tools run

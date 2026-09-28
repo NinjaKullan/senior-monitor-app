@@ -26,7 +26,7 @@ if (!existsSync(DIST)) {
 
 /** Hosts we control, and the one reason each is allowed to appear. */
 const OURS = new Set([
-  "kettle-api.fly.dev", // the waitlist POST target
+  "api.heykettle.com", // the waitlist POST target (DECISIONS 357)
   "heykettle.com", // canonical site origin (DECISIONS 142)
   "www.heykettle.com",
   // Care Compare, ours on our own domain: /care/ prints the connector address

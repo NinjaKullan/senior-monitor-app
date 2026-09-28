@@ -196,7 +196,7 @@ describe("the Family screen (324)", () => {
     const household = {
       onAdd: vi.fn(() => new Promise<string>((resolve) => (resolveAdd = resolve))),
       onRemove: vi.fn().mockResolvedValue(undefined),
-      onAddress: vi.fn().mockResolvedValue("https://kettle-api.fly.dev/d/" + "t".repeat(32)),
+      onAddress: vi.fn().mockResolvedValue("https://api.heykettle.com/d/" + "t".repeat(32)),
     };
     render(<FamilyScreen {...shared} parentStates={[]} setupEntries={[entry("p1", "Amma")]} deviceRows={[]} household={household} />);
     fireEvent.click(screen.getByTestId("device-add"));
@@ -243,7 +243,7 @@ describe("the Family screen (324)", () => {
   });
 
   it("shows the address line for an admin who expands a row, never for a member", async () => {
-    const address = "https://kettle-api.fly.dev/d/" + "t".repeat(32);
+    const address = "https://api.heykettle.com/d/" + "t".repeat(32);
     const household = {
       onAdd: vi.fn().mockResolvedValue("d9"),
       onRemove: vi.fn().mockResolvedValue(undefined),

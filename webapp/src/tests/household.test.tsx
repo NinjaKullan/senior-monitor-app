@@ -274,9 +274,9 @@ describe("the setup rows (§5), by role", () => {
     render(<FamilyScreen {...shared} deviceRows={deviceSetupRows("p1", [plug], [], MORNING)} household={household} />);
     expect(screen.queryByTestId("device-address-line")).toBeNull();
     fireEvent.click(screen.getByTestId("device-address"));
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(`https://kettle-api.fly.dev/d/${"t".repeat(32)}`));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(`https://api.heykettle.com/d/${"t".repeat(32)}`));
     expect(screen.getByTestId("device-address")).toHaveTextContent(DEVICE_COPIED);
-    expect(screen.getByTestId("device-address-line")).toHaveTextContent(`https://kettle-api.fly.dev/d/${"t".repeat(32)}`);
+    expect(screen.getByTestId("device-address-line")).toHaveTextContent(`https://api.heykettle.com/d/${"t".repeat(32)}`);
     expect(screen.getByTestId("device-address")).not.toHaveTextContent(DEVICE_ADDRESS);
   });
 

@@ -67,3 +67,16 @@ def test_no_service_worker_exists_to_outlive_this_contract():
     assert not (webapp / "public" / "sw.js").exists()
     index = (webapp / "index.html").read_text()
     assert "serviceWorker" not in index
+
+
+def test_the_old_app_host_redirects_to_our_domain():
+    """DECISIONS 357: kettle-app.fly.dev answers with a permanent redirect to
+    app.heykettle.com, path and query kept, in a block of its own that comes
+    after the main one, so the main block stays nginx's default for any Host it
+    does not recognise (DECISIONS 148). /healthz is answered, not redirected,
+    because fly.toml's HTTP check asks for it."""
+    assert "server_name kettle-app.fly.dev;" in CONFIG
+    redirect = CONFIG.split("server_name kettle-app.fly.dev;")[1]
+    assert "return 301 https://app.heykettle.com$request_uri;" in redirect
+    assert "location /healthz" in redirect.split("return 301")[0]
+    assert CONFIG.index("server_name _;") < CONFIG.index("server_name kettle-app.fly.dev;")

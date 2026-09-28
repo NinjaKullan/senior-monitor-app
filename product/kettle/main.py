@@ -197,7 +197,7 @@ def create_app(
     # Spec 019 adds the family app's origin for /oauth/approve (and the
     # consent screen's lookup), with the Authorization header it carries.
     # One middleware, one explicit list, no wildcard.
-    browser_origins = [*cfg.waitlist_origins, cfg.app_origin]
+    browser_origins = [*cfg.waitlist_origins, cfg.app_origin, *cfg.app_origins_extra]
     if browser_origins:
         app.add_middleware(
             CORSMiddleware,

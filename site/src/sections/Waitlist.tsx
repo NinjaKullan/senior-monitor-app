@@ -17,7 +17,7 @@ import {
 } from "@/copy";
 
 /** Where the form posts. Baked at build; the default is the production API. */
-const ENDPOINT = `${import.meta.env.VITE_API_BASE_URL ?? "https://kettle-api.fly.dev"}/waitlist`;
+const ENDPOINT = `${import.meta.env.VITE_API_BASE_URL ?? "https://api.heykettle.com"}/waitlist`;
 
 /** The bot trap. Named for something a form-filler expects to find. */
 const HONEYPOT = "company";

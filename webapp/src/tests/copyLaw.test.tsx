@@ -422,7 +422,7 @@ describe("rendered copy law", () => {
         household={{
           onAdd: async () => "d9",
           onRemove: async () => undefined,
-          onAddress: async () => "https://kettle-api.fly.dev/d/" + "t".repeat(32),
+          onAddress: async () => "https://api.heykettle.com/d/" + "t".repeat(32),
         }}
       />,
     );
@@ -437,7 +437,7 @@ describe("rendered copy law", () => {
     // like the contacts sheet's phone — the exemption is the element.
     for (const line of screen.getAllByTestId("device-address-line")) {
       expect(line.tagName).toBe("CODE");
-      expect(line.textContent).toBe("https://kettle-api.fly.dev/d/" + "t".repeat(32));
+      expect(line.textContent).toBe("https://api.heykettle.com/d/" + "t".repeat(32));
       line.remove();
     }
     text = renderedText();
@@ -504,7 +504,7 @@ describe("rendered copy law", () => {
         parentName: "Amma",
         status: "ready" as const,
         sms: null,
-        url: "https://kettle-api.fly.dev/s/slug000000000000000000A1",
+        url: "https://api.heykettle.com/s/slug000000000000000000A1",
         shareHref: "https://wa.me/?text=x",
         expiresDate: "2026-08-10",
       },
@@ -598,7 +598,7 @@ describe("rendered copy law", () => {
     expect(text).toContain("Claude · since Aug 2");
     // The address is the one URL the app prints as text; its host carries no
     // digits, and the scan masks it as the mechanism it names.
-    assertCopyLaw(text, [...SHARE_CTA_EXEMPTION, ...APP_ALLOW, "kettle-api.fly.dev/mcp", "Ask Kettle from Claude or another assistant. Add Kettle as a connector once, on a computer, with this address."]);
+    assertCopyLaw(text, [...SHARE_CTA_EXEMPTION, ...APP_ALLOW, "api.heykettle.com/mcp", "Ask Kettle from Claude or another assistant. Add Kettle as a connector once, on a computer, with this address."]);
   });
 
   it("holds for the Memory screen and its feed (spec 012, filters in §9.1)", () => {

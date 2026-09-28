@@ -37,7 +37,7 @@ from scripts import forge
 
 REPO = Path(__file__).resolve().parent.parent.parent
 DEFAULT_DEST = REPO / "webapp" / "public" / "x"
-DEFAULT_BASE_URL = "https://kettle-app.fly.dev"
+DEFAULT_BASE_URL = "https://app.heykettle.com"
 
 _TOKEN = re.compile(r"/p/([A-Za-z0-9_-]{20,})/[a-z_]+$")
 

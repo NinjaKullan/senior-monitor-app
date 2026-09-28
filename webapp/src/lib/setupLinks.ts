@@ -17,7 +17,7 @@ import type { Parent, Ping, SetupLink } from "./types";
  * product, not a secret and not configuration this bundle reads from the
  * environment (the env surface stays exactly two Supabase values).
  */
-export const SETUP_PAGE_BASE = "https://kettle-api.fly.dev";
+export const SETUP_PAGE_BASE = "https://api.heykettle.com";
 
 /** "paused" (spec 017) wins over the rest: the row says Kettle is not
  *  watching, whatever the phone is doing. */
