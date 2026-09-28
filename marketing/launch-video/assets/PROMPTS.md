@@ -103,3 +103,48 @@ A wide low strip of gently rolling hills cut from Kettle-green paper, two overla
 ```
 One simple round tree cut from paper: a round Kettle-green canopy and a short soft ink trunk, flat front view.
 ```
+
+## Kettle redesign (2026-09-27)
+
+The explainer's kettle (`assets/kettle.png`, painted from the brand avatar) has a long spout with a
+flared, trumpet-shaped tip and reads as a watering can. The founder asked for a stovetop kettle.
+
+## layer-kettle
+```
+A stovetop kettle cut from paper, seen from the side. A round, full, low dome body in Kettle green #297A5C, wider than it is tall, sitting on a flat base with a thin pale sage paper ring at the bottom. A short, stubby spout that starts low on the body, curves gently upward and stays close to the body, ending in a small closed rounded whistle cap; the spout does not stick far out and has no opening, no flare and no trumpet shape. A dark soft ink #403C36 handle arching over the top, and a small dark ink knob on a simple lid. Flat simple paper shapes, slightly irregular hand-cut edges, soft paper grain, no shine. It must read at a glance as a whistling stovetop kettle, not a watering can and not a teapot. No face, no eyes, no steam.
+```
+
+## layer-wisp
+```
+One single soft wisp of steam cut from warm white paper #F7F1E8, a slim gentle S-curve rising upward, narrow at the bottom and slightly wider at the top, with soft rounded ends. Just the one wisp.
+```
+
+## Kettle redesign, round 2 (2026-09-27)
+
+Candidate A above was dropped. The kettle is repainted from the founder's own reference,
+`assets/reference-kettle.png` (a cast-iron tetsubin; the file is WebP despite its name, so it is
+converted to a true PNG before sending). `node paint.mjs layer-kettle-ref
+style-tests/look-reference.png out/reference-kettle-true.png` sends the layer style, this block,
+the look reference (style) and then the kettle reference (shape).
+
+## layer-kettle-ref
+First run: candidate 1 painted the lid yellow, candidate 2 covered the body in hobnail dots. The
+block below is the tightened second run (lid colour and dot limit spelled out).
+```
+Two reference images are attached. The FIRST image sets only the style: the matte construction-paper finish, soft fibrous texture, gently irregular hand-cut edges and the palette. The SECOND image sets only the shape: paint that exact kettle, seen from the same side-on angle, matching its silhouette exactly. That means the wide, low, rounded body that is much wider than it is tall; the short spout on the left rising from the lower body, with an open round rim near the top; the tall arched handle over the top with a wrapped grip at its highest point; and the round, slightly domed lid with a small round knob. Make it a flat painted paper cutout, not a photograph: the body AND the lid in the same Kettle green #297A5C, the handle in soft ink #403C36, and ONLY the grip wrap and the small lid knob in warm yellow #E8C77A instead of copper (the lid itself stays green). Leave the hobnail texture out, or at most five or six faint, slightly darker green dots spread across the body; never rows or a pattern of dots; no photographic detail, no metal shine, no reflections. A thin flat base line at the bottom. It must read at a glance as a Japanese cast-iron kettle. No steam, no face, no eyes, no table, no shadow on the background.
+```
+
+## layer-puffs
+```
+Two or three small, soft, filled cloud puffs of steam cut from warm white paper #F7F1E8, rounded and slightly overlapping, rising in a gentle diagonal from lower left to upper right, the lowest puff the smallest. Filled solid shapes, no outlines, no thin wisps.
+```
+
+## The film's kettle (approved 2026-09-27)
+
+Candidate 4 of `layer-kettle-ref` (`candidates/layer-kettle-ref-4.png`) was approved; the other
+candidates, candidate A and the old wisp were deleted. `blender -b -P blender/kettle_fix.py --
+candidates/layer-kettle-ref-4.png assets/layers/kettle.png` makes the film's kettle from it with
+the founder's fixes: a tight key with every edge recoloured from the clean paper inside it (no
+pink fringe on the grip wrap or anywhere else), the body's dots painted out, and the thin-necked
+knob replaced by a short, wide, low rounded button. `measure_kettle.py` then writes
+`assets/kettle.json`, which every scene and the intro card read. The steam is `layer-puffs`.

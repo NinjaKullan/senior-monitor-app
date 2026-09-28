@@ -1,0 +1,14 @@
+{
+ "image": "assets/layers/kettle.png",
+ "size": [
+  632,
+  671
+ ],
+ "seat": 657,
+ "base_x": 357.0,
+ "base_w": 358.0,
+ "tip": [
+  29,
+  328
+ ]
+}
