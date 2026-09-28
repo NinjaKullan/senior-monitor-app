@@ -143,8 +143,10 @@ RECORDINGS = {
     "R4z": {"src": "R4", "crop": (960, 2150), "xcrop": (40, 1166), "cuts": [(1.0, None, 1)],
             "box": (970, 90, 900, 900)},
     # R1: one static frame of the Outlook email; keep the message, drop the status bar, Outlook's
-    # back arrow, and its reply bar and tab bar (a coloured assistant icon sits there).
-    "R1": {"crop": (300, 1790), "cuts": [(0.3, None, 1)]},
+    # back arrow, and its reply bar and tab bar (a coloured assistant icon sits there). Since v7
+    # (founder, 2026-09-28) it plays Mom's morning note (recordings/mom-note.mp4, recorded the
+    # same way), not Dad's (R1.MP4); same crop, start and timing.
+    "R1": {"src": "mom-note", "crop": (300, 1790), "cuts": [(0.3, None, 1)]},
     "R2": {"crop": (410, None), "cuts": [(1.5, None, 1)]},  # founder: trim the first 1.5 s
     # R3, R4: the first 0.9 s is the home screen and the app opening (founder: no personal apps).
     "R3": {"crop": (410, None), "cuts": [(1.0, None, 1)]},

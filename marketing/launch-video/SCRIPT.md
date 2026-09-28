@@ -37,8 +37,8 @@ videos (TASKS.md).
 | # | Time (s) | Picture | On-screen words (exact) | Voice line | Length (s) | Hold (s) |
 |---|---|---|---|---|---|---|
 | 1 (01) | 0.0 to 2.5 | Painted: the paper map, the city and Mom and Dad's house both in frame, a slight drift | Mom and Dad live far away. | 1 | 2.50 | 2.3 |
-| 2 (02) | 2.5 to 11.1 | Painted: the two phones, the camera turning slowly over them; the app icon, "Kettle" and the line above; then a push into the green phone's screen, which shows the morning note, held 0.75 s | Kettle / Know Mom's okay, between the calls. | 2 | 8.55 | 2.6 |
-| 3 (04) | 11.1 to 14.8 | Screen R1: the morning note email (the push-in dissolves into it) | Twice a day, / the family gets / a short note. | 3 | 3.70 | 3.7 |
+| 2 (02) | 2.5 to 11.1 | Painted: the two phones, the camera turning slowly over them; the app icon, "Kettle" and the line above; then a push into the green phone's screen, which shows Mom's morning note, held 0.75 s | Kettle / Know Mom's okay, between the calls. | 2 | 8.55 | 2.6 |
+| 3 (04) | 11.1 to 14.8 | Screen R1: Mom's morning note email (recordings/mom-note.mp4; the push-in dissolves into it) | Twice a day, / the family gets / a short note. | 3 | 3.70 | 3.7 |
 | 4 (05) | 14.8 to 18.4 | Screen R2: the Today card, full screen (v7: the zoom is out) | The app shows when / Kettle last heard / from her. | 4 | 3.70 | 3.7 |
 | 5 (07) | 18.4 to 24.4 | Painted: the kitchen; the camera pushes in to Mom's phone and the real text message, holds, then pulls back as her 👍 reply lands (a soft tick) and the paper thumbs up rises (a light pop); the fixed kettle on its burner | Morning looks different? / Kettle asks her first. | 5 | 5.90 | 2.6 |
 | 6 (08) | 24.4 to 27.7 | Screen R3: Memory, notes and a reply | Notes and replies, / in the family's / own words. | 6 | 3.35 | 3.1 |

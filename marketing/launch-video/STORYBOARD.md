@@ -10,7 +10,7 @@ sounds in the kitchen, and the stillness after the thumbs up trimmed.
 |---|---|---|---|
 | 1 (01) | 0.0 to 2.5 | The paper map, city and house in frame | Blender `map.py` (01) |
 | 2 (02) | 2.5 to 11.1 | The two phones turning slowly under the app icon and the line; the push into the green phone's screen, showing the note; a 0.75 s hold | Blender `phones.py` (03, frames 1 to 266); caption `render.brand_caption`; screen `assets/screens/note.png` |
-| 3 (04) | 11.1 to 14.8 | The morning note email | Recording R1 |
+| 3 (04) | 11.1 to 14.8 | Mom's morning note email | Recording R1 (mom-note.mp4) |
 | 4 (05) | 14.8 to 18.4 | The Today card, zooming onto Mom's card | Recording R2; `shots.ZOOM` |
 | 5 (07) | 18.4 to 24.4 | The kitchen: the push to the text message and back, her reply, the thumbs up; the fixed kettle | Blender `kitchen.py` (07c, frames 1 to 177); screen `sms_screens.py`; sounds `sfx.py` |
 | 6 (08) | 24.4 to 27.7 | Memory | Recording R3 |

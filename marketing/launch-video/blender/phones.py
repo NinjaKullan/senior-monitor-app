@@ -39,7 +39,8 @@ def build(shot: str) -> None:
     P.key(aim, "location", 1, AIM)
     P.key(aim, "location", ARC_END, AIM)
     if shot == "03":
-        # Just before the push, the green phone shows the morning-note email (a frame of R1).
+        # Just before the push, the green phone shows the morning-note email (a frame of shot 3's
+        # recording, Mom's note: -ss 1.0, crop=1206:1940:0:190, scale=1000:-2, padded to 2060).
         P.screen_sequence("phone-b", [None, "assets/screens/note.png"], [(1, 0), (ARC_END - 6, 1)])
         P.key(cam, "location", PUSH_END, PUSH_CAM)
         P.key(aim, "location", PUSH_END, PUSH_AIM)
