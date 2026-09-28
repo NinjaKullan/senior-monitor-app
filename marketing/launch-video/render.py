@@ -5,11 +5,13 @@
 2. Headless Chrome draws every caption, the name and address, and the grey placeholder cards as
    transparent PNGs in Patrick Hand (this ffmpeg has no drawtext).
 3. ffmpeg composes one segment per row of shots.py, in 16:9 and 9:16, and joins them.
-Out: out/kettle-launch.mp4 (1920x1080) and out/kettle-launch-9x16.mp4 (1080x1920), 30 fps, H.264
-yuv420p, silent unless audio/music.* exists; a still per shot in out/shots/.
+Out: out/kettle-launch-16x9.mp4 (1920x1080) and out/kettle-launch-9x16.mp4 (1080x1920), 30 fps,
+H.264 yuv420p, silent unless shots.MUSIC_TRACK exists; a still per shot in out/shots/.
 A recording saved as recordings/<R>.mp4 replaces its grey card on the next run, cut per
 shots.RECORDINGS.
-Flags: --frames-only (Blender only), --no-blender (fail if frames are missing).
+Flags: --frames-only (Blender only), --no-blender (fail if frames are missing),
+--preview <name> (16:9 only, to out/<name>), --vertical (the 9:16 cut only), --no-music (the
+voice-only version).
 """
 
 from __future__ import annotations
@@ -21,7 +23,22 @@ import subprocess
 import sys
 from pathlib import Path
 
-from shots import DISSOLVES, RECORDINGS, SHOTS, check
+from shots import (
+    CAPTION_LAYOUT,
+    CAPTION_OUT_EARLY,
+    DISSOLVES,
+    MUSIC_START,
+    MUSIC_TRACK,
+    MUSIC_UNDER,
+    RECORDINGS,
+    SFX,
+    SHOTS,
+    VOICE,
+    VOICE_LEAD,
+    VOICE_TAKE,
+    ZOOM,
+    check,
+)
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
@@ -31,10 +48,20 @@ CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 PAPER, INK, MUTED, GREY = "#F7F1E8", "#403C36", "#6E6860", "#C9C4BC"
 FPS = 30
 READY: dict[str, Path | None] = {}  # recording -> its prepared file, filled by main()
-FIRST_CLOSE = next(r[0] for r in SHOTS if r[2].startswith("close"))  # the name fades in here
-# 9:16 takes a 1080 px square from each painted frame, centred; "fit" instead scales the whole frame
-# to 1080 wide (shot 1: the apartments and the house must both stay in view).
-CROP_9X16: dict[str, str] = {"01": "fit"}
+FIRST_CLOSE = next((r[0] for r in SHOTS if r[2].startswith("close")), None)  # name fades in here
+ICON = HERE.parents[1] / "webapp/public/icon-512.png"  # the Kettle app's home-screen icon
+# 9:16 reframes each painted shot: a window of the 1920x1080 frame, keyed by set-shot frame as
+# (frame, centre x, centre y, width), eased between keys, scaled to 1080 wide and feathered onto the
+# paper under the caption. The window follows the subject (v7, founder: keep it fully in frame).
+REFRAME_9X16: dict[str, list[tuple[int, int, int, int]]] = {
+    "01": [(1, 970, 540, 1620)],  # the apartments and the house, both
+    # The two phones through the arc, then the push-in's end: the green phone and its note.
+    "03": [(1, 965, 540, 1080), (204, 965, 540, 1080), (234, 1350, 540, 1140)],
+    # Wide: the phone, the thumbs up and the kettle; close: the phone and its message.
+    "07c": [(20, 1240, 540, 1140), (50, 770, 540, 1080), (140, 770, 540, 1080),
+            (172, 1240, 540, 1140)],
+}  # fmt: skip
+SCENE_Y_9X16 = 1100  # the painted band's centre in 9:16, below the caption
 SET_SCRIPT = {
     "10b": "kitchen.py",
     "01": "map.py",
@@ -66,8 +93,8 @@ FMT = {
     "16x9": {"W": 1920, "H": 1080, "paint_cap": 150, "screen_cap": (560, 500),
              "card": (1150, 70, 520, 940), "under": 1045, "brand": (620, 725), "close_cap": 880,
              "cap_px": 80, "wrap": False},
-    "9x16": {"W": 1080, "H": 1920, "paint_cap": 340, "screen_cap": (540, 340),
-             "card": (305, 540, 470, 1020), "under": 1615, "brand": (1010, 1110), "close_cap": 1330,
+    "9x16": {"W": 1080, "H": 1920, "paint_cap": 340, "screen_cap": (540, 360),
+             "card": (40, 500, 1000, 1180), "under": 1615, "brand": (1010, 1110), "close_cap": 1330,
              "cap_px": 76, "wrap": True},
 }  # fmt: skip
 
@@ -79,10 +106,13 @@ def run(cmd: list[str], quiet: bool = False) -> None:
 def frames_needed() -> dict[str, int]:
     """Set shot -> frames the cut plays from it (consecutive rows play on through its frames)."""
     need: dict[str, int] = {}
-    for _sid, sec, pic, _w in SHOTS:
+    for i, (sid, sec, pic, _w) in enumerate(SHOTS):
         kind, *rest = pic.split("|")
         if kind in ("blender", "close"):
-            need[rest[0]] = need.get(rest[0], 0) + round(sec * FPS)
+            after = SHOTS[i + 1][0] if i + 1 < len(SHOTS) else None
+            run_on = DISSOLVES.get((sid, after), 0.0)  # it plays on under the next shot
+            first = int(rest[1]) - 1 if len(rest) > 1 else 0
+            need[rest[0]] = max(need.get(rest[0], first), first) + round((sec + run_on) * FPS)
     return need
 
 
@@ -165,6 +195,12 @@ def caption(sid: str, pic: str, words: str, f: dict, fmt: str) -> Path | None:
         return None
     kind = pic.split("|")[0]
     W, H, px, wrap = f["W"], f["H"], f["cap_px"], f["wrap"]
+    if kind == "card":
+        return None  # the title card lays out its own words (card_png)
+    if CAPTION_LAYOUT.get(sid) == "brand":
+        return overlay_png(
+            brand_caption(words, f, fmt), W, H, OUT / "overlays" / f"{fmt}-cap-{sid}.png"
+        )
     if kind == "screen":
         x, y = f["screen_cap"]
     elif kind == "close":
@@ -173,6 +209,75 @@ def caption(sid: str, pic: str, words: str, f: dict, fmt: str) -> Path | None:
         x, y = W // 2, f["paint_cap"]
     return overlay_png(
         text(words, x, y, px, wrap, W - 140), W, H, OUT / "overlays" / f"{fmt}-cap-{sid}.png"
+    )
+
+
+# The still cards (founder, 2026-09-27): the Kettle app icon, never the painted kettle; Patrick
+# Hand in ink on paper; one centred stack. Each layout is (item, size in px, space above), where an
+# item is "icon" or the index of a line of the row's words. 9:16 has its own sizes: lines wrap
+# there, so they can be larger (v7, founder: readable on a phone).
+CARDS = {
+    "16x9": {
+        "intro": [("icon", 250, 0), (0, 140, 44), (1, 72, 22)],
+        "more": [(0, 100, 0), (1, 64, 44), (2, 64, 18)],
+        "end": [("icon", 190, 0), (0, 120, 30), (1, 60, 6), (2, 78, 52), (3, 62, 20)],
+    },
+    "9x16": {
+        "intro": [("icon", 225, 0), (0, 126, 40), (1, 72, 20)],
+        "more": [(0, 104, 0), (1, 76, 64), (2, 76, 36)],
+        "end": [("icon", 220, 0), (0, 140, 34), (1, 72, 8), (2, 84, 64), (3, 72, 28)],
+    },
+}
+
+
+def card_png(f: dict, fmt: str, layout: str, words: str) -> Path:
+    """A still card: the layout's items stacked and centred, the paper above equal to the paper
+    below. Long lines wrap in 9:16. The icon is the app's own (webapp/public/icon-512.png), drawn
+    as a home-screen icon: rounded corners and a soft shadow, so its square reads on the paper."""
+    W, H = f["W"], f["H"]
+    lines = words.split("\n")
+    max_w = W - 160
+    items = []  # (html maker, height)
+    for item, size, gap in CARDS[fmt][layout]:
+        if item == "icon":
+            items.append(("icon", size, gap))
+        else:
+            n_lines = 1 if fmt == "16x9" else -(-int(0.36 * size * len(lines[item])) // max_w)
+            items.append((lines[item], size * 1.15 * n_lines, gap, size))
+    total = sum(it[1] + it[2] for it in items)
+    y = (H - total) / 2
+    body = f'<div style="position:absolute;inset:0;background:{PAPER}"></div>'
+    for it in items:
+        y += it[2]
+        if it[0] == "icon":
+            side = it[1]
+            shadow = f"0 {side * 0.04}px {side * 0.12}px rgba(64,60,54,.22)"
+            body += (f'<img src="file://{ICON}" style="position:absolute;left:{W / 2 - side / 2}px;'
+                     f"top:{y}px;width:{side}px;height:{side}px;border-radius:{side * 0.2237}px;"
+                     f'box-shadow:{shadow}">')  # fmt: skip
+        else:
+            body += text(it[0], W // 2, int(y + it[1] / 2), int(it[3]), fmt != "16x9", max_w)
+        y += it[1]
+    return overlay_png(body, W, H, OUT / "overlays" / f"{fmt}-card-{layout}.png")
+
+
+def brand_caption(words: str, f: dict, fmt: str) -> str:
+    """Shot 2's caption over the phones: the app icon and "Kettle" side by side, the line beneath,
+    in the paper band above the phones."""
+    W = f["W"]
+    name, line = words.split("\n", 1)
+    k = 1.0 if fmt == "16x9" else 0.9
+    icon, name_px, line_px = 128 * k, 112 * k, 64 if fmt == "16x9" else 68
+    row_y, line_y = (150, 282) if fmt == "16x9" else (330, 470)
+    name_w = 0.42 * name_px * len(name)  # Patrick Hand runs about 0.42 em a letter
+    gap = 28 * k
+    left = W / 2 - (icon + gap + name_w) / 2
+    shadow = f"0 {icon * 0.04}px {icon * 0.12}px rgba(64,60,54,.22)"
+    return (
+        f'<img src="file://{ICON}" style="position:absolute;left:{left}px;top:{row_y - icon / 2}px;'
+        f'width:{icon}px;height:{icon}px;border-radius:{icon * 0.2237}px;box-shadow:{shadow}">'
+        + text(name, int(left + icon + gap + name_w / 2), row_y, int(name_px), False, W)
+        + text(line, W // 2, line_y, int(line_px), fmt != "16x9", W - 160)
     )
 
 
@@ -185,10 +290,16 @@ def brand(f: dict, fmt: str) -> Path:
 
 
 def screen_dressing(
-    rec: str, label: str, under: str, f: dict, fmt: str, live: tuple[int, int] | None
+    rec: str,
+    label: str,
+    under: str,
+    f: dict,
+    fmt: str,
+    live: tuple[int, int] | None,
+    rect: tuple[int, int, int, int],
 ) -> Path:
     """The grey card (no recording yet) or the recording's shadow, and the line under the screen."""
-    x, y, w, h = f["card"]
+    x, y, w, h = rect
     if live:  # the recording's own box, centred where the card sits
         rw, rh = live
         box = f"left:{x + (w - rw) // 2}px;top:{y + (h - rh) // 2}px;width:{rw}px;height:{rh}px"
@@ -222,14 +333,16 @@ def source(rec: str) -> Path | None:
 def prepared(rec: str) -> Path | None:
     """The recording as it plays: cut, sped and cropped per shots.RECORDINGS, at 30 fps H.264,
     written to out/rec/<rec>.mp4. None until the founder's file exists."""
-    src = source(rec)
+    edit = RECORDINGS.get(rec, {})
+    src = source(edit.get("src", rec))
     if not src:
         return None
-    edit = RECORDINGS.get(rec, {})
     out = OUT / "rec" / f"{rec}.mp4"
     out.parent.mkdir(parents=True, exist_ok=True)
     top, bottom = edit.get("crop", (0, None))
-    crop = f"crop=iw:{f'{bottom}-{top}' if bottom else f'ih-{top}'}:0:{top}"
+    left, right = edit.get("xcrop", (0, None))
+    width = f"{right}-{left}" if right else f"iw-{left}"
+    crop = f"crop={width}:{f'{bottom}-{top}' if bottom else f'ih-{top}'}:{left}:{top}"
     if "hold" in edit:
         t = edit["hold"]
         graph = f"[0:v]trim=start={t}:duration=0.05,setpts=PTS-STARTPTS,{crop},fps={FPS}[v]"
@@ -247,7 +360,8 @@ def prepared(rec: str) -> Path | None:
             else:
                 parts.append(f"{piece}[p{k}]")
         joined = "".join(f"[p{k}]" for k in range(len(pieces)))
-        graph = ";".join(parts) + f";{joined}concat=n={len(pieces)}:v=1:a=0,{crop}[v]"
+        hold = "tpad=stop_mode=clone:stop_duration=30"  # a later shot may start past the end
+        graph = ";".join(parts) + f";{joined}concat=n={len(pieces)}:v=1:a=0,{crop},{hold}[v]"
     run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-filter_complex", graph,
          "-map", "[v]", *X264, str(out)])  # fmt: skip
     return out
@@ -276,7 +390,14 @@ def refuse_home_screen(rec: str, path: Path, seconds: float) -> None:
         )
 
 
-def recording_box(path: Path, f: dict) -> tuple[int, int]:
+def screen_rect(rec: str, f: dict, fmt: str) -> tuple[int, int, int, int]:
+    """Where a recording sits: its own box in 16:9 when shots.RECORDINGS gives one (a zoom),
+    otherwise the phone-sized card."""
+    box = RECORDINGS.get(rec, {}).get("box")
+    return tuple(box) if box and fmt == "16x9" else f["card"]
+
+
+def recording_box(path: Path, rect: tuple[int, int, int, int]) -> tuple[int, int]:
     info = json.loads(
         subprocess.run(
             [
@@ -296,18 +417,44 @@ def recording_box(path: Path, f: dict) -> tuple[int, int]:
             text=True,
         ).stdout
     )["streams"][0]
-    _, _, bw, bh = f["card"]
+    _, _, bw, bh = rect
     scale = min(bw / info["width"], bh / info["height"])
     return int(info["width"] * scale) // 2 * 2, int(info["height"] * scale) // 2 * 2
 
 
-def fade(label_in: str, label_out: str, dur: float, fade_in: bool = True) -> str:
-    """Caption fades in over 0.4 s and out over the last 0.3 s of its shot."""
+def fade(
+    label_in: str, label_out: str, dur: float, fade_in: bool = True, fade_out: bool = True
+) -> str:
+    """Caption fades in over 0.4 s and out over the last 0.3 s of its beat."""
     parts = ["format=rgba"]
     if fade_in:
         parts.append("fade=in:st=0:d=0.4:alpha=1")
-    parts.append(f"fade=out:st={dur - 0.3:.2f}:d=0.3:alpha=1")
+    if fade_out:
+        parts.append(f"fade=out:st={dur - 0.3:.2f}:d=0.3:alpha=1")
     return f"[{label_in}]{','.join(parts)}[{label_out}]"
+
+
+def reframe(shot: str, start: int) -> tuple[str, int]:
+    """The 9:16 window for a set shot whose segment starts at frame `start`: scale and crop filters
+    and the band's height. Width and centre ease between keys (REFRAME_9X16); the crop offset comes
+    from the scale expression, since crop reads the frame's size only once."""
+    keys = REFRAME_9X16.get(shot, [(1, 960, 540, 1080)])
+
+    def eased(i: int) -> str:
+        expr = str(keys[0][i])
+        for j in range(1, len(keys)):
+            a, b = keys[j - 1], keys[j]
+            if b[i] != a[i]:
+                p = f"clip((n+{start}-{a[0]})/{b[0] - a[0]},0,1)"
+                expr += f"+{b[i] - a[i]}*(3*pow({p},2)-2*pow({p},3))"
+        return f"({expr})"
+
+    k = f"(1080/{eased(3)})"
+    band = min(1080, 1080 * 1080 // max(key[3] for key in keys)) // 2 * 2
+    grow = f"scale=w='trunc(1920*{k}/2)*2':h='trunc(1080*{k}/2)*2':eval=frame"
+    x = f"clip({eased(1)}*{k}-540,0,trunc(1920*{k}/2)*2-1080)"
+    y = f"clip({eased(2)}*{k}-{band / 2},0,trunc(1080*{k}/2)*2-{band})"
+    return f"{grow},crop=1080:{band}:x='{x}':y='{y}'", band
 
 
 def feather() -> str:
@@ -346,37 +493,38 @@ def segment(i: int, row, offsets: dict[str, int], fmt: str) -> Path:
         ]
         if fmt == "16x9":
             graph.append("[0]null[bg]")
-        else:  # a square from the middle of the frame, feathered onto paper
-            y0 = 560 if kind == "blender" else 300
+        else:  # the shot's moving window (REFRAME_9X16), feathered onto paper
+            window, band = reframe(shot, start)
             graph.append(f"color=c={PAPER}:s={W}x{H}:r={FPS}[paper]")
-            if CROP_9X16.get(shot) == "fit":
-                graph.append(f"[0]scale=1080:-2,{feather()}[sq]")
-                y0 += 236  # centre the 608 px strip where the square would sit
-            else:
-                graph.append(f"[0]crop=1080:1080:(iw-1080)/2:0,{feather()}[sq]")
-            graph.append(f"[paper][sq]overlay=0:{y0}:shortest=1[bg]")
+            graph.append(f"[0]{window},{feather()}[sq]")
+            graph.append(f"[paper][sq]overlay=0:{SCENE_Y_9X16 - band // 2}:shortest=1[bg]")
         last = "bg"
         if kind == "close":
             inputs += loop + [str(brand(f, fmt))]
+    elif kind == "card":  # a still paper card (the dissolves are its only motion)
+        inputs += loop + [str(card_png(f, fmt, rest[0], words))]
+        graph.append("[0]null[bg]")
+        last = "bg"
     else:
         rec, label = rest[0], rest[1]
         under = rest[2] if len(rest) > 2 else ""
         path = READY.get(rec)
-        live = recording_box(path, f) if path else None
+        rect = screen_rect(rec, f, fmt)
+        live = recording_box(path, rect) if path else None
         if fmt == "16x9":
             inputs += loop + [str(OUT / "frames/plate.png")]
             graph.append("[0]null[bg]")
         else:
             inputs += ["-f", "lavfi", "-i", f"color=c={PAPER}:s={W}x{H}:r={FPS}"]
             graph.append("[0]null[bg]")
-        inputs += loop + [str(screen_dressing(rec, label, under, f, fmt, live))]
+        inputs += loop + [str(screen_dressing(rec, label, under, f, fmt, live, rect))]
         graph.append("[bg][1]overlay=0:0[dressed]")
         last = "dressed"
         if live:  # the real screen, rounded corners, played from its offset
             start = offsets.get(rec, 0)
             offsets[rec] = start + n
             rw, rh = live
-            x, y, bw, bh = f["card"]
+            x, y, bw, bh = rect
             r = 44
             inputs += ["-ss", f"{start / FPS:.3f}", "-i", str(path)]
             graph.append(
@@ -388,6 +536,17 @@ def segment(i: int, row, offsets: dict[str, int], fmt: str) -> Path:
             graph.append(f"[{last}][rec]overlay={x + (bw - rw) // 2}:{y + (bh - rh) // 2}[withrec]")
             last = "withrec"
 
+    if sid in ZOOM:  # a slow zoom: the focus point grows and glides to its place (shot 4)
+        t0, end, fx, fy, tx, ty = ZOOM[sid]
+        ramp = f"clip((t-{t0})/{sec - t0 - 0.3:.3f},0,1)"
+        e = f"(3*pow({ramp},2)-2*pow({ramp},3))"  # eased 0 to 1
+        z = f"(1+{end - 1}*{e})"
+        grow = f"scale=w='trunc(iw*{z}/2)*2':h='trunc(ih*{z}/2)*2':eval=frame"
+        # The focus point lands at (fx, fy) + ((tx, ty) - (fx, fy)) * e. The offset comes from the
+        # zoom itself: crop reads the frame's size only once, not per frame.
+        hold = f"crop={W}:{H}:x='{fx}*{z}-({fx}+{tx - fx}*{e})':y='{fy}*{z}-({fy}+{ty - fy}*{e})'"
+        graph.append(f"[{last}]{grow},{hold}[zoomed]")
+        last = "zoomed"
     idx = sum(1 for a in inputs if a == "-i")  # next input index
     if kind == "close":  # the name and address: fade in on the first close row only
         graph.append(
@@ -398,7 +557,12 @@ def segment(i: int, row, offsets: dict[str, int], fmt: str) -> Path:
     cap = caption(sid, pic, words, f, fmt)
     if cap:
         inputs += loop + [str(cap)]
-        graph.append(fade(str(idx), "cap", sec))
+        before = SHOTS[i - 1][3] if i > 0 else None
+        nxt = SHOTS[i + 1][3] if i + 1 < len(SHOTS) else None
+        span = n / FPS  # a caption carried into the next row of its beat stays up to the cut
+        if sid in CAPTION_OUT_EARLY:  # it leaves early, before a move (shot 2's push-in)
+            span = sec - CAPTION_OUT_EARLY[sid]
+        graph.append(fade(str(idx), "cap", span, fade_in=before != words, fade_out=nxt != words))
         graph.append(f"[{last}][cap]overlay=0:0[capped]")
         last = "capped"
     graph.append(f"[{last}]format=yuv420p[v]")
@@ -443,18 +607,137 @@ def join(parts: list[Path], out: Path, total: float) -> None:
         label, clock = f"j{k}", clock + row[1]
     fades = f"fade=in:st=0:d=0.5:color={PAPER},fade=out:st={total - 0.8:.2f}:d=0.8:color={PAPER}"
     graph.append(f"[{label}]{fades}[v]")
-    music = sorted((HERE / "audio").glob("music.*")) if (HERE / "audio").exists() else []
+    music = [HERE / MUSIC_TRACK] if (HERE / MUSIC_TRACK).exists() else []
+    if "--no-music" in sys.argv:  # the voice-only version, for comparing
+        music = []
+    take = HERE / VOICE_TAKE
     cmd = ["ffmpeg", "-y", "-loglevel", "error", *ins]
-    if music:  # quiet, no vocals (the founder's file), faded out over the last 2 s
+    maps, enc, n_in = ["-map", "[v]"], X264, len(parts)
+    voice = None
+    if take.exists():
+        voice = voice_graph(graph, n_in, total)
+        cmd += ["-i", str(take)]
+        n_in += 1
+    bed = None
+    if music:  # the founder's track, at one steady level under the voice (shots.MUSIC_*)
         cmd += ["-i", str(music[0])]
-        graph.append(f"[{len(parts)}:a]volume=0.35,afade=in:st=0:d=1,"
-                     f"afade=out:st={total - 2:.2f}:d=2[a]")  # fmt: skip
-        maps = ["-map", "[v]", "-map", "[a]", "-c:a", "aac", "-b:a", "160k"]
+        gain = music_gain(music[0], total) if voice else "pow(10,-16/20)"
+        graph.append(
+            f"[{n_in}:a]atrim={MUSIC_START}:{MUSIC_START + total:.3f},asetpts=PTS-STARTPTS,"
+            f"volume='{gain}':eval=frame,afade=in:st=0:d=0.5,"
+            f"afade=out:st={total - 2:.2f}:d=2,apad,atrim=0:{total:.3f}[bed]"
+        )
+        bed = "bed"
+    fx = []  # the sound effects, each at its moment in its shot (shots.SFX)
+    starts, clock = {}, 0.0
+    for sid, sec, *_ in SHOTS:
+        starts[sid], clock = clock, clock + sec
+    for sid, sounds in SFX.items():
+        for path, at, gain in sounds:
+            cmd += ["-i", str(HERE / path)]
+            lab = f"sfx{len(fx)}"
+            graph.append(f"[{n_in}:a]aresample=44100,volume={gain}dB,"
+                         f"adelay={int((starts[sid] + at) * 1000)}:all=1,apad,"
+                         f"atrim=0:{total:.3f}[{lab}]")  # fmt: skip
+            fx.append(lab)
+            n_in += 1
+    if voice or bed:
+        mix = [x for x in (voice, bed) if x] + fx
+        joined = "".join(f"[{x}]" for x in mix)
+        mixed = f"{joined}amix=inputs={len(mix)}:normalize=0," if len(mix) > 1 else f"{joined}"
+        graph.append(f"{mixed}loudnorm=I=-16:TP=-1.3:LRA=11,aresample=48000[a]")
+        maps = ["-map", "[v]", "-map", "[a]", "-c:a", "aac", "-b:a", "192k"]
         enc = [a for a in X264 if a != "-an"]
-    else:
-        maps, enc = ["-map", "[v]"], X264
     run([*cmd, "-filter_complex", ";".join(graph), *maps, *enc, "-t", f"{total:.3f}",
          "-movflags", "+faststart", str(out)])  # fmt: skip
+
+
+def normalize(path: Path, length: float) -> None:
+    """Second loudness pass: measure the finished mix, raise it to -16 LUFS integrated with a plain
+    gain, and catch the few peaks that gain would push past the founder's -1 dBTP with a fast
+    limiter 0.8 dB lower (the AAC encode adds a few tenths), repeating until within 0.1 LU. A
+    loudness filter's own peak limit stopped short instead (the v4 music mix landed at -17.0).
+    Remuxes the audio, padded to `length` s so the picture keeps its full length."""
+    ceiling = 10 ** (-1.8 / 20)
+    for _ in range(4):  # the limiter takes back a little each pass; stop within 0.1 LU
+        have = lufs(["-i", str(path), "-vn", "-af", "ebur128"])
+        if abs(have + 16) <= 0.1:
+            break
+        af = (f"volume={-16 - have:.2f}dB,alimiter=limit={ceiling:.4f}:attack=2:release=60:"
+              f"level=disabled,aresample=48000,apad,atrim=0:{length:.3f}")  # fmt: skip
+        tmp = path.with_suffix(".norm.mp4")
+        run(
+            [
+                "ffmpeg",
+                "-y",
+                "-loglevel",
+                "error",
+                "-i",
+                str(path),
+                "-map",
+                "0:v",
+                "-map",
+                "0:a",
+                "-c:v",
+                "copy",
+                "-af",
+                af,
+                "-c:a",
+                "aac",
+                "-b:a",
+                "192k",
+                "-t",
+                f"{length:.3f}",
+                "-movflags",
+                "+faststart",
+                str(tmp),
+            ]
+        )  # fmt: skip (padded, so the picture keeps its length)
+        tmp.replace(path)
+
+
+def lufs(args: list[str]) -> float:
+    """Integrated loudness of whatever `args` (ffmpeg inputs and an audio filter) produce."""
+    err = subprocess.run(["ffmpeg", "-hide_banner", *args, "-f", "null", "-"],
+                         check=True, capture_output=True, text=True).stderr  # fmt: skip
+    return float(re.findall(r"I:\s+(-?[0-9.]+) LUFS", err)[-1])
+
+
+def music_gain(track: Path, total: float) -> str:
+    """The music's gain: one steady level, MUSIC_UNDER dB below the voice's speaking level (the
+    founder: no swells in the gaps)."""
+    pieces = [p for v in VOICE.values() for p in v]
+    chain = "".join(
+        f"[0:a]atrim={a}:{b},asetpts=PTS-STARTPTS[p{k}];" for k, (a, b) in enumerate(pieces)
+    )
+    chain += "".join(f"[p{k}]" for k in range(len(pieces)))
+    voice_lufs = lufs(["-i", str(HERE / VOICE_TAKE), "-filter_complex",
+                       f"{chain}concat=n={len(pieces)}:v=0:a=1,ebur128"])  # fmt: skip
+    music_lufs = lufs(["-ss", str(MUSIC_START), "-t", f"{total:.3f}", "-i", str(track),
+                       "-af", "ebur128"])  # fmt: skip
+    gain = voice_lufs - MUSIC_UNDER - music_lufs
+    print(f"music: voice {voice_lufs} LUFS, music {music_lufs} LUFS, steady gain {gain:.1f} dB")
+    return f"pow(10,{gain:.2f}/20)"
+
+
+def voice_graph(graph: list[str], first_in: int, total: float) -> str:
+    """Lay each voice line (a span of the take, natural pauses kept) at its shot's start plus
+    VOICE_LEAD; silence everywhere else. Appends to `graph`; returns the output label."""
+    starts, clock = {}, 0.0
+    for sid, sec, *_ in SHOTS:
+        starts[sid], clock = clock, clock + sec
+    labels = []
+    for sid, pieces in VOICE.items():
+        at = starts[sid] + VOICE_LEAD
+        for a, b in pieces:
+            lab = f"vo{len(labels)}"
+            graph.append(f"[{first_in}:a]atrim={a}:{b},asetpts=PTS-STARTPTS,"
+                         f"adelay={int(at * 1000)}:all=1[{lab}]")  # fmt: skip
+            labels.append(lab)
+            at += b - a
+    joined = "".join(f"[{x}]" for x in labels)
+    graph.append(f"{joined}amix=inputs={len(labels)}:normalize=0,apad,atrim=0:{total:.3f}[vo]")
+    return "vo"
 
 
 def stills(parts: list[Path], fmt: str) -> None:
@@ -514,10 +797,21 @@ def main() -> None:
         if READY[rec]:
             refuse_home_screen(rec, READY[rec], seconds)
     total = sum(r[1] for r in SHOTS)
-    for fmt, name in (("16x9", "kettle-launch.mp4"), ("9x16", "kettle-launch-9x16.mp4")):
+    cuts = (("16x9", "kettle-launch-16x9.mp4"), ("9x16", "kettle-launch-9x16.mp4"))
+    if "--vertical" in sys.argv:  # the 9:16 cut only
+        cuts = cuts[1:]
+    if "--voice-preview" in sys.argv:  # 16:9 only, under its own name
+        cuts = (("16x9", "kettle-launch-voice-preview.mp4"),)
+    if "--voice-music-preview" in sys.argv:
+        cuts = (("16x9", "kettle-launch-voice-music-preview.mp4"),)
+    if "--preview" in sys.argv:  # --preview <file name>: 16:9 only
+        cuts = (("16x9", sys.argv[sys.argv.index("--preview") + 1]),)
+    for fmt, name in cuts:
         offsets: dict[str, int] = {}
         parts = [segment(i, row, offsets, fmt) for i, row in enumerate(SHOTS)]
         join(parts, OUT / name, total)
+        if (HERE / VOICE_TAKE).exists() or (HERE / MUSIC_TRACK).exists():
+            normalize(OUT / name, total)
         stills(parts, fmt)
         print(f"{name}: {probe(OUT / name).strip()}")
     missing = sorted(rec for rec, path in READY.items() if path is None)
