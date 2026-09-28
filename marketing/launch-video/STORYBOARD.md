@@ -1,4 +1,27 @@
-# Kettle launch video: storyboard (phase 2 draft)
+# Kettle launch video: storyboard
+
+## The current cut (v6, 47.7 s, 2026-09-28)
+
+`shots.py` is the source of truth; this table is its summary. The words are in SCRIPT.md, the
+voice in VOICEOVER.md. v6 is v5 with its three A/B extras in, a 0.75 s hold on the note, two soft
+sounds in the kitchen, and the stillness after the thumbs up trimmed.
+
+| Shot | Time (s) | Picture | Source |
+|---|---|---|---|
+| 1 (01) | 0.0 to 2.5 | The paper map, city and house in frame | Blender `map.py` (01) |
+| 2 (02) | 2.5 to 11.1 | The two phones turning slowly under the app icon and the line; the push into the green phone's screen, showing the note; a 0.75 s hold | Blender `phones.py` (03, frames 1 to 266); caption `render.brand_caption`; screen `assets/screens/note.png` |
+| 3 (04) | 11.1 to 14.8 | The morning note email | Recording R1 |
+| 4 (05) | 14.8 to 18.4 | The Today card, zooming onto Mom's card | Recording R2; `shots.ZOOM` |
+| 5 (07) | 18.4 to 24.4 | The kitchen: the push to the text message and back, her reply, the thumbs up; the fixed kettle | Blender `kitchen.py` (07c, frames 1 to 177); screen `sms_screens.py`; sounds `sfx.py` |
+| 6 (08) | 24.4 to 27.7 | Memory | Recording R3 |
+| 7 (09) | 27.7 to 30.8 | Who to call | Recording R4 |
+| 8 (10) | 30.8 to 33.6 | The family circle | Recording R5 |
+| 9 (16) | 33.6 to 41.1 | "More ways to use Kettle" | Card `more` |
+| 10 (15) | 41.1 to 47.7 | The app icon, the name, the address, both lines | Card `end` |
+
+A 0.3 s cross-dissolve at every join, 0.5 s going into shot 2.
+
+## The original plan (phase 2, kept for the record)
 
 Words and timings are in SCRIPT.md. There are five painted sets and one plain paper table
 (the "plate") that every screen shot sits on. Each Gemini layer is painted flat on a clean
@@ -31,7 +54,7 @@ About 20 Gemini layers in all. With redos that should fit inside the 60-image ph
 
 Screen shots: the recording goes on the plate flat and square-on, about 880 px tall, in a paper
 phone frame with a soft shadow. The caption sits on the plate to its left, never over the
-screen. For the 9:16 cut, the screen fills the frame and the caption sits in the top band.
+screen. For the 9:16 cut, the screen fills most of the frame and the caption sits in the band above it.
 
 ## Names on screen
 

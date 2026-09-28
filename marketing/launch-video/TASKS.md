@@ -23,3 +23,16 @@
 Gemini images, phase 4: 17 of 60
 - [x] Phase 4: remaining scenes, compositing, 16:9 + 9:16 renders, README, PROMPTS.md (<= 60 Gemini images)
 - [x] Commit and push on branch launch-video (kept current)
+- [x] v4 re-cut (founder, 2026-09-27): 39.2 s on voiceover-v2; built and reviewed, then replaced by v5
+- [x] v5 (founder, 2026-09-28): the committed cut's shots on voiceover-v3, app icon over the phones, push-in into the note, fixed kettle in 07, new more-ways and end cards; A/B clips A, B, C
+- [x] v6 (founder, 2026-09-28): v5 with the A/B extras in, a 0.75 s note hold, two soft sounds in the kitchen, the stillness after the thumbs up trimmed; 47.7 s
+- [x] v7 (founder, 2026-09-28): v6 without the zoom onto Mom's card, new music (music-v2 from 28.0 s); approved as the final 16:9 cut
+- [x] Finals: out/kettle-launch-16x9.mp4 (v7) and out/kettle-launch-9x16.mp4 (the same edit reframed for vertical, captions and cards clear of the top and bottom 12%); 47.7 s, -16.0 LUFS, -1.6 dBTP
+- [x] Commit and push the final build on launch-video (not merged to main)
+- [x] Founder overrides recorded in the brief, section 8: "Know Mom's okay" and the ChatGPT claim (2026-09-28)
+
+## Future short videos (cut from the launch video, 2026-09-27)
+
+- [ ] Medicare ratings: Care Compare by HeyKettle, home health near a ZIP (recording R9 and its old shots 14a/14b)
+- [ ] Kettle in Claude and ChatGPT: ask who to call, add a note, it lands in Memory (recordings R6, R7, R8; check ChatGPT is live first)
+- [ ] Smart plug and Alexa: add Mom's own plug or routine (Blender shot 10b)
