@@ -15,7 +15,7 @@ primary_region = "sin"  # Singapore: closest low-latency region to Chennai
   # name — so nothing is sent; an unknown name refuses to boot.
   OUTBOUND_LOOP = "1"
   OUTBOUND_ENABLED = "1"
-  PUBLIC_BASE_URL = "https://kettle-api.fly.dev"
+  PUBLIC_BASE_URL = "https://api.heykettle.com"
 
 # No volume: all state lives in Supabase/Postgres.
 
