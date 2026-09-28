@@ -58,31 +58,33 @@ Fly settings; those are the founder's and the PM's, in section 3.
 Report: files touched, test counts (root pytest, webapp vitest, site
 vitest), and the one commit hash. Under 200 words.
 
-## 3. Cutover order (PM and founder; after the build is deployed)
+## 3. Cutover order (as done 2026-09-27; CC corrected the PM's first draft)
 
-1. Deploy the build to `kettle-api` and `kettle-app` (founder). Nothing
-   changes yet: secrets still say the old hosts, DNS has no new names.
-2. DNS in Cloudflare (PM at the founder's word, as for `care`): `app` and
-   `api` A/AAAA to the addresses `fly ips list -a kettle-app` and `-a kettle-api` print, proxied (as for care); `_acme-challenge.app`
-   and `_acme-challenge.api` CNAMEs from `fly certs add`; the `_fly-ownership`
-   TXTs. Then `fly certs add app.heykettle.com -a kettle-app` and
-   `fly certs add api.heykettle.com -a kettle-api` (founder), wait for Issued.
-3. Secrets, in one command so they land together (founder):
-   `fly secrets set -a kettle-api PUBLIC_BASE_URL=https://api.heykettle.com APP_ORIGIN=https://app.heykettle.com APP_ORIGINS_EXTRA=https://kettle-app.fly.dev`.
-   In the same minute, Twilio: the WhatsApp sender's inbound webhook from
-   `https://kettle-api.fly.dev/outbound/reply` to
-   `https://api.heykettle.com/outbound/reply` (founder in the console; PM
-   fills, founder presses Save). The signature check is tied to
-   `PUBLIC_BASE_URL`, which is why these two move together.
-4. Supabase Auth: add `https://app.heykettle.com` to the redirect allow-list
-   and set it as the site URL (founder in the dashboard). Sign-in is by
-   emailed code, so this is belt and braces, not a blocker.
-5. Verify (PM, from the founder's Chrome): app sign-in at
-   `app.heykettle.com`; old app host redirects; a fresh setup link prints
-   `api.heykettle.com/s/...`; `api.heykettle.com/mcp` answers a JSON-RPC
-   initialize and its `.well-known` metadata names the new issuer; the old
-   `kettle-api.fly.dev/mcp` still answers; Fly logs show a 204, not a 403,
-   on the next WhatsApp reply.
-6. Afterwards: re-record R5 (the Family tab now prints the new address);
-   update the Asana directory-submission task to `api.heykettle.com/mcp`;
-   `APP_ORIGINS_EXTRA` comes off after a week with no 4xx from the old host.
+The build redirects the old app host the moment it deploys and hardcodes
+the new API host, so certificates must exist before any deploy.
+
+1. `fly certs add` for both hosts (founder); DNS in Cloudflare (PM at the
+   founder's word): A/AAAA proxied, `_acme-challenge` CNAMEs DNS-only,
+   `_fly-ownership` TXTs. Wait for `fly certs check` to say Issued.
+2. `product/fly.toml` `[env] PUBLIC_BASE_URL` -> the new host (CC missed
+   it; PM fixed, commit 4830e46). No `APP_ORIGIN` secret is needed: the
+   code default is the new host and `APP_ORIGIN` is unset in prod.
+   `APP_ORIGINS_EXTRA` was not needed either: the old app host redirects,
+   so it never serves the app.
+3. Stage the Twilio WhatsApp sender's inbound webhook to
+   `https://api.heykettle.com/outbound/reply` (PM fills, founder presses
+   Update WhatsApp Sender) right after `cd product && fly deploy`
+   finishes: the signature check is tied to `PUBLIC_BASE_URL`.
+4. `cd webapp && fly deploy`.
+5. Supabase Auth: Site URL `https://app.heykettle.com`, added to Redirect
+   URLs (founder).
+6. Verified from the founder's Chrome: old app host 301s; new app loads;
+   `api.heykettle.com/mcp` answers 401 with metadata naming the new
+   issuer; old API host still answers; a connector added on the old host
+   still works. The WhatsApp reply path is unverified until a parent
+   next sends a 👍 (Mom paused at the time).
+7. Afterwards: re-record R5 (Family tab prints the new address). The
+   Asana directory-submission task is Care Compare's, already on
+   `care.heykettle.com`, so nothing to change there (357 overstated
+   this). Everyone signs in again on the new host once; sessions do not
+   carry across hosts.
