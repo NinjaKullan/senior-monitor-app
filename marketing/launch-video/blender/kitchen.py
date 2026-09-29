@@ -28,7 +28,10 @@ def build(shot: str) -> None:
     P.stage()
     P.card("counter", "assets/layers/counter.png", 0.53, 0.0, 0.14)
     P.box("worktop", P.PAPER, (1.12, 0.34, 0.012), (0.0, 0.31, TOP - 0.006))
-    P.card("window", "assets/layers/window.png", 0.25, -0.02, 0.595, z=0.56)  # clear of the caption
+    # Clear of the caption; in the smart-home shots it moves left behind the plant, since the
+    # close-up's caption otherwise sits on its frame bars.
+    window_x = -0.36 if shot in SMART_HOME else -0.02
+    P.card("window", "assets/layers/window.png", 0.25, window_x, 0.595, z=0.56)
     # The kettle is wide and its spout faces left. In 07 its base sits where the old kettle's did
     # (0.265: the old card's centre, 0.30, less its base offset), so it is fully in frame; in 10b
     # it steps right, clear of the lamp's plug.
@@ -71,24 +74,31 @@ def build(shot: str) -> None:
         lamp_on = household(0.10, 0.40)
         # Dad's newspaper, folded, lying flat on the worktop in front of the speaker and lamp.
         # Two sheets, the lower one peeking out a few millimetres: a paper folded in half.
+        # The lamp, a hand's width away, blows the white paper out to a blank card, so the paper
+        # darkens (a multiply tint, keyed with the lamp) as the lamp comes on; lamp off, as in
+        # 10a, it is untouched.
+        dims = []
         for k, (dx, dy, turn) in enumerate(((0.004, 0.003, -7.5), (0.0, 0.0, -9.0))):
-            P.card(f"newspaper{k}", "assets/bubbles/newspaper.png", 0.085, 0.015 + dx, 0.265 + dy,
-                   z=TOP + k * 0.0016, turn=turn, flat=True)  # fmt: skip
+            sheet = P.card(f"newspaper{k}", "assets/bubbles/newspaper.png", 0.085, 0.015 + dx,
+                           0.265 + dy, z=TOP + k * 0.0016, turn=turn, flat=True,
+                           tint="D2D0D2")  # fmt: skip
+            mix = next(n for n in sheet.data.materials[0].node_tree.nodes if n.type == "MIX")
+            dims.append(mix.inputs["Factor"])
         if shot == "10a":  # close on the plug and the speaker, drifting right; the lamp off
             cam, _ = P.camera((-0.02, -0.34, 0.78), (0.02, 0.40, 0.57))
             P.key(cam, "location", 1, (-0.02, -0.34, 0.78))
             P.key(cam, "location", n, (0.02, -0.33, 0.775))
-            lamp_on(n + 10, n + 20)  # keyed off for the whole shot
+            lamp_on(n + 10, n + 20, dims)  # keyed off for the whole shot
         elif shot == "10b":  # closer, held still: the lamp on the smart plug switches on softly
             P.camera((0.04, -1.15, 0.98), (0.07, 0.40, 0.62))
-            lamp_on(35, 65)
+            lamp_on(35, 65, dims)
         else:  # 10c: 10b's framing, then a slow pull back to the whole kitchen; the lamp on
             cam, aim = P.camera((0.04, -1.15, 0.98), (0.07, 0.40, 0.62))
             for frame, c, a in ((1, (0.04, -1.15, 0.98), (0.07, 0.40, 0.62)),
                                 (n, (0.03, -1.55, 1.04), (0.04, 0.36, 0.58))):  # fmt: skip
                 P.key(cam, "location", frame, c)
                 P.key(aim, "location", frame, a)
-            lamp_on(0, 1)
+            lamp_on(0, 1, dims)
     elif shot == "07":  # a message arrives on her phone, a thumbs up folds up beside it
         cam, _ = P.camera(WIDE_CAM, WIDE_AIM)
         P.key(cam, "location", 1, WIDE_CAM)
@@ -142,10 +152,12 @@ def household(x: float, y: float):
         location=(x, y, TOP + 0.23),
     )  # fmt: skip
     shade = bpy.context.active_object
+    shade.name = "shade"
     shade.data.materials.append(shade_mat)
     shade.modifiers.new("paper", "SOLIDIFY").thickness = 0.002
     bpy.ops.object.light_add(type="POINT", location=(x, y, TOP + 0.21))
     bulb = bpy.context.active_object
+    bulb.name = "bulb"
     bulb.data.color, bulb.data.shadow_soft_size = (1.0, 0.85, 0.6), 0.02
 
     # The outlet on the wall behind, and the plug in its lower socket.
@@ -183,9 +195,14 @@ def household(x: float, y: float):
     bev.width, bev.segments = 0.012, 6
     P.contact("speaker-contact", sx, y - 0.04, TOP, 0.055, 0.024, strength=0.45)
 
-    def lamp_on(start: int, end: int) -> None:
+    def lamp_on(start: int, end: int, also=()) -> None:
+        """Key the lamp from off to on between two frames; `also` are 0-to-1 sockets keyed with
+        it."""
         glow = shade_mat.node_tree.nodes["Principled BSDF"].inputs["Emission Strength"]
         for frame, level in ((1, 0.0), (start, 0.0), (end, 1.0)):
+            for socket in also:
+                socket.default_value = level
+                socket.keyframe_insert("default_value", frame=frame)
             glow.default_value = 0.55 * level
             glow.keyframe_insert("default_value", frame=frame)
             bulb.data.energy = 2.2 * level

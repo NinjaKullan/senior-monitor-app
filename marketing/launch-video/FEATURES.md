@@ -24,13 +24,15 @@ under the voice. Both formats are mastered to -16 LUFS, true peak -1 dBTP or low
 | 3 | 7.39–10.20 | Screen R3: Memory, notes and replies | Kettle keeps it in one place, / for everyone. | 3.4 |
 | 4 | 10.52–12.83 | Screen R5: the family circle | Brothers and sisters / see the same notes. | 2.9 |
 | 5 | 13.09–15.90 | Screen R6: Claude, who to call (old 11a/11b) | And you can reach it / from Claude or ChatGPT. | 3.4 |
-| 6 | 16.18–18.13 | Screen R7: Claude, leaving a note (old 12) | Ask who to call, / or leave a note. | 2.5 |
+| 6 | 16.18–18.13 | The founder's replacement Claude clip, a non-medical note (recordings/claude-note.mp4); never R7, whose note is medical | Ask who to call, / or leave a note. | 2.5 |
 | 7 | 18.45–21.39 | The v7 end card | Kettle / heykettle.com / For checking in, not checking up. / Now open to founding families. | 4.1 |
 
 ## Smart home: 11.3 s
 
-Short (founder): minimum pacing, no long silent holds. The kettle stands further right in these
-three shots, wholly out of the close-up.
+Short (founder): minimum pacing, no long silent holds. In these three shots the kettle stands
+further right, wholly out of the close-up (and out of every 9:16 frame, which has no room for it
+whole), and the window hangs further left, behind the plant, so the captions sit on plain wall.
+Dad's folded newspaper darkens a little as the lamp comes on, which otherwise blows it out white.
 
 | # | Voice (s in take) | Picture | Caption | Length (s) |
 |---|---|---|---|---|
@@ -47,6 +49,6 @@ No jump back (founder): every shot is later in the recording than the one before
 |---|---|---|---|---|
 | 1 | 0.00–2.24 | R9 from its start: the question being typed (complete only at 3.2 s) | Looking for home health care / for Mom? | 2.8 |
 | 2 | 3.07–7.72 | R9 12.0–16.0 s, slowed to 0.75x: the five agencies arriving | Care Compare by HeyKettle / reads Medicare's own ratings, / in plain words. | 5.2 |
-| 3 | 7.94–9.88 | R9 at 16.0 s held, as a square detail pushing in from 1.0x to 2.0x on the ZIP (43215) in the question bubble | Free. / Just enter a ZIP code. | 2.5 |
+| 3 | 7.94–9.88 | R9 at 16.0 s held, as a detail of the whole question bubble pushing in slowly and drifting toward the ZIP (43215); the bubble is never cropped | Free. / Just enter a ZIP code. | 2.5 |
 | 4 | 10.15–12.22 | R9 at 25.8 s: Medicare's source line and "When you call, ask whether they serve your address..." | Then call and ask / your own questions. | 2.6 |
 | 5 | 12.46–15.49 | The v7 end card | (as above) | 4.1 |

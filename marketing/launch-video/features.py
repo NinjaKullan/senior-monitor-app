@@ -41,10 +41,15 @@ CUTS = {
          [(10.52, 12.83)]),
         ("f5", 3.4, "screen|R6|Claude: who to call",
          "And you can reach it\nfrom Claude or ChatGPT.", [(13.09, 15.90)]),
-        ("f6", 2.5, "screen|R7|Claude: leave a note", "Ask who to call,\nor leave a note.",
+        # Not R7 (founder: its note is medical; never in a final). The founder's replacement Claude
+        # clip, recordings/claude-note.mp4; a grey placeholder until it exists.
+        ("f6", 2.5, "screen|R7n|Claude: leave a note", "Ask who to call,\nor leave a note.",
          [(16.18, 18.13)]),
         ("f7", 4.1, "card|end", END, [(18.45, 21.39)]),
-    ], (15, 25)),
+    ], (15, 25), recordings={
+        # Cut once the file is in (same crop as R6 and R7: Claude without its status bar).
+        "R7n": {"src": "claude-note", "crop": (300, None)},
+    }),
     # Short (founder: about 11 to 12 s, minimum pacing, no long silent holds).
     "smarthome": _cut("smarthome", "smarthome", [
         ("s1", 3.2, "blender|10a", "Already have a smart plug\nor Alexa at Dad's?", [(0.00, 2.69)]),
@@ -72,10 +77,13 @@ CUTS = {
         # The five agencies arriving, a touch slowed to fill the line; the question bubble stays
         # at the top until 16.0 s, when the answer starts to scroll.
         "R9b": {"src": "R9", "crop": (300, None), "cuts": [(12.0, 16.0, 0.75)]},
-        # R9b's last frame, as a 900 px square detail pushing in slowly on the ZIP in the question
-        # bubble, at (958, 230) of the cropped recording, from 1.0x to 2.0x; its own box in 16:9.
+        # R9b's last frame, as a detail of the question bubble (x 310 to 1160, y 18 to 394 of the
+        # cropped recording) pushing in slowly: from the screen's full width (0.75x) to the bubble
+        # with 15 px to spare (1.02x), drifting toward the ZIP (948, 230). The whole bubble stays
+        # in the box throughout, so no word is cut. Its own box in 16:9.
         "R9c": {"src": "R9", "crop": (300, None), "hold": 16.0,
-                "zoom": (2.8, 1.0, 2.0, 958, 230, 900, 900), "box": (970, 90, 900, 900)},
+                "zoom": (2.8, 0.75, 1.023, 603, 320, 740, 230, 900, 480),
+                "box": (970, 300, 900, 480)},
         # The end of the answer: Medicare's source line and "When you call, ask whether...".
         "R9d": {"src": "R9", "crop": (300, None), "hold": 25.8},
     }),

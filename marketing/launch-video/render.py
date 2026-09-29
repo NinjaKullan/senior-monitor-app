@@ -63,6 +63,11 @@ REFRAME_9X16: dict[str, list[tuple[int, int, int, int]]] = {
             (172, 1240, 540, 1140)],
     # The feature videos: the phone and every bubble around it.
     "sc": [(1, 950, 620, 1480)],
+    # Smart home: the plug, the speaker, the newspaper and the lamp; the kettle wholly out of
+    # frame in all three (no partial kettle, founder), since 9:16 has no room for it whole.
+    "10a": [(1, 1035, 540, 1080)],
+    "10b": [(30, 775, 540, 1110)],
+    "10c": [(1, 775, 540, 1110), (93, 730, 560, 1080)],
 }  # fmt: skip
 SCENE_Y_9X16 = 1100  # the painted band's centre in 9:16, below the caption
 SAFE_TOP_9X16 = 231  # 12% of 1920: TikTok, Reels and Shorts put their buttons above and below
@@ -362,11 +367,14 @@ def prepared(rec: str) -> Path | None:
     if "hold" in edit:
         t = edit["hold"]
         graph = f"[0:v]trim=start={t}:duration=0.05,setpts=PTS-STARTPTS,{crop},fps={FPS}[v]"
-        if "zoom" in edit:  # a slow push in on the held frame: a w x h detail around (cx, cy)
-            sec, s0, s1, cx, cy, w, h = edit["zoom"]
+        if "zoom" in edit:  # a slow push in on the held frame: a w x h detail whose centre
+            # glides from (cx0, cy0) to (cx1, cy1) as the scale goes from s0 to s1
+            sec, s0, s1, cx0, cy0, cx1, cy1, w, h = edit["zoom"]
             src_w, src_h = recording_size(src, edit)
             p = f"clip(t/{sec},0,1)"
-            z = f"({s0}+{s1 - s0}*(3*pow({p},2)-2*pow({p},3)))"
+            e = f"(3*pow({p},2)-2*pow({p},3))"
+            z = f"({s0}+{s1 - s0}*{e})"
+            cx, cy = f"({cx0}+{cx1 - cx0}*{e})", f"({cy0}+{cy1 - cy0}*{e})"
             graph = graph.replace(
                 "[v]",
                 f",tpad=stop_mode=clone:stop_duration={sec},"
