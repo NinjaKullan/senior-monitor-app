@@ -47,8 +47,12 @@ CUTS = {
          [(16.18, 18.13)]),
         ("f7", 4.1, "card|end", END, [(18.45, 21.39)]),
     ], (15, 25), recordings={
-        # Cut once the file is in (same crop as R6 and R7: Claude without its status bar).
-        "R7n": {"src": "claude-note", "crop": (300, None)},
+        # The founder's clip: its first 2.5 s are the Control Center and a fade (never shown).
+        # Claude opens x8, the note lands in the box x8 (skipping the Paste pop-up at 4.9 to
+        # 5.6 s), Claude's reply x8, then a hold on its proposed note ("Mom's doctor appointment
+        # is Thursday at 2."), fully drawn at 15.5 s. Crop as R6 and R7: no status bar.
+        "R7n": {"src": "claude-note", "crop": (300, None),
+                "cuts": [(2.6, 4.9, 8), (5.6, 8.0, 8), (8.0, 15.5, 8), (15.5, 17.0, 1)]},
     }),
     # Short (founder: about 11 to 12 s, minimum pacing, no long silent holds).
     "smarthome": _cut("smarthome", "smarthome", [

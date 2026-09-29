@@ -24,7 +24,7 @@ under the voice. Both formats are mastered to -16 LUFS, true peak -1 dBTP or low
 | 3 | 7.39–10.20 | Screen R3: Memory, notes and replies | Kettle keeps it in one place, / for everyone. | 3.4 |
 | 4 | 10.52–12.83 | Screen R5: the family circle | Brothers and sisters / see the same notes. | 2.9 |
 | 5 | 13.09–15.90 | Screen R6: Claude, who to call (old 11a/11b) | And you can reach it / from Claude or ChatGPT. | 3.4 |
-| 6 | 16.18–18.13 | The founder's replacement Claude clip, a non-medical note (recordings/claude-note.mp4); never R7, whose note is medical | Ask who to call, / or leave a note. | 2.5 |
+| 6 | 16.18–18.13 | The founder's replacement Claude clip (recordings/claude-note.MP4): the note "Mom's doctor appointment is Thursday at 2." and Claude's proposed note, held; never R7 | Ask who to call, / or leave a note. | 2.5 |
 | 7 | 18.45–21.39 | The v7 end card | Kettle / heykettle.com / For checking in, not checking up. / Now open to founding families. | 4.1 |
 
 ## Smart home: 11.3 s
