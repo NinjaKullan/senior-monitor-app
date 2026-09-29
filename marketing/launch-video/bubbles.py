@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Paper message bubbles for the family video's "scattered" beat, drawn by headless Chrome as
-transparent PNGs that blender/features.py lays on the table as paper cards.
+"""Paper props for the feature videos, drawn by headless Chrome as transparent PNGs that the
+Blender sets lay down as paper cards.
 
 python3 bubbles.py -> assets/bubbles/in.png (a cream bubble, tail left), out.png (a sage bubble,
-tail right) and call.png (a missed-call chip: a green circle with a handset)
-No words: soft grey bars stand where text would be, like the kitchen's message bubble, so nothing
-reads as a real app screen.
+tail right) and call.png (a missed-call chip: a green circle with a handset), for the family
+video's "scattered" beat (phones.py sc); newspaper.png, Dad's folded paper (kitchen.py 10a-10c)
+No words anywhere: soft grey bars stand where text would be, like the kitchen's message bubble, so
+nothing reads as a real app screen, and the newspaper has no masthead or headline.
 """
 
 from __future__ import annotations
@@ -57,12 +58,29 @@ def call() -> tuple[str, int, int]:
     return body, 540, 180
 
 
+def newspaper() -> tuple[str, int, int]:
+    """A newspaper folded in half: newsprint cream, four columns of fine grey lines, one grey
+    picture block, and a soft shadow along the fold at the top edge."""
+    lines = "repeating-linear-gradient(#CFC8BB 0 5px, transparent 5px 15px)"
+    cols = "".join(
+        f'<div style="position:absolute;left:{40 + k * 205}px;top:{70 if k != 1 else 250}px;'
+        f'width:180px;bottom:40px;background:{lines}"></div>'
+        for k in range(4)
+    )
+    body = f"""<div style="position:absolute;inset:6px;background:#EFEAE0;border:5px solid #B9B1A4;
+        border-radius:6px;overflow:hidden;box-shadow:inset 0 26px 22px -18px rgba(90,80,64,.35)">
+      {cols}<div style="position:absolute;left:245px;top:70px;width:180px;height:160px;
+        background:#D8D1C5"></div></div>"""
+    return body, 900, 620
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     pieces = {
         "in": bubble("#FBF6EC", False, (0.9, 0.62)),
         "out": bubble("#DCE8D6", True, (0.8, 0.5)),
         "call": call(),
+        "newspaper": newspaper(),
     }
     for name, (body, w, h) in pieces.items():
         src = OUT / f".{name}.html"

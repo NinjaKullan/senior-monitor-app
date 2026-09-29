@@ -30,6 +30,7 @@ from shots import (
     MUSIC_START,
     MUSIC_TRACK,
     MUSIC_UNDER,
+    OUT_NAME,
     RECORDINGS,
     SFX,
     SHOTS,
@@ -60,14 +61,21 @@ REFRAME_9X16: dict[str, list[tuple[int, int, int, int]]] = {
     # Wide: the phone, the thumbs up and the kettle; close: the phone and its message.
     "07c": [(20, 1240, 540, 1140), (50, 770, 540, 1080), (140, 770, 540, 1080),
             (172, 1240, 540, 1140)],
+    # The feature videos: the phone and every bubble around it.
+    "sc": [(1, 950, 620, 1480)],
 }  # fmt: skip
 SCENE_Y_9X16 = 1100  # the painted band's centre in 9:16, below the caption
+SAFE_TOP_9X16 = 231  # 12% of 1920: TikTok, Reels and Shorts put their buttons above and below
 SET_SCRIPT = {
     "10b": "kitchen.py",
     "01": "map.py",
     "02": "kitchen.py",
     "06": "kitchen.py",
     "07": "kitchen.py",
+    "07c": "kitchen.py",
+    "10a": "kitchen.py",
+    "10c": "kitchen.py",
+    "sc": "phones.py",
     "03": "phones.py",
     "15": "close.py",
 }
@@ -80,6 +88,11 @@ X264 = [
     "medium",
     "-pix_fmt",
     "yuv420p",
+    # Every segment tagged limited range: the iPhone recordings come in tagged full range, and a
+    # cut that opens on one (Care Compare) would otherwise tag the whole film so. The launch
+    # finals already played the recordings' values as limited range; this only makes it explicit.
+    "-color_range",
+    "tv",
     "-r",
     str(FPS),
     "-an",
@@ -94,7 +107,7 @@ FMT = {
              "card": (1150, 70, 520, 940), "under": 1045, "brand": (620, 725), "close_cap": 880,
              "cap_px": 80, "wrap": False},
     "9x16": {"W": 1080, "H": 1920, "paint_cap": 340, "screen_cap": (540, 360),
-             "card": (40, 500, 1000, 1180), "under": 1615, "brand": (1010, 1110), "close_cap": 1330,
+             "card": (40, 500, 1000, 1180), "under": None, "brand": (1010, 1110), "close_cap": 1330,
              "cap_px": 76, "wrap": True},
 }  # fmt: skip
 
@@ -207,6 +220,9 @@ def caption(sid: str, pic: str, words: str, f: dict, fmt: str) -> Path | None:
         x, y = W // 2, f["close_cap"]
     else:
         x, y = W // 2, f["paint_cap"]
+    if wrap:  # a caption that wraps to three lines moves down, clear of the top 12% (9:16)
+        lines = -(-int(0.42 * px * len(words)) // (W - 140))  # Patrick Hand, about 0.42 em a letter
+        y = max(y, int(SAFE_TOP_9X16 + 10 + lines * px * 1.15 / 2))
     return overlay_png(
         text(words, x, y, px, wrap, W - 140), W, H, OUT / "overlays" / f"{fmt}-cap-{sid}.png"
     )
@@ -309,7 +325,7 @@ def screen_dressing(
             f'<div class="card" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px">'
             f"{html.escape(rec)}<br>{html.escape(label)}<br>placeholder</div>"
         )
-    if under:
+    if under and f["under"]:  # 9:16 has no room under the screen, above the platforms' buttons
         body += text(under, x + w // 2, f["under"], 44, False, f["W"])
     return overlay_png(
         body,
@@ -346,6 +362,18 @@ def prepared(rec: str) -> Path | None:
     if "hold" in edit:
         t = edit["hold"]
         graph = f"[0:v]trim=start={t}:duration=0.05,setpts=PTS-STARTPTS,{crop},fps={FPS}[v]"
+        if "zoom" in edit:  # a slow push in on the held frame: a w x h detail around (cx, cy)
+            sec, s0, s1, cx, cy, w, h = edit["zoom"]
+            src_w, src_h = recording_size(src, edit)
+            p = f"clip(t/{sec},0,1)"
+            z = f"({s0}+{s1 - s0}*(3*pow({p},2)-2*pow({p},3)))"
+            graph = graph.replace(
+                "[v]",
+                f",tpad=stop_mode=clone:stop_duration={sec},"
+                f"scale=w='trunc({src_w}*{z}/2)*2':h='trunc({src_h}*{z}/2)*2':eval=frame,"
+                f"crop={w}:{h}:x='clip({cx}*{z}-{w / 2},0,{src_w}*{z}-{w})'"
+                f":y='clip({cy}*{z}-{h / 2},0,{src_h}*{z}-{h})'[v]",
+            )
     else:
         pieces = edit.get("cuts", [(0, None, 1)])
         parts = []
@@ -365,6 +393,17 @@ def prepared(rec: str) -> Path | None:
     run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(src), "-filter_complex", graph,
          "-map", "[v]", *X264, str(out)])  # fmt: skip
     return out
+
+
+def recording_size(src: Path, edit: dict) -> tuple[int, int]:
+    """The recording's size after its shots.RECORDINGS crop and xcrop."""
+    info = json.loads(subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+         "stream=width,height", "-of", "json", str(src)],
+        check=True, capture_output=True, text=True).stdout)["streams"][0]  # fmt: skip
+    top, bottom = edit.get("crop", (0, None))
+    left, right = edit.get("xcrop", (0, None))
+    return (right or info["width"]) - left, (bottom or info["height"]) - top
 
 
 HOME_SCREEN_Y = (
@@ -536,11 +575,11 @@ def segment(i: int, row, offsets: dict[str, int], fmt: str) -> Path:
             graph.append(f"[{last}][rec]overlay={x + (bw - rw) // 2}:{y + (bh - rh) // 2}[withrec]")
             last = "withrec"
 
-    if sid in ZOOM:  # a slow zoom: the focus point grows and glides to its place (shot 4)
-        t0, end, fx, fy, tx, ty = ZOOM[sid]
+    if fmt in ZOOM.get(sid, {}):  # a slow zoom: the focus point grows and glides to its place
+        t0, s0, s1, fx, fy, tx, ty = ZOOM[sid][fmt]
         ramp = f"clip((t-{t0})/{sec - t0 - 0.3:.3f},0,1)"
         e = f"(3*pow({ramp},2)-2*pow({ramp},3))"  # eased 0 to 1
-        z = f"(1+{end - 1}*{e})"
+        z = f"({s0}+{s1 - s0}*{e})"
         grow = f"scale=w='trunc(iw*{z}/2)*2':h='trunc(ih*{z}/2)*2':eval=frame"
         # The focus point lands at (fx, fy) + ((tx, ty) - (fx, fy)) * e. The offset comes from the
         # zoom itself: crop reads the frame's size only once, not per frame.
@@ -797,7 +836,7 @@ def main() -> None:
         if READY[rec]:
             refuse_home_screen(rec, READY[rec], seconds)
     total = sum(r[1] for r in SHOTS)
-    cuts = (("16x9", "kettle-launch-16x9.mp4"), ("9x16", "kettle-launch-9x16.mp4"))
+    cuts = (("16x9", f"{OUT_NAME}-16x9.mp4"), ("9x16", f"{OUT_NAME}-9x16.mp4"))
     if "--vertical" in sys.argv:  # the 9:16 cut only
         cuts = cuts[1:]
     if "--voice-preview" in sys.argv:  # 16:9 only, under its own name

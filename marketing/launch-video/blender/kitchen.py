@@ -2,7 +2,7 @@
 message bubble arrives on her phone, a paper thumbs up folds up), 07c (the same, but the camera
 pushes in to the real text message and pulls back as the thumbs up pops: A/B clip C) and 10b (her
 own smart plug and speaker, the lamp on). The smart-home video adds 10a (close on the plug in the
-wall, the speaker and Dad's reading glasses, the lamp still off) and 10c (from 10b's framing, a
+wall, the speaker and Dad's folded newspaper, the lamp still off) and 10c (from 10b's framing, a
 slow pull back to the whole kitchen, the lamp on).
 
 blender -b -P blender/kitchen.py -- <02|06|07|07c|10a|10b|10c> [still [frame] [out.png] | frames]
@@ -19,7 +19,7 @@ import paper as P  # noqa: E402
 
 TOP = 0.50  # worktop height
 # 07 keeps its committed pace: the camera is keyed over 267 frames; v5 renders only what it uses.
-FRAMES = {"02": 141, "06": 141, "07": 267, "07c": 210, "10a": 100, "10b": 141, "10c": 120}
+FRAMES = {"02": 141, "06": 141, "07": 267, "07c": 210, "10a": 110, "10b": 141, "10c": 120}
 SMART_HOME = ("10a", "10b", "10c")
 PHONE = (-0.27, 0.22)
 
@@ -32,7 +32,8 @@ def build(shot: str) -> None:
     # The kettle is wide and its spout faces left. In 07 its base sits where the old kettle's did
     # (0.265: the old card's centre, 0.30, less its base offset), so it is fully in frame; in 10b
     # it steps right, clear of the lamp's plug.
-    kettle_x = {"07": 0.265, "07c": 0.265}.get(shot, 0.34 if shot in SMART_HOME else 0.30)
+    # In the smart-home shots it steps further right, wholly out of 10a's close-up.
+    kettle_x = {"07": 0.265, "07c": 0.265}.get(shot, 0.42 if shot in SMART_HOME else 0.30)
     P.kettle(kettle_x, 0.30, TOP)
     P.card("plant", "assets/layers/plant.png", 0.26, -0.40, 0.40, z=TOP)
     P.contact("plant-contact", -0.40, 0.40, TOP, 0.06, 0.022)
@@ -68,11 +69,15 @@ def build(shot: str) -> None:
         P.key(cam, "location", n, (0.05, -2.9, 1.0))
     elif shot in SMART_HOME:
         lamp_on = household(0.10, 0.40)
-        glasses(0.035, 0.285)  # Dad's reading glasses, folded on the worktop
+        # Dad's newspaper, folded, lying flat on the worktop in front of the speaker and lamp.
+        # Two sheets, the lower one peeking out a few millimetres: a paper folded in half.
+        for k, (dx, dy, turn) in enumerate(((0.004, 0.003, -7.5), (0.0, 0.0, -9.0))):
+            P.card(f"newspaper{k}", "assets/bubbles/newspaper.png", 0.085, 0.015 + dx, 0.265 + dy,
+                   z=TOP + k * 0.0016, turn=turn, flat=True)  # fmt: skip
         if shot == "10a":  # close on the plug and the speaker, drifting right; the lamp off
-            cam, _ = P.camera((0.0, -0.36, 0.76), (0.05, 0.40, 0.585))
-            P.key(cam, "location", 1, (0.0, -0.36, 0.76))
-            P.key(cam, "location", n, (0.06, -0.35, 0.755))
+            cam, _ = P.camera((-0.02, -0.34, 0.78), (0.02, 0.40, 0.57))
+            P.key(cam, "location", 1, (-0.02, -0.34, 0.78))
+            P.key(cam, "location", n, (0.02, -0.33, 0.775))
             lamp_on(n + 10, n + 20)  # keyed off for the whole shot
         elif shot == "10b":  # closer, held still: the lamp on the smart plug switches on softly
             P.camera((0.04, -1.15, 0.98), (0.07, 0.40, 0.62))
@@ -117,24 +122,6 @@ def thumbs(start: int, end: int) -> None:
     card = P.card("thumbs", "assets/layers/thumbs.png", 0.14, -0.12, 0.26, z=TOP, lean=88)
     P.key(card, "rotation_euler", start, (math.radians(2), 0, 0))
     P.key(card, "rotation_euler", end, (math.radians(90), 0, 0))
-
-
-def glasses(x: float, y: float) -> None:
-    """Folded reading glasses standing on the worktop, lenses to the camera: two ink rims, a
-    bridge, and the arms folded behind."""
-    ink = P.paper_material("glasses", P.INK)
-    r, z = 0.017, TOP + 0.0185
-    for side in (-1, 1):
-        bpy.ops.mesh.primitive_torus_add(major_radius=r, minor_radius=0.0017,
-                                         location=(x + side * 0.021, y, z),
-                                         rotation=(math.radians(90), 0, 0))  # fmt: skip
-        bpy.context.active_object.data.materials.append(ink)
-        arm = P.box(f"arm{side}", P.INK, (0.044, 0.0025, 0.003),
-                    (x - side * 0.006, y + 0.007 + (side + 1) * 0.002, z - 0.002),
-                    (0, side * 6, side * 4))  # fmt: skip
-        arm.data.materials[0] = ink
-    P.box("bridge", P.INK, (0.009, 0.002, 0.0025), (x, y, z + 0.006))
-    P.contact("glasses-contact", x, y + 0.01, TOP, 0.05, 0.015, strength=0.35)
 
 
 def household(x: float, y: float):

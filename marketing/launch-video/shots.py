@@ -17,6 +17,8 @@ The v7 cut (founder, 2026-09-28): v6 with shot 4's zoom taken out (the full scre
 v5) and the new music (audio/music-v2.mp3, from 28 s).
 """
 
+import os
+
 SHOTS = [
     ("01", 2.5, "blender|01", "Mom and Dad live far away."),
     # The two phones turn slowly under the app icon and the line for the "Meet Kettle" line, then
@@ -49,10 +51,11 @@ DISSOLVE, DISSOLVE_INTO_2 = 0.3, 0.5
 DISSOLVES = {(a[0], b[0]): DISSOLVE for a, b in zip(SHOTS, SHOTS[1:])}  # noqa: B905
 DISSOLVES[("01", "02")] = DISSOLVE_INTO_2
 
-# Slow zooms on a screen shot: shot -> (start s, end scale, focus x, focus y, to x, to y). The
-# focus point (in the 16:9 frame) grows by the end scale and glides to (to x, to y) as it does.
-# v6 zoomed shot 4 onto Mom's card: "05": (1.0, 2.0, 1410, 737, 1420, 560); v7 took it out.
-ZOOM: dict[str, tuple[float, float, int, int, int, int]] = {}
+# Slow zooms on a screen shot: shot -> {format: (start s, from scale, to scale, focus x, focus y,
+# to x, to y)}. The focus point (in that format's frame) grows from one scale to the other and
+# glides to (to x, to y) as it does. v6 zoomed shot 4 onto Mom's card: "05": {"16x9": (1.0, 1.0,
+# 2.0, 1410, 737, 1420, 560)}; v7 took it out. The Care Compare video zooms onto the ZIP.
+ZOOM: dict[str, dict[str, tuple[float, float, float, int, int, int, int]]] = {}
 
 # Sound effects (founder, v6): shot -> (file, seconds into the shot, gain in dB). Synthesized by
 # sfx.py, so no licence applies. Shot 7: a soft text tick as Mom's reply lands on the phone
@@ -210,6 +213,9 @@ BANNED = [
 # Words the founder approved although the scan would flag them. The overrides are recorded in the
 # brief (docs/launch-video-brief.md, section 8), so they pass silently; anything else still stops
 # the build.
+OUT_NAME = "kettle-launch"  # out/<OUT_NAME>-16x9.mp4 and -9x16.mp4
+TOTAL_RANGE = (42, 48)  # the v5 cut (founder, 2026-09-28)
+
 FOUNDER_APPROVED = {
     # Brief section 8: approved although section 5 bans "okay" as a verdict about a person.
     "Kettle\nKnow Mom's okay, between the calls.",
@@ -231,6 +237,16 @@ def check(words: str) -> None:
         raise SystemExit(f"copy law: {bad} in {words!r}")
 
 
+# The feature videos (features.py): KETTLE_CUT=<name> swaps in that video's shots, voice, dissolves
+# and zooms, adds its recording cuts, and names its files; everything else is shared.
+CUT = os.environ.get("KETTLE_CUT")
+if CUT:
+    from features import cut
+
+    _feature = cut(CUT)
+    RECORDINGS = {**RECORDINGS, **_feature.pop("EXTRA_RECORDINGS")}
+    globals().update(_feature)
+
 if __name__ == "__main__":  # self-check: the words pass, and a planted breach is caught
     for s in SHOTS:
         check(s[3])
@@ -240,9 +256,10 @@ if __name__ == "__main__":  # self-check: the words pass, and a planted breach i
         except SystemExit:
             continue
         raise AssertionError(f"copy law missed {planted!r}")
-    for ids, sec, words in beats():
+    # The launch film's hold rules; the feature videos are paced by their voice lines instead.
+    for ids, sec, words in beats() if not CUT else []:
         assert sec >= round(hold(ids[0], words), 2) - 0.05, f"{ids}: {sec} s is under its hold"
-    for sid, sec, pic, _words in SHOTS:
+    for sid, sec, pic, _words in SHOTS if not CUT else []:
         if pic.startswith("blender"):
             if sid in PAINTED_LONG:
                 assert sec >= PAINTED_LONG[sid], (
@@ -251,7 +268,8 @@ if __name__ == "__main__":  # self-check: the words pass, and a planted breach i
             else:
                 assert sec <= PAINTED_MAX, f"{sid}: painted shots run at most {PAINTED_MAX} s"
     last_id, last_sec, _p, last_words = SHOTS[-1]
-    assert last_sec >= hold(last_id, last_words) + FINAL_FADE - 0.05, "end card fades too soon"
+    end_hold = VOICE_LEAD + voice_length(last_id) if CUT else hold(last_id, last_words)
+    assert last_sec >= end_hold + FINAL_FADE - 0.05, "end card fades too soon"
     # Voice: each line inside its beat, and quiet between lines.
     clock, starts = 0.0, {}
     for sid, sec, *_ in SHOTS:
@@ -268,5 +286,5 @@ if __name__ == "__main__":  # self-check: the words pass, and a planted breach i
         need = VOICE_BEFORE_INTRO if s1 == "02" else VOICE_BREATH
         assert a1 - ends[s0] >= need - 0.05, f"{s0} to {s1}: {a1 - ends[s0]:.2f} s of quiet"
     total = sum(s[1] for s in SHOTS)
-    assert 42 <= round(total, 3) <= 48, total  # the v5 cut (founder, 2026-09-28)
-    print(f"{len(SHOTS)} shots, {total:.1f} s, words checked")
+    assert TOTAL_RANGE[0] <= round(total, 3) <= TOTAL_RANGE[1], total
+    print(f"{CUT or 'launch'}: {len(SHOTS)} shots, {total:.1f} s, words checked")
