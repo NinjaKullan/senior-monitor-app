@@ -1,9 +1,11 @@
 """Mom's kitchen: shots 2 (a busy morning), 6 (a morning that isn't hers), 7 (Kettle asks: a
 message bubble arrives on her phone, a paper thumbs up folds up), 07c (the same, but the camera
 pushes in to the real text message and pulls back as the thumbs up pops: A/B clip C) and 10b (her
-own smart plug and speaker, the lamp on).
+own smart plug and speaker, the lamp on). The smart-home video adds 10a (close on the plug in the
+wall, the speaker and Dad's reading glasses, the lamp still off) and 10c (from 10b's framing, a
+slow pull back to the whole kitchen, the lamp on).
 
-blender -b -P blender/kitchen.py -- <02|06|07|07c|10b> [still [frame] [out.png] | frames ...]
+blender -b -P blender/kitchen.py -- <02|06|07|07c|10a|10b|10c> [still [frame] [out.png] | frames]
 """
 
 import math
@@ -17,7 +19,8 @@ import paper as P  # noqa: E402
 
 TOP = 0.50  # worktop height
 # 07 keeps its committed pace: the camera is keyed over 267 frames; v5 renders only what it uses.
-FRAMES = {"02": 141, "06": 141, "07": 267, "07c": 210, "10b": 141}
+FRAMES = {"02": 141, "06": 141, "07": 267, "07c": 210, "10a": 100, "10b": 141, "10c": 120}
+SMART_HOME = ("10a", "10b", "10c")
 PHONE = (-0.27, 0.22)
 
 
@@ -29,7 +32,7 @@ def build(shot: str) -> None:
     # The kettle is wide and its spout faces left. In 07 its base sits where the old kettle's did
     # (0.265: the old card's centre, 0.30, less its base offset), so it is fully in frame; in 10b
     # it steps right, clear of the lamp's plug.
-    kettle_x = {"07": 0.265, "07c": 0.265, "10b": 0.34}.get(shot, 0.30)
+    kettle_x = {"07": 0.265, "07c": 0.265}.get(shot, 0.34 if shot in SMART_HOME else 0.30)
     P.kettle(kettle_x, 0.30, TOP)
     P.card("plant", "assets/layers/plant.png", 0.26, -0.40, 0.40, z=TOP)
     P.contact("plant-contact", -0.40, 0.40, TOP, 0.06, 0.022)
@@ -63,10 +66,24 @@ def build(shot: str) -> None:
         cam, _ = P.camera((-0.05, -2.9, 1.0), (0.0, 0.3, 0.52))
         P.key(cam, "location", 1, (-0.05, -2.9, 1.0))
         P.key(cam, "location", n, (0.05, -2.9, 1.0))
-    elif shot == "10b":  # closer, held still: her lamp on a smart plug switches on softly
+    elif shot in SMART_HOME:
         lamp_on = household(0.10, 0.40)
-        P.camera((0.04, -1.15, 0.98), (0.07, 0.40, 0.62))
-        lamp_on(35, 65)
+        glasses(0.035, 0.285)  # Dad's reading glasses, folded on the worktop
+        if shot == "10a":  # close on the plug and the speaker, drifting right; the lamp off
+            cam, _ = P.camera((0.0, -0.36, 0.76), (0.05, 0.40, 0.585))
+            P.key(cam, "location", 1, (0.0, -0.36, 0.76))
+            P.key(cam, "location", n, (0.06, -0.35, 0.755))
+            lamp_on(n + 10, n + 20)  # keyed off for the whole shot
+        elif shot == "10b":  # closer, held still: the lamp on the smart plug switches on softly
+            P.camera((0.04, -1.15, 0.98), (0.07, 0.40, 0.62))
+            lamp_on(35, 65)
+        else:  # 10c: 10b's framing, then a slow pull back to the whole kitchen; the lamp on
+            cam, aim = P.camera((0.04, -1.15, 0.98), (0.07, 0.40, 0.62))
+            for frame, c, a in ((1, (0.04, -1.15, 0.98), (0.07, 0.40, 0.62)),
+                                (n, (0.03, -1.55, 1.04), (0.04, 0.36, 0.58))):  # fmt: skip
+                P.key(cam, "location", frame, c)
+                P.key(aim, "location", frame, a)
+            lamp_on(0, 1)
     elif shot == "07":  # a message arrives on her phone, a thumbs up folds up beside it
         cam, _ = P.camera(WIDE_CAM, WIDE_AIM)
         P.key(cam, "location", 1, WIDE_CAM)
@@ -102,6 +119,24 @@ def thumbs(start: int, end: int) -> None:
     P.key(card, "rotation_euler", end, (math.radians(90), 0, 0))
 
 
+def glasses(x: float, y: float) -> None:
+    """Folded reading glasses standing on the worktop, lenses to the camera: two ink rims, a
+    bridge, and the arms folded behind."""
+    ink = P.paper_material("glasses", P.INK)
+    r, z = 0.017, TOP + 0.0185
+    for side in (-1, 1):
+        bpy.ops.mesh.primitive_torus_add(major_radius=r, minor_radius=0.0017,
+                                         location=(x + side * 0.021, y, z),
+                                         rotation=(math.radians(90), 0, 0))  # fmt: skip
+        bpy.context.active_object.data.materials.append(ink)
+        arm = P.box(f"arm{side}", P.INK, (0.044, 0.0025, 0.003),
+                    (x - side * 0.006, y + 0.007 + (side + 1) * 0.002, z - 0.002),
+                    (0, side * 6, side * 4))  # fmt: skip
+        arm.data.materials[0] = ink
+    P.box("bridge", P.INK, (0.009, 0.002, 0.0025), (x, y, z + 0.006))
+    P.contact("glasses-contact", x, y + 0.01, TOP, 0.05, 0.015, strength=0.35)
+
+
 def household(x: float, y: float):
     """Shot 10b's props, all paper, no logos or brand shapes: a table lamp at (x, y) on the
     worktop, its cord running along the counter and up the wall to a plain smart plug in the
@@ -133,6 +168,9 @@ def household(x: float, y: float):
     for dx in (-0.008, 0.008):  # the free upper socket's two slots
         P.box(f"slot{dx}", "3A3631", (0.003, 0.002, 0.011), (ox + dx, wall - 0.003, oz + 0.025))
     P.box("plug", P.PAPER, (0.036, 0.022, 0.044), (ox, wall - 0.013, oz - 0.018), round_=0.008)
+    # Its status light, the one thing that says "smart": a small green dot, softly lit.
+    P.disc("plug-light", "3FAE7A", 0.0028, 0.001, ox + 0.009, wall - 0.0245, oz - 0.006,
+           upright=True, glow=2.0)  # fmt: skip
 
     # The cord: from the lamp's base, along the worktop, up the wall into the plug.
     curve = bpy.data.curves.new("cord", "CURVE")
