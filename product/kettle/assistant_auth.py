@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json
 import logging
 import secrets
 from collections.abc import Callable
@@ -573,6 +574,23 @@ def _oauth_error(error: str, description: str = "", status: int = 400) -> JSONRe
     return JSONResponse(body, status_code=status, headers={"cache-control": "no-store"})
 
 
+async def _token_body(request: Request) -> dict[str, str]:
+    """The token request's parameters. Claude posts
+    `application/x-www-form-urlencoded` (RFC 6749 §4.1.3) and ChatGPT may
+    post JSON (brief 358 §4); both are read, and anything that is not a flat
+    object of strings is an empty request rather than an exception."""
+    raw = (await request.body()).decode("utf-8", errors="replace")
+    if request.headers.get("content-type", "").split(";", 1)[0].strip() == "application/json":
+        try:
+            payload = json.loads(raw)
+        except ValueError:
+            return {}
+        if not isinstance(payload, dict):
+            return {}
+        return {k: v for k, v in payload.items() if isinstance(k, str) and isinstance(v, str)}
+    return {k: v[0] for k, v in parse_qs(raw, keep_blank_values=True).items()}
+
+
 class OAuthRoutes:
     """The handlers, bound to a pool factory, the public base and the app origin."""
 
@@ -711,8 +729,7 @@ class OAuthRoutes:
         )
 
     async def token(self, request: Request) -> JSONResponse:
-        raw = (await request.body()).decode("utf-8", errors="replace")
-        form = {k: v[0] for k, v in parse_qs(raw, keep_blank_values=True).items()}
+        form = await _token_body(request)
         grant_type = form.get("grant_type", "")
         client_id = form.get("client_id", "")
         now = self.clock()
