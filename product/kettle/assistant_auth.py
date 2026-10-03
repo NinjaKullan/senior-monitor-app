@@ -412,13 +412,14 @@ def create_request(
     state: str | None,
     now: datetime,
     scope: str = SCOPE,
+    resource: str | None = None,
 ) -> str:
     row = conn.execute(
         """
         insert into assistant_requests
             (client_id, client_name, redirect_uri, code_challenge, state, scope,
-             created_utc, expires_utc)
-        values (%s, %s, %s, %s, %s, %s, %s, %s) returning id
+             created_utc, expires_utc, resource)
+        values (%s, %s, %s, %s, %s, %s, %s, %s, %s) returning id
         """,
         (
             client["client_id"],
@@ -429,6 +430,7 @@ def create_request(
             scope,
             now,
             now + CODE_LIFE,
+            resource,
         ),
     ).fetchone()
     return str(row["id"])
@@ -478,6 +480,20 @@ def _issue(conn: psycopg.Connection, grant_id: Any, now: datetime) -> Tokens:
     return Tokens(access, refresh, int(ACCESS_LIFE.total_seconds()), scope)
 
 
+class ResourceMismatch(Exception):
+    """RFC 8707: the token request names a `resource` other than the one the
+    authorize request (or the grant) was bound to. Its own class so the
+    token endpoint can answer `invalid_target` rather than `invalid_grant`."""
+
+
+def _resource_matches(bound: str | None, asked: str | None) -> bool:
+    """A request bound to no resource accepts any; a bound one must be
+    named again exactly (compared normalised)."""
+    return normalise_resource(bound) is None or normalise_resource(bound) == normalise_resource(
+        asked
+    )
+
+
 def exchange_code(
     conn: psycopg.Connection,
     code: str,
@@ -485,6 +501,7 @@ def exchange_code(
     client_id: str,
     redirect_uri: str,
     now: datetime,
+    resource: str | None = None,
 ) -> Tokens | None:
     row = conn.execute(
         """
@@ -497,13 +514,17 @@ def exchange_code(
     ).fetchone()
     if row is None or not pkce_matches(verifier, row["code_challenge"]):
         return None
+    # The code is spent either way (fail closed, the wrong-verifier posture):
+    # a mismatch here is a different client's exchange, not a retry.
+    if not _resource_matches(row["resource"], resource):
+        raise ResourceMismatch
     grant = conn.execute(
         """
         insert into assistant_grants
             (auth_user_id, client_id, client_name, created_utc, last_used_utc,
              access_token_hash, access_expires_utc, refresh_token_hash, refresh_expires_utc,
-             scope)
-        values (%s, %s, %s, %s, %s, 'pending', %s, 'pending', %s, %s) returning id
+             scope, resource)
+        values (%s, %s, %s, %s, %s, 'pending', %s, 'pending', %s, %s, %s) returning id
         """,
         (
             row["auth_user_id"],
@@ -514,19 +535,25 @@ def exchange_code(
             now,
             now,
             row["scope"],
+            normalise_resource(row["resource"]),
         ),
     ).fetchone()
     return _issue(conn, grant["id"], now)
 
 
 def refresh_grant(
-    conn: psycopg.Connection, refresh_token: str, client_id: str, now: datetime
+    conn: psycopg.Connection,
+    refresh_token: str,
+    client_id: str,
+    now: datetime,
+    resource: str | None = None,
 ) -> Tokens | None:
     """Rotate: the old refresh token dies in the same statement the new one
-    is issued. Unused ninety days, revoked, or unknown: None."""
+    is issued. Unused ninety days, revoked, or unknown: None. A grant bound
+    to a resource (RFC 8707) refuses a refresh that names a different one."""
     row = conn.execute(
         """
-        select id from assistant_grants
+        select id, resource from assistant_grants
         where refresh_token_hash = %s and client_id = %s and revoked_utc is null
           and refresh_expires_utc > %s
         """,
@@ -534,6 +561,8 @@ def refresh_grant(
     ).fetchone()
     if row is None:
         return None
+    if not _resource_matches(row["resource"], resource):
+        raise ResourceMismatch
     return _issue(conn, row["id"], now)
 
 
@@ -607,6 +636,10 @@ class OAuthRoutes:
         self.verifier = verifier
         self.clock = clock
         self.documents = documents or ClientDocuments()
+        #: RFC 8707: the MCP URLs a `resource` parameter may name, one per
+        #: host the API answers on (DECISIONS 357). Anything else is
+        #: `invalid_target`, the error the RFC names for it.
+        self.resources = mcp_resources(base)
 
     def client_for(self, conn: psycopg.Connection, client_id: str) -> dict[str, Any] | None:
         """A registered client by its kc_ id, or a CIMD client by its URL."""
@@ -663,9 +696,18 @@ class OAuthRoutes:
             scope = normalise_scope(q.get("scope"))
             if scope is None:
                 return refuse("invalid_scope", f"only {' and '.join(SCOPES)} are offered")
+            # RFC 8707 (brief 358 §3): ChatGPT names the MCP URL it is
+            # connecting to. Absent is fine (Claude sends none); present, it
+            # must be one of this API's MCP URLs and is bound to the request,
+            # so the token exchange can refuse a different one.
+            resource = normalise_resource(q.get("resource"))
+            if resource is not None and resource not in self.resources:
+                return refuse("invalid_target", "resource is not this server's MCP URL")
             now = self.clock()
             sweep_requests(conn, now)
-            request_id = create_request(conn, client, redirect_uri, challenge, state, now, scope)
+            request_id = create_request(
+                conn, client, redirect_uri, challenge, state, now, scope, resource
+            )
         return RedirectResponse(f"{self.app_origin}/connect?request={request_id}", status_code=302)
 
     async def approve(self, request: Request) -> JSONResponse:
@@ -732,23 +774,35 @@ class OAuthRoutes:
         form = await _token_body(request)
         grant_type = form.get("grant_type", "")
         client_id = form.get("client_id", "")
+        resource = normalise_resource(form.get("resource"))
         now = self.clock()
         with request.app.state.pool.connection() as conn:
             if self.client_for(conn, client_id) is None:
                 return _oauth_error("invalid_client", status=401)
-            if grant_type == "authorization_code":
-                tokens = exchange_code(
-                    conn,
-                    form.get("code", ""),
-                    form.get("code_verifier", ""),
-                    client_id,
-                    form.get("redirect_uri", ""),
-                    now,
-                )
-            elif grant_type == "refresh_token":
-                tokens = refresh_grant(conn, form.get("refresh_token", ""), client_id, now)
-            else:
-                return _oauth_error("unsupported_grant_type")
+            # RFC 8707 at the token endpoint too: a `resource` that is not
+            # one of this API's MCP URLs is `invalid_target` before any code
+            # or refresh token is spent on it.
+            if resource is not None and resource not in self.resources:
+                return _oauth_error("invalid_target", "resource is not this server's MCP URL")
+            try:
+                if grant_type == "authorization_code":
+                    tokens = exchange_code(
+                        conn,
+                        form.get("code", ""),
+                        form.get("code_verifier", ""),
+                        client_id,
+                        form.get("redirect_uri", ""),
+                        now,
+                        resource,
+                    )
+                elif grant_type == "refresh_token":
+                    tokens = refresh_grant(
+                        conn, form.get("refresh_token", ""), client_id, now, resource
+                    )
+                else:
+                    return _oauth_error("unsupported_grant_type")
+            except ResourceMismatch:
+                return _oauth_error("invalid_target", "resource differs from the authorization")
         if tokens is None:
             return _oauth_error("invalid_grant")
         return JSONResponse(
