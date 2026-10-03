@@ -85,6 +85,14 @@ KNOWN_CLIENT_DOCUMENTS: dict[str, dict[str, Any]] = {
         "client_name": "Claude",
         "redirect_uris": ["https://claude.ai/api/mcp/auth_callback"],
     },
+    #: ChatGPT's, as fetched Oct 3 2026 (DECISIONS 359 follow-up 1). The
+    #: document names private_key_jwt as its preferred token auth and lists
+    #: `none` as supported; Kettle advertises `none`, so ChatGPT uses PKCE.
+    "https://chatgpt.com/oauth/client.json": {
+        "client_id": "https://chatgpt.com/oauth/client.json",
+        "client_name": "ChatGPT",
+        "redirect_uris": ["https://chatgpt.com/connector_platform_oauth_redirect"],
+    },
 }
 
 
