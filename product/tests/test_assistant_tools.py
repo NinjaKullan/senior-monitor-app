@@ -385,15 +385,19 @@ def test_every_read_tool_says_it_only_reads_and_the_two_writes_say_they_write(co
 
 
 def test_every_tool_carries_a_title_in_the_pms_words(connected, api):
-    """Brief 358 §5: the directories want a `title` beside the name. It is
-    copy, so it lives in assistant_copy and passes the copy law; the names
-    and descriptions themselves are untouched."""
+    """Brief 358 §5 and §5a: the directories want a `title` beside the name,
+    and Claude's reads it from the annotations. It is copy, so it lives in
+    assistant_copy and passes the copy law; the names and descriptions
+    themselves are untouched."""
     from testsupport_assistant import assert_assistant_copy_law, mcp_call
 
     from kettle import assistant_copy as copy
 
     tools = mcp_call(api, connected.access_token, "tools/list").json()["result"]["tools"]
     titles = {t["name"]: t.get("title") for t in tools}
+    # §5a: the Claude directory form reads annotations.title, so the same
+    # string is carried there too; the two must never drift apart.
+    assert {t["name"]: t["annotations"].get("title") for t in tools} == titles
     assert titles == {
         "today": copy.TOOL_TITLE_TODAY,
         "parent_day": copy.TOOL_TITLE_PARENT_DAY,
