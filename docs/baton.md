@@ -114,10 +114,16 @@ main; its three Fly secrets were never recorded as set, so assume it sends nothi
 
 ## 4. Built and not yet shipped; owed
 
+**Migration 0034 (PM): `resource` on `assistant_requests` and `assistant_grants`**
+(359, brief 358 §3). Apply it BEFORE the product deploy below: the authorize request
+writes the column, so a deploy without it fails every new assistant connection.
+
 **Product deploy (founder): `cd product && fly deploy`.** Carries the Android server
 side (330: the vocabulary, `--platform android`, `POST /s/{slug}/claim`, the two claim
-columns) and this pass (333: a claim on a link that is not Android is refused). No
-secret, no migration; 0033 is applied.
+columns), the own-domain defaults (357), the Android claim refusal (333), and the
+directories audit (359): the protected-resource document per host, the RFC 8707
+`resource` binding, JSON token bodies, and a `title` on every MCP tool. No secret;
+0034 above.
 
 **Webapp deploy (founder): `cd webapp && npm run ci && fly deploy`.** Carries the login
 buttons in the app's primary look, "Phone unlocked" and "Phone moved" in the signal-name
@@ -202,6 +208,15 @@ has long passed, the retirement needs its own ruling). Nothing else is open.
   own lines carry none.
 * **`/mcp` answers directly, no redirect** (286): Claude's first probe must get the 401
   with its `resource_metadata` header. The MCP tests run with redirects off.
+* **Discovery is per host, the issuer is one** (359): the protected-resource document
+  and the 401's pointer name the host the request arrived on, `api.heykettle.com` or
+  `kettle-api.fly.dev` (`LEGACY_API_HOSTS`, an allowlist); `authorization_servers` and
+  the AS metadata's `issuer` stay `public_base_url`. A new API host is a line in that
+  allowlist, not only a DNS record.
+* **A `resource` named at authorize must be named again at token** (359): a different
+  one is `invalid_target` and the code is spent. Claude sends none; ChatGPT sends the
+  MCP URL. ChatGPT's client document is NOT in `KNOWN_CLIENT_DOCUMENTS` (unfetchable
+  from the build container); ChatGPT connects by dynamic registration until it is.
 * `assistant_grants` is read by column grant; the token hashes are granted to nobody
   (285). `kettle:write` implies read and is what a both-scopes grant stores (317).
 * **A claim never revokes** (330): the link's own Android row is claimed once, every later

@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 359.** This line is the one to update; the `Next number:` lines inside
+**Next number: 360.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8055,3 +8055,76 @@ browser — all three adopted as the standard for future surfaces.**
        circle, never per member (pricing session); a parent-readable record
        (later; the data model must not preclude it).
      * Next number: 359.
+
+359. **(2026-10-03, Saturday) BUILD: THE DIRECTORIES AUDIT, BRIEF 358.** The
+     conformance audit of `/mcp` and the OAuth server, done as the brief
+     says: audit first, then only the gaps it lists; nothing the tools do or
+     say changed. Found and fixed, with the judgement calls named:
+     * **§1 AS metadata: already conformant.** S256, `none`, both grant
+       types, `code`, the registration endpoint, and CIMD advertised; the
+       existing discovery test pins each. No change.
+     * **§2 PRM per host: a gap, fixed.** The document named `public_base_url`
+       whichever host answered, so a ChatGPT or Claude connector on
+       `kettle-api.fly.dev` got `resource: https://api.heykettle.com/mcp`
+       and could refuse the mismatch. Now `base_for()` builds it from the
+       request's Host when that host is one of ours (the issuer's plus
+       `LEGACY_API_HOSTS`, an allowlist, not a trust of any Host header), and
+       the 401's `resource_metadata` pointer names the same host. Any other
+       Host falls back to the issuer. Two calls: the allowlist is in code,
+       not config, because 357 already decided the old host answers
+       indefinitely and the list is two names; and `authorization_servers`
+       stays the one issuer whichever host answered (one issuer, one set of
+       `/oauth/*` URLs, as 019 §4 ruled), so a client arriving at the old
+       host is pointed at `api.heykettle.com` for the flow.
+     * **§3 RFC 8707 `resource`: a gap, fixed.** Migration 0034 (unapplied;
+       the PM applies) adds a nullable `resource` to `assistant_requests` and
+       `assistant_grants`; never granted to a client role. The authorize
+       request binds it; the token exchange refuses a request naming a
+       different one with `invalid_target`, the RFC's own error, and the code
+       is spent on it (the wrong-verifier posture: fail closed, not a retry).
+       Refresh is held to the grant's resource the same way. Calls: a value
+       that is not one of this API's MCP URLs is `invalid_target` at both
+       endpoints, never a 400 for mere presence; absent is unchanged (Claude
+       sends none) and a grant bound to nothing accepts any of our own URLs
+       on refresh; comparison is normalised (trimmed, no trailing slash).
+     * **§4 ChatGPT redirect URIs: already conformant.** DCR takes any https
+       list and matches exactly per registration; both shapes now have a
+       test. **Token endpoint JSON bodies: a gap, fixed.** Read by content
+       type: `application/json` is parsed as a flat object of strings,
+       anything else is the form Claude posts. A body that is neither is an
+       empty request (invalid_client), never a 500.
+       **ChatGPT's client document: NOT shipped.** `chatgpt.com/oauth/client.json`
+       is unreachable from this container (proxy 403, as is web.archive.org),
+       and a shipped CIMD copy is a trust anchor (336): a guessed document
+       would let a guessed redirect URI through. Adding it is one line in
+       `KNOWN_CLIENT_DOCUMENTS` once someone with egress fetches the real
+       one and records the date; filed as the first follow-up below.
+     * **§5 tool metadata: `title` was missing, added.** Seven titles live in
+       `assistant_copy.py` as PM copy (Today, One day, Family notes, Who to
+       call, Circles, Add a note, Reply to a note) and the new test runs them
+       through the assistant copy law. Annotations were already as the brief
+       asks; names and descriptions untouched. The titles are mine to
+       propose and the PM's to change; changing one is a copy edit, not a
+       build.
+     * **§6 tests:** one per item, both hosts for §2 (parametrised), the
+       mismatch and the foreign value for §3, both ChatGPT URIs and the JSON
+       body for §4, titles for §5. Every new guardrail was planted and
+       caught (ten plants). `test_retirement` moves its last-migration pin
+       to 0034. Suite: 938 passed from the root with Postgres required.
+     * **Not verified against the source:** developers.openai.com and
+       dev.meta.ai are blocked from this container, so §3 and §4 were built
+       to the brief's own enumeration of ChatGPT's behaviour and to Claude's
+       published requirements (fetched), not to OpenAI's or Meta's pages.
+     * **Follow-ups found, not touched:** (1) the ChatGPT client document,
+       above; (2) `/.well-known/oauth-authorization-server` fetched on the
+       old host reports `issuer: https://api.heykettle.com`, which RFC 8414
+       allows a client to reject as an issuer mismatch; Claude and ChatGPT
+       both start from the PRM's `authorization_servers`, so it is not on
+       the connect path, but a per-host AS document would need a ruling that
+       two issuers are acceptable; (3) `tools/social/` fails `ruff check`
+       from the root (30 E501/B905 in three one-off scripts, pre-existing,
+       outside `product/` and outside this brief); (4) the baton carries no
+       line for 357's host move; (5) migration 0034 must be applied before
+       the deploy that carries this build, or the authorize request fails
+       on an unknown column.
+     * Next number: 360.
