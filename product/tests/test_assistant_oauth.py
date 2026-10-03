@@ -97,6 +97,167 @@ def test_mcp_without_a_token_is_a_401_with_the_header_verbatim(api, settings):
     assert mcp_call(api, "not-a-token", "tools/list").status_code == 401
 
 
+LEGACY_HOST = "kettle-api.fly.dev"
+
+
+def _code_for(assistant: Assistant, challenge: str, resource: str | None = None) -> str:
+    sent = assistant.authorize(challenge, resource=resource)
+    assert sent.status_code == 302, sent.text
+    request_id = parse_qs(urlsplit(sent.headers["location"]).query)["request"][0]
+    approved = assistant.approve(request_id, session_token(USER))
+    assert approved.status_code == 200, approved.text
+    return parse_qs(urlsplit(approved.json()["redirect"]).query)["code"][0]
+
+
+@pytest.mark.parametrize("host", ["kettle-api.test", LEGACY_HOST])
+def test_protected_resource_names_the_host_it_was_asked_on(api, settings, host):
+    """Brief 358 §2: `resource` equals the MCP URL exactly on whichever of the
+    two live hosts (357) the request arrived at, and the 401's pointer leads
+    to that host's document. The authorization server is the one issuer."""
+    base = settings.public_base_url
+    assert base == "https://kettle-api.test"
+    document = api.get(
+        "/.well-known/oauth-protected-resource", headers={"host": f"{host}:443"}
+    ).json()
+    assert document["resource"] == f"https://{host}/mcp"
+    assert document["authorization_servers"] == [base]
+    assert document["scopes_supported"] == ["kettle:read", "kettle:write"]
+    assert document["bearer_methods_supported"] == ["header"]
+    headers = {
+        "host": host,
+        "accept": "application/json, text/event-stream",
+        "content-type": "application/json",
+    }
+    refused = api.post("/mcp", content="{}", headers=headers, follow_redirects=False)
+    assert refused.status_code == 401
+    assert refused.headers["www-authenticate"] == (
+        f'Bearer resource_metadata="https://{host}/.well-known/oauth-protected-resource"'
+    )
+
+
+def test_a_host_that_is_not_ours_gets_the_issuers_document(api, settings):
+    """A request with some other Host (a proxy, a probe) is answered as the
+    issuer: discovery never names a host the API does not answer on."""
+    base = settings.public_base_url
+    for host in ("evil.test", "kettle-api.test.evil.test", ""):
+        document = api.get("/.well-known/oauth-protected-resource", headers={"host": host}).json()
+        assert document["resource"] == f"{base}/mcp", host
+    assert assistant_auth.base_for(base, "KETTLE-API.FLY.DEV:8443") == "https://kettle-api.fly.dev"
+    assert assistant_auth.base_for(base, None) == base
+    assert assistant_auth.mcp_resources(base) == {
+        f"{base}/mcp",
+        f"https://{LEGACY_HOST}/mcp",
+    }
+
+
+# --- RFC 8707: the resource parameter (brief 358 §3) ----------------------------
+
+
+def test_a_resource_named_at_authorize_is_bound_and_must_be_named_again(api, conn, family):
+    """ChatGPT appends `resource=<MCP URL>` to authorize and token: the
+    authorize request accepts it, the token request that names it again is
+    minted, and the grant carries it. A token request naming a different
+    one is `invalid_target` and the code is spent on it."""
+    assistant = Assistant(api)
+    assistant.register()
+    mcp = "https://kettle-api.test/mcp"
+    verifier, challenge = pkce_pair()
+    code = _code_for(assistant, challenge, resource=mcp)
+    minted = assistant.token(
+        grant_type="authorization_code",
+        code=code,
+        code_verifier=verifier,
+        redirect_uri=assistant.redirect_uri,
+        resource=mcp,
+    )
+    assert minted.status_code == 200, minted.text
+    assert [g["resource"] for g in _grants(conn)] == [mcp]
+    # Refresh: the same resource is fine; the other host's MCP URL is not.
+    refresh = minted.json()["refresh_token"]
+    other = f"https://{LEGACY_HOST}/mcp"
+    wrong = assistant.token(grant_type="refresh_token", refresh_token=refresh, resource=other)
+    assert wrong.status_code == 400 and wrong.json()["error"] == "invalid_target"
+    same = assistant.token(grant_type="refresh_token", refresh_token=refresh, resource=mcp)
+    assert same.status_code == 200, same.text
+
+    # A second authorization, exchanged for a different resource: refused,
+    # and a retry with the right one finds the code already spent.
+    verifier, challenge = pkce_pair()
+    code = _code_for(assistant, challenge, resource=mcp)
+    differs = assistant.token(
+        grant_type="authorization_code",
+        code=code,
+        code_verifier=verifier,
+        redirect_uri=assistant.redirect_uri,
+        resource=other,
+    )
+    assert differs.status_code == 400 and differs.json()["error"] == "invalid_target"
+    retry = assistant.token(
+        grant_type="authorization_code",
+        code=code,
+        code_verifier=verifier,
+        redirect_uri=assistant.redirect_uri,
+        resource=mcp,
+    )
+    assert retry.status_code == 400 and retry.json()["error"] == "invalid_grant"
+    assert len(_grants(conn)) == 1
+
+
+def test_a_resource_that_is_not_this_server_is_invalid_target_and_absent_is_fine(api, conn, family):
+    """Present but foreign is refused at both endpoints with the RFC's own
+    error; a client that sends none (Claude) is unchanged, and the other
+    live host's MCP URL is accepted. Never a 400 for mere presence."""
+    assistant = Assistant(api)
+    assistant.register()
+    _, challenge = pkce_pair()
+    sent = assistant.authorize(challenge, resource="https://evil.test/mcp")
+    assert sent.status_code == 302
+    query = parse_qs(urlsplit(sent.headers["location"]).query)
+    assert query["error"] == ["invalid_target"] and query["state"] == ["xyz"]
+    assert assistant.authorize(challenge, resource=f"https://{LEGACY_HOST}/mcp/").status_code == 302
+    assistant.connect(USER)
+    foreign = assistant.token(
+        grant_type="refresh_token",
+        refresh_token=assistant.refresh_token,
+        resource="https://evil.test/mcp",
+    )
+    assert foreign.status_code == 400 and foreign.json()["error"] == "invalid_target"
+    # The grant was bound to nothing, so it accepts a refresh with or
+    # without one of our own resources named.
+    named = assistant.token(
+        grant_type="refresh_token",
+        refresh_token=assistant.refresh_token,
+        resource="https://kettle-api.test/mcp",
+    )
+    assert named.status_code == 200, named.text
+    assert [g["resource"] for g in _grants(conn)] == [None]
+
+
+# --- the ChatGPT redirect URIs (brief 358 §4) ------------------------------------
+
+
+def test_chatgpts_redirect_uris_register_and_match_exactly(api, family):
+    """Dynamic registration takes both shapes ChatGPT sends, per
+    registration and matched exactly; a sibling path under the same host is
+    not the registered one."""
+    platform = "https://chatgpt.com/connector_platform_oauth_redirect"
+    callback = "https://chatgpt.com/connector/oauth/cb_6f1d2a0e9b"
+    assistant = Assistant(api, redirect_uri=platform)
+    registered = assistant.register("ChatGPT", redirect_uris=[platform, callback])
+    assert registered["redirect_uris"] == [platform, callback]
+    _, challenge = pkce_pair()
+    assert assistant.authorize(challenge, redirect_uri=callback).status_code == 302
+    assert (
+        assistant.authorize(
+            challenge, redirect_uri="https://chatgpt.com/connector/oauth/cb_other"
+        ).status_code
+        == 400
+    )
+    assert assistant.authorize(challenge, redirect_uri=f"{platform}/").status_code == 400
+    assistant.connect(USER, redirect_uri=callback)
+    assert mcp_call(api, assistant.access_token, "tools/list").status_code == 200
+
+
 # --- the flow -------------------------------------------------------------------
 
 
@@ -347,7 +508,10 @@ def test_a_nameless_client_gets_the_fallback_on_the_consent_screen(api, family):
     )
 
 
-def test_register_is_json_and_token_is_form_only(api):
+def test_register_is_json_and_token_reads_form_or_json(api, family):
+    """Brief 358 §4: the token endpoint reads the form body Claude posts and
+    the JSON body ChatGPT may post; a body that is neither is an empty
+    request (invalid_client), never a 500."""
     assert (
         api.post(
             "/oauth/register", content="not json", headers={"content-type": "application/json"}
@@ -355,10 +519,24 @@ def test_register_is_json_and_token_is_form_only(api):
         == 400
     )
     assert api.post("/oauth/register", json={"redirect_uris": []}).status_code == 400
-    assert api.post("/oauth/token", json={"grant_type": "authorization_code"}).status_code in (
-        400,
-        401,
+    assert api.post("/oauth/token", json={"grant_type": "authorization_code"}).status_code == 401
+    assert api.post("/oauth/token", json=["not", "an", "object"]).status_code == 401
+    assert (
+        api.post(
+            "/oauth/token", content="{not json", headers={"content-type": "application/json"}
+        ).status_code
+        == 401
     )
+    # The same exchange, once as a form and once as JSON, both mint tokens.
+    assistant = Assistant(api)
+    assistant.connect(USER)
+    as_form = assistant.token(grant_type="refresh_token", refresh_token=assistant.refresh_token)
+    assert as_form.status_code == 200, as_form.text
+    as_json = assistant.token(
+        as_json=True, grant_type="refresh_token", refresh_token=as_form.json()["refresh_token"]
+    )
+    assert as_json.status_code == 200, as_json.text
+    assert as_json.json()["refresh_token"] != as_form.json()["refresh_token"]
 
 
 # --- the grants table as the app sees it ------------------------------------------

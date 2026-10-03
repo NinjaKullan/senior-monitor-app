@@ -144,6 +144,7 @@ class Assistant:
         state: str = "xyz",
         redirect_uri: str | None = None,
         scope: str | None = "kettle:read",
+        resource: str | None = None,
     ) -> httpx.Response:
         params = {
             "client_id": self.client_id,
@@ -156,6 +157,8 @@ class Assistant:
             params["code_challenge_method"] = method
         if scope is not None:
             params["scope"] = scope
+        if resource is not None:
+            params["resource"] = resource
         return self.client.get("/oauth/authorize", params=params, follow_redirects=False)
 
     def approve(self, request_id: str, session: str, decision: str = "allow") -> httpx.Response:
@@ -165,8 +168,10 @@ class Assistant:
             headers={"authorization": f"Bearer {session}"},
         )
 
-    def token(self, **form: str) -> httpx.Response:
+    def token(self, *, as_json: bool = False, **form: str) -> httpx.Response:
         form.setdefault("client_id", self.client_id)
+        if as_json:
+            return self.client.post("/oauth/token", json=form)
         return self.client.post(
             "/oauth/token", data=form, headers={"content-type": "application/x-www-form-urlencoded"}
         )

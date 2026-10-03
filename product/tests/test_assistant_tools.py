@@ -384,6 +384,31 @@ def test_every_read_tool_says_it_only_reads_and_the_two_writes_say_they_write(co
         assert by_name[name]["openWorldHint"] is False, name
 
 
+def test_every_tool_carries_a_title_in_the_pms_words(connected, api):
+    """Brief 358 §5: the directories want a `title` beside the name. It is
+    copy, so it lives in assistant_copy and passes the copy law; the names
+    and descriptions themselves are untouched."""
+    from testsupport_assistant import assert_assistant_copy_law, mcp_call
+
+    from kettle import assistant_copy as copy
+
+    tools = mcp_call(api, connected.access_token, "tools/list").json()["result"]["tools"]
+    titles = {t["name"]: t.get("title") for t in tools}
+    assert titles == {
+        "today": copy.TOOL_TITLE_TODAY,
+        "parent_day": copy.TOOL_TITLE_PARENT_DAY,
+        "memory": copy.TOOL_TITLE_MEMORY,
+        "who_to_call": copy.TOOL_TITLE_WHO_TO_CALL,
+        "circles": copy.TOOL_TITLE_CIRCLES,
+        "add_note": copy.TOOL_TITLE_ADD_NOTE,
+        "reply": copy.TOOL_TITLE_REPLY,
+    }
+    for name, title in titles.items():
+        assert title and title.strip() == title and len(title) <= 40, name
+        assert_assistant_copy_law(title)
+    assert all(len(t["name"]) <= 64 for t in tools)
+
+
 def test_tool_descriptions_are_the_ruled_words(connected, api):
     from testsupport_assistant import mcp_call
 
