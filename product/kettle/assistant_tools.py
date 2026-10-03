@@ -615,21 +615,36 @@ def build_server(
 
         return inner
 
-    @server.tool(name="add_note", description=copy.TOOL_ADD_NOTE, annotations=WRITES)
+    @server.tool(
+        name="add_note",
+        title=copy.TOOL_TITLE_ADD_NOTE,
+        description=copy.TOOL_ADD_NOTE,
+        annotations=WRITES,
+    )
     async def add_note(text: str, parent: str | None = None, date: str | None = None) -> str:
         def go(conn: psycopg.Connection, grant: dict[str, Any], now: datetime) -> str:
             return add_note_for(conn, grant, text, parent, date, now, app_origin)
 
         return await anyio.to_thread.run_sync(run_write(go))
 
-    @server.tool(name="reply", description=copy.TOOL_REPLY, annotations=WRITES)
+    @server.tool(
+        name="reply",
+        title=copy.TOOL_TITLE_REPLY,
+        description=copy.TOOL_REPLY,
+        annotations=WRITES,
+    )
     async def reply(text: str, author: str | None = None, date: str | None = None) -> str:
         def go(conn: psycopg.Connection, grant: dict[str, Any], now: datetime) -> str:
             return reply_for(conn, grant, text, author, date, now, app_origin)
 
         return await anyio.to_thread.run_sync(run_write(go))
 
-    @server.tool(name="today", description=copy.TOOL_TODAY, annotations=READ_ONLY)
+    @server.tool(
+        name="today",
+        title=copy.TOOL_TITLE_TODAY,
+        description=copy.TOOL_TODAY,
+        annotations=READ_ONLY,
+    )
     async def today(parent: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
             circles, parents = visible(conn, user)
@@ -642,7 +657,12 @@ def build_server(
 
         return await anyio.to_thread.run_sync(run(go))
 
-    @server.tool(name="parent_day", description=copy.TOOL_PARENT_DAY, annotations=READ_ONLY)
+    @server.tool(
+        name="parent_day",
+        title=copy.TOOL_TITLE_PARENT_DAY,
+        description=copy.TOOL_PARENT_DAY,
+        annotations=READ_ONLY,
+    )
     async def parent_day(parent: str, date: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
             _, parents = visible(conn, user)
@@ -664,7 +684,12 @@ def build_server(
 
         return await anyio.to_thread.run_sync(run(go))
 
-    @server.tool(name="memory", description=copy.TOOL_MEMORY, annotations=READ_ONLY)
+    @server.tool(
+        name="memory",
+        title=copy.TOOL_TITLE_MEMORY,
+        description=copy.TOOL_MEMORY,
+        annotations=READ_ONLY,
+    )
     async def memory(parent: str | None = None, since: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
             circles, parents = visible(conn, user)
@@ -679,7 +704,12 @@ def build_server(
 
         return await anyio.to_thread.run_sync(run(go))
 
-    @server.tool(name="who_to_call", description=copy.TOOL_WHO_TO_CALL, annotations=READ_ONLY)
+    @server.tool(
+        name="who_to_call",
+        title=copy.TOOL_TITLE_WHO_TO_CALL,
+        description=copy.TOOL_WHO_TO_CALL,
+        annotations=READ_ONLY,
+    )
     async def who_to_call(parent: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
             _, parents = visible(conn, user)
@@ -692,7 +722,12 @@ def build_server(
 
         return await anyio.to_thread.run_sync(run(go))
 
-    @server.tool(name="circles", description=copy.TOOL_CIRCLES, annotations=READ_ONLY)
+    @server.tool(
+        name="circles",
+        title=copy.TOOL_TITLE_CIRCLES,
+        description=copy.TOOL_CIRCLES,
+        annotations=READ_ONLY,
+    )
     async def circles() -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
             found = circles_for(conn, user)

@@ -19,6 +19,17 @@ FOLLOW_ON_SENT = "Kettle wrote to the family"
 ALL_CLEAR_SENT = "All clear"
 
 # --- Tool descriptions (the text the assistant reads) -------------------------
+#: Tool titles (brief 358 §5): both directories require a `title` beside the
+#: description. A title names the tool for a person reading a tool list; it
+#: says what the tool is, never what a day means, and carries no count.
+TOOL_TITLE_TODAY = "Today"
+TOOL_TITLE_PARENT_DAY = "One day"
+TOOL_TITLE_MEMORY = "Family notes"
+TOOL_TITLE_WHO_TO_CALL = "Who to call"
+TOOL_TITLE_CIRCLES = "Circles"
+TOOL_TITLE_ADD_NOTE = "Add a note"
+TOOL_TITLE_REPLY = "Reply to a note"
+
 TOOL_TODAY = (
     "How a parent's day is going, in Kettle's words: the latest note Kettle "
     "sent today and when their phone was last heard from. Give a parent's "
