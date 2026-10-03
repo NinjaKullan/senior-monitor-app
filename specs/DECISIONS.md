@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 358.** This line is the one to update; the `Next number:` lines inside
+**Next number: 359.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8018,3 +8018,40 @@ browser — all three adopted as the standard for future surfaces.**
      * `APP_ORIGINS_EXTRA` comes off after a week with no 4xx from the old
        app host; that removal is a one-line follow-up, not a new entry.
      * Next number: 358.
+
+358. **(2026-10-03, Saturday ET) FOUNDER: KETTLE INSIDE THE ASSISTANTS. THE
+     CIRCLE IS THE FAMILY'S SHARED RECORD ABOUT MOM AND DAD, REACHABLE FROM
+     WHATEVER ASSISTANT EACH MEMBER USES.** Meta Muse (launched Sep 8), the
+     ChatGPT apps directory and Claude's connector directory all take remote
+     MCP servers; Kettle's `/mcp` already is one. The founder wants Kettle
+     listed in each and pitched to siblings and other family members as the
+     one record everyone writes to and reads from, by talking to the
+     assistant they already use. Writing is what kills family journals;
+     "tell Kettle I called Mom" costs three seconds. Rulings:
+     * The parent stays the anchor. Every note belongs to Mom or Dad.
+       Kettle is not a general family notebook. "Heard from" is the one
+       answer no assistant can give on its own and leads every listing.
+     * Free text first. Medication, visits and appointments are plain notes
+       until real notes show which shapes recur; no medication log or other
+       structured care feature before that. A dosing schedule would make
+       Kettle a medical product; stay on the note side of that line.
+     * Reminders stay with the host assistant. Kettle exposes what is
+       upcoming (`event_date`); it does not build a reminder engine.
+     * Writers are family only. The day a home aide or a front desk writes
+       notes is a separate decision, not a drift.
+     * Assistant-neutral is the position: a sister on ChatGPT, a brother on
+       Muse and the founder on Claude share one record. Google CC (household
+       agent, Sep 17) and each platform's own memory cannot do that.
+     * Nothing new to build for the first step. Brief for Claude Code:
+       `docs/assistant-directories-brief.md` (conformance audit of `/mcp`
+       and the OAuth server against the three directories' published
+       requirements; tool titles and annotations; ChatGPT's client
+       document). Submission order: Claude directory, ChatGPT apps, Meta
+       connectors (early-access form; apply now, build later).
+     * Open for the founder: a reviewer test account (Kettle signs in by
+       email code, which a reviewer cannot receive; both directories reject
+       that); how the submissions answer "handles personal health data"
+       (notes are free text and may say "cataract appointment"); price per
+       circle, never per member (pricing session); a parent-readable record
+       (later; the data model must not preclude it).
+     * Next number: 359.
