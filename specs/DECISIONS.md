@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 360.** This line is the one to update; the `Next number:` lines inside
+**Next number: 361.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8128,3 +8128,18 @@ browser — all three adopted as the standard for future surfaces.**
        the deploy that carries this build, or the authorize request fails
        on an unknown column.
      * Next number: 360.
+
+360. **(2026-10-03, Saturday) BUILD: THE TITLE IS ALSO AN ANNOTATION, BRIEF 358
+     §5a.** The Claude directory form reads `annotations.title` and flagged
+     all seven tools "Missing title annotation" at submission; 359 had set
+     only the tool-level `title`. Now each tool gets its own
+     `ToolAnnotations`, built from the shared `READ_ONLY` or `WRITES` by a
+     one-line `titled()` helper that adds the title, so the same copy
+     constant is carried in both places and the hints stay defined once.
+     The tool-level `title` stays, as the brief says. The §5 test now
+     asserts the two fields agree for every tool; planted three ways (one
+     tool left on the bare shared annotations, one annotation title swapped
+     for another tool's, the helper dropping the title) and caught each.
+     Nothing else changed: names, descriptions and hints are as 359 left
+     them. Suite green from the root with Postgres required.
+     * Next number: 361.

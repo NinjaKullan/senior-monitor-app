@@ -122,7 +122,8 @@ writes the column, so a deploy without it fails every new assistant connection.
 side (330: the vocabulary, `--platform android`, `POST /s/{slug}/claim`, the two claim
 columns), the own-domain defaults (357), the Android claim refusal (333), and the
 directories audit (359): the protected-resource document per host, the RFC 8707
-`resource` binding, JSON token bodies, and a `title` on every MCP tool. No secret;
+`resource` binding, JSON token bodies, and a `title` on every MCP tool, in the
+annotations too (360, what the Claude directory form reads). No secret;
 0034 above.
 
 **Webapp deploy (founder): `cd webapp && npm run ci && fly deploy`.** Carries the login
