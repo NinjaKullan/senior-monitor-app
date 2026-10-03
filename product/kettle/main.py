@@ -447,8 +447,12 @@ def create_app(
     # --- spec 019: the assistant door ------------------------------------------
 
     @app.get("/.well-known/oauth-protected-resource")
-    async def protected_resource() -> JSONResponse:
-        return JSONResponse(assistant_auth.protected_resource_metadata(cfg.public_base_url))
+    async def protected_resource(request: Request) -> JSONResponse:
+        # Per host (brief 358 §2): `resource` must equal the MCP URL as the
+        # person typed it, and the API answers on two hosts (357). The
+        # issuer stays the one `public_base_url` whichever host answered.
+        base = assistant_auth.base_for(cfg.public_base_url, request.headers.get("host"))
+        return JSONResponse(assistant_auth.protected_resource_metadata(base, cfg.public_base_url))
 
     @app.get("/.well-known/oauth-authorization-server")
     async def authorization_server() -> JSONResponse:
@@ -482,12 +486,13 @@ def create_app(
                     grant = assistant_auth.resolve_grant(conn, auth[7:].strip(), clock())
             user = grant["auth_user_id"] if grant else None
             if user is None or grant is None:
+                # The pointer names the host the request arrived on, so the
+                # document it leads to carries that host's `resource` (358 §2).
+                base = assistant_auth.base_for(cfg.public_base_url, headers.get("host"))
                 response = PlainTextResponse(
                     "unauthorized",
                     status_code=401,
-                    headers={
-                        "WWW-Authenticate": assistant_auth.www_authenticate(cfg.public_base_url)
-                    },
+                    headers={"WWW-Authenticate": assistant_auth.www_authenticate(base)},
                 )
                 await response(scope, receive, send)
                 return

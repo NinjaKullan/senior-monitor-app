@@ -134,11 +134,46 @@ def with_query(url: str, params: dict[str, str]) -> str:
 
 # --- discovery (§4) ------------------------------------------------------------
 
+#: The API answers on both hosts indefinitely (DECISIONS 357): every forged
+#: shortcut and every connector added before the move names the old one.
+#: Discovery is built from the host a request arrived on, so the protected
+#: resource's `resource` equals the MCP URL the person typed, whichever host
+#: that was (brief 358 §2). Any other Host falls back to `public_base_url`.
+LEGACY_API_HOSTS: frozenset[str] = frozenset({"kettle-api.fly.dev"})
 
-def protected_resource_metadata(base: str) -> dict[str, Any]:
+
+def api_hosts(public_base_url: str) -> frozenset[str]:
+    """The hosts this API is reachable on: the issuer's plus the legacy ones."""
+    own = urlsplit(public_base_url).hostname or ""
+    return LEGACY_API_HOSTS | ({own} if own else frozenset())
+
+
+def base_for(public_base_url: str, host: str | None) -> str:
+    """The base URL to build discovery from: the request's own host when it
+    is one of ours (always https; Fly terminates TLS), else the issuer."""
+    name = (host or "").split(":", 1)[0].strip().lower()
+    if name and name in api_hosts(public_base_url):
+        return f"https://{name}"
+    return public_base_url
+
+
+def mcp_resources(public_base_url: str) -> frozenset[str]:
+    """Every MCP URL a `resource` parameter may name (RFC 8707): one per host."""
+    return frozenset(f"https://{host}/mcp" for host in api_hosts(public_base_url))
+
+
+def normalise_resource(value: str | None) -> str | None:
+    """A `resource` parameter as compared: trimmed, no trailing slash; absent is None."""
+    cleaned = (value or "").strip().rstrip("/")
+    return cleaned or None
+
+
+def protected_resource_metadata(base: str, issuer: str | None = None) -> dict[str, Any]:
+    """RFC 9728, per host: `resource` is this host's MCP URL, and the
+    authorization server is the one issuer whichever host answered."""
     return {
         "resource": f"{base}/mcp",
-        "authorization_servers": [base],
+        "authorization_servers": [issuer or base],
         "scopes_supported": list(SCOPES),
         "bearer_methods_supported": ["header"],
     }
