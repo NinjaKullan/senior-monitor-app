@@ -8063,7 +8063,11 @@ browser — all three adopted as the standard for future surfaces.**
        you connect"; `/connect` is the public documentation page. Claude
        directory submission filed under the founder's account (slug
        `kettle`, Productivity + Communication, 7 tools with titles after
-       360). ChatGPT and Meta still to file.
+       360). Muse Connector Platform (muse.ai/platform) filed the same
+       evening under projectkettle@outlook.com: Existing MCP, OAuth with
+       PKCE, no payments, reviewer account offered on request. ChatGPT
+       still to file (needs an OpenAI Platform account with org
+       verification, the founder's).
      * Next number: 359.
 
 359. **(2026-10-03, Saturday) BUILD: THE DIRECTORIES AUDIT, BRIEF 358.** The
