@@ -62,6 +62,15 @@ READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=False)
 WRITES = ToolAnnotations(
     read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=False
 )
+
+
+def titled(base: ToolAnnotations, title: str) -> ToolAnnotations:
+    """One ToolAnnotations per tool: the shared hints plus the tool's title.
+    The Claude directory reads `annotations.title`, not the tool-level
+    `title` (brief 358 §5a), so the same string is set in both places."""
+    return base.model_copy(update={"title": title})
+
+
 DAY_FLOOR = timedelta(days=60)
 
 
@@ -619,7 +628,7 @@ def build_server(
         name="add_note",
         title=copy.TOOL_TITLE_ADD_NOTE,
         description=copy.TOOL_ADD_NOTE,
-        annotations=WRITES,
+        annotations=titled(WRITES, copy.TOOL_TITLE_ADD_NOTE),
     )
     async def add_note(text: str, parent: str | None = None, date: str | None = None) -> str:
         def go(conn: psycopg.Connection, grant: dict[str, Any], now: datetime) -> str:
@@ -631,7 +640,7 @@ def build_server(
         name="reply",
         title=copy.TOOL_TITLE_REPLY,
         description=copy.TOOL_REPLY,
-        annotations=WRITES,
+        annotations=titled(WRITES, copy.TOOL_TITLE_REPLY),
     )
     async def reply(text: str, author: str | None = None, date: str | None = None) -> str:
         def go(conn: psycopg.Connection, grant: dict[str, Any], now: datetime) -> str:
@@ -643,7 +652,7 @@ def build_server(
         name="today",
         title=copy.TOOL_TITLE_TODAY,
         description=copy.TOOL_TODAY,
-        annotations=READ_ONLY,
+        annotations=titled(READ_ONLY, copy.TOOL_TITLE_TODAY),
     )
     async def today(parent: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
@@ -661,7 +670,7 @@ def build_server(
         name="parent_day",
         title=copy.TOOL_TITLE_PARENT_DAY,
         description=copy.TOOL_PARENT_DAY,
-        annotations=READ_ONLY,
+        annotations=titled(READ_ONLY, copy.TOOL_TITLE_PARENT_DAY),
     )
     async def parent_day(parent: str, date: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
@@ -688,7 +697,7 @@ def build_server(
         name="memory",
         title=copy.TOOL_TITLE_MEMORY,
         description=copy.TOOL_MEMORY,
-        annotations=READ_ONLY,
+        annotations=titled(READ_ONLY, copy.TOOL_TITLE_MEMORY),
     )
     async def memory(parent: str | None = None, since: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
@@ -708,7 +717,7 @@ def build_server(
         name="who_to_call",
         title=copy.TOOL_TITLE_WHO_TO_CALL,
         description=copy.TOOL_WHO_TO_CALL,
-        annotations=READ_ONLY,
+        annotations=titled(READ_ONLY, copy.TOOL_TITLE_WHO_TO_CALL),
     )
     async def who_to_call(parent: str | None = None) -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
@@ -726,7 +735,7 @@ def build_server(
         name="circles",
         title=copy.TOOL_TITLE_CIRCLES,
         description=copy.TOOL_CIRCLES,
-        annotations=READ_ONLY,
+        annotations=titled(READ_ONLY, copy.TOOL_TITLE_CIRCLES),
     )
     async def circles() -> str:
         def go(conn: psycopg.Connection, user: str, now: datetime) -> str:
