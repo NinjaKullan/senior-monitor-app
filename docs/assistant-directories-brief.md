@@ -60,6 +60,14 @@ Sources (read before touching code):
   already separate).
 - Descriptions unchanged: copy is the PM's, not this brief's.
 
+## 5a. Title must also be an annotation (found at submission, Oct 3)
+- The Claude directory form reads `annotations.title`, not the tool-level
+  `title`, and flags all seven tools "Missing title annotation". Keep the
+  tool-level `title` and set the same string on `ToolAnnotations.title` for
+  each tool (one `ToolAnnotations` per tool, built from `READ_ONLY` or
+  `WRITES` with the title added). Extend the §5 test to assert both fields
+  carry the same title. Nothing else changes.
+
 ## 6. Tests
 - One test per item above, including both hosts for §2 and a `resource`
   mismatch for §3.
