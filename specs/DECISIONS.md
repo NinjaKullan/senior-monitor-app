@@ -8054,6 +8054,16 @@ browser — all three adopted as the standard for future surfaces.**
        (notes are free text and may say "cataract appointment"); price per
        circle, never per member (pricing session); a parent-readable record
        (later; the data model must not preclude it).
+     * Done 2026-10-03 (same day): both rulings taken. Reviewer seat
+       `heykettle.reviewer@outlook.com` in Rehearsal (mailbox is the
+       reviewer's way to the sign-in code; Mom's number swapped to the 555
+       placeholder while paused, SETUP-LOG). Health data answered "yes,
+       incidentally, in free-text notes" with the reason in the form's
+       notes; privacy page gained "What your family writes" and "Assistants
+       you connect"; `/connect` is the public documentation page. Claude
+       directory submission filed under the founder's account (slug
+       `kettle`, Productivity + Communication, 7 tools with titles after
+       360). ChatGPT and Meta still to file.
      * Next number: 359.
 
 359. **(2026-10-03, Saturday) BUILD: THE DIRECTORIES AUDIT, BRIEF 358.** The
