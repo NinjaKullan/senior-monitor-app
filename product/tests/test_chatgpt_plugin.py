@@ -332,6 +332,23 @@ def test_make_zip_defaults_to_dist_beside_the_package():
     out.unlink()
 
 
+#: Spellings that work on GNU coreutils but fail on macOS's BSD tools, where the
+#: PM runs the script. `realpath -m` shipped once and broke the first macOS run.
+GNU_ONLY = re.compile(
+    r"\b(realpath -\w*[em]|readlink -\w*[efm]|sed -\w*r|date -\w*d|grep -\w*P"
+    r"|stat -\w*c|xargs -\w*r|sort -\w*V|(realpath|readlink|cp|mv|rm|mkdir|stat|date) --\w)"
+)
+
+
+def test_make_zip_uses_no_gnu_only_flags():
+    code = [
+        line.split("#", 1)[0]
+        for line in (PACKAGE / "make-zip.sh").read_text(encoding="utf-8").splitlines()
+    ]
+    hits = [line.strip() for line in code if GNU_ONLY.search(line)]
+    assert not hits, f"GNU-only flags break the script on macOS: {hits}"
+
+
 def test_dist_is_ignored_and_the_package_is_not():
     assert _ignored("tools/chatgpt-plugin/dist/kettle-plugin-1.0.0.zip")
     # The assertion can fail: the package itself is source.
