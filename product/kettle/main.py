@@ -458,6 +458,15 @@ def create_app(
     async def authorization_server() -> JSONResponse:
         return JSONResponse(assistant_auth.authorization_server_metadata(cfg.public_base_url))
 
+    @app.get("/.well-known/openai-apps-challenge")
+    async def openai_apps_challenge() -> PlainTextResponse:
+        """The ChatGPT plugin directory's domain check (DECISIONS 358): the
+        bare token as text/plain, no JSON, no newline, on every host like the
+        two documents above. Unset means the route does not exist."""
+        if not cfg.openai_apps_challenge:
+            raise StarletteHTTPException(status_code=404, detail="not found")
+        return PlainTextResponse(cfg.openai_apps_challenge)
+
     app.add_api_route("/oauth/register", oauth.register, methods=["POST"])
     app.add_api_route("/oauth/authorize", oauth.authorize, methods=["GET"])
     app.add_api_route("/oauth/token", oauth.token, methods=["POST"])

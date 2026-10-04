@@ -557,6 +557,7 @@ person, never a family.
 | `IP_HASH_SALT` | salt for the IP hash | random per boot |
 | `DEFAULT_TZ` | default family timezone | `Asia/Kolkata` |
 | `PUBLIC_BASE_URL` | base URL printed into provisioned links | `https://kettle-api.fly.dev` |
+| `OPENAI_APPS_CHALLENGE` | the ChatGPT plugin directory's domain-check token, served bare by `/.well-known/openai-apps-challenge` (DECISIONS 358) | empty = the route 404s |
 | `HEARTBEAT_LOOP` | `0` disables the background loops (tests) | `1` |
 | `WAITLIST_ORIGINS` | comma-separated browser origins allowed to POST /waitlist (default: the heykettle.com pair plus localhost dev; setting it REPLACES the default) |
 | `OUTBOUND_ENABLED` | global outbound-channel kill-switch; "on" still reaches nobody in Wave A | **off** |

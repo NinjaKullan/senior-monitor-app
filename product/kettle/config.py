@@ -111,6 +111,12 @@ class Settings:
     # comes off once nothing calls from it. Never an issuer and never a
     # redirect target: `public_base_url` and `app_origin` stay the only two.
     app_origins_extra: tuple[str, ...] = ()
+    # DECISIONS 358, the ChatGPT plugin directory's domain check: the bare
+    # token `GET /.well-known/openai-apps-challenge` serves as text/plain.
+    # Empty, the default, means the route does not exist (404), the same
+    # fail-closed shape as OUTBOUND_REPLY_TOKEN. The value is a Fly secret the
+    # founder sets when OpenAI shows it; it is never committed.
+    openai_apps_challenge: str = ""
 
 
 def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
@@ -133,6 +139,7 @@ def settings_from_env(env: Mapping[str, str] | None = None) -> Settings:
         public_base_url=(
             src.get("PUBLIC_BASE_URL", "").strip().rstrip("/") or "https://api.heykettle.com"
         ),
+        openai_apps_challenge=src.get("OPENAI_APPS_CHALLENGE", "").strip(),
         heartbeat_loop=_flag(src, "HEARTBEAT_LOOP", default=True),
         outbound_enabled=_flag(src, "OUTBOUND_ENABLED", default=False),
         outbound_loop=_flag(src, "OUTBOUND_LOOP", default=False),
