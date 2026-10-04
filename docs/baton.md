@@ -118,13 +118,19 @@ main; its three Fly secrets were never recorded as set, so assume it sends nothi
 (359, brief 358 §3). Apply it BEFORE the product deploy below: the authorize request
 writes the column, so a deploy without it fails every new assistant connection.
 
+**ChatGPT plugin (361).** The package is `tools/chatgpt-plugin/`; `make-zip.sh` writes
+`tools/chatgpt-plugin/dist/kettle-plugin-1.0.0.zip` for the PM to upload. The domain
+check: the founder sets the Fly secret `OPENAI_APPS_CHALLENGE` to the token OpenAI
+shows, and `GET /.well-known/openai-apps-challenge` on kettle-api serves it (404 until
+set). The route ships with the product deploy below.
+
 **Product deploy (founder): `cd product && fly deploy`.** Carries the Android server
 side (330: the vocabulary, `--platform android`, `POST /s/{slug}/claim`, the two claim
 columns), the own-domain defaults (357), the Android claim refusal (333), and the
 directories audit (359): the protected-resource document per host, the RFC 8707
 `resource` binding, JSON token bodies, and a `title` on every MCP tool, in the
-annotations too (360, what the Claude directory form reads). No secret;
-0034 above.
+annotations too (360, what the Claude directory form reads), and the plugin domain
+check route (361). No secret but the one above; 0034 above.
 
 **Webapp deploy (founder): `cd webapp && npm run ci && fly deploy`.** Carries the login
 buttons in the app's primary look, "Phone unlocked" and "Phone moved" in the signal-name

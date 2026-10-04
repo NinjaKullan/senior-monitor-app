@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 361.** This line is the one to update; the `Next number:` lines inside
+**Next number: 362.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8157,3 +8157,60 @@ browser — all three adopted as the standard for future surfaces.**
      Nothing else changed: names, descriptions and hints are as 359 left
      them. Suite green from the root with Postgres required.
      * Next number: 361.
+
+361. **(2026-10-04, Sunday) BUILD: THE CHATGPT PLUGIN PACKAGE AND THE DOMAIN
+     CHALLENGE, `docs/chatgpt-plugin-brief.md`.** Two small things so the PM
+     can submit to the ChatGPT plugin directory; no tool, copy, auth or
+     webapp change. What was built, and the calls made:
+     * **§1 the challenge route.** `GET /.well-known/openai-apps-challenge`
+       serves `OPENAI_APPS_CHALLENGE` as bare `text/plain` (the charset
+       suffix FastAPI adds is standard; the body is the token and nothing
+       else, no newline) and is a 404 while the setting is empty, the
+       `OUTBOUND_REPLY_TOKEN` posture. A plain route like the two OAuth
+       documents, so it answers on every host. Calls: the dataclass field
+       sits last with a default, not beside `public_base_url`, because a
+       field with a default cannot precede the fields without one; the env
+       line, the `.env.example` block and the README row sit beside
+       `PUBLIC_BASE_URL` as the brief says. The Fly secret the founder sets
+       is `OPENAI_APPS_CHALLENGE`; it is never committed.
+     * **§2 the package.** `tools/chatgpt-plugin/kettle/{plugin.json,
+       mcp.json, assets/logo.png}` to the brief's field list, verbatim and in
+       order; `make-zip.sh` builds `tools/chatgpt-plugin/dist/kettle-plugin-
+       <version>.zip` (version read from the manifest) holding `kettle/` and
+       nothing beside it; `dist/` gitignored. Calls: `mcp.json` uses the
+       `mcpServers` key for its one server, the shape the Apps SDK and
+       Claude Code both use; and `streamable-http` is the brief's value.
+       Neither could be checked against the 1.0.0 schemas, which are
+       unreachable from here (proxy 403, as are both OpenAI pages), so the
+       package is built to the brief's enumeration and the schemas are the
+       first thing to verify with egress.
+     * **§2 the tests** (`product/tests/test_chatgpt_plugin.py`, 14): both
+       files parse with every required field and no extra key at either
+       level; every `./` path exists inside the root; the limits; the PM's
+       four long strings pinned to the brief's §3 itself, read from the
+       document, so "verbatim" is a test and not a promise; the site's
+       copy-law scan ported by reading `site/src/tests/copyBans.ts` (never
+       a second copy of the lists), with the app-name scan and ASCII word
+       boundaries the site has, one planted sentence per ban group as the
+       site plants them; the zip from a given directory and from the
+       default; `dist/` ignored and the package not; the route on three
+       hosts, the 404, the env parse.
+     * **Reviewed before the split.** An adversarial pass over the build
+       (four lenses, each finding refuted twice) confirmed one defect, the
+       parser's `>= 60` floor letting five of eight ban groups vanish
+       silently, and raised others that were right on reading even where a
+       refuter let them go: the app-name scan missing, the top-level keys
+       and the PM copy unpinned, a literal beside the spreads dropped, a
+       quoted word in a comment banned, a relative output directory resolved
+       against the script's folder, the default `dist/` never exercised.
+       All fixed in the tests or the script; each fix was planted and caught
+       (twenty-four plants in all, listed in the report).
+     * **Not in scope, for the PM:** the route is on the API hosts only; if
+       OpenAI challenges `heykettle.com` rather than the MCP host, nothing
+       answers there (site/nginx.conf has no `/.well-known`). The listing
+       says a note "is read back to you before it is saved"; that is an
+       instruction to the host model in the tool copy, not a server-side
+       step. Both are the PM's copy and scope, untouched.
+     * Suite: 952 passed from the root with Postgres required; ruff clean
+       in product/. No deploy.
+     * Next number: 362.
