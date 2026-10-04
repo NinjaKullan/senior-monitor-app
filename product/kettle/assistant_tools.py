@@ -56,7 +56,12 @@ KIND_WORDS = {
 MEMORY_CAP = 40
 #: Every tool reads and nothing else (spec 019 §1; DECISIONS 286): said in the
 #: annotations, so the assistant does not ask permission on every question.
-READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=False)
+#: All four hints explicit (brief 358 §8): an unset destructiveHint defaults
+#: to true in the MCP spec, and OpenAI's scan labelled the reads destructive
+#: for it. Reading is idempotent; nothing here reaches the open world.
+READ_ONLY = ToolAnnotations(
+    read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=False
+)
 #: The two write tools (Amendment A.2): not read-only, so the assistant asks
 #: before each; not destructive; not idempotent (two calls are two notes).
 WRITES = ToolAnnotations(
