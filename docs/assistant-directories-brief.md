@@ -103,3 +103,16 @@ Sources (read before touching code):
   with no fetch (the F1 test stays green); the pinned copy stands when the
   live fetch fails. Update the F1 docstring in `is_cimd_client_id`.
 - The `resource` parameter in the same request matched §3 and is fine.
+
+## 8. All three hints explicit on every tool (OpenAI tool scan, Oct 4)
+- OpenAI's scan: "This tool does not provide explicit boolean values for
+  readOnlyHint, destructiveHint, and openWorldHint as direct keys of
+  provided_tool_annotations" on all five read tools, and it labels them
+  `destructive` because an unset destructiveHint defaults to true in the
+  MCP spec.
+- `READ_ONLY` becomes `ToolAnnotations(read_only_hint=True,
+  destructive_hint=False, idempotent_hint=True, open_world_hint=False)`.
+  `WRITES` already states all four; unchanged.
+- Extend the §5 test: every tool's annotations carry explicit booleans for
+  readOnlyHint, destructiveHint, idempotentHint and openWorldHint, and the
+  five read tools are destructiveHint false. Nothing else changes.
