@@ -360,7 +360,10 @@ def test_every_read_tool_says_it_only_reads_and_the_two_writes_say_they_write(co
     """DECISIONS 286: readOnlyHint on the five reads, openWorldHint off, so
     the assistant does not ask permission on every question. Amendment A:
     add_note and reply say readOnlyHint false (and not destructive, not
-    idempotent), which is what makes the assistant ask before each."""
+    idempotent), which is what makes the assistant ask before each. Brief
+    358 §8: every tool states all four hints as explicit booleans, because
+    an unset destructiveHint defaults to true in the MCP spec and OpenAI's
+    scan labelled the reads destructive for it."""
     from testsupport_assistant import mcp_call
 
     tools = mcp_call(api, connected.access_token, "tools/list").json()["result"]["tools"]
@@ -374,8 +377,15 @@ def test_every_read_tool_says_it_only_reads_and_the_two_writes_say_they_write(co
         "add_note",
         "reply",
     }
+    hints = ("readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint")
+    for name, carried in by_name.items():
+        for hint in hints:
+            assert hint in carried, f"{name} leaves {hint} unset"
+            assert isinstance(carried[hint], bool), f"{name}.{hint} is not a boolean"
     for name in ("today", "parent_day", "memory", "who_to_call", "circles"):
         assert by_name[name]["readOnlyHint"] is True, name
+        assert by_name[name]["destructiveHint"] is False, name
+        assert by_name[name]["idempotentHint"] is True, name
         assert by_name[name]["openWorldHint"] is False, name
     for name in ("add_note", "reply"):
         assert by_name[name]["readOnlyHint"] is False, name
