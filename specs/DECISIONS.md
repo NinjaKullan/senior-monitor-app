@@ -8066,8 +8066,15 @@ browser — all three adopted as the standard for future surfaces.**
        360). Muse Connector Platform (muse.ai/platform) filed the same
        evening under projectkettle@outlook.com: Existing MCP, OAuth with
        PKCE, no payments, reviewer account offered on request. ChatGPT
-       still to file (needs an OpenAI Platform account with org
-       verification, the founder's).
+       (Oct 4, late): org verified as LINKABIT AI LABS LLC; plugin
+       package 1.0.1 uploaded and read in full; domain verified
+       (`OPENAI_APPS_CHALLENGE` on kettle-api); server connected and
+       scanned clean after 363 and 364; review information filed
+       (US only, reviewer login, five positive and three negative
+       cases, release notes). One field left before Submit: the demo
+       recording URL, the founder's 30-second screen capture in ChatGPT
+       developer mode. `make-zip.sh` fails on macOS (`realpath -m`);
+       CC follow-up.
      * Next number: 359.
 
 359. **(2026-10-03, Saturday) BUILD: THE DIRECTORIES AUDIT, BRIEF 358.** The
