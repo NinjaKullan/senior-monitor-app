@@ -8071,9 +8071,11 @@ browser — all three adopted as the standard for future surfaces.**
        (`OPENAI_APPS_CHALLENGE` on kettle-api); server connected and
        scanned clean after 363 and 364; review information filed
        (US only, reviewer login, five positive and three negative
-       cases, release notes). One field left before Submit: the demo
-       recording URL, the founder's 30-second screen capture in ChatGPT
-       developer mode. `make-zip.sh` fails on macOS (`realpath -m`);
+       cases, release notes, 55-second demo recorded by the founder in
+       ChatGPT with a custom MCP server, unlisted on YouTube). Submitted
+       for review the same night; the portal lists it as "Version 1.0.0,
+       In review" (its own numbering; the package is 1.0.1). All three
+       directories filed. `make-zip.sh` fails on macOS (`realpath -m`);
        CC follow-up.
      * Next number: 359.
 
