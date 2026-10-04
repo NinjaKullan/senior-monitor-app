@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 362.** This line is the one to update; the `Next number:` lines inside
+**Next number: 363.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8214,3 +8214,22 @@ browser — all three adopted as the standard for future surfaces.**
      * Suite: 952 passed from the root with Postgres required; ruff clean
        in product/. No deploy.
      * Next number: 362.
+
+362. **(2026-10-04, Sunday) BUILD: THE LISTING BLOCK RE-NESTED, PLUGIN BRIEF
+     §5.** The first upload (361) put the listing under one dotted key,
+     `"com.openai.interface"`, and OpenAI read none of it: category Other,
+     no URLs, no icon, the subtitle falling back to the package
+     description. The manifest now nests it as §2 says, `"extensions":
+     {"com.openai": {"interface": {...}}}`, two keys. Every string is
+     identical; a script compared the old and new manifests field by field
+     before the commit, and the nesting is the only change. The package
+     test pins both levels, `("com.openai",)` under `extensions` and
+     `("interface",)` under that, so the flat key cannot come back beside
+     or instead of the nested one; planted four ways (the flat key back,
+     the flat key beside the nested one, a sibling under `com.openai`, the
+     block one level too deep) and caught each. The README says why. Zip
+     rebuilt at `tools/chatgpt-plugin/dist/kettle-plugin-1.0.0.zip` for
+     the PM's second upload; the version stays 1.0.0 because nothing
+     reached the directory from the first. Suite green from the root with
+     Postgres required; no deploy.
+     * Next number: 363.
