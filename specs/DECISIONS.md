@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 364.** This line is the one to update; the `Next number:` lines inside
+**Next number: 365.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8277,3 +8277,21 @@ browser — all three adopted as the standard for future surfaces.**
        the root with Postgres required; no deploy. The product deploy that
        carries 359 to 363 is still the founder's, after 0034.
      * Next number: 364.
+
+364. **(2026-10-04, Sunday) BUILD: ALL FOUR HINTS EXPLICIT ON EVERY TOOL,
+     DIRECTORIES BRIEF §8.** OpenAI's tool scan reported the five read tools
+     without explicit booleans for readOnlyHint, destructiveHint and
+     openWorldHint and labelled them destructive, since an unset
+     destructiveHint defaults to true in the MCP spec. `READ_ONLY` now
+     states all four: read-only true, destructive false, idempotent true,
+     open-world false. `WRITES` already stated all four and is unchanged;
+     the titles (360) ride on both as before. On the wire each tool's
+     annotations carry exactly `title` and the four booleans. The §5
+     annotations test now asserts every tool carries all four as explicit
+     booleans and the reads are destructive false and idempotent true;
+     planted four ways (destructiveHint unset on the reads, idempotentHint
+     unset on the reads, the reads declared destructive, a write losing its
+     idempotentHint) and caught each. Nothing else changed. Suite green from
+     the root with Postgres required; no deploy, and the product deploy
+     carrying 359 to 364 is still the founder's, after 0034.
+     * Next number: 365.
