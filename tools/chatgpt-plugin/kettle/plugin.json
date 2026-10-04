@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "heykettle",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Kettle is a family's shared record about a parent: a caregiving log the whole family writes to and reads from, plus a quiet signal that a normal routine happened on the parent's phone. Ask how Mom's day is going, who to call, or what the family wrote, and add a note by saying it.",
   "author": {
     "name": "HeyKettle",

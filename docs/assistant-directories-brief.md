@@ -75,3 +75,31 @@ Sources (read before touching code):
 ## 7. Report
 - Table: item, found, changed (file:line), test. Then follow-ups found but
   not touched. No deploy; the PM and founder deploy after review.
+
+## 7. ChatGPT mints a client document per app (found Oct 4 at the OpenAI
+## portal's Connect step; ruling by the PM, DECISIONS 358)
+- OpenAI's dashboard did not use `https://chatgpt.com/oauth/client.json`.
+  It sent `client_id=https://chatgpt.com/oauth/A1YFUC1zmNdF/client.json`
+  with `redirect_uri=https://chatgpt.com/connector/oauth/A1YFUC1zmNdF`,
+  and Kettle answered `invalid_client` because, since F1, only the exact
+  keys of `KNOWN_CLIENT_DOCUMENTS` count as client documents.
+- Ruling: trust is per host prefix, not per exact URL. A client_id is a
+  client document when it starts with one of `TRUSTED_CLIENT_DOCUMENT_PREFIXES`
+  = `https://claude.ai/oauth/`, `https://chatgpt.com/oauth/` (a module
+  constant, no setting). Such a document is fetched live as today (same
+  timeout, cache and failure memory); when the fetch fails, the shipped
+  copy in `KNOWN_CLIENT_DOCUMENTS` stands if there is one, otherwise the
+  client is unknown. Nothing outside the prefixes is ever fetched, so F1's
+  guarantee holds: no arbitrary URL reaches the fetcher.
+- Pin this document in `KNOWN_CLIENT_DOCUMENTS`, as fetched Oct 4 2026 by
+  the founder in Safari:
+  client_id `https://chatgpt.com/oauth/A1YFUC1zmNdF/client.json`,
+  client_name `ChatGPT`, redirect_uris
+  `["https://chatgpt.com/connector/oauth/A1YFUC1zmNdF"]`. The document
+  also lists token_endpoint_auth_methods_supported `none` and
+  `private_key_jwt`; Kettle advertises `none`, unchanged.
+- Tests: a chatgpt.com document under the prefix is a client even when
+  not pinned (live fetch mocked); a URL outside both prefixes is unknown
+  with no fetch (the F1 test stays green); the pinned copy stands when the
+  live fetch fails. Update the F1 docstring in `is_cimd_client_id`.
+- The `resource` parameter in the same request matched §3 and is fine.
