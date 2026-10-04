@@ -14,14 +14,17 @@ from build_week import SCRIPT, STYLE  # same look as the posts page
 
 def card(it: dict) -> str:
     e = html.escape
-    meta = f"<b>Who:</b> {e(it.get('who', ''))}<br><b>Cost:</b> {e(it.get('cost', ''))}<br><b>Why now:</b> {e(it.get('why_now', ''))}"
+    meta = (
+        f"<b>Who:</b> {e(it.get('who', ''))}<br><b>Cost:</b> {e(it.get('cost', ''))}"
+        f"<br><b>Why now:</b> {e(it.get('why_now', ''))}"
+    )
     pin = f"{it.get('pin_title', '')}\n\n{it.get('pin_description', '')}\n\n{it.get('url', '')}"
     return f"""<div class="card"><div class="top"><span class="day">{e(it.get('name', ''))}</span><span class="chip">{e(it.get('lane', ''))}</span></div>
 <div>{e(it.get('what', ''))}</div>
 <div class="meta">{meta}<br><b>Link:</b> <a href="{e(it.get('url', ''))}">{e(it.get('url', ''))}</a></div>
 <p class="meta"><b>Pinterest</b></p><div><pre>{e(pin)}</pre><button onclick="cp(this)">Copy text</button></div>
 <p class="meta"><b>X</b></p><div><pre>{e(it.get('x_line', ''))}</pre><button onclick="cp(this)">Copy text</button></div>
-</div>"""
+</div>"""  # noqa: E501 -- one HTML template; splitting it changes the page
 
 
 def build(folder: Path) -> None:
@@ -29,10 +32,15 @@ def build(folder: Path) -> None:
     e = html.escape
     parts = [f"<title>Kettle resources {e(spec.get('date', ''))}</title>", STYLE,
              f"<h1>Useful resources <small>{e(spec.get('date', ''))}</small></h1>",
-             '<p class="theme">Five things worth passing on. Pick what to post; the roundup at the end is for the blog.</p>']
+             '<p class="theme">Five things worth passing on. Pick what to post; '
+             'the roundup at the end is for the blog.</p>']
     parts += [card(it) for it in spec.get("items", [])]
     roundup = spec.get("roundup_md", "")
-    parts.append(f'<div class="card"><div class="top"><span class="day">Blog roundup</span><span class="chip">heykettle.com</span></div><div><pre>{e(roundup)}</pre><button onclick="cp(this)">Copy text</button></div></div>')
+    parts.append(
+        '<div class="card"><div class="top"><span class="day">Blog roundup</span>'
+        '<span class="chip">heykettle.com</span></div>'
+        f'<div><pre>{e(roundup)}</pre><button onclick="cp(this)">Copy text</button></div></div>'
+    )
     parts.append(SCRIPT)
     (folder / "index.html").write_text("\n".join(parts), encoding="utf-8")
     (folder / "roundup.md").write_text(roundup, encoding="utf-8")

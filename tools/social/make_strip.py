@@ -40,7 +40,13 @@ from PIL import Image, ImageDraw, ImageFont
 
 HERE = Path(__file__).resolve().parent
 HOST = "https://generativelanguage.googleapis.com/v1beta/models"
-MODELS = [m for m in os.environ.get("KETTLE_IMAGE_MODELS", "gemini-3.1-flash-image,gemini-2.5-flash-image").split(",") if m]
+MODELS = [
+    m
+    for m in os.environ.get(
+        "KETTLE_IMAGE_MODELS", "gemini-3.1-flash-image,gemini-2.5-flash-image"
+    ).split(",")
+    if m
+]
 STYLE_FILE = HERE / "characters.md"
 FONT_FILE = HERE / "fonts" / "PatrickHand-Regular.ttf"
 COUNTER = Path.home() / ".kettle_image_count.json"
@@ -89,7 +95,8 @@ def _count_call() -> None:
 
 
 def _b64_image(path: Path) -> dict:
-    return {"inline_data": {"mime_type": "image/png", "data": base64.b64encode(path.read_bytes()).decode()}}
+    data = base64.b64encode(path.read_bytes()).decode()
+    return {"inline_data": {"mime_type": "image/png", "data": data}}
 
 
 def call_gemini(prompt: str, refs: list[Path], aspect: str) -> bytes:
@@ -103,7 +110,9 @@ def call_gemini(prompt: str, refs: list[Path], aspect: str) -> bytes:
         for gen in ({"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": aspect}},
                     {"responseModalities": ["IMAGE"]}):
             body = json.dumps({"contents": [{"parts": parts}], "generationConfig": gen}).encode()
-            req = urllib.request.Request(f"{HOST}/{model}:generateContent", data=body, headers=headers)
+            req = urllib.request.Request(
+                f"{HOST}/{model}:generateContent", data=body, headers=headers
+            )
             for attempt in range(4):
                 _count_call()
                 try:
@@ -142,11 +151,13 @@ def sheet_prompt(cast: str) -> str:
 
 def panel_prompt(cast: str, scene: str, aspect: str, n: int, i: int) -> str:
     return (
-        f"Draw ONE single panel (panel {i} of {n}) of a newspaper comic strip, in the exact style and "
-        "with the exact characters shown in the attached reference sheet. Follow this style bible:\n\n"
+        f"Draw ONE single panel (panel {i} of {n}) of a newspaper comic strip, "
+        "in the exact style and with the exact characters shown in the attached "
+        "reference sheet. Follow this style bible:\n\n"
         + style_bible(cast)
-        + f"\n\nTHE SCENE: {scene}\n\nAbsolutely no text, letters, numbers, signs or speech bubbles "
-        f"anywhere in the image. Keep the top third plain. Image shape {aspect}. No panel border."
+        + f"\n\nTHE SCENE: {scene}\n\nAbsolutely no text, letters, numbers, "
+        "signs or speech bubbles anywhere in the image. Keep the top third plain. "
+        f"Image shape {aspect}. No panel border."
     )
 
 # ----------------------------------------------------------------------------- lettering
@@ -216,9 +227,19 @@ def draw_bubble(img: Image.Image, text: str, y_top: int, tail_x_frac: float) -> 
     bw, bh = int(tw + 2 * pad), int(len(lines) * line_h + 2 * pad)
     x0 = (w - bw) // 2
     y0 = y_top
-    draw.rounded_rectangle([x0, y0, x0 + bw, y0 + bh], radius=int(pad * 1.2), fill=(255, 253, 249), outline=INK, width=3)
+    draw.rounded_rectangle(
+        [x0, y0, x0 + bw, y0 + bh],
+        radius=int(pad * 1.2),
+        fill=(255, 253, 249),
+        outline=INK,
+        width=3,
+    )
     tx = int(x0 + bw * tail_x_frac)
-    tail = [(tx - pad // 2, y0 + bh - 2), (tx + pad // 2, y0 + bh - 2), (tx - pad // 3, y0 + bh + int(pad * 1.1))]
+    tail = [
+        (tx - pad // 2, y0 + bh - 2),
+        (tx + pad // 2, y0 + bh - 2),
+        (tx - pad // 3, y0 + bh + int(pad * 1.1)),
+    ]
     draw.polygon(tail, fill=(255, 253, 249), outline=INK)
     draw.line([tail[0], tail[2]], fill=INK, width=3)
     draw.line([tail[1], tail[2]], fill=INK, width=3)
@@ -254,7 +275,7 @@ def frame(panel: Image.Image, border: int = 4) -> Image.Image:
 def compose(panels: list[Image.Image], spec: dict, layout: str) -> Image.Image:
     gutter, margin = 28, 44
     units = []
-    for img, p in zip(panels, spec["panels"]):
+    for img, p in zip(panels, spec["panels"], strict=False):
         y = int(img.height * 0.035)
         for k, (_, said) in enumerate(p.get("dialogue", [])):
             y = draw_bubble(img, said, y, 0.35 if k % 2 == 0 else 0.65)
@@ -285,12 +306,17 @@ def compose(panels: list[Image.Image], spec: dict, layout: str) -> Image.Image:
     d = ImageDraw.Draw(canvas)
     f = font(max(22, canvas.width // 45))
     sig = "heykettle.com"
-    d.text((canvas.width - margin - d.textlength(sig, font=f), canvas.height - margin - f.size + 6), sig, font=f, fill=(122, 114, 104))
+    xy = (canvas.width - margin - d.textlength(sig, font=f), canvas.height - margin - f.size + 6)
+    d.text(xy, sig, font=f, fill=(122, 114, 104))
     return canvas
 
 # ----------------------------------------------------------------------------- main
 
-PANEL_SHAPE = {"row": ("3:4", (900, 1200)), "stack": ("4:3", (1200, 900)), "single": ("3:4", (1200, 1600))}
+PANEL_SHAPE = {
+    "row": ("3:4", (900, 1200)),
+    "stack": ("4:3", (1200, 900)),
+    "single": ("3:4", (1200, 1600)),
+}
 
 
 def main() -> None:
@@ -313,7 +339,10 @@ def main() -> None:
         sys.exit("give --sheet or --panels")
     refs = sheet_files(cast)
     if not refs:
-        sys.exit(f"no character sheet for cast {cast} in tools/social/characters/ (run --sheet --cast {cast})")
+        sys.exit(
+            f"no character sheet for cast {cast} in tools/social/characters/ "
+            f"(run --sheet --cast {cast})"
+        )
     spec = json.loads(Path(args.panels).read_text(encoding="utf-8"))
     check_words(spec)
     aspect, size = PANEL_SHAPE[args.layout]
@@ -324,7 +353,8 @@ def main() -> None:
     for i, p in enumerate(spec["panels"], 1):
         cache = out.with_name(f"{out.stem}.p{i}.png")
         if not cache.exists():
-            cache.write_bytes(call_gemini(panel_prompt(cast, p["scene"], aspect, n, i), refs + panels_as_refs(out, i), aspect))
+            prompt = panel_prompt(cast, p["scene"], aspect, n, i)
+            cache.write_bytes(call_gemini(prompt, refs + panels_as_refs(out, i), aspect))
             print(f"drew panel {i}")
         img = Image.open(cache).convert("RGB")
         panels.append(img.resize(size, Image.LANCZOS))

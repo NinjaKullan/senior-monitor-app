@@ -44,7 +44,7 @@ th{font-weight:600;color:#7a7268;border:0;font-size:12px;text-transform:uppercas
 details{margin-top:6px}summary{cursor:pointer;color:#7a7268;font-size:14px}
 .hint{font-size:13px;color:#7a7268;margin:-4px 0 12px}
 </style>
-"""
+"""  # noqa: E501 -- CSS inside one string; splitting it changes the page
 
 SCRIPT = """
 <script>
@@ -54,7 +54,7 @@ function cp(btn){const t=btn.parentElement.querySelector('pre').innerText;
 function fallback(t,ok){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
  try{document.execCommand('copy');ok()}catch(e){}document.body.removeChild(ta)}
 </script>
-"""
+"""  # noqa: E501 -- JS inside one string; splitting it changes the page
 
 CHANNEL = {"x": "X", "pinterest": "Pinterest", "tiktok": "TikTok"}
 
@@ -78,13 +78,19 @@ def card(folder: Path, post: dict) -> str:
     if post.get("image"):
         out.append('<p class="hint">Long-press the image to save it to your phone.</p>')
     if post.get("text"):
-        out.append(f'<div><pre>{e(post["text"])}</pre><button onclick="cp(this)">Copy text</button></div>')
+        out.append(
+            f'<div><pre>{e(post["text"])}</pre>'
+            '<button onclick="cp(this)">Copy text</button></div>'
+        )
     if ch == "tiktok" and post.get("script"):
         rows = "".join(
             f"<tr><td>{e(s.get('t', ''))}</td><td>{e(s.get('say', ''))}</td>"
             f"<td>{e(s.get('overlay', ''))}</td><td>{e(s.get('broll', ''))}</td></tr>"
             for s in post["script"])
-        out.append(f"<table><tr><th>Time</th><th>Say</th><th>Overlay</th><th>Shot</th></tr>{rows}</table>")
+        out.append(
+            "<table><tr><th>Time</th><th>Say</th><th>Overlay</th><th>Shot</th></tr>"
+            f"{rows}</table>"
+        )
     meta = []
     if post.get("destination"):
         meta.append(f'<b>Link:</b> {e(post["destination"])}')
@@ -93,7 +99,10 @@ def card(folder: Path, post: dict) -> str:
     meta.append(f'<b>CTA:</b> {"yes" if post.get("cta") else "none"}')
     out.append(f'<div class="meta">{"<br>".join(meta)}</div>')
     if post.get("note"):
-        out.append(f'<details><summary>Note from the writer</summary><p class="meta">{e(post["note"])}</p></details>')
+        out.append(
+            '<details><summary>Note from the writer</summary>'
+            f'<p class="meta">{e(post["note"])}</p></details>'
+        )
     out.append("</div>")
     return "\n".join(out)
 
