@@ -119,10 +119,10 @@ main; its three Fly secrets were never recorded as set, so assume it sends nothi
 writes the column, so a deploy without it fails every new assistant connection.
 
 **ChatGPT plugin (361).** The package is `tools/chatgpt-plugin/`; `make-zip.sh` writes
-`tools/chatgpt-plugin/dist/kettle-plugin-1.0.0.zip` for the PM to upload. The domain
-check: the founder sets the Fly secret `OPENAI_APPS_CHALLENGE` to the token OpenAI
-shows, and `GET /.well-known/openai-apps-challenge` on kettle-api serves it (404 until
-set). The route ships with the product deploy below.
+`tools/chatgpt-plugin/dist/kettle-plugin-<version>.zip` (1.0.1 since Oct 4) for the PM
+to upload. The domain check: the founder sets the Fly secret `OPENAI_APPS_CHALLENGE` to
+the token OpenAI shows, and `GET /.well-known/openai-apps-challenge` on kettle-api
+serves it (404 until set). The route ships with the product deploy below.
 
 **Product deploy (founder): `cd product && fly deploy`.** Carries the Android server
 side (330: the vocabulary, `--platform android`, `POST /s/{slug}/claim`, the two claim
@@ -222,8 +222,12 @@ has long passed, the retirement needs its own ruling). Nothing else is open.
   allowlist, not only a DNS record.
 * **A `resource` named at authorize must be named again at token** (359): a different
   one is `invalid_target` and the code is spent. Claude sends none; ChatGPT sends the
-  MCP URL. ChatGPT's client document is NOT in `KNOWN_CLIENT_DOCUMENTS` (unfetchable
-  from the build container); ChatGPT connects by dynamic registration until it is.
+  MCP URL.
+* **A client document is trusted by host prefix** (363, brief 358 §7):
+  `TRUSTED_CLIENT_DOCUMENT_PREFIXES` is `claude.ai/oauth/` and `chatgpt.com/oauth/`;
+  ChatGPT mints one document per app under its prefix, and Kettle's is pinned in
+  `KNOWN_CLIENT_DOCUMENTS` as fetched Oct 4. A pin is a fallback, never a way in: every
+  key must sit under a prefix, and nothing outside the prefixes is ever fetched (F1).
 * `assistant_grants` is read by column grant; the token hashes are granted to nobody
   (285). `kettle:write` implies read and is what a both-scopes grant stores (317).
 * **A claim never revokes** (330): the link's own Android row is claimed once, every later

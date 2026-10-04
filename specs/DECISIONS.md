@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 363.** This line is the one to update; the `Next number:` lines inside
+**Next number: 364.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8233,3 +8233,47 @@ browser — all three adopted as the standard for future surfaces.**
      reached the directory from the first. Suite green from the root with
      Postgres required; no deploy.
      * Next number: 363.
+
+363. **(2026-10-04, Sunday) BUILD: CLIENT DOCUMENTS TRUSTED PER HOST PREFIX,
+     DIRECTORIES BRIEF §7.** ChatGPT's Connect step sent
+     `client_id=https://chatgpt.com/oauth/A1YFUC1zmNdF/client.json`, a
+     document minted per app, and Kettle answered `invalid_client`: since
+     336 only the exact keys of `KNOWN_CLIENT_DOCUMENTS` were client
+     documents. As the PM ruled: `TRUSTED_CLIENT_DOCUMENT_PREFIXES`
+     (`https://claude.ai/oauth/`, `https://chatgpt.com/oauth/`; a module
+     constant, no setting) decides what is a client document;
+     `is_cimd_client_id` is a prefix test, its F1 docstring rewritten. A
+     document under a prefix is fetched live as before (same timeout, cache
+     and failure memory); the pinned copy in `KNOWN_CLIENT_DOCUMENTS`
+     stands when the fetch fails and one exists; anything outside the
+     prefixes is unknown and never fetched, so F1's guarantee holds for
+     every host but the two. The per-app document is pinned as the founder
+     fetched it Oct 4 2026 (client_name ChatGPT, one redirect,
+     `https://chatgpt.com/connector/oauth/A1YFUC1zmNdF`). Kettle still
+     advertises `none`.
+     * **Calls.** A test holds every pinned key under a trusted prefix: a
+       pin is a fallback for a document already trusted, never a way in.
+       The prefixes end in a slash and the match is a plain string prefix,
+       so a lookalike host, the prefix embedded in another URL, plain http,
+       a path that only shares the stem, and other casing are all outside
+       (eight such near misses are pinned by test, each refused with no
+       fetch). The oauth suite's test client document moves under the
+       ChatGPT prefix in the per-app shape, since being a client no longer
+       needs a pin; the unknown-URL test keeps a URL under neither prefix.
+       The F1 tests in the security-review suite are untouched and green.
+     * **Plants, all caught:** exact keys again; any https trusted; a prefix
+       without its slash; a lookalike host added; the pinned per-app copy
+       dropped; a pin outside the prefixes; the live fetch skipped for an
+       unpinned prefix URL.
+     * **Follow-up, not touched (outside the ruling):** the live fetch for
+       an unpinned URL under a trusted prefix is bounded per URL by the
+       ten-minute failure memory and the hour cache, but not across URLs:
+       the unauthenticated routes can make kettle-api fetch one distinct
+       path on chatgpt.com or claude.ai per request. The hosts are fixed,
+       so it is request volume toward those two, not SSRF; a small
+       per-host fetch budget would close it if it ever matters.
+     * Also in this push: the baton's plugin zip line follows the PM's bump
+       to 1.0.1 and its CIMD line says ChatGPT is pinned. Suite green from
+       the root with Postgres required; no deploy. The product deploy that
+       carries 359 to 363 is still the founder's, after 0034.
+     * Next number: 364.
