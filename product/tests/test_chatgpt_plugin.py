@@ -22,7 +22,11 @@ ROOT = PACKAGE / "kettle"
 BRIEF = REPO / "docs" / "chatgpt-plugin-brief.md"
 COPY_BANS = REPO / "site" / "src" / "tests" / "copyBans.ts"
 
-INTERFACE = "com.openai.interface"
+#: Brief §2 as corrected by §5: the listing block is nested under two keys,
+#: `extensions."com.openai".interface`, never one dotted key (the first
+#: upload used the flat key and OpenAI read none of it).
+VENDOR = "com.openai"
+INTERFACE = "interface"
 #: Brief §2: the manifest's own keys, and the interface block's, in order.
 MANIFEST_KEYS = ("$schema", "name", "version", "description", "author", "homepage", "extensions")
 INTERFACE_FIELDS = (
@@ -47,7 +51,7 @@ def plugin() -> dict:
 
 
 def interface() -> dict:
-    return plugin()["extensions"][INTERFACE]
+    return plugin()["extensions"][VENDOR][INTERFACE]
 
 
 def readable_strings() -> dict[str, str]:
@@ -85,7 +89,10 @@ def test_both_files_parse_and_carry_every_required_field():
     assert manifest["description"]
     assert manifest["author"] == {"name": "HeyKettle", "url": "https://heykettle.com"}
     assert manifest["homepage"] == "https://heykettle.com/connect/"
-    assert set(manifest["extensions"]) == {INTERFACE}
+    # §5: two nested keys, and nothing else at either level, so the flat
+    # "com.openai.interface" of the first upload cannot come back.
+    assert tuple(manifest["extensions"]) == (VENDOR,)
+    assert tuple(manifest["extensions"][VENDOR]) == (INTERFACE,)
     block = interface()
     assert tuple(block) == INTERFACE_FIELDS
     assert block["displayName"] == "Kettle"
