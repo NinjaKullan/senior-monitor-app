@@ -4,8 +4,9 @@ The ChatGPT plugin package for Kettle (DECISIONS 358; `docs/chatgpt-plugin-brief
 It describes the MCP server the product already runs; nothing here is served, and
 nothing here changes a tool, its copy, or the OAuth server.
 
-- `kettle/plugin.json`: the manifest, with the ChatGPT interface block under
-  `extensions."com.openai.interface"`. Every string a person reads is the PM's copy
+- `kettle/plugin.json`: the manifest, with the ChatGPT listing block nested under
+  `extensions."com.openai".interface` (two keys; the flat dotted key of the first
+  upload is read by nobody, brief §5). Every string a person reads is the PM's copy
   (brief §3, verbatim) and is scanned against the site's copy-law ban lists by
   `product/tests/test_chatgpt_plugin.py`.
 - `kettle/mcp.json`: one server, `kettle`, streamable HTTP at

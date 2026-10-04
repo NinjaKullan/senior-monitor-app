@@ -9,29 +9,31 @@
   },
   "homepage": "https://heykettle.com/connect/",
   "extensions": {
-    "com.openai.interface": {
-      "displayName": "Kettle",
-      "shortDescription": "A caregiving log for family",
-      "longDescription": "Kettle is a shared record about a parent or anyone your family looks after. It acts as a caregiving log the whole family writes to and reads from. Connect it and you can ask ChatGPT how Mom's day is going, when her phone was last heard from, what your sister wrote this week, or who to call if you can't reach her. Say \"add a note: called Dad, he sounded great\" and it lands in the family's record for everyone to see. Each family member connects with their own Kettle sign-in and sees only their own circles. Kettle never reads messages, location or anything on a parent's phone; it hears a quiet signal that a normal routine happened, and keeps what the family writes. Reading has no side effects; adding a note is read back to you before it is saved.",
-      "developerName": "HeyKettle",
-      "category": "Productivity",
-      "capabilities": [
-        "Ask how a parent's day is going and when their phone was last heard from",
-        "Read what the family wrote, newest first, with anything upcoming on top",
-        "See who to call if you cannot reach a parent",
-        "Add a note or reply to one, read back to you before it is saved"
-      ],
-      "websiteURL": "https://heykettle.com",
-      "supportURL": "https://heykettle.com/connect/",
-      "privacyPolicyURL": "https://heykettle.com/privacy.html",
-      "termsOfServiceURL": "https://heykettle.com/terms.html",
-      "defaultPrompt": [
-        "How is Mom's day going?",
-        "Who can I call if I can't reach Mom?",
-        "Add a note: called Dad, he sounded great."
-      ],
-      "logo": "./assets/logo.png",
-      "composerIcon": "./assets/logo.png"
+    "com.openai": {
+      "interface": {
+        "displayName": "Kettle",
+        "shortDescription": "A caregiving log for family",
+        "longDescription": "Kettle is a shared record about a parent or anyone your family looks after. It acts as a caregiving log the whole family writes to and reads from. Connect it and you can ask ChatGPT how Mom's day is going, when her phone was last heard from, what your sister wrote this week, or who to call if you can't reach her. Say \"add a note: called Dad, he sounded great\" and it lands in the family's record for everyone to see. Each family member connects with their own Kettle sign-in and sees only their own circles. Kettle never reads messages, location or anything on a parent's phone; it hears a quiet signal that a normal routine happened, and keeps what the family writes. Reading has no side effects; adding a note is read back to you before it is saved.",
+        "developerName": "HeyKettle",
+        "category": "Productivity",
+        "capabilities": [
+          "Ask how a parent's day is going and when their phone was last heard from",
+          "Read what the family wrote, newest first, with anything upcoming on top",
+          "See who to call if you cannot reach a parent",
+          "Add a note or reply to one, read back to you before it is saved"
+        ],
+        "websiteURL": "https://heykettle.com",
+        "supportURL": "https://heykettle.com/connect/",
+        "privacyPolicyURL": "https://heykettle.com/privacy.html",
+        "termsOfServiceURL": "https://heykettle.com/terms.html",
+        "defaultPrompt": [
+          "How is Mom's day going?",
+          "Who can I call if I can't reach Mom?",
+          "Add a note: called Dad, he sounded great."
+        ],
+        "logo": "./assets/logo.png",
+        "composerIcon": "./assets/logo.png"
+      }
     }
   }
 }
