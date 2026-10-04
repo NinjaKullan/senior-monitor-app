@@ -24,7 +24,11 @@ Files, all under one root folder `kettle/`:
   `heykettle`, `version` `1.0.0`, `description` (PM copy below, under 1024
   characters), `author` `{name: "HeyKettle", url: "https://heykettle.com"}`,
   `homepage` `https://heykettle.com/connect/`, and
-  `extensions.com.openai.interface` with exactly these fields, verbatim:
+  the listing block nested exactly like this (two keys, not one dotted
+  key; OpenAI's example at
+  https://developers.openai.com/plugins/build/plugins.md):
+  `"extensions": { "com.openai": { "interface": { ... } } }`
+  with exactly these fields inside `interface`, verbatim:
   - `displayName`: `Kettle`
   - `shortDescription`: `A caregiving log for family`
   - `longDescription`: the PM's long copy below
@@ -76,3 +80,10 @@ defaultPrompt:
 ## 4. Report
 Table as in the directories brief. Say which Fly secret name the founder
 sets, and the exact zip path. No deploy.
+
+## 5. Correction (Oct 4, after the first upload)
+The first package put the listing under a flat `"com.openai.interface"`
+key and OpenAI read none of it (category Other, no URLs, no icon,
+"subtitle" fell back to the package description). Re-nest as §2 now says,
+keep every string identical, update the package tests to the nested
+shape, rebuild, report.
