@@ -582,8 +582,12 @@ def test_the_jwks_is_the_shape_supabase_publishes():
 
 # --- Client ID Metadata Documents (CIMD), beside dynamic registration ----------------
 
-CIMD_ID = "https://assistant.test/.well-known/oauth-client"
-CIMD_REDIRECT = "https://assistant.test/callback"
+#: A per-app document under a trusted prefix (brief 358 §7), the shape
+#: ChatGPT's Connect step sends; not pinned unless a test pins it.
+CIMD_ID = "https://chatgpt.com/oauth/TESTAPP0001/client.json"
+CIMD_REDIRECT = "https://chatgpt.com/connector/oauth/TESTAPP0001"
+#: An https URL under neither prefix: never a client, never fetched.
+UNKNOWN_ID = "https://assistant.test/.well-known/oauth-client"
 
 
 def cimd_document(**over):
@@ -598,11 +602,13 @@ def cimd_document(**over):
     }
 
 
-def cimd_client(document=None, status: int = 200, calls: list[str] | None = None) -> httpx.Client:
+def cimd_client(
+    document=None, status: int = 200, calls: list[str] | None = None, url: str = CIMD_ID
+) -> httpx.Client:
     def handler(request: httpx.Request) -> httpx.Response:
         if calls is not None:
             calls.append(str(request.url))
-        if str(request.url) == CIMD_ID:
+        if str(request.url) == url:
             return httpx.Response(
                 status, json=document if document is not None else cimd_document()
             )
@@ -623,11 +629,10 @@ def cimd_api_factory(settings, notifier, conn, clock):
 
 @pytest.fixture
 def known_cimd(monkeypatch):
-    """Register CIMD_ID as a known client document for the duration (DECISIONS
-    336): CIMD is closed to unknown URLs, so the CIMD mechanics — connect,
-    redirect validation, shipped-copy fallback — are only reachable for a URL
-    whose document we ship. The shipped copy names CIMD_REDIRECT, so a live
-    fetch that fails falls back to a redirect the test can still use."""
+    """Pin CIMD_ID's document for the duration, the way Claude's and ChatGPT's
+    are pinned (DECISIONS 319/336): the pinned copy names CIMD_REDIRECT, so a
+    live fetch that fails falls back to a redirect the test can still use.
+    Being a client at all needs no pin since brief 358 §7; the prefix does."""
     monkeypatch.setitem(
         assistant_auth.KNOWN_CLIENT_DOCUMENTS,
         CIMD_ID,
@@ -664,10 +669,10 @@ def test_a_cimd_client_connects_without_registering(cimd_api_factory, conn, fami
 def test_a_known_url_with_a_broken_live_document_falls_back_to_its_shipped_copy(
     cimd_api_factory, family, known_cimd
 ):
-    """DECISIONS 336: for a KNOWN url, an unreachable or self-contradicting
+    """DECISIONS 336: for a PINNED url, an unreachable or self-contradicting
     live document is not "no client" — the shipped copy stands (319/320), the
-    same way Claude's does when its edge challenges the fetch. (For an UNKNOWN
-    url there is no fetch at all; that is the test below.)"""
+    same way Claude's does when its edge challenges the fetch. (For a url
+    outside the prefixes there is no fetch at all; that is the test below.)"""
     for client in (
         cimd_client(status=404),
         cimd_client(status=500),
@@ -759,29 +764,121 @@ def test_a_challenged_fetch_of_claudes_document_falls_back_to_the_shipped_copy(
     )
 
 
-def test_an_unknown_https_client_id_is_invalid_client_with_no_fetch_and_no_log(
+#: Near misses of the trusted prefixes: a lookalike host, the prefix inside
+#: another URL, plain http, a path that only shares a stem, other casing.
+#: None is a client, none is fetched.
+OUTSIDE_THE_PREFIXES = (
+    UNKNOWN_ID,
+    "https://chatgpt.com.evil.test/oauth/x/client.json",
+    "https://evil.test/https://chatgpt.com/oauth/x/client.json",
+    "http://chatgpt.com/oauth/x/client.json",
+    "https://chatgpt.com/oauthx/client.json",
+    "https://chatgpt.com/oauth",
+    "HTTPS://CHATGPT.COM/oauth/x/client.json",
+    "https://claude.ai/api/mcp/auth_callback",
+)
+
+
+def test_a_url_outside_both_prefixes_is_invalid_client_with_no_fetch_and_no_log(
     cimd_api_factory, family, caplog
 ):
-    """DECISIONS 336: an `https://` client_id that is not a known document is
-    not a CIMD client at all. It gets `invalid_client` — the same silence an
-    unknown `kc_` id gets — with no fetch and no log line. The recording
-    transport is handed a URL that, if it were reached, would answer 200, so a
-    request arriving would prove the fetch happened; none does."""
+    """DECISIONS 336, kept by brief 358 §7: an `https://` client_id under
+    neither trusted prefix is not a CIMD client at all. It gets
+    `invalid_client` — the same silence an unknown `kc_` id gets — with no
+    fetch and no log line. The recording transport would answer 200 for any
+    of these URLs if reached, so a request arriving would prove the fetch
+    happened; none does."""
     import logging
 
+    for url in OUTSIDE_THE_PREFIXES:
+        assert not assistant_auth.is_cimd_client_id(url), url
     calls: list[str] = []
     with (
         caplog.at_level(logging.WARNING, logger="kettle.assistant"),
-        cimd_api_factory(cimd_client(calls=calls)) as api,
+        cimd_api_factory(cimd_client(calls=calls, url=UNKNOWN_ID)) as api,
     ):
+        for url in OUTSIDE_THE_PREFIXES:
+            assistant = Assistant(api, redirect_uri=CIMD_REDIRECT)
+            assistant.client_id = url
+            _, challenge = pkce_pair()
+            refused = assistant.authorize(challenge)
+            assert refused.status_code == 400, url
+            assert refused.json()["error"] == "invalid_client", url
+    assert calls == []  # no fetch of any attacker-named URL
+    assert "assistant.test" not in caplog.text and "evil.test" not in caplog.text
+
+
+def test_a_chatgpt_document_under_the_prefix_is_a_client_even_when_not_pinned(
+    cimd_api_factory, conn, family
+):
+    """Brief 358 §7: ChatGPT mints one document per app, so the Connect step
+    sends a client_id nobody pinned. Under the prefix it is fetched live and
+    the whole flow works; the mirrored row and the grant carry its URL."""
+    assert assistant_auth.is_cimd_client_id(CIMD_ID)
+    assert CIMD_ID not in assistant_auth.KNOWN_CLIENT_DOCUMENTS
+    calls: list[str] = []
+    with cimd_api_factory(cimd_client(calls=calls)) as api:
         assistant = Assistant(api, redirect_uri=CIMD_REDIRECT)
-        assistant.client_id = CIMD_ID  # not in KNOWN_CLIENT_DOCUMENTS
+        assistant.client_id = CIMD_ID
         _, challenge = pkce_pair()
-        refused = assistant.authorize(challenge)
-        assert refused.status_code == 400
-        assert refused.json()["error"] == "invalid_client"
-    assert calls == []  # no fetch of the attacker-named URL
-    assert CIMD_ID not in caplog.text  # no log line names it
+        sent = assistant.authorize(challenge, resource="https://kettle-api.test/mcp")
+        assert sent.status_code == 302, sent.text
+        request_id = parse_qs(urlsplit(sent.headers["location"]).query)["request"][0]
+        assert api.get("/oauth/pending", params={"request": request_id}).json() == {
+            "client_name": "Documented",
+            "scope": "kettle:read",
+        }
+        assistant.connect(USER)
+        assert mcp_call(api, assistant.access_token, "tools/list").status_code == 200
+    assert calls == [CIMD_ID]  # fetched once; the cache serves the rest
+    rows = conn.execute("select client_id, client_name from assistant_clients").fetchall()
+    assert [(r["client_id"], r["client_name"]) for r in rows] == [(CIMD_ID, "Documented")]
+    assert {g["client_id"] for g in _grants(conn)} == {CIMD_ID}
+
+
+CHATGPT_APP_ID = "https://chatgpt.com/oauth/A1YFUC1zmNdF/client.json"
+CHATGPT_APP_REDIRECT = "https://chatgpt.com/connector/oauth/A1YFUC1zmNdF"
+
+
+def test_the_pinned_chatgpt_copy_stands_when_the_live_fetch_fails(cimd_api_factory, family):
+    """Brief 358 §7: the per-app document is pinned as fetched Oct 4 2026, so
+    a failed live fetch (here a challenge, as claude.ai's edge does) still
+    lets ChatGPT's real redirect through and names it on the consent screen."""
+    pinned = assistant_auth.KNOWN_CLIENT_DOCUMENTS[CHATGPT_APP_ID]
+    assert pinned == {
+        "client_id": CHATGPT_APP_ID,
+        "client_name": "ChatGPT",
+        "redirect_uris": [CHATGPT_APP_REDIRECT],
+    }
+    calls: list[str] = []
+    with cimd_api_factory(challenged(calls, url=CHATGPT_APP_ID)) as api:
+        assistant = Assistant(api, redirect_uri=CHATGPT_APP_REDIRECT)
+        assistant.client_id = CHATGPT_APP_ID
+        _, challenge = pkce_pair()
+        sent = assistant.authorize(challenge)
+        assert sent.status_code == 302, sent.text
+        request_id = parse_qs(urlsplit(sent.headers["location"]).query)["request"][0]
+        assert api.get("/oauth/pending", params={"request": request_id}).json() == {
+            "client_name": "ChatGPT",
+            "scope": "kettle:read",
+        }
+        # The pinned copy names one redirect; a sibling app's is refused.
+        other = "https://chatgpt.com/connector/oauth/B2ZZZZZZZZZZ"
+        assert assistant.authorize(challenge, redirect_uri=other).status_code == 400
+    assert calls == [CHATGPT_APP_ID]
+
+
+def test_every_pinned_document_is_under_a_trusted_prefix():
+    """A pin is a fallback for a document already trusted, never a way in: a
+    key outside the prefixes would be dead (is_cimd_client_id never reaches
+    it) and would read as if it granted something."""
+    prefixes = assistant_auth.TRUSTED_CLIENT_DOCUMENT_PREFIXES
+    assert prefixes == ("https://claude.ai/oauth/", "https://chatgpt.com/oauth/")
+    assert all(p.startswith("https://") and p.endswith("/") for p in prefixes)
+    for key, document in assistant_auth.KNOWN_CLIENT_DOCUMENTS.items():
+        assert assistant_auth.is_cimd_client_id(key), key
+        assert document["client_id"] == key
+        assert document["redirect_uris"]
 
 
 def test_a_live_document_that_differs_wins_over_the_shipped_copy(cimd_api_factory, conn, family):
