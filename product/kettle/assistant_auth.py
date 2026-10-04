@@ -73,12 +73,26 @@ CIMD_CACHE_LIFE = timedelta(hours=1)
 #: connects must not hammer the client's edge, and the shipped copy stands
 #: for the duration.
 CIMD_FAILURE_LIFE = timedelta(minutes=10)
-#: Known client documents, keyed by client_id URL, in the shape _parse_cimd
+#: Where a client document may live (brief 358 §7, ruled by the PM). Trust
+#: is per host prefix, not per exact URL: ChatGPT mints one document per app
+#: under chatgpt.com/oauth/, so an exact-key allowlist refused the real
+#: connect. A client_id under one of these prefixes is fetched live; anything
+#: else is never fetched, which is the F1 guarantee (`is_cimd_client_id`).
+#: A module constant, not a setting: the list is two names and a change to
+#: it is a ruling.
+TRUSTED_CLIENT_DOCUMENT_PREFIXES: tuple[str, ...] = (
+    "https://claude.ai/oauth/",
+    "https://chatgpt.com/oauth/",
+)
+
+#: Pinned client documents, keyed by client_id URL, in the shape _parse_cimd
 #: returns (DECISIONS 319). claude.ai's edge answers Kettle's fetch of
 #: Claude's document with a Cloudflare challenge from the Fly machine; the
 #: redirect address is the one thing a document decides, and it is public.
-#: The live fetch still wins when it works; this copy stands when it does
-#: not. Claude's, as fetched Sep 8 2026.
+#: The live fetch still wins when it works; the pinned copy stands when it
+#: does not. Every key is under a trusted prefix above (a test holds it): a
+#: pin is a fallback for a document already trusted, never a way in.
+#: Claude's, as fetched Sep 8 2026.
 KNOWN_CLIENT_DOCUMENTS: dict[str, dict[str, Any]] = {
     "https://claude.ai/oauth/mcp-oauth-client-metadata": {
         "client_id": "https://claude.ai/oauth/mcp-oauth-client-metadata",
@@ -92,6 +106,15 @@ KNOWN_CLIENT_DOCUMENTS: dict[str, dict[str, Any]] = {
         "client_id": "https://chatgpt.com/oauth/client.json",
         "client_name": "ChatGPT",
         "redirect_uris": ["https://chatgpt.com/connector_platform_oauth_redirect"],
+    },
+    #: ChatGPT's per-app document for Kettle (brief 358 §7), the one its
+    #: Connect step actually sends; as fetched Oct 4 2026 by the founder in
+    #: Safari. It lists token_endpoint_auth_methods_supported `none` and
+    #: `private_key_jwt`; Kettle advertises `none`, unchanged.
+    "https://chatgpt.com/oauth/A1YFUC1zmNdF/client.json": {
+        "client_id": "https://chatgpt.com/oauth/A1YFUC1zmNdF/client.json",
+        "client_name": "ChatGPT",
+        "redirect_uris": ["https://chatgpt.com/connector/oauth/A1YFUC1zmNdF"],
     },
 }
 
@@ -311,17 +334,22 @@ def client_row(conn: psycopg.Connection, client_id: str) -> dict[str, Any] | Non
 
 
 def is_cimd_client_id(client_id: str) -> bool:
-    """A CIMD client is one whose document we already ship (DECISIONS 336).
+    """A CIMD client is one whose document lives under a trusted prefix
+    (brief 358 §7, widening DECISIONS 336).
 
-    CIMD is closed to unknown URLs, not guarded by an address check: only a
-    `client_id` that is a key of KNOWN_CLIENT_DOCUMENTS is a CIMD client. Every
-    other `https://` id is an unknown client — `client_for` returns None and
+    CIMD is closed to unknown hosts, not to unknown URLs: a `client_id` that
+    starts with one of TRUSTED_CLIENT_DOCUMENT_PREFIXES is a CIMD client and
+    its document is fetched live (`ClientDocuments`), with the pinned copy in
+    KNOWN_CLIENT_DOCUMENTS standing when the fetch fails and one exists. 336
+    keyed this on the exact pinned URLs; ChatGPT mints a document per app
+    under chatgpt.com/oauth/, so the real connect was refused. Every other
+    `https://` id is an unknown client — `client_for` returns None and
     fetches nothing, the same silence an unknown `kc_` id gets — so an
-    attacker cannot make kettle-api fetch an arbitrary URL from the
-    unauthenticated `/oauth/authorize` and `/oauth/token` routes (the F1 SSRF,
-    `docs/security-review-2026-09.md`). Adding a CIMD client stays what 319/320
-    already required: ship its document. DCR stays open to everyone."""
-    return client_id in KNOWN_CLIENT_DOCUMENTS
+    attacker still cannot make kettle-api fetch an arbitrary URL from the
+    unauthenticated `/oauth/authorize` and `/oauth/token` routes (the F1
+    SSRF, `docs/security-review-2026-09.md`): nothing outside the two hosts
+    is ever reached. DCR stays open to everyone."""
+    return client_id.startswith(TRUSTED_CLIENT_DOCUMENT_PREFIXES)
 
 
 class ClientDocuments:
