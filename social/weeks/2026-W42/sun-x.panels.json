@@ -1,0 +1,24 @@
+{
+  "panels": [
+    {
+      "scene": "SAM at a kitchen counter in the morning with his phone face down, the green kettle on the stove, a mug in hand.",
+      "dialogue": [],
+      "caption": "Two short notes a day."
+    },
+    {
+      "scene": "JUNE at her table with a quiet phone beside her mug, a lit blank screen, relaxed.",
+      "dialogue": [
+        [
+          "JUNE",
+          "Yes, I'm up. Thumbs up."
+        ]
+      ],
+      "caption": "If a morning is different, she is asked first."
+    },
+    {
+      "scene": "SAM reading his phone with a small relieved smile, the kettle on the stove.",
+      "dialogue": [],
+      "caption": "Checking in, not checking up."
+    }
+  ]
+}

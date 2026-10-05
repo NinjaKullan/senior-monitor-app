@@ -1,0 +1,132 @@
+{
+ "week": "2026-W42",
+ "theme": "The thick envelope of fall mail: ask a parent what they make of it, not whether they did it right, and let a normal call be about the tomatoes.",
+ "posts": [
+  {
+   "day": "Mon",
+   "channel": "x",
+   "text": "A thick envelope lands in your parents' mailbox every fall. The easy question is \"did you open it?\" The better one is \"what did you make of it?\" They have been reading their own mail for a long time.",
+   "image": "mon-x.png",
+   "alt": "Three-panel comic. June sits at her kitchen table with a thick envelope, a mug and a phone. Sam, far away, asks on the phone, 'Did the letter come?' June answers, 'It did. Pen's in my hand.' Caption: She had it handled.",
+   "note": "Anchor: fall plan mail arriving (Medicare plan notices, found in this week's search; no figure or source cited). Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "destination": "",
+   "cta": false
+  },
+  {
+   "day": "Tue",
+   "channel": "pinterest",
+   "title": "How to ask a parent about their mail without taking over",
+   "text": "How to ask a parent about their mail without taking over\n\nThree small steps for a call about a letter: ask what they think of it, let them explain it, then offer a second pair of eyes and wait for the yes.",
+   "image": "tue-pinterest.png",
+   "destination": "heykettle.com",
+   "alt": "Three stacked comic panels. Sam walks outside among autumn leaves asking, 'What did you make of the letter?' June explains at her table, 'Same plan, but the price moved.' Sam offers, 'Want a second pair of eyes?' Captions: Ask what they think of it. Let them explain it. Offer help, then wait for the yes.",
+   "note": "Destination is the brand home only; no guide URL guessed. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "cta": false
+  },
+  {
+   "day": "Wed",
+   "channel": "tiktok",
+   "title": "Let the normal morning be enough",
+   "script": [
+    {
+     "t": "0:00-0:08",
+     "say": "Every fall, a thick envelope shows up in your parents' mailbox. And the next call turns into a quiz.",
+     "overlay": "The call turns into a quiz",
+     "broll": "Founder to camera, kitchen counter behind him."
+    },
+    {
+     "t": "0:08-0:20",
+     "say": "Did you open it? Did you read it? Did you take your pills? I'd rather just ask how they are.",
+     "overlay": "I'd rather ask how they are",
+     "broll": "Founder to camera, small shrug."
+    },
+    {
+     "t": "0:20-0:34",
+     "say": "So I built Kettle. It notices that a normal morning happened on the phone they already own, and tells us twice a day. If a morning is different, it asks them first.",
+     "overlay": "Twice a day. Asks them first.",
+     "broll": "Neutral b-roll: a plain phone face down on a kitchen table, no app visible."
+    },
+    {
+     "t": "0:34-0:40",
+     "say": "Then the call can be about tomatoes.",
+     "overlay": "Then the call can be about tomatoes",
+     "broll": "Founder to camera, small smile."
+    }
+   ],
+   "text": "The call turns into a quiz. It does not have to.",
+   "image": "wed-tiktok.png",
+   "alt": "Cover: Sam leans on a kitchen counter holding his phone, smiling, the green kettle on the stove. Caption: Ask how they are. Let the normal morning be enough.",
+   "note": "CTA: no. Founder lines use only brief facts (he built Kettle; twice a day; asks parent first). Pills line is a spoken example of a quiz question, not a claim about his parents. Uncertainty: Hema may prefer to cut the pills line. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "destination": "",
+   "cta": false
+  },
+  {
+   "day": "Thu",
+   "channel": "x",
+   "text": "Some calls turn into a list. The letter, the gutters, the appointment. Then a parent says she is out with the tomatoes, and that is the call you wanted.",
+   "image": "thu-x.png",
+   "alt": "Three-panel comic. Sam frowns at his desk, writing a list and saying, 'Okay, and how is the letter, the pills, the gutters...' June, in the garden with gloves and a watering can, says, 'I'm out with the tomatoes.' Sam laughs and says, 'Tell me about the tomatoes.' Captions: The call turned into a list. Better call.",
+   "note": "No CTA. Pills named only as a list item in the strip, not as a claim about a person. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "destination": "",
+   "cta": false
+  },
+  {
+   "day": "Fri",
+   "channel": "pinterest",
+   "title": "Questions to ask a parent that are not a quiz",
+   "text": "Questions to ask a parent that are not a quiz\n\nStart with what is on their table. Ask about the day, not the paperwork. Let the letter wait for the end of the call.",
+   "image": "fri-pinterest.png",
+   "destination": "heykettle.com",
+   "alt": "Three stacked comic panels. June reads a library book in an armchair. Sam on a train asks, 'What are you reading?' Sam and June on a video call, her pen and envelope to one side. Captions: Start with what is on their table. Ask about the day, not the paperwork. The letter can wait for the end.",
+   "note": "No CTA; destination is the brand home. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "cta": false
+  },
+  {
+   "day": "Sat",
+   "channel": "tiktok",
+   "title": "Her own mail",
+   "script": [
+    {
+     "t": "0:00-0:07",
+     "say": "My parents have been reading their own mail for decades.",
+     "overlay": "They read their own mail",
+     "broll": "Founder to camera, kitchen."
+    },
+    {
+     "t": "0:07-0:20",
+     "say": "When I call about a letter, I try to ask what they think of it, not whether they did it right.",
+     "overlay": "What do you think of it?",
+     "broll": "Phone on a table, a pen and an envelope beside it."
+    },
+    {
+     "t": "0:20-0:32",
+     "say": "They know their own business. My job is to be on the phone, and to ask if they want a second pair of eyes.",
+     "overlay": "Offer a second pair of eyes",
+     "broll": "Founder to camera."
+    },
+    {
+     "t": "0:32-0:38",
+     "say": "Then I wait for the yes.",
+     "overlay": "Then wait for the yes",
+     "broll": "Founder to camera, quiet smile."
+    }
+   ],
+   "text": "Ask what they think. Then wait for the yes.",
+   "image": "sat-tiktok.png",
+   "alt": "Cover: June sits at her kitchen table with a mug, an envelope and a pen, reading her own mail, the green kettle behind her. Caption: She was reading her own mail.",
+   "note": "CTA: no, quiet takeaway. 'Decades' and 'when I call about a letter' are Hema first-person claims NOT in the brief: pending Hema's confirmation, otherwise soften to 'Parents have been reading their own mail for decades.' Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "destination": "",
+   "cta": false
+  },
+  {
+   "day": "Sun",
+   "channel": "x",
+   "text": "Kettle sends two short notes a day. If a morning is different, it asks the parent first, not the family. For checking in, not checking up. Apply for the family beta at heykettle.com.",
+   "image": "sun-x.png",
+   "cta": true,
+   "alt": "Three-panel comic. Sam in his kitchen with a mug, the green kettle on the stove. June at her table with a phone says, 'Yes, I'm up. Thumbs up.' Sam smiles at his phone. Captions: Two short notes a day. If a morning is different, she is asked first. Checking in, not checking up.",
+   "note": "CTA: yes (1 of 2 allowed this week; Wed and the rest have none). Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "destination": ""
+  }
+ ]
+}

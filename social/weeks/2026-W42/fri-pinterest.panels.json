@@ -1,0 +1,24 @@
+{
+  "panels": [
+    {
+      "scene": "JUNE reading a library book in an armchair, a mug nearby, the green kettle on a shelf.",
+      "dialogue": [],
+      "caption": "Start with what is on their table."
+    },
+    {
+      "scene": "SAM on a train seat holding his phone, a window with autumn trees going by.",
+      "dialogue": [
+        [
+          "SAM",
+          "What are you reading?"
+        ]
+      ],
+      "caption": "Ask about the day, not the paperwork."
+    },
+    {
+      "scene": "JUNE and SAM on a video call, both smiling, her with a pen and the envelope off to one side.",
+      "dialogue": [],
+      "caption": "The letter can wait for the end."
+    }
+  ]
+}
