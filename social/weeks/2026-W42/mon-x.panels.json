@@ -1,0 +1,29 @@
+{
+  "panels": [
+    {
+      "scene": "JUNE at her kitchen table in the morning, a thick envelope open beside a mug and a pen, reading glasses on, calm. The green kettle on the stove behind her. Plain phone on the table.",
+      "dialogue": [],
+      "caption": "The thick envelope came."
+    },
+    {
+      "scene": "SAM at a kitchen counter far away, phone to his ear, looking a little unsure what to ask.",
+      "dialogue": [
+        [
+          "SAM",
+          "Did the letter come?"
+        ]
+      ],
+      "caption": ""
+    },
+    {
+      "scene": "JUNE at the table with the letter, a pen in hand, glancing at the phone with a small smile.",
+      "dialogue": [
+        [
+          "JUNE",
+          "It did. Pen's in my hand."
+        ]
+      ],
+      "caption": "She had it handled."
+    }
+  ]
+}
