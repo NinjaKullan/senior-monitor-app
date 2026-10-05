@@ -1,0 +1,34 @@
+{
+  "panels": [
+    {
+      "scene": "SAM at his desk with the phone to his ear, frowning, a pen in hand over a notepad whose page is covered only in plain wavy lines and crossed-out squiggles, no letters or words anywhere. The green kettle on a shelf.",
+      "dialogue": [
+        [
+          "SAM",
+          "Okay, and how is the letter, the pills, the gutters..."
+        ]
+      ],
+      "caption": "The call turned into a list."
+    },
+    {
+      "scene": "JUNE in the garden in gloves, phone held away from her ear, amused, a watering can beside her.",
+      "dialogue": [
+        [
+          "JUNE",
+          "I'm out with the tomatoes."
+        ]
+      ],
+      "caption": ""
+    },
+    {
+      "scene": "SAM laughing quietly at his desk, phone in hand, mug nearby, the pen put down. No notepad on the desk. The green kettle on a shelf.",
+      "dialogue": [
+        [
+          "SAM",
+          "Tell me about the tomatoes."
+        ]
+      ],
+      "caption": "Better call."
+    }
+  ]
+}

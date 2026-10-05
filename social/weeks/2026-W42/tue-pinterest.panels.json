@@ -1,0 +1,34 @@
+{
+  "panels": [
+    {
+      "scene": "SAM walking along a street holding his phone to his ear, thinking, a few autumn leaves around.",
+      "dialogue": [
+        [
+          "SAM",
+          "What did you make of the letter?"
+        ]
+      ],
+      "caption": "Ask what they think of it."
+    },
+    {
+      "scene": "JUNE at her table with a mug and the letter, pointing at a line with her pen, explaining.",
+      "dialogue": [
+        [
+          "JUNE",
+          "Same plan, but the price moved."
+        ]
+      ],
+      "caption": "Let them explain it."
+    },
+    {
+      "scene": "SAM at a desk, nodding, phone on speaker, a notepad beside him.",
+      "dialogue": [
+        [
+          "SAM",
+          "Want a second pair of eyes?"
+        ]
+      ],
+      "caption": "Offer help, then wait for the yes."
+    }
+  ]
+}
