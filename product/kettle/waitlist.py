@@ -145,15 +145,15 @@ def normalise_help_with(raw: str) -> str | None:
     return text[:MAX_HELP_WITH_LENGTH].rstrip()
 
 
-def ping_text(number: int, help_with: str | None) -> str:
-    """The founder's ntfy line for a new signup (DECISIONS 365 §2).
+def ping_text(number: int) -> str:
+    """The founder's ntfy line for a new signup (DECISIONS 365 §2, 366).
 
-    Built from the signup's number and its note and nothing else: the email
-    and the phone answer never reach ntfy, which is listed as carrying no
-    personal data.
+    The signup's number and nothing else. Not the email, not the phone answer,
+    and not the note either: the note is a stranger's free text and can hold a
+    phone number or a health detail, and ntfy is listed as carrying no
+    personal data. The note is read where it is stored.
     """
-    text = f"Waitlist: new signup (#{number})"
-    return f"{text}, help with: {help_with}" if help_with else text
+    return f"Waitlist: new signup (#{number})"
 
 
 def record(
@@ -187,7 +187,7 @@ def record(
         inserted = _upsert(conn, email, parent_phone, help_with)
         number = count(conn) if inserted else 0
     if inserted and on_new is not None:
-        on_new(ping_text(number, help_with))
+        on_new(ping_text(number))
     return True
 
 

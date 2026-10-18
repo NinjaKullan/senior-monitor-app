@@ -574,7 +574,7 @@ def test_a_spread_of_hits_rolls_off_one_at_a_time(flood, conn):
 # ---------------------------------------------------------------------------
 
 
-def test_a_new_signup_pings_the_founder_with_its_number_and_note(
+def test_a_new_signup_pings_the_founder_with_its_number(
     client: TestClient, conn: psycopg.Connection, notifier
 ):
     conn.execute(
@@ -582,10 +582,7 @@ def test_a_new_signup_pings_the_founder_with_its_number_and_note(
     )
     client.post("/waitlist", json={**SIGNUP, "help_with": "Mom lives alone"})
     client.post("/waitlist", json={"email": "quiet@example.com", "parent_phone": "unsure"})
-    assert notifier.messages == [
-        "Waitlist: new signup (#2), help with: Mom lives alone",
-        "Waitlist: new signup (#3)",
-    ]
+    assert notifier.messages == ["Waitlist: new signup (#2)", "Waitlist: new signup (#3)"]
 
 
 def test_a_repeat_signup_does_not_ping(client: TestClient, notifier):
@@ -594,12 +591,17 @@ def test_a_repeat_signup_does_not_ping(client: TestClient, notifier):
     assert notifier.messages == ["Waitlist: new signup (#1)"]
 
 
-def test_the_ping_never_carries_the_email_or_the_phone(client: TestClient, notifier):
+def test_the_ping_never_carries_the_email_the_phone_or_the_note(client: TestClient, notifier):
+    """DECISIONS 366 (2): the note is free text and may hold personal data."""
     client.post(
         "/waitlist",
-        json={"email": "Asha.Rao@Example.org", "parent_phone": "android", "help_with": "Mom"},
+        json={
+            "email": "Asha.Rao@Example.org",
+            "parent_phone": "android",
+            "help_with": "Mom lives alone, call 98400 12345",
+        },
     )
     assert len(notifier.messages) == 1
     sent = notifier.messages[0].lower()
-    for leak in ("asha", "rao", "example", "@", "android", "phone"):
+    for leak in ("asha", "rao", "example", "@", "android", "phone", "mom", "98400", "help"):
         assert leak not in sent, leak
