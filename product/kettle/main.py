@@ -18,7 +18,7 @@ from urllib.parse import parse_qs
 
 import httpx
 import psycopg
-from fastapi import FastAPI, Request
+from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 from mcp.server.transport_security import TransportSecuritySettings
@@ -386,7 +386,7 @@ def create_app(
         return PlainTextResponse(str(written))
 
     @app.post("/waitlist", response_class=PlainTextResponse)
-    async def join_waitlist(request: Request) -> PlainTextResponse:
+    async def join_waitlist(request: Request, background: BackgroundTasks) -> PlainTextResponse:
         """The landing page's one write (spec 006 §7).
 
         Accepts JSON or form-encoded, because the page's form degrades to a
@@ -406,6 +406,11 @@ def create_app(
         the success sentence: a few POSTs per caller per rolling hour, checked
         before the body is read, and a ceiling on the table. Nothing is
         recorded on either path — no row, no alert, no log line.
+
+        A new signup pings the founder over ntfy (DECISIONS 365 §2), as a
+        background task: it runs after the response is sent, so a first signup
+        and a repeat keep the same timing shape, and a failed post cannot fail
+        the signup.
         """
         if not request.app.state.waitlist_flood.allow(_client_ip(request) or "", clock()):
             return PlainTextResponse(waitlist.WAITLIST_SUCCESS)
@@ -441,7 +446,13 @@ def create_app(
         help_with = waitlist.normalise_help_with(field("help_with"))
 
         with request.app.state.pool.connection() as conn:
-            waitlist.record(conn, email, parent_phone, help_with)
+            waitlist.record(
+                conn,
+                email,
+                parent_phone,
+                help_with,
+                on_new=lambda text: background.add_task(request.app.state.notifier.send, text),
+            )
         return PlainTextResponse(waitlist.WAITLIST_SUCCESS)
 
     # --- spec 019: the assistant door ------------------------------------------

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import re
 from collections import OrderedDict, deque
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -144,11 +145,23 @@ def normalise_help_with(raw: str) -> str | None:
     return text[:MAX_HELP_WITH_LENGTH].rstrip()
 
 
+def ping_text(number: int, help_with: str | None) -> str:
+    """The founder's ntfy line for a new signup (DECISIONS 365 §2).
+
+    Built from the signup's number and its note and nothing else: the email
+    and the phone answer never reach ntfy, which is listed as carrying no
+    personal data.
+    """
+    text = f"Waitlist: new signup (#{number})"
+    return f"{text}, help with: {help_with}" if help_with else text
+
+
 def record(
     conn: psycopg.Connection,
     email: str,
     parent_phone: str,
     help_with: str | None = None,
+    on_new: Callable[[str], object] | None = None,
 ) -> bool:
     """Insert, or quietly update the answer if this address signed up before.
 
@@ -164,25 +177,35 @@ def record(
     The note upserts through `coalesce`: a later signup that says something new
     replaces the old note, and one that leaves the box empty keeps what was
     already said — silence is not an erasure request, retyping is a correction.
+
+    `on_new` hears `ping_text` once, after the commit, and only when the row is
+    new (365 §2): a re-signup and a refusal past the cap are silent.
     """
     with conn.transaction():
         if count(conn) >= WAITLIST_CAP:
             return False
-        _upsert(conn, email, parent_phone, help_with)
+        inserted = _upsert(conn, email, parent_phone, help_with)
+        number = count(conn) if inserted else 0
+    if inserted and on_new is not None:
+        on_new(ping_text(number, help_with))
     return True
 
 
-def _upsert(conn: psycopg.Connection, email: str, parent_phone: str, help_with: str | None) -> None:
-    conn.execute(
+def _upsert(conn: psycopg.Connection, email: str, parent_phone: str, help_with: str | None) -> bool:
+    """Write the row; True when it is new. `xmax = 0` holds only for a row this
+    statement inserted, not one it updated on conflict."""
+    row: Any = conn.execute(
         """
         insert into waitlist (email, parent_phone, help_with)
         values (%s, %s, %s)
         on conflict (email) do update
             set parent_phone = excluded.parent_phone,
                 help_with = coalesce(excluded.help_with, waitlist.help_with)
+        returning (xmax = 0) as inserted
         """,
         (email, parent_phone, help_with),
-    )
+    ).fetchone()
+    return bool(row["inserted"])
 
 
 def count(conn: psycopg.Connection) -> int:
