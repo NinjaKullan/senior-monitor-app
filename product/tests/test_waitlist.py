@@ -567,3 +567,39 @@ def test_a_spread_of_hits_rolls_off_one_at_a_time(flood, conn):
     clock.advance(minutes=1, seconds=1)  # the first hit has rolled off
     _signup(client, 61)
     assert "person61@example.com" in {r["email"] for r in rows(conn)}
+
+
+# ---------------------------------------------------------------------------
+# The founder's ping (DECISIONS 365 §2)
+# ---------------------------------------------------------------------------
+
+
+def test_a_new_signup_pings_the_founder_with_its_number_and_note(
+    client: TestClient, conn: psycopg.Connection, notifier
+):
+    conn.execute(
+        "insert into waitlist (email, parent_phone) values ('earlier@example.com', 'unsure')"
+    )
+    client.post("/waitlist", json={**SIGNUP, "help_with": "Mom lives alone"})
+    client.post("/waitlist", json={"email": "quiet@example.com", "parent_phone": "unsure"})
+    assert notifier.messages == [
+        "Waitlist: new signup (#2), help with: Mom lives alone",
+        "Waitlist: new signup (#3)",
+    ]
+
+
+def test_a_repeat_signup_does_not_ping(client: TestClient, notifier):
+    client.post("/waitlist", json=SIGNUP)
+    client.post("/waitlist", json={**SIGNUP, "parent_phone": "android", "help_with": "Dad"})
+    assert notifier.messages == ["Waitlist: new signup (#1)"]
+
+
+def test_the_ping_never_carries_the_email_or_the_phone(client: TestClient, notifier):
+    client.post(
+        "/waitlist",
+        json={"email": "Asha.Rao@Example.org", "parent_phone": "android", "help_with": "Mom"},
+    )
+    assert len(notifier.messages) == 1
+    sent = notifier.messages[0].lower()
+    for leak in ("asha", "rao", "example", "@", "android", "phone"):
+        assert leak not in sent, leak
