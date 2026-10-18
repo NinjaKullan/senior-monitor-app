@@ -1,9 +1,11 @@
 # Beta invitation (first ten families)
 
 Status: SENT by the founder from 2026-09-12 (DECISIONS 328). Two versions,
-same facts. Price line as sent: free during the beta, $10 a month per
-parent afterwards for early families; the public price higher. Sent one
-to one, never to a group.
+same facts. Price line: free for the first year, then $10 a month per
+family (up to two parents), held for as long as the family stays
+(DECISIONS 365). Invitations sent before 2026-10-18 carried the earlier
+line, free during the beta then $10 a month per parent. Sent one to one,
+never to a group.
 
 ## WhatsApp
 
@@ -18,8 +20,8 @@ there's no reply for two hours, you get a note. That's it. No tracking, no
 camera, no scores, nothing to press every day.
 
 My parents have been on it in Austin and Chennai for a few weeks. It's
-free during the beta; after that it's $10 a month per parent for the
-people who came in early.
+free for your first year; after that it's $10 a month for your family,
+up to two parents, held at that rate for as long as you stay.
 
 What it needs: your parent on an iPhone, and either WhatsApp or a US
 mobile number. Setup is a two-minute FaceTime with them, I'll walk you
@@ -48,8 +50,9 @@ scores, no daily button for your parent to press. It only notes that their
 phone was picked up as usual.
 
 My parents have been on it for a few weeks, one in Austin and one in
-Chennai. It's free during the beta. After that it's $10 a month per parent
-for the families who came in early; the public price will be higher.
+Chennai. It's free for your first year. After that it's $10 a month for your
+family, up to two parents, held at that rate for as long as you stay;
+the public price will be higher.
 
 What it needs:
 - Your parent on an iPhone (Android is coming).

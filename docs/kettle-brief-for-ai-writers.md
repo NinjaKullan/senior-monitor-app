@@ -14,8 +14,9 @@ short note. If a morning doesn't look like her morning, Kettle asks the
 parent first, quietly, before anyone else hears a thing. Nothing to
 install in their home. Nothing to wear, nothing to charge, nothing to
 learn. Kettle keeps three fields about a parent — who, which routine,
-when — and nothing else. Founding families pay $10 a month per loved
-one, honoured for as long as they stay. The founder's own mother and
+when — and nothing else. Founding families get their first year free,
+then pay $10 a month per family (up to two parents), held at that rate
+for as long as they stay. The founder's own mother and
 father were the first two people on it and are on it still.
 
 The name: in Japan, a tea kettle once told faraway families that their
@@ -92,8 +93,9 @@ checking up.
 - Free guides exist at heykettle.com/resources/ (a one-page emergency
   sheet, a normal-day sheet, a checklist for living alone, a changes
   tracker): linking to them is a great post on its own.
-- $10 a month per loved one, founding rate honoured for as long as
-  you stay.
+- Free for your first year. After that, $10 a month for your family,
+  up to two parents, held at that rate for as long as you stay. Per
+  family, never per parent.
 
 ## Formats
 

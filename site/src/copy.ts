@@ -234,7 +234,8 @@ export const FOUNDER_CONTACT_LABEL = "Write to Hema";
 
 export const WAITLIST_H2 = "Join the founding families.";
 export const WAITLIST_BODY =
-  "The founding rate is $10 a month per loved one, honoured for as long as you stay.";
+  "Free for your first year. Then $10 a month for your family, up to two parents, "
+    + "held for as long as you stay.";
 export const WAITLIST_EMAIL_LABEL = "Your email";
 export const WAITLIST_PHONE_LABEL = "What phone does your parent use?";
 export const WAITLIST_IPHONE_LABEL = "iPhone";
