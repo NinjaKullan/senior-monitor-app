@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 367.** This line is the one to update; the `Next number:` lines inside
+**Next number: 368.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8401,3 +8401,27 @@ browser — all three adopted as the standard for future surfaces.**
        * Site 257 green; product 910 green with the same two Mac-only
          failures as before; ruff clean. The kettle-api deploy carrying 365
          §2 and this change is the founder's.
+
+367. **(2026-10-18, Saturday) 365 HOSTING: §1 BUILT, §3 RUNBOOK WRITTEN. THREE
+     POINTS FOR THE PM.** Both `fly.toml` files say `iad` (71964e3). That
+     only places new machines, so it is safe before the cutover; the baton
+     says what is live until then. The runbook is `docs/us-hosting-brief.md`
+     §3 (1fb980b). All 34 migrations apply to an empty database from
+     scratch: the test fixture does it every session, and it was repeated by
+     hand today with the runbook's own `psql` loop. The migration loop, the
+     schema comparison and the dump and restore were rehearsed on local
+     Postgres. Supabase and Fly lines are checked against flyctl's help, not
+     run. No schema, copy or privacy-page change.
+     1. **The schema comparison (B5) feeds this file.** The founder pastes
+        both diffs here; the PM rules each line (apply by hand to the new
+        project, or accept); no data moves until only accepted lines remain.
+        One known source of difference: 0013 drops three old tables only if
+        they are empty, so prod may still hold them.
+     2. **Two auth items §2 lacked are now in B3 and B6:** custom SMTP (a new
+        project otherwise sends sign-in codes to team members only) and an
+        ECC P-256 signing key (kettle-api's approve accepts ES256 only).
+     3. **kettle-pilot is out of scope and unrecorded.** The root `fly.toml`
+        (app `kettle-pilot`) is in `sin` too. If that app still runs and
+        holds parent data, it is outside the US as well. Say whether it is
+        retired or moves.
+     * Next number: 368.
