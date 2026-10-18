@@ -342,3 +342,19 @@ project since W5 stays there, and its loss is accepted.
    it after 14 days (§2.10).
 3. Rewrite the baton's hosting paragraph, update the infra facts, and send
    the Meta form saying United States only (365).
+4. **Retire kettle-pilot** (367 point 3, ruled 2026-10-18). The July pilot
+   app is idle (no recent logs; its shortcuts were deleted in September) and
+   its YC-evidence role is over. Copy the database off, then destroy the app,
+   which removes its machine and the `kettle_data` volume:
+
+   ```bash
+   mkdir -p ~/kettle-pilot-copy
+   fly ssh sftp get /data/pilot.db ~/kettle-pilot-copy/pilot.db -a kettle-pilot
+   ls -l ~/kettle-pilot-copy/pilot.db     # non-zero size
+   fly apps destroy kettle-pilot
+   fly apps list                          # no kettle-pilot
+   ```
+
+   The copy holds the founder's own parents' pilot pings (who, signal, time)
+   and stays on the founder's Mac, outside the repo. The root `fly.toml` and
+   `app/` stay in the repo as history; nothing deploys them.

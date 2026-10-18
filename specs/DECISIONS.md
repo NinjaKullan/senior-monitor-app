@@ -8424,4 +8424,10 @@ browser — all three adopted as the standard for future surfaces.**
         (app `kettle-pilot`) is in `sin` too. If that app still runs and
         holds parent data, it is outside the US as well. Say whether it is
         retired or moves.
+        * Ruled 2026-10-18 (founder, PM): **retired.** `fly logs` shows
+          nothing; its shortcuts were deleted in September and the YC
+          application it was evidence for is closed. Database copied to the
+          founder's Mac, then `fly apps destroy kettle-pilot` (machine and
+          volume). Steps in the runbook's After §4. Root `fly.toml` and
+          `app/` stay as history.
      * Next number: 368.
