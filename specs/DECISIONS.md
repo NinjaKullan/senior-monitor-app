@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 368.** This line is the one to update; the `Next number:` lines inside
+**Next number: 369.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8431,3 +8431,27 @@ browser — all three adopted as the standard for future surfaces.**
           volume). Steps in the runbook's After §4. Root `fly.toml` and
           `app/` stay as history.
      * Next number: 368.
+
+368. **(2026-10-18, Saturday evening) US MOVE, BEFORE THE WINDOW: B2 TO B5 DONE;
+     THE SCHEMA COMPARISON RULED, NOTHING TO APPLY.** New project
+     `jblrsyobhannljgivtdy` (kettle-prod-us, us-east-1, Postgres 17.11;
+     old is 17.6, same major), Automatic RLS on. B3: the new project signs
+     ES256 (P-256) out of the box; no rotation. B4: migrations 0001 to 0034
+     applied by the runbook's loop, three expected 0013 notices, no error.
+     B5, the two diffs:
+     * `cron.job` missing on both sides: pg_cron not installed. Fine.
+     * Seven comment-only differences inside function bodies (the repo's
+       files gained `--` explanations after prod was built; code identical).
+       Accepted.
+     * `rls_auto_enable()` event-trigger function and its three grants, new
+       side only: the Automatic RLS switch. Accepted; noted for the security
+       sweep (Asana) since the function is granted to anon and authenticated,
+       though an event-trigger function cannot be called directly.
+     * `GRANT MAINTAIN ON TABLE public.ops_alerts TO authenticated`, old side
+       only: a leftover privilege nothing needs; the new project without it
+       is tighter. Accepted.
+     * Outside public (extensions, auth triggers and columns, publications):
+       identical.
+     Nothing applied by hand. B6 (auth settings, SMTP, redirect list) next,
+     then the window.
+     * Next number: 369.
