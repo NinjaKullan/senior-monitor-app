@@ -8385,3 +8385,19 @@ browser — all three adopted as the standard for future surfaces.**
      2026-10-18 carried the per-parent price, so the record of what went out
      stays true.
      * Next number: 367.
+     * **PM rulings on the four points, 2026-10-18, built:**
+       * Done (1): the shorter site sentence stands. No change.
+       * Done (2): the ping carries the signup number only, never the note
+         (7c74f74). The no-personal-data test posts a note with a phone
+         number in it and asserts none of it reaches the line; planted (the
+         note appended back) and caught.
+       * Done (3): the per-family price replaces the per-parent and
+         per-loved-one lines in gpt6-marketing-agents, growth-brief,
+         launch-video-brief, human-video-brief, baton, PLAN and
+         feature-backlog (02c00a4). The baton keeps that the September
+         invitations carried the per-parent line.
+       * Done (4): "honoured" becomes "held" in the founding-families list
+         (02c00a4).
+       * Site 257 green; product 910 green with the same two Mac-only
+         failures as before; ruff clean. The kettle-api deploy carrying 365
+         §2 and this change is the founder's.
