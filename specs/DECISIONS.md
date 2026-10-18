@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 365.** This line is the one to update; the `Next number:` lines inside
+**Next number: 366.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8077,6 +8077,12 @@ browser — all three adopted as the standard for future surfaces.**
        In review" (its own numbering; the package is 1.0.1). All three
        directories filed. `make-zip.sh` fails on macOS (`realpath -m`);
        CC follow-up.
+     * Done 2026-10-05: `make-zip.sh` resolves the output folder with
+       `cd && pwd -P` (9dade8e) and a test refuses GNU-only flags (1346043);
+       root CI green on 1346043. Done 2026-10-16: the Claude connector
+       directory approved Kettle. Meta (Muse) asked for an intake
+       questionnaire before review; answers drafted by the growth session,
+       held for 365.
      * Next number: 359.
 
 359. **(2026-10-03, Saturday) BUILD: THE DIRECTORIES AUDIT, BRIEF 358.** The
@@ -8146,7 +8152,8 @@ browser — all three adopted as the standard for future surfaces.**
        the connect path, but a per-host AS document would need a ruling that
        two issuers are acceptable; (3) `tools/social/` fails `ruff check`
        from the root (30 E501/B905 in three one-off scripts, pre-existing,
-       outside `product/` and outside this brief); (4) the baton carries no
+       outside `product/` and outside this brief; done 2026-10-05, dba630d,
+       lines wrapped, CI green); (4) the baton carries no
        line for 357's host move; (5) migration 0034 must be applied before
        the deploy that carries this build, or the authorize request fails
        on an unknown column.
@@ -8304,3 +8311,38 @@ browser — all three adopted as the standard for future surfaces.**
      the root with Postgres required; no deploy, and the product deploy
      carrying 359 to 364 is still the founder's, after 0034.
      * Next number: 365.
+
+365. **(2026-10-18, Saturday) FOUNDER RULINGS FROM THE GROWTH SESSION: HOSTING
+     MOVES TO THE US; ANDROID FOR BETA FAMILIES; FIRST YEAR FREE THEN $10 PER
+     FAMILY; WAITLIST PINGS THE FOUNDER.** The growth session, preparing Meta's
+     data-processing questionnaire (submission 4110e9d8, draft, not sent),
+     found the privacy page says data is stored in the United States while
+     the Supabase project is in Mumbai and kettle-api and kettle-app run in
+     Singapore (the Chennai pilot's choice). Rulings:
+     * **Hosting moves to the US.** The page stays as written; the database
+       goes to a us-east-1 Supabase project and the two product apps to Fly
+       iad, beside the site. Brief: `docs/us-hosting-brief.md` (code changes
+       §1, cutover §2, CC writes the runbook §3). Chosen over correcting the
+       page because there is one family's data today and every week adds
+       more. The Meta form is submitted after the move, saying US only.
+     * **Android goes to beta families**, installed by the founder on the
+       setup call until the Play listing is live. 355's open items stay open
+       and accepted (crossed pair, largest font, a second phone brand); a
+       tester is to be found, the friend's Pixel first.
+     * **Price:** free for the first year, then $10 a month per family (up to
+       two parents), held for as long as the family stays. Per family, never
+       per parent; the site's "per loved one" line goes. Brief:
+       `docs/beta-pricing-waitlist-brief.md` §1.
+     * **Waitlist signups ping the founder** over ntfy, count and help_with
+       only, never the email or phone. Same brief, §2.
+     * **Meta form posture.** Health data "yes, incidentally, in free-text
+       notes" (as 358). "No AI model use" is true: Kettle calls no model;
+       the assistants call Kettle. Subprocessors: Supabase, Fly.io, Resend,
+       Twilio and Meta WhatsApp as drafted, plus Cloudflare (DNS and proxy
+       for the site) and ntfy.sh (ops alerts to the founder; no personal
+       data, listed for completeness). Safeguards ticked only when true:
+       two-factor is being turned on for Supabase, Fly and Twilio now; a
+       security-contact line goes on the site (hello@heykettle.com); a
+       one-page incident-response note goes under docs/ before the box is
+       ticked. Retention and deletion answers match the privacy page.
+     * Next number: 366.
