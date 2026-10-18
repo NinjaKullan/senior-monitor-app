@@ -2,7 +2,7 @@
 # (kettle-pilot), separate deployment, no shared state. `app` is set by
 # `fly launch`.
 app = "kettle-api"
-primary_region = "sin"  # Singapore: closest low-latency region to Chennai
+primary_region = "iad"  # US hosting (DECISIONS 365): beside kettle-site and the us-east-1 database
 
 [build]
 

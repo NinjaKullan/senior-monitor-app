@@ -59,6 +59,11 @@ name the files.
 
 **Schema at 0033, every migration applied** (0033 by the PM, DECISIONS 331). Fly apps:
 `kettle-api` (product), `kettle-app` (webapp), `kettle-site` (site).
+**Hosting is moving to the US (365).** Until the cutover in
+`docs/us-hosting-brief.md` §3 runs, the database is the ap-south-1 (Mumbai) Supabase
+project and kettle-api and kettle-app machines are in Fly `sin`; both `fly.toml` files
+already say `iad`, which only places new machines. After it: Supabase us-east-1, all
+three Fly apps in `iad`, and this paragraph is rewritten.
 
 **Product (`kettle-api`).**
 * The outbound channel through Wave D (007, 011; flipped Sep 4, DECISIONS 263): the

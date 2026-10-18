@@ -4,7 +4,7 @@
 #
 
 app = 'kettle-app'
-primary_region = 'sin'
+primary_region = 'iad'  # US hosting (DECISIONS 365), beside kettle-api
 
 [build]
   # Public values, baked into the static bundle at image build time. A bare
