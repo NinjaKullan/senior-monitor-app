@@ -27,8 +27,9 @@ a distance. It watches for the normal morning thing happening (phone
 picked up, a routine tap) and, when the morning is not as usual, asks
 the parent first on WhatsApp ("Is everything okay? Reply with a 👍")
 before anyone in the family is told. The family sees "all's well" and
-nothing more. Payer is always the adult child. Founding rate
-$10/parent/month; public price $20 to 25. Stage: founder's own parents
+nothing more. Payer is always the adult child. Founding rate:
+first year free, then $10/family/month (up to two parents); public price
+$20 to 25. Stage: founder's own parents
 live on it; paid beta of 5 to 10 friend families next; then public.
 
 Product laws in force (§5). You MAY propose items that break one, but

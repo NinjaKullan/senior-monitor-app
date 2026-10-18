@@ -53,7 +53,7 @@ speaks. No beta family can be onboarded honestly until the ladder's first two ru
 ## Later / backlog (filed, not scheduled)
 
 - Payment path: ToU (carries consent language), counsel review of privacy policy, legal
-  entity name, founding price $10/parent/month — all before any charge, none before beta.
+  entity name, founding price first year free then $10/family/month (up to two parents) — all before any charge, none before beta.
 - Q108 timezone edit (Amma-in-Texas is the live case); Q109 savviness branch; Q107 native
   parent app as device_alive home; Android wave (waitlist parent_phone data decides priority);
   routine discovery (parked).

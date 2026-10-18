@@ -34,8 +34,8 @@ phone the parent already owns, and tells the family twice a day in a
 short note. If a morning doesn't look like her morning, Kettle asks the
 parent first, quietly, before anyone else hears a thing. Nothing to
 install in the home, nothing to wear, nothing to charge, nothing to learn.
-Founding families pay $10 a month per parent, honoured for as long as they
-stay. The founder's own mother and father were the first two people on it
+Founding families get their first year free, then pay $10 a month per
+family (up to two parents), held at that rate for as long as they stay. The founder's own mother and father were the first two people on it
 and are on it still: one in Austin, one in Chennai.
 
 The name: in Japan, a tea kettle once told faraway families that their

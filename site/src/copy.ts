@@ -191,7 +191,7 @@ export const FOUNDING_SETUP_BODY =
 export const FOUNDING_SUPPORT_BODY =
   "Direct support during the beta, from a person you have already met.";
 export const FOUNDING_PRICE_BODY =
-  "The founding price, honoured for as long as you stay subscribed.";
+  "The founding price, held for as long as you stay subscribed.";
 export const FOUNDING_FEEDBACK_BODY =
   "A few short feedback conversations, so Kettle grows around real families.";
 

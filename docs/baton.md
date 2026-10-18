@@ -104,8 +104,10 @@ Appa on merged routine+charger (107/126); Amma's card is on the Austin clock, Ap
 Chennai. The Rehearsal circle holds TestDad (Raleigh) and TestMom (the founder's own
 WhatsApp). The Whitakers are the demo family (`families.demo`, Phoenix): the engine and
 the heartbeat skip them, the app renders them unchanged. Beta invitations went out Sep
-12 (328, `docs/beta-invitation.md`): free during the beta, $10 a month per parent after
-for early families, nothing charged and no payment path built.
+12 (328, `docs/beta-invitation.md`): the price is now free for the first year, then
+$10 a month per family (up to two parents), held for as long as the family stays
+(365); the September invitations carried the earlier per-parent line. Nothing
+charged and no payment path built.
 
 **Not known to be live, and not owed either.** The weekly log-summary job (212) is on
 main; its three Fly secrets were never recorded as set, so assume it sends nothing.

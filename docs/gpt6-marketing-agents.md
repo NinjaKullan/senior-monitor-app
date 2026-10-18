@@ -63,8 +63,9 @@ using the phone the parent already owns, and tells the family in a
 short note twice a day. When a morning is not as usual it asks the
 parent first, by WhatsApp or text, and only if she does not answer
 does the family hear. Three fields: who, which routine, when. Nothing
-to install in the home, wear, charge or learn. Founding families pay
-$10 a month per loved one, honoured for as long as they stay. Today
+to install in the home, wear, charge or learn. Founding families get
+their first year free, then pay $10 a month per family (up to two
+parents), held at that rate for as long as they stay. Today
 the parent's phone must be an iPhone; Android is coming. The founder
 set up his own parents first and sets up every beta family
 personally.
@@ -126,7 +127,7 @@ What Kettle is, in one breath: it notices whether a parent's normal
 day happened, using the phone she already owns, tells the family
 twice a day in a short note, and when a morning is not as usual it
 asks her first. Three fields, nothing else. Nothing to install, wear,
-charge or learn. $10 a month per loved one, founding rate. iPhone
+charge or learn. First year free, then $10 a month per family, up to two parents. iPhone
 parents today; Android coming. Built by Hema for his own parents.
 
 Voice: founder first person, plain, warm, unhurried. One idea per

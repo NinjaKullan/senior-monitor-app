@@ -69,7 +69,7 @@ True: morning and evening notes by email; the parent is asked first, by
 WhatsApp, on a quiet morning; the family shares Memory notes, a Who to
 call list and a family circle; the family can ask Claude about a parent's
 day; Care Compare reads Medicare ratings. Founding families are free
-through the beta, then $10 a month per parent.
+for the first year, then $10 a month per family, up to two parents.
 
 Not true, never imply: fall detection, cameras, location, health data,
 counts of anything, a verdict that someone is safe or fine, an app the
