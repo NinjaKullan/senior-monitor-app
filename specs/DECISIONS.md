@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 366.** This line is the one to update; the `Next number:` lines inside
+**Next number: 367.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8346,3 +8346,42 @@ browser — all three adopted as the standard for future surfaces.**
        one-page incident-response note goes under docs/ before the box is
        ticked. Retention and deletion answers match the privacy page.
      * Next number: 366.
+
+366. **(2026-10-18, Saturday) 365 §1 AND §2 BUILT: PRICE COPY, WAITLIST PING.
+     FOUR POINTS FOR THE PM.** Built in three commits: the copy (2b63744),
+     the ping (ffb2415), its three tests (7da8e0f). Each test was planted and
+     caught: ping never sent, the upsert always reporting a new row, the
+     email and phone appended to the line. Site suite 257 green, copy-ban
+     scan included; product suite 910 green against a local Postgres, with
+     two failures that come from this Mac and fail the same without the
+     change (a Finder `.DS_Store` in the ChatGPT plugin folder, and the
+     forge wrapper test that expects to run off macOS). Ruff clean. Push
+     done; the kettle-api deploy for §2 is the founder's. No migration.
+     1. **The site sentence is shorter than the PM's.** The suggested
+        sentence is 25 words; the copy law caps a body paragraph at 23
+        (AC12). The site says: "Free for your first year. Then $10 a month
+        for your family, up to two parents, held for as long as you stay."
+        The two docs carry the PM's full sentence. "Honoured" is gone from
+        that line.
+     2. **The note can carry personal data.** The ping sends help_with as
+        typed, per the brief. It is free text from a stranger, up to 1,000
+        characters, so it can hold a phone number, a name or health detail,
+        and ntfy is listed on the Meta form as carrying no personal data.
+        Options: send the note as is (built), send only its first few
+        words, or send the number alone and read the note in psql. Ruling
+        wanted.
+     3. **The old price lives on in docs outside the brief's list:**
+        `docs/gpt6-marketing-agents.md` (twice, "per loved one"),
+        `docs/growth-brief.md`, `docs/launch-video-brief.md` and
+        `docs/human-video-brief.md` ("per parent"), `docs/baton.md` item 12
+        and `docs/PLAN.md` / `docs/feature-backlog.md` (per parent). Not
+        changed. Say which to bring in line.
+     4. **The site's "What founding families get" list still says "The
+        founding price, honoured for as long as you stay subscribed"**
+        (FOUNDING_PRICE_BODY). It names no number, so it does not
+        contradict 365, but it keeps the British spelling the brief
+        flagged. Left as is.
+     The invitation's status line now records that invitations sent before
+     2026-10-18 carried the per-parent price, so the record of what went out
+     stays true.
+     * Next number: 367.
