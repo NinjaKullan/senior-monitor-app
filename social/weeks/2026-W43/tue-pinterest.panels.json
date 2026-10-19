@@ -1,0 +1,34 @@
+{
+  "panels": [
+    {
+      "scene": "DANA walking down a leafy street with a phone at her ear, relaxed, curious.",
+      "dialogue": [
+        [
+          "DANA",
+          "What are you working on this week?"
+        ]
+      ],
+      "caption": "Ask about a project."
+    },
+    {
+      "scene": "WALT at the kitchen table with a chess set, phone beside him, explaining with a raised finger, green kettle on the stove.",
+      "dialogue": [
+        [
+          "WALT",
+          "Come here, I will show you."
+        ]
+      ],
+      "caption": "Ask them to teach you."
+    },
+    {
+      "scene": "DANA on a bench in the park, phone at her ear, smiling, a coffee beside her.",
+      "dialogue": [
+        [
+          "DANA",
+          "The bus driver sang today. Badly."
+        ]
+      ],
+      "caption": "Share one small thing."
+    }
+  ]
+}
