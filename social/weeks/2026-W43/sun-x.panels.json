@@ -1,0 +1,29 @@
+{
+  "panels": [
+    {
+      "scene": "DANA walking outside with a phone at her ear, scarf, autumn leaves, easy stride.",
+      "dialogue": [
+        [
+          "DANA",
+          "No reason. Just wanted to hear you."
+        ]
+      ],
+      "caption": ""
+    },
+    {
+      "scene": "WALT on his porch with a chess set, phone in his shirt pocket, grinning, the green kettle on the porch rail.",
+      "dialogue": [
+        [
+          "WALT",
+          "Good. I am losing to myself again."
+        ]
+      ],
+      "caption": ""
+    },
+    {
+      "scene": "DANA laughing, phone at her ear, leaves around her.",
+      "dialogue": [],
+      "caption": "No agenda."
+    }
+  ]
+}

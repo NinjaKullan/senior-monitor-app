@@ -1,0 +1,29 @@
+{
+  "panels": [
+    {
+      "scene": "DANA at a home-office desk, a mug and a plain phone, phone at her ear, looking relaxed, the green kettle on a shelf behind her.",
+      "dialogue": [
+        [
+          "DANA",
+          "Hi Dad. What are you building?"
+        ]
+      ],
+      "caption": ""
+    },
+    {
+      "scene": "WALT at his garage workbench, a bicycle brake in his hands, phone propped on the bench, pleased and busy.",
+      "dialogue": [
+        [
+          "WALT",
+          "A new brake. Listen to this."
+        ]
+      ],
+      "caption": ""
+    },
+    {
+      "scene": "DANA at a home-office desk, a mug and a plain phone, laughing quietly with the phone at her ear, leaning back in her chair.",
+      "dialogue": [],
+      "caption": "The call got to be about the bike."
+    }
+  ]
+}

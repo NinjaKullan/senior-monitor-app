@@ -1,0 +1,132 @@
+{
+ "week": "2026-W43",
+ "theme": "Save the call for the good part. When you already know a normal morning happened, a call across the distance can be about the bike, the chess game, or nothing at all.",
+ "posts": [
+  {
+   "day": "Mon",
+   "channel": "x",
+   "text": "Calling a parent across time zones can turn into a quick status check. How are you, did you sleep, talk soon. Kettle tells the family a normal morning happened, so the call is free to be about something else.",
+   "image": "mon-x.png",
+   "alt": "Three-panel comic. Dana, at her table, phones her dad: 'Hi Dad. What are you building?' Walt, at his garage workbench with a bicycle brake in his hands, answers: 'A new brake. Listen to this.' Dana laughs on the call. Caption: The call got to be about the bike.",
+   "destination": "",
+   "cta": false,
+   "note": "Anchor: evergreen (no week finding passed the filter; searches returned only generic advice). Beta CTA: no. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final."
+  },
+  {
+   "day": "Tue",
+   "channel": "pinterest",
+   "title": "Three ways to make a call to a parent about something real",
+   "text": "Three ways to make a call to a parent about something real\n\nWhen calls turn into a quick check, try one of these: ask about a project, ask them to teach you something, or share one small thing from your day.\n\nApply for the family beta at heykettle.com.",
+   "image": "tue-pinterest.png",
+   "alt": "Three stacked comic panels. Dana walks down a leafy street on the phone asking, 'What are you working on this week?' Walt at his kitchen table with a chess set says, 'Come here, I will show you.' Dana on a park bench says, 'The bus driver sang today. Badly.' Captions: Ask about a project. Ask them to teach you. Share one small thing.",
+   "destination": "heykettle.com",
+   "cta": true,
+   "note": "Beta CTA: yes (1 of 2). Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final."
+  },
+  {
+   "day": "Wed",
+   "channel": "tiktok",
+   "title": "A call can just be a call",
+   "script": [
+    {
+     "t": "0:00-0:08",
+     "say": "My check-ins with my parents got tactical. How are you, how's work, okay, talk soon.",
+     "overlay": "Check-ins got tactical",
+     "broll": "Founder to camera, kitchen counter behind him."
+    },
+    {
+     "t": "0:08-0:18",
+     "say": "I wasn't really calling to talk. I wanted to know their morning happened.",
+     "overlay": "I wanted to know the morning happened",
+     "broll": "Founder to camera, small shrug."
+    },
+    {
+     "t": "0:18-0:30",
+     "say": "So I built Kettle. It notices that on the phone they already own, and tells us twice a day. If a morning is different, it asks them first.",
+     "overlay": "Twice a day. Asks them first.",
+     "broll": "Neutral b-roll: a plain phone face down on a kitchen table, no app visible."
+    },
+    {
+     "t": "0:30-0:36",
+     "say": "Now a call can just be a call.",
+     "overlay": "A call can just be a call.",
+     "broll": "Founder to camera, quiet smile."
+    }
+   ],
+   "text": "A call can just be a call.",
+   "image": "wed-tiktok.png",
+   "alt": "Cover: Dana sits on a bus at dusk looking at her phone with a small smile, city lights behind her. Caption: A call can just be a call.",
+   "destination": "",
+   "cta": false,
+   "note": "Beta CTA: no, quiet takeaway. Beat 1 is the brief's own founder line; 'Now a call can just be a call' is a feeling, not a reported event. Runtime about 36 seconds. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final."
+  },
+  {
+   "day": "Thu",
+   "channel": "x",
+   "text": "People ask what Kettle knows about a parent. Three things: who, which routine, when. Not what they typed, who they called or where they went. What isn't collected can't leak.",
+   "image": "thu-x.png",
+   "alt": "Three-panel comic. Dana phones her dad: 'Okay if a note comes to me twice a day?' Walt, winding his wristwatch at his workbench, asks: 'Does it say anything else?' Dana, grinning, answers: 'Just that your morning happened.' Caption: He got a say.",
+   "destination": "",
+   "cta": false,
+   "note": "Beta CTA: no. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final."
+  },
+  {
+   "day": "Fri",
+   "channel": "pinterest",
+   "title": "A free normal-day sheet to fill in with your parents",
+   "text": "A free normal-day sheet to fill in with your parents\n\nWrite down what a normal day looks like, in their words, and keep a copy. Free guides at heykettle.com/resources/",
+   "image": "fri-pinterest.png",
+   "alt": "Three stacked comic panels. Dana at her kitchen table asks on speaker, 'Want to write down a normal day together?' Walt at his table, pen in hand, says, 'Coffee, newspaper, bicycle. Easy.' Dana slides the sheet into a folder. Caption: He wrote it. She kept a copy.",
+   "destination": "heykettle.com/resources/",
+   "cta": false,
+   "note": "Beta CTA: no (resource reference only; URL is the one the brief lists). Pending: confirm the normal-day sheet's contents match 'what a normal day looks like' before posting. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final."
+  },
+  {
+   "day": "Sat",
+   "channel": "tiktok",
+   "title": "Their morning, my night",
+   "script": [
+    {
+     "t": "0:00-0:07",
+     "say": "If your parents are a few time zones away, you know the problem.",
+     "overlay": "Their morning, your night",
+     "broll": "Founder to camera, kitchen."
+    },
+    {
+     "t": "0:07-0:18",
+     "say": "You want to know how their day started, but your call lands in the middle of theirs, or in the middle of the night.",
+     "overlay": "The timing never works",
+     "broll": "Phone on a table, a mug beside it."
+    },
+    {
+     "t": "0:18-0:32",
+     "say": "Kettle tells you twice a day that a normal morning happened, on the phone they already own. If a morning is different, it asks them first.",
+     "overlay": "Twice a day. Asks them first.",
+     "broll": "Neutral b-roll: a plain phone face down on a kitchen table, no app visible."
+    },
+    {
+     "t": "0:32-0:38",
+     "say": "Apply for the family beta at heykettle.com.",
+     "overlay": "heykettle.com",
+     "broll": "Founder to camera, small smile."
+    }
+   ],
+   "text": "Their morning, my night.",
+   "image": "sat-tiktok.png",
+   "alt": "Cover: Dana sits on an almost empty bus at night with her phone, a crescent moon in the window. Caption: Their morning, my night.",
+   "destination": "heykettle.com",
+   "cta": true,
+   "note": "Beta CTA: yes (2 of 2). Runtime about 38 seconds. Speaks to 'you' so no founder facts beyond the brief. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final."
+  },
+  {
+   "day": "Sun",
+   "channel": "x",
+   "text": "A good call has no agenda. You just wanted to hear a voice. That is easier when you already know the morning was normal. For checking in, not checking up.",
+   "image": "sun-x.png",
+   "alt": "Three-panel comic. Dana walks through autumn leaves on the phone: 'No reason. Just wanted to hear you.' Walt on his porch with a chess set says: 'Good. I am losing to myself again.' Dana laughs. Caption: No agenda.",
+   "destination": "",
+   "cta": false,
+   "note": "Beta CTA: no. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final."
+  }
+ ]
+}

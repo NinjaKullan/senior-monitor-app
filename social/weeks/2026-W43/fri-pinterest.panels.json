@@ -1,0 +1,29 @@
+{
+  "panels": [
+    {
+      "scene": "DANA at a kitchen table with a phone on speaker and a single blank sheet of paper in front of her, pen ready.",
+      "dialogue": [
+        [
+          "DANA",
+          "Want to write down a normal day together?"
+        ]
+      ],
+      "caption": ""
+    },
+    {
+      "scene": "WALT at his own kitchen table with a pen and a sheet of paper, bicycle visible through a doorway, the green kettle on the stove, amused.",
+      "dialogue": [
+        [
+          "WALT",
+          "Coffee, newspaper, bicycle. Easy."
+        ]
+      ],
+      "caption": ""
+    },
+    {
+      "scene": "DANA, curly shoulder-length hair tied back, hoop earrings, denim shirt over a t-shirt, at her kitchen table, smiling, sliding one sheet of paper into a plain folder, phone beside her, the green kettle on the counter behind her.",
+      "dialogue": [],
+      "caption": "He wrote it. She kept a copy."
+    }
+  ]
+}
