@@ -8480,4 +8480,13 @@ browser — all three adopted as the standard for future surfaces.**
      * After, in order: pause the old project `azeyrlfscgbqbvzhdtie` (delete
        after 14 days), `rm -rf ~/kettle-cutover`, kettle-pilot copy and
        destroy (367), baton and infra facts, Meta form "United States only".
+     * Done the same night: Claude connector answered from the new project
+       without re-authorising; old project paused (resumable until Nov
+       2027, to be deleted after 2026-11-01); the cutover folder removed;
+       kettle-pilot's database copied to the founder's Mac and the app
+       destroyed; baton §3 rewritten. Owed: the Meta form (growth session),
+       Monday's weekly email check. Two follow-ups found: the connector's
+       `today` text said "this morning" in a parent's evening (wording in
+       the tool copy, not the move); kettle-care's region was not checked
+       (it holds no personal data, but it should sit in `iad` with the rest).
      * Next number: 370.
