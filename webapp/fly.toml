@@ -11,8 +11,8 @@ primary_region = 'iad'  # US hosting (DECISIONS 365), beside kettle-api
   # `fly deploy` without these produces a login page that talks to nowhere
   # (field-discovered 2026-08-16). The service key must NEVER appear here.
   [build.args]
-    VITE_SUPABASE_URL = "https://azeyrlfscgbqbvzhdtie.supabase.co"
-    VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_rRh6BZQncewqysZYRehXeQ_yjWvQX36"
+    VITE_SUPABASE_URL = "https://jblrsyobhannljgivtdy.supabase.co"
+    VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_PfPjUSbIp-GtTKLhr5Ykyg_b3UDNu_h"
 [http_service]
   internal_port = 8080
   force_https = true
