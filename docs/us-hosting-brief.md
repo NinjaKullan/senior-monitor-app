@@ -276,6 +276,10 @@ on the old side. That is the accepted loss, not a fault.
 
 **W5. kettle-api secrets: one command, one restart.**
 
+> **As run 2026-10-18 (369):** `fly secrets import` read the two pasted lines
+> as one and the API crash-looped. Use `fly secrets set` with each value as
+> its own single-quoted argument instead; one command, one restart.
+
 ```bash
 fly secrets import -a kettle-api
 ```

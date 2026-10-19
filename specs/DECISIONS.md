@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 369.** This line is the one to update; the `Next number:` lines inside
+**Next number: 370.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8455,3 +8455,29 @@ browser — all three adopted as the standard for future surfaces.**
      Nothing applied by hand. B6 (auth settings, SMTP, redirect list) next,
      then the window.
      * Next number: 369.
+
+369. **(2026-10-18, Saturday night ET) US MOVE: THE WINDOW RAN; KETTLE IS IN THE
+     UNITED STATES.** B6 done (URL config, email provider, templates, Resend
+     SMTP, rate limits, Data API matched to the old project; the new project
+     lists one more function, `rls_auto_enable`, as 368 expected). Window
+     opened 17:50 ET. W2 dump 1.2 MB, the one expected circular-key warning.
+     W3 restore in one transaction: 23 tables, 9,951 pings, sequences carried.
+     W4: pings one higher on the old side (the accepted loss) and two
+     sequences a step ahead from failed duplicate inserts; no other
+     difference. W5 went wrong once: `fly secrets import` took the two pasted
+     lines as one, so `DATABASE_URL` ended in `postgres SUPABASE_JWKS_URL=...`,
+     psycopg refused it at startup and the machine crash-looped to its
+     restart limit (about ten minutes of API outage; the old database was
+     untouched). Fixed with a single `fly secrets set` carrying both values
+     as separate quoted arguments; the runbook's W5 should say that instead
+     of `import`. W6: `webapp/fly.toml` build args point at the new project
+     (committed). W7: kettle-api cloned to iad and the sin machine destroyed;
+     kettle-app's two sin machines cloned to iad and destroyed. Verified: both
+     API hosts answer `{"db":true}`; sign-in code arrives via Resend and Today
+     renders; the founder's own phone (Rehearsal Dad) pinged the new project
+     within the minute. Still to verify: the Claude connector without
+     re-authorising, and Monday's weekly site email.
+     * After, in order: pause the old project `azeyrlfscgbqbvzhdtie` (delete
+       after 14 days), `rm -rf ~/kettle-cutover`, kettle-pilot copy and
+       destroy (367), baton and infra facts, Meta form "United States only".
+     * Next number: 370.
