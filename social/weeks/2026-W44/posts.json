@@ -1,0 +1,126 @@
+{
+ "week": "2026-W44",
+ "theme": "The clocks go back, so the usual call time may stop working. Ask your parent what time suits them now, and let the call be easy.",
+ "posts": [
+  {
+   "day": "Mon",
+   "channel": "x",
+   "text": "The clocks go back soon, and the call time you always use may stop working. Ask your parent what time suits them now. They have been running their own days for a long time.",
+   "image": "mon-x.png",
+   "alt": "Three-panel comic. Sam at his desk looks at a wall clock and asks on the phone, 'Is five still a good time?' June, in the garden with gloves and a trowel, answers, 'Make it four. Light goes early.' Sam laughs and writes the new time on a sticky note. Captions: The clocks go back soon. She picked the new time.",
+   "destination": "",
+   "cta": false,
+   "note": "Anchor: evergreen (research found no qualifying story this week; the clock change is a plain calendar fact, no source cited). Beta CTA: no. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final."
+  },
+  {
+   "day": "Tue",
+   "channel": "pinterest",
+   "text": "Three ways to move your weekly call when the clocks change. Ask what time suits them now, let them choose, and write it down so it stays easy.\n\nApply for the family beta at heykettle.com.",
+   "image": "tue-pinterest.png",
+   "alt": "Three stacked comic panels. Sam at a kitchen counter with a wall calendar asks on the phone, 'What time suits you now?' June at her table with a mug and a crossword answers, 'After my tea. Ten works.' Sam writes the time on a small note. Captions: Ask, do not announce. Let them choose. Write it down. Keep it easy.",
+   "destination": "heykettle.com",
+   "cta": true,
+   "note": "Beta CTA: yes (1 of 2). Pin title is the first line. Destination is the brand home only. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "title": "How to move your call time when the clocks change"
+  },
+  {
+   "day": "Wed",
+   "channel": "tiktok",
+   "text": "When the clocks change, ask what time suits them now.",
+   "image": "wed-tiktok.png",
+   "alt": "Cover: Sam stands in a kitchen holding his phone, looking up at a wall clock with a small smile, the green kettle on the stove. Caption: Ask what time suits them now.",
+   "destination": "",
+   "cta": false,
+   "note": "Beta CTA: no, quiet takeaway. Runtime about 32 seconds. No personal anecdote used; beat 1 is a general observation. Beat 3 uses brief facts only. Uncertainty: Hema may want to swap beat 1 for a moment of his own. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "title": "Ask what time suits them now",
+   "script": [
+    {
+     "t": "0:00-0:08",
+     "say": "When the clocks change, the time you always call can stop working for someone.",
+     "overlay": "The usual call time moves",
+     "broll": "Founder to camera, kitchen counter behind him."
+    },
+    {
+     "t": "0:08-0:18",
+     "say": "So ask. What time suits you now? They know their own day better than I do.",
+     "overlay": "Ask what suits them",
+     "broll": "Founder to camera, small shrug."
+    },
+    {
+     "t": "0:18-0:28",
+     "say": "I built Kettle for the days between calls. It notices a normal morning happened on the phone they already own, and asks them first if it did not.",
+     "overlay": "Asks them first",
+     "broll": "Neutral b-roll: a plain phone face down on a kitchen table, no app visible."
+    },
+    {
+     "t": "0:28-0:32",
+     "say": "Then the call can be whenever they like.",
+     "overlay": "The call can be whenever they like",
+     "broll": "Founder to camera, quiet smile."
+    }
+   ]
+  },
+  {
+   "day": "Thu",
+   "channel": "x",
+   "text": "Same morning, different light. Your parent's tea is still hot at the same hour, even if your calendar says it got dark early. The call can be about the weather.",
+   "image": "thu-x.png",
+   "alt": "Three-panel comic. June sits on a garden bench with a mug, a phone beside her, the green kettle on a small table. Sam on a train with dusk outside says, 'Mine got dark at four.' June laughs on the phone and says, 'Mine too. Tea's still hot.' Captions: Same morning, new light. The call can be about the weather.",
+   "destination": "",
+   "cta": false,
+   "note": "Beta CTA: no. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final."
+  },
+  {
+   "day": "Fri",
+   "channel": "pinterest",
+   "text": "Check the usual call time with a parent. Ask if it still works, let them set it, and keep the call the same.",
+   "image": "fri-pinterest.png",
+   "alt": "Three stacked comic panels. Sam at his desk with a paper calendar and pencil asks, 'Same time as last month?' June at her table with her diary says, 'Move it an hour earlier.' Sam and June on a video call, each with a mug in their own kitchen, the green kettle on her stove. Captions: Check the usual time. Let them set it. A new time. Same call.",
+   "destination": "heykettle.com",
+   "cta": false,
+   "note": "Beta CTA: no. Destination is the brand home only. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "title": "Questions to ask about your weekly call time"
+  },
+  {
+   "day": "Sat",
+   "channel": "tiktok",
+   "text": "A call at a time that suits them.",
+   "image": "sat-tiktok.png",
+   "alt": "Cover: June sits at her kitchen table in soft autumn light with a mug, an open book and a phone face down, the green kettle on the stove behind her. Caption: A call at a time that suits them.",
+   "destination": "",
+   "cta": false,
+   "note": "Beta CTA: no, quiet takeaway. Runtime about 26 seconds. Uncertainty: the line about Kettle in beat 3 repeats the brief's product line; cut it if it feels like too much for a quiet video. Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final.",
+   "title": "A call at a time that suits them",
+   "script": [
+    {
+     "t": "0:00-0:07",
+     "say": "Some calls go better in the morning. Some after tea. Some at the weekend.",
+     "overlay": "Some calls go better after tea",
+     "broll": "Kitchen table, a mug, a phone face down."
+    },
+    {
+     "t": "0:07-0:17",
+     "say": "A call goes best when the time is theirs. So I ask what suits them.",
+     "overlay": "Now I ask",
+     "broll": "Founder to camera, small smile."
+    },
+    {
+     "t": "0:17-0:26",
+     "say": "Kettle tells us twice a day that a normal morning happened. The call does not have to prove anything.",
+     "overlay": "The call does not have to prove anything",
+     "broll": "Neutral b-roll: a plain phone face down on a kitchen table."
+    }
+   ]
+  },
+  {
+   "day": "Sun",
+   "channel": "x",
+   "text": "A quiet Sunday call, at a time they chose. Nothing to check, nothing to prove. Just a call.\n\nApply for the family beta at heykettle.com.",
+   "image": "sun-x.png",
+   "alt": "Three-panel comic. Sam at a kitchen counter on Sunday morning looks at his phone. June at her table with tea and a half done crossword says, 'Perfect time, dear.' Sam smiles and slips the phone into his pocket. Captions: Sunday morning. The call was easy in the best way.",
+   "destination": "heykettle.com",
+   "cta": true,
+   "note": "Beta CTA: yes (2 of 2). Self-check: no banned word, no verdict/score/count, 'normal' not 'ordinary', no em dash, no kinship/culture words, no medical/safety claim, no invented quote or number, cast only (no real family), CTA rule met. Image drawing checked by eye; alt text final."
+  }
+ ]
+}

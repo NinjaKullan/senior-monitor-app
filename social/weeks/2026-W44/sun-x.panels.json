@@ -1,0 +1,24 @@
+{
+ "panels": [
+  {
+   "scene": "SAM at a kitchen counter with a mug, early morning, phone in hand, the green kettle on the stove.",
+   "dialogue": [],
+   "caption": "Sunday morning."
+  },
+  {
+   "scene": "JUNE at her kitchen table with tea, phone beside her, a crossword half done.",
+   "dialogue": [
+    [
+     "JUNE",
+     "Perfect time, dear."
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "SAM smiling, tucking the phone in his pocket, relaxed.",
+   "dialogue": [],
+   "caption": "The call was easy in the best way."
+  }
+ ]
+}

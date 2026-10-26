@@ -1,0 +1,29 @@
+{
+ "panels": [
+  {
+   "scene": "SAM at a kitchen counter, calendar on the wall, phone in hand.",
+   "dialogue": [
+    [
+     "SAM",
+     "What time suits you now?"
+    ]
+   ],
+   "caption": "Ask, do not announce."
+  },
+  {
+   "scene": "JUNE at her kitchen table with a mug and a crossword, glasses on her head, answering on the phone.",
+   "dialogue": [
+    [
+     "JUNE",
+     "After my tea. Ten works."
+    ]
+   ],
+   "caption": "Let them choose."
+  },
+  {
+   "scene": "SAM at his desk writing the time on a small note, the green kettle on the stove behind a half open door.",
+   "dialogue": [],
+   "caption": "Write it down. Keep it easy."
+  }
+ ]
+}
