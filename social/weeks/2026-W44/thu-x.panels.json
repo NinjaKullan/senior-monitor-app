@@ -1,0 +1,29 @@
+{
+ "panels": [
+  {
+   "scene": "JUNE on a garden bench with a mug, phone face down beside her, the green kettle on a small outdoor table.",
+   "dialogue": [],
+   "caption": "Same morning, new light."
+  },
+  {
+   "scene": "SAM on a train far away, phone in hand, relaxed, glancing at a window with dusk outside.",
+   "dialogue": [
+    [
+     "SAM",
+     "Mine got dark at four."
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "JUNE laughing on the phone, watering can by her feet.",
+   "dialogue": [
+    [
+     "JUNE",
+     "Mine too. Tea's still hot."
+    ]
+   ],
+   "caption": "The call can be about the weather."
+  }
+ ]
+}

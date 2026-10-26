@@ -1,0 +1,29 @@
+{
+ "panels": [
+  {
+   "scene": "SAM at his desk with a plain paper calendar and a pencil, thinking.",
+   "dialogue": [
+    [
+     "SAM",
+     "Same time as last month?"
+    ]
+   ],
+   "caption": "Check the usual time."
+  },
+  {
+   "scene": "JUNE at her table with her own diary open, pen in hand, on the phone.",
+   "dialogue": [
+    [
+     "JUNE",
+     "Move it an hour earlier."
+    ]
+   ],
+   "caption": "Let them set it."
+  },
+  {
+   "scene": "SAM and JUNE on a video call, each in their kitchen, mugs raised, the green kettle in her background.",
+   "dialogue": [],
+   "caption": "A new time. Same call."
+  }
+ ]
+}

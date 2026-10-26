@@ -1,0 +1,29 @@
+{
+ "panels": [
+  {
+   "scene": "SAM at a desk far away, glancing at a wall clock, phone in hand, the green kettle on a shelf.",
+   "dialogue": [
+    [
+     "SAM",
+     "Is five still a good time?"
+    ]
+   ],
+   "caption": "The clocks go back soon."
+  },
+  {
+   "scene": "JUNE in her garden in a cardigan with gloves, trowel in hand, late autumn leaves around her, phone held to her ear.",
+   "dialogue": [
+    [
+     "JUNE",
+     "Make it four. Light goes early."
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "SAM at his desk laughing softly, writing the new time on a sticky note.",
+   "dialogue": [],
+   "caption": "She picked the new time."
+  }
+ ]
+}
