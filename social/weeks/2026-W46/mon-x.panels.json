@@ -1,0 +1,34 @@
+{
+ "panels": [
+  {
+   "scene": "Sam at his desk far away, phone to his ear, a wall calendar behind him, relaxed and curious. Top third plain wall.",
+   "dialogue": [
+    [
+     "SAM",
+     "Anything interesting in the mail this week?"
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "June at her sunny kitchen table with a neat stack of envelopes, a letter opener and a mug, phone beside her, the small green kettle on the stove behind her. Capable and unhurried.",
+   "dialogue": [
+    [
+     "JUNE",
+     "A stack. I am sorting it."
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "June at her kitchen table smiling, one hand on the neat stack of envelopes, phone at her ear, mug beside her, the small green kettle on the stove.",
+   "dialogue": [
+    [
+     "JUNE",
+     "I will say if I want a hand."
+    ]
+   ],
+   "caption": "She had it handled."
+  }
+ ]
+}
