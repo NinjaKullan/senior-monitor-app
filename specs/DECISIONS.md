@@ -4,7 +4,7 @@ Claude Code: when a spec is ambiguous or looks wrong, add a dated entry here —
 guess, don't build around it. Fable reviews this file on every pull. Numbers are
 continuous and never reused.
 
-**Next number: 370.** This line is the one to update; the `Next number:` lines inside
+**Next number: 371.** This line is the one to update; the `Next number:` lines inside
 older items are the values that were current when those items were filed, and are
 history like the rest of them.
 
@@ -8490,3 +8490,30 @@ browser — all three adopted as the standard for future surfaces.**
        the tool copy, not the move); kettle-care's region was not checked
        (it holds no personal data, but it should sit in `iad` with the rest).
      * Next number: 370.
+
+370. **(2026-11-11, Wednesday) FOUNDER: EACH PARENT GETS A MORNING HOUR THE
+     FAMILY SETS. KETTLE DOES NOT LEARN IT.** Raised by a public comment on
+     the r/SideProject post: a parent who rises late makes every morning
+     read quiet. Today every parent shares one schedule in their own local
+     time (`outbound.py` v1 constants: window from 6:00, notes 8:30 and
+     20:30, the ask at 11:00, two hours' grace). Rulings:
+     * **A per-parent morning hour, set by the family**, at setup and
+       changeable later. To be specified; no date. The spec decides what
+       moves with it (the window start, the morning note, the ask
+       threshold) and what does not (the grace, parent-first, the evening
+       note).
+     * **Not learned.** Kettle does not infer a usual hour from past days:
+       hard constraint 1 (no trend inference) and the engine's own rule
+       that a day is never compared to another day. This is said publicly
+       as a design choice, not a gap.
+     * **Public wording allowed now:** "families will be able to set each
+       parent's morning hour; it's coming." No date, no "learns".
+     * **Correction for the record:** the app and the notes say "Quiet so
+       far", never "Nothing yet today". That phrase came from the PM's
+       Oct 10 summary to the growth session and reached the Reddit post.
+       Growth copy uses the product's words from here on.
+     * Facts confirmed for the reply: ask-the-parent-first has been live
+       since Sep 4 (263); the family is contacted only if the morning stays
+       quiet through 11:00, the parent does not reply, and two more hours
+       pass still quiet; there is no push notification anywhere.
+     * Next number: 371.
