@@ -1,0 +1,29 @@
+{
+ "panels": [
+  {
+   "scene": "Dana in her home office far away, sitting at a desk, phone to her ear, relaxed, a coat and small suitcase by the door. Top third plain wall.",
+   "dialogue": [
+    [
+     "DANA",
+     "I'll be there Thursday. Anything you need?"
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "Walt at his garage workbench beside a bicycle on a stand, phone at his ear, grinning, wrench in his other hand. Top third plain pegboard wall with no tools hanging high.",
+   "dialogue": [
+    [
+     "WALT",
+     "Bring your appetite. And your chess game."
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "Dana and Walt sitting across a kitchen table over a chess set, both smiling, mugs beside them, the small green stovetop kettle on the stove behind them. Top third plain wall.",
+   "dialogue": [],
+   "caption": "A visit can just be a visit."
+  }
+ ]
+}

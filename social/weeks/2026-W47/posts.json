@@ -1,0 +1,142 @@
+{
+ "week": "2026-W47",
+ "theme": "The holiday visit: you can just visit. Go home to be together, not to run a list of checks.",
+ "posts": [
+  {
+   "day": "Mon",
+   "channel": "x",
+   "title": "",
+   "image": "",
+   "cta": false,
+   "text": "A lot of holiday advice is a list of things to check on your parents when you visit.\n\nI'd skip the list. Go home, eat the meal, play the game, listen to the stories.\n\nYour parents are adults with their own plans. A visit can just be a visit.",
+   "alt": "Provisional, three-panel strip. Dana at her desk on the phone: I'll be there Thursday. Anything you need? Walt at his workbench by his bicycle, phone to his ear: Bring your appetite. And your chess game. Then the two of them at a kitchen table over a chess set, smiling, a green kettle on the stove. Caption: A visit can just be a visit.",
+   "note": "Reader need: going home soon, feeling pulled toward the 'what to watch for' checklists. Angle: the opposite, a visit as a visit. No CTA. Self-check: no banned word; no verdict/score/count about a person; 'normal' not 'ordinary'; no em dash; no kinship/culture words; no medical/safety/emergency claim; no invented quote or number; first-person details only from the brief. Imagery PENDING (not drawn: image API credits depleted), so 'real family absent from image' and the drawing checks are pending. Assumption: 'play the game' reads as any board or card game. Image pending: Gemini prepay credits depleted (RESOURCE_EXHAUSTED); panels.json is ready, rerun make_strip.py once topped up."
+  },
+  {
+   "day": "Tue",
+   "channel": "pinterest",
+   "title": "Going home for the holidays: let the visit be a visit",
+   "image": "",
+   "cta": false,
+   "destination": "https://heykettle.com",
+   "text": "Three easy ideas for a holiday visit with your parents.\n\n1. Ask what they want to do while you are there.\n2. Join in on what they already do.\n3. Let them lead the talk.\n\nFor checking in, not checking up.",
+   "alt": "Provisional, vertical three-panel strip. Walt opens his front door to Dana: You made it. Want to see the bike? Caption: Ask what they want to do. At his workbench, Dana holds a wrench: Show me what you're fixing. Caption: Join in on what they already do. At a diner counter with coffee, Walt: So. Tell me about your work. Caption: Let them lead the talk.",
+   "note": "Reader need: a simple, kind plan for a holiday visit. Image text is the three captions plus bubbles, as listed in alt. Destination is the home page; no guide link because no listed guide matches. No CTA. Self-check: no banned word; no verdict/score/count about a person; 'normal' not 'ordinary'; no em dash; no kinship/culture words; no medical/safety/emergency claim; no invented quote or number; first-person details only from the brief. Imagery PENDING (not drawn: image API credits depleted), so 'real family absent from image' and the drawing checks are pending. Assumption: keyword phrasing (holiday visit, parents) is a guess, not search data. Image pending: Gemini prepay credits depleted (RESOURCE_EXHAUSTED); panels.json is ready, rerun make_strip.py once topped up."
+  },
+  {
+   "day": "Wed",
+   "channel": "tiktok",
+   "title": "You can just visit.",
+   "image": "",
+   "cta": true,
+   "text": "Going home for the holidays? You can just visit. Apply for the family beta at heykettle.com.",
+   "script": [
+    {
+     "t": "0:00-0:06",
+     "say": "A lot of holiday advice says: when you visit your parents, make a list of things to check.",
+     "overlay": "Going home for the holidays?",
+     "broll": "Hema face to camera, kitchen"
+    },
+    {
+     "t": "0:06-0:14",
+     "say": "I don't think a visit should feel like an inspection. Your parents are adults with their own plans.",
+     "overlay": "A visit, not an inspection",
+     "broll": "Hema face to camera"
+    },
+    {
+     "t": "0:14-0:24",
+     "say": "I built Kettle for my own parents. It notices their normal day happened, using the phone they already own, and sends a short note twice a day.",
+     "overlay": "A short note, twice a day",
+     "broll": "Phone face down on a kitchen table, kettle on the stove"
+    },
+    {
+     "t": "0:24-0:31",
+     "say": "So the visit can be for talking, eating, and being together.",
+     "overlay": "You can just visit.",
+     "broll": "Two mugs on a table, neutral, no faces"
+    },
+    {
+     "t": "0:31-0:36",
+     "say": "Apply for the family beta at heykettle.com.",
+     "overlay": "heykettle.com",
+     "broll": "Hema face to camera"
+    }
+   ],
+   "alt": "Provisional cover. Dana and Walt laughing over a chess game at a kitchen table, mugs beside them, a green kettle on the stove. Caption: You can just visit.",
+   "note": "Viewer need: permission to make the visit about being together. About 36 seconds at an easy pace. Beta CTA 1 of 2. Script ready for recording, not a finished video; footage privacy checks pending until shot. Self-check: no banned word; no verdict/score/count about a person; 'normal' not 'ordinary'; no em dash; no kinship/culture words; no medical/safety/emergency claim; no invented quote or number; first-person details only from the brief. Imagery PENDING (not drawn: image API credits depleted), so 'real family absent from image' and the drawing checks are pending. Assumption: no app footage used. Image pending: Gemini prepay credits depleted (RESOURCE_EXHAUSTED); panels.json is ready, rerun make_strip.py once topped up."
+  },
+  {
+   "day": "Thu",
+   "channel": "x",
+   "title": "",
+   "image": "",
+   "cta": false,
+   "text": "The calls before a holiday visit turn into plans. Flight times, who's picking you up, what to bring.\n\nThose calls help. Once you're there, let the plans stop for a while. Ask what's new with them, and listen.",
+   "alt": "Provisional, three-panel strip. Dana walking with a suitcase, on the phone: I land at four. Who's picking me up? Walt at a diner counter with the paper, phone to his ear: Me. I'll be the one with the beard. Then Walt hugging Dana beside his car at the curb. Caption: After that, just time together.",
+   "note": "Reader need: recognises the logistics-only call. Angle: plans are fine, then let them stop. No product, no CTA. Self-check: no banned word; no verdict/score/count about a person; 'normal' not 'ordinary'; no em dash; no kinship/culture words; no medical/safety/emergency claim; no invented quote or number; first-person details only from the brief. Imagery PENDING (not drawn: image API credits depleted), so 'real family absent from image' and the drawing checks are pending. Image pending: Gemini prepay credits depleted (RESOURCE_EXHAUSTED); panels.json is ready, rerun make_strip.py once topped up."
+  },
+  {
+   "day": "Fri",
+   "channel": "pinterest",
+   "title": "Leaving after a holiday visit: three easy habits",
+   "image": "",
+   "cta": false,
+   "destination": "https://heykettle.com",
+   "text": "Three easy habits for the end of a visit with your parents.\n\n1. Say when you'll call next.\n2. Leave things the way they like them.\n3. Send a note when you get home.\n\nSmall things that make the distance feel a little shorter.",
+   "alt": "Provisional, vertical three-panel strip. Dana leaving Walt's front door with a suitcase: I'll call Sunday, same as always. Caption: Say when you'll call next. In the kitchen, Walt: Leave the dishes. I have a system. Caption: Leave things the way they like them. Dana on a bus, typing on her phone: Home now. Thanks for the chess lesson. Caption: Send a note when you get home.",
+   "note": "Reader need: the goodbye at the end of a visit. Not a product pin; destination is the home page. No CTA. 'Home now' chosen over 'home safe' to keep the word safe out entirely. Self-check: no banned word; no verdict/score/count about a person; 'normal' not 'ordinary'; no em dash; no kinship/culture words; no medical/safety/emergency claim; no invented quote or number; first-person details only from the brief. Imagery PENDING (not drawn: image API credits depleted), so 'real family absent from image' and the drawing checks are pending. Image pending: Gemini prepay credits depleted (RESOURCE_EXHAUSTED); panels.json is ready, rerun make_strip.py once topped up."
+  },
+  {
+   "day": "Sat",
+   "channel": "tiktok",
+   "title": "The day after the visit.",
+   "image": "",
+   "cta": false,
+   "text": "The day after a visit, the distance comes back. For checking in, not checking up.",
+   "script": [
+    {
+     "t": "0:00-0:06",
+     "say": "The day after a holiday visit, you're back home, and your parents are far away again.",
+     "overlay": "The day after the visit",
+     "broll": "Hema face to camera"
+    },
+    {
+     "t": "0:06-0:12",
+     "say": "That's often when the low, background worry comes back.",
+     "overlay": "",
+     "broll": "Hema face to camera"
+    },
+    {
+     "t": "0:12-0:22",
+     "say": "I didn't want to watch my parents. I wanted to know their normal day happened. So I built Kettle: a short note, twice a day.",
+     "overlay": "Their normal day happened.",
+     "broll": "Phone face down on a kitchen table"
+    },
+    {
+     "t": "0:22-0:30",
+     "say": "If a morning isn't as usual, it asks them first. Before anyone else hears a thing.",
+     "overlay": "It asks them first.",
+     "broll": "Kettle on a stove, morning light"
+    },
+    {
+     "t": "0:30-0:35",
+     "say": "For checking in, not checking up.",
+     "overlay": "For checking in, not checking up.",
+     "broll": "Hema face to camera"
+    }
+   ],
+   "alt": "Provisional cover. Dana on a bus by the window, phone in her lap, a small suitcase at her feet, a calm small smile. Caption: The day after the visit.",
+   "note": "Viewer need: the quiet after leaving. Quiet takeaway, no CTA. About 35 seconds. Script ready for recording; footage checks pending. Self-check: no banned word; no verdict/score/count about a person; 'normal' not 'ordinary'; no em dash; no kinship/culture words; no medical/safety/emergency claim; no invented quote or number; first-person details only from the brief. Imagery PENDING (not drawn: image API credits depleted), so 'real family absent from image' and the drawing checks are pending. Assumption: 'I didn't want to watch my parents' adapts the brief's own beat ('watch my mother') to plural. Image pending: Gemini prepay credits depleted (RESOURCE_EXHAUSTED); panels.json is ready, rerun make_strip.py once topped up."
+  },
+  {
+   "day": "Sun",
+   "channel": "x",
+   "title": "",
+   "image": "",
+   "cta": true,
+   "text": "This month some families will sit at one table. Some will be on a call across a few time zones. Both count.\n\nKettle is for the days in between: a short note that their normal day happened.\n\nApply for the family beta at heykettle.com.",
+   "alt": "Provisional, three-panel strip. Walt at his kitchen table, phone to his ear: Save me a slice of pie. Dana in her own kitchen with a pie, laughing on the phone: I'll send you the recipe instead. Then Walt alone at his table moving a chess piece, content, a green kettle on the stove. Caption: Apart for the holiday. Still close.",
+   "note": "Reader need: the families who can't travel this year. Beta CTA 2 of 2. 'A few time zones' is general, not a claim about any real family. Self-check: no banned word; no verdict/score/count about a person; 'normal' not 'ordinary'; no em dash; no kinship/culture words; no medical/safety/emergency claim; no invented quote or number; first-person details only from the brief. Imagery PENDING (not drawn: image API credits depleted), so 'real family absent from image' and the drawing checks are pending. Image pending: Gemini prepay credits depleted (RESOURCE_EXHAUSTED); panels.json is ready, rerun make_strip.py once topped up."
+  }
+ ]
+}

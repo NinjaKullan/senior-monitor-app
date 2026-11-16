@@ -1,0 +1,34 @@
+{
+ "panels": [
+  {
+   "scene": "Walt opening his front door, smiling, Dana on the step with a small suitcase, both happy to see each other. Top third plain wall and sky.",
+   "dialogue": [
+    [
+     "WALT",
+     "You made it. Want to see the bike?"
+    ]
+   ],
+   "caption": "Ask what they want to do."
+  },
+  {
+   "scene": "Dana and Walt at his garage workbench, Walt pointing at a bicycle wheel on a stand, Dana holding a wrench, curious. Top third plain pegboard wall.",
+   "dialogue": [
+    [
+     "DANA",
+     "Show me what you're fixing."
+    ]
+   ],
+   "caption": "Join in on what they already do."
+  },
+  {
+   "scene": "Dana and Walt sitting side by side at a diner counter with two mugs of coffee, Walt turned toward Dana, relaxed. Top third plain wall.",
+   "dialogue": [
+    [
+     "WALT",
+     "So. Tell me about your work."
+    ]
+   ],
+   "caption": "Let them lead the talk."
+  }
+ ]
+}

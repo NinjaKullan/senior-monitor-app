@@ -1,0 +1,34 @@
+{
+ "panels": [
+  {
+   "scene": "Dana at Walt's front door with her small suitcase, leaving, Walt in the doorway, both smiling. Top third plain wall and sky.",
+   "dialogue": [
+    [
+     "DANA",
+     "I'll call Sunday, same as always."
+    ]
+   ],
+   "caption": "Say when you'll call next."
+  },
+  {
+   "scene": "Dana in Walt's kitchen holding a plate by the sink, Walt beside her with a mug, raising one hand in good humour, the small green stovetop kettle on the stove behind them. Top third plain wall.",
+   "dialogue": [
+    [
+     "WALT",
+     "Leave the dishes. I have a system."
+    ]
+   ],
+   "caption": "Leave things the way they like them."
+  },
+  {
+   "scene": "Dana sitting on a bus by the window, typing on her phone, smiling. Top third plain bus ceiling.",
+   "dialogue": [
+    [
+     "DANA",
+     "Home now. Thanks for the chess lesson."
+    ]
+   ],
+   "caption": "Send a note when you get home."
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "panels": [
+  {
+   "scene": "Walt at his kitchen table, phone at his ear, smiling, the small green stovetop kettle on the stove behind them. Top third plain wall.",
+   "dialogue": [
+    [
+     "WALT",
+     "Save me a slice of pie."
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "Dana in her own kitchen far away, a pie on the counter, phone at her ear, laughing. Top third plain wall.",
+   "dialogue": [
+    [
+     "DANA",
+     "I'll send you the recipe instead."
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "Walt at his kitchen table moving a chess piece on a chess set, content, mug beside him, the small green stovetop kettle on the stove behind them. Top third plain wall.",
+   "dialogue": [],
+   "caption": "Apart for the holiday. Still close."
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "panels": [
+  {
+   "scene": "Dana walking on a city sidewalk with a phone at her ear and a small rolling suitcase, brisk and cheerful. Top third plain sky.",
+   "dialogue": [
+    [
+     "DANA",
+     "I land at four. Who's picking me up?"
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "Walt at a diner counter with a folded newspaper and coffee, phone at his ear, amused. Top third plain wall.",
+   "dialogue": [
+    [
+     "WALT",
+     "Me. I'll be the one with the beard."
+    ]
+   ],
+   "caption": ""
+  },
+  {
+   "scene": "Walt standing beside his car at a curb, giving Dana a hug, her suitcase beside them, both smiling. Top third plain sky, no signs anywhere.",
+   "dialogue": [],
+   "caption": "After that, just time together."
+  }
+ ]
+}
